@@ -1,31 +1,37 @@
 site:
-  name: AstroWind
-  site: 'https://astrowind.vercel.app'
+  name: JyotirSetu
+  site: 'https://jyotirsetu.com'
   base: '/'
   trailingSlash: false
 
-  googleSiteVerificationId: orcPxI47GSa-cRvY11tUe6iGg2IO_RPvnA1q95iEM3M
+  googleSiteVerificationId: null # Add after Google Search Console verification
 
 # Default SEO metadata
 metadata:
   title:
-    default: AstroWind
-    template: '%s — AstroWind'
-  description: "\U0001F680 Suitable for Startups, Small Business, Sass Websites, Professional Portfolios, Marketing Websites, Landing Pages & Blogs."
+    default: JyotirSetu
+    template: '%s — JyotirSetu'
+  description: "Professional astrology, palmistry & numerology consultations by Astrologer Punita Sharma."
   robots:
     index: true
     follow: true
   openGraph:
-    site_name: AstroWind
+    site_name: JyotirSetu
     images:
-      - url: '~/assets/images/default.png'
+      - url: '~/assets/images/logo.png'   # Your logo for social sharing
         width: 1200
         height: 628
+        alt: 'JyotirSetu Logo'
     type: website
   twitter:
-    handle: '@arthelokyo'
-    site: '@arthelokyo'
+    handle: null
+    site: null
     cardType: summary_large_image
+    images:
+      - url: '~/assets/images/logo.png'   # Logo for Twitter card
+        width: 1200
+        height: 628
+        alt: 'JyotirSetu Logo'
 
 i18n:
   language: en
@@ -38,25 +44,25 @@ apps:
 
     post:
       isEnabled: true
-      permalink: '/%slug%' # Variables: %slug%, %year%, %month%, %day%, %hour%, %minute%, %second%, %category%
+      permalink: '/%slug%' 
       robots:
         index: true
 
     list:
       isEnabled: true
-      pathname: 'blog' # Blog main path, you can change this to "articles" (/articles)
+      pathname: 'blog'
       robots:
         index: true
 
     category:
       isEnabled: true
-      pathname: 'category' # Category main path /category/some-category, you can change this to "group" (/group/some-category)
+      pathname: 'category'
       robots:
         index: true
 
     tag:
       isEnabled: true
-      pathname: 'tag' # Tag main path /tag/some-tag, you can change this to "topics" (/topics/some-category)
+      pathname: 'tag'
       robots:
         index: false
 
@@ -66,7 +72,7 @@ apps:
 analytics:
   vendors:
     googleAnalytics:
-      id: null # or "G-XXXXXXXXXX"
+      id: null # Add after Google Analytics setup
 
 ui:
-  theme: 'system' # Values: "system" | "light" | "dark" | "light:only" | "dark:only"
+  theme: 'system'

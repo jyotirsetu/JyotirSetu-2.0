@@ -26,26 +26,24 @@ const metadata = {
       {
         variant: 'primary',
         text: 'Book your Appointment',
-        href: 'https://github.com/arthelokyo/astrowind',
-        target: '_blank',
-        icon: 'tabler:download',
+        href: '/ScheduleAppointmentJyotirSetu',
+        icon: 'tabler:calendar',
       },
       { text: 'Learn more', href: '#features' },
     ]}
     image={{ src: '~/assets/images/2hero-image.png', alt: 'JyotirSetu Hero Image' }}
   >
-    <Fragment slot="title">
+    <div slot="title">
       JyotirSetu<span class="hidden xl:inline"></span>
       <span class="text-accent dark:text-white"> Astrology</span>
-    </Fragment>
+    </div>
 
-    <Fragment slot="subtitle">
+    <div slot="subtitle">
       <span class="hidden sm:inline">
-        <span class="font-semibold">At JyotirSetu,</span> we offer expert guidance in Vedic Astrology, Palmistry, and Numerology — </span
-      >
+        <span class="font-semibold">At JyotirSetu,</span> we offer expert guidance in Vedic Astrology, Palmistry, and Numerology — </span>
       <span class="block mb-1 sm:hidden font-bold text-blue-600">AstroWind: Production-ready.</span>
-      helping you gain deeper clarity, direction, and peace of mind in life’s journey.
-    </Fragment>
+      helping you gain deeper clarity, direction, and peace of mind in life's journey.
+    </div>
   </Hero>
 
   <!-- Note Widget ******************* -->
@@ -70,31 +68,31 @@ const metadata = {
         title: 'Holistic Guidance',
         description:
           'We combine Astrology, Palmistry, and Numerology for a 360° view of your life’s journey.',
-        icon: 'tabler:star',
+        icon: 'flat-color-icons:gallery',
       },
       {
         title: 'Authentic Vedic Knowledge',
         description:
           'Rooted in over 25+ years of experience, ensuring genuine and reliable insights.',
-        icon: 'tabler:sun',
+        icon: 'flat-color-icons:approval',
       },
       {
         title: 'Clarity & Peace of Mind',
         description:
           'Our consultations focus on removing confusion and guiding you with confidence.',
-        icon: 'tabler:moon-stars',
+        icon: 'flat-color-icons:document',
       },
       {
         title: 'Trust & Transparency',
         description:
           "No fear-based predictions — only clear, compassionate, and solution-oriented advice.",
-        icon: 'tabler:scale',
+        icon: 'flat-color-icons:advertising',
       },
       {
         title: 'Convenient & Accessible',
         description:
           'Book appointments easily online, with flexible options for in-person or virtual sessions.',
-        icon: 'tabler:world',
+        icon: 'flat-color-icons:currency-exchange',
       },
     ]}
   />
@@ -127,14 +125,14 @@ const metadata = {
       alt: 'Colorful Image',
     }}
   >
-    <Fragment slot="content">
+    <div slot="content">
       <h3 class="text-2xl font-bold tracking-tight dark:text-white sm:text-3xl mb-2">Building on modern foundations</h3>
       Gain a competitive advantage by incorporating industry leading practices
-    </Fragment>
+    </div>
 
-    <Fragment slot="bg">
+    <div slot="bg">
       <div class="absolute inset-0 bg-blue-50 dark:bg-transparent"></div>
-    </Fragment>
+    </div>
   </Content>
 
   <!-- Content Widget **************** -->
@@ -167,11 +165,11 @@ const metadata = {
       alt: 'Blueprint Image',
     }}
   >
-    <Fragment slot="content">Ensure your guidance truly empowers you.</Fragment>
+    <div slot="content">Ensure your guidance truly empowers you.</div>
 
-    <Fragment slot="bg">
+    <div slot="bg">
       <div class="absolute inset-0 bg-blue-50 dark:bg-transparent"></div>
-    </Fragment>
+    </div>
   </Content>
 
   <!-- Content Widget **************** -->
@@ -205,11 +203,11 @@ const metadata = {
       alt: 'Astronauts Image',
     }}
   >
-    <Fragment slot="content">Designed to Transform Your Journey.</Fragment>
+    <div slot="content">Designed to Transform Your Journey.</div>
 
-    <Fragment slot="bg">
+    <div slot="bg">
       <div class="absolute inset-0 bg-blue-50 dark:bg-transparent"></div>
-    </Fragment>
+    </div>
   </Content>
 
   <!-- Steps Widget ****************** -->
@@ -232,7 +230,7 @@ const metadata = {
       {
         title: 'Step 3: <span class="font-medium">Receive Expert Guidance</span>',
         description:
-          'Our experienced astrologers and consultants prepare a detailed reading, offering practical solutions and spiritual clarity that align with your life’s journey.',
+          'Our experienced astrologers and consultants prepare a detailed reading, offering practical solutions and spiritual clarity that align with your life\'s journey.',
         icon: 'tabler:stars',
       },
       {
@@ -247,6 +245,24 @@ const metadata = {
       alt: 'Steps image',
     }}
   />
+  
+  <!-- Book Appointment Button for Your Path to Clarity Section -->
+  <section class="px-4 py-16 mx-auto max-w-7xl lg:py-20">
+    <div class="text-center">
+      <div class="flex justify-center mb-8">
+        <a
+          href="/ScheduleAppointmentJyotirSetu"
+          class="inline-flex items-center justify-center w-full px-8 py-4 text-base font-medium text-white transition duration-500 ease-in-out transform bg-blue-600 border border-transparent rounded-md shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:w-auto"
+        >
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+          </svg>
+          Book Your Appointment
+        </a>
+      </div>
+    </div>
+  </section>
+
   <Content
     isReversed
     tagline=" "
@@ -267,8 +283,8 @@ const metadata = {
       {
         title: '',
         description:
-          'Certified Numerologist – All India Federation of Astrologers’ Societies (AIFAS)',
-          icon: 'tabler:123',
+          'Certified Numerologist – All India Federation of Astrologers\' Societies (AIFAS)',
+          icon: 'tabler:numbers',
       },
       {
         title: '',
@@ -289,21 +305,21 @@ const metadata = {
       alt: 'Colorful Image',
     }}
   >
-    <Fragment slot="content">
+    <div slot="content">
       <h3 class="text-2xl font-bold tracking-tight dark:text-white sm:text-3xl mb-2">🌟Our Astrologer – Punita Sharma</h3>
       With over 25 years of expertise in Astrology, Palmistry & Numerology, Punita Sharma (M.A. Sanskrit) has guided thousands of clients with accurate predictions and practical remedies. Her deep knowledge, compassionate approach, and professional ethics make her one of the most trusted names in the field.
-    </Fragment>
+    </div>
 
-    <Fragment slot="bg">
+    <div slot="bg">
       <div class="absolute inset-0 bg-blue-50 dark:bg-transparent"></div>
-    </Fragment>
+    </div>
   </Content>
 
   <!-- Features2 Widget ************** -->
 
   <Features2
     title="🔮 Our Most Trusted Astrology Services"
-    subtitle="Guiding you through life’s journey with clarity and cosmic wisdom."
+    subtitle="Guiding you through life's journey with clarity and cosmic wisdom."
     tagline="Our Services"
     items={[
       {
@@ -358,9 +374,9 @@ const metadata = {
       },
     ]}
   >
-    <Fragment slot="bg">
+    <div slot="bg">
       <div class="absolute inset-0 bg-blue-50 dark:bg-transparent"></div>
-    </Fragment>
+    </div>
   </Features2>
 
   <!-- HighlightedPosts Widget ******* -->
@@ -468,19 +484,18 @@ const metadata = {
       {
         variant: 'primary',
         text: 'Book your Appointment',
-        href: 'https://github.com/arthelokyo/astrowind',
-        target: '_blank',
-        icon: 'tabler:download',
+        href: '/ScheduleAppointmentJyotirSetu',
+        icon: 'tabler:calendar',
       },
     ]}
   >
-    <Fragment slot="title">
+    <div slot="title">
       About JyotirSetu<br class="block sm:hidden" /><span class="sm:whitespace-nowrap"></span>
-    </Fragment>
+    </div>
 
-    <Fragment slot="subtitle">
+    <div slot="subtitle">
       JyotirSetu – Bridging Cosmic Light with Modern Guidance. Authentic Vedic Astrology consultations to illuminate your path.<br class="hidden md:inline" />Don't
       waste more time! 
-    </Fragment>
+    </div>
   </CallToAction>
 </Layout>

@@ -2,38 +2,58 @@
 import type { Form as Props } from '~/types';
 import Button from '~/components/ui/Button.astro';
 
-const { inputs, textarea, disclaimer, button = 'Contact us', description = '' } = Astro.props;
+const { inputs, textarea, disclaimer, button = 'Contact us', description = '', action, method = 'POST', captcha, columns = 1 } = Astro.props;
 ---
 
-<form>
+<form {...action ? { action } : {}} method={method} class="space-y-6">
   {
-    inputs &&
-      inputs.map(
-        ({ type = 'text', name, label = '', autocomplete = 'on', placeholder = '' }) =>
-          name && (
-            <div class="mb-6">
-              {label && (
-                <label for={name} class="block text-sm font-medium">
-                  {label}
-                </label>
-              )}
-              <input
-                type={type}
-                name={name}
-                id={name}
-                autocomplete={autocomplete}
-                placeholder={placeholder}
-                class="py-3 px-4 block w-full text-md rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-900"
-              />
-            </div>
-          )
-      )
+    inputs && (
+      <div class={`grid gap-6 ${columns === 2 ? 'md:grid-cols-2' : 'grid-cols-1'}`}>
+        {inputs.map(
+          ({ type = 'text', name, label = '', autocomplete = 'on', placeholder = '', options = [], required = false, fullWidth = false }) =>
+            name && (
+              <div class={`space-y-2 ${fullWidth ? 'md:col-span-2' : ''}`}>
+                {label && (
+                  <label for={name} class="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+                    {label} {required && <span class="text-red-500">*</span>}
+                  </label>
+                )}
+                {
+                  type === 'select' ? (
+                    <select
+                      name={name}
+                      id={name}
+                      required={required}
+                      class="py-3 px-4 block w-full text-md rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                    >
+                      <option value="">Choose one...</option>
+                      {options.map(({ label: optionLabel, value }) => (
+                        <option value={value}>{optionLabel ?? value}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      type={type}
+                      name={name}
+                      id={name}
+                      required={required}
+                      autocomplete={autocomplete}
+                      placeholder={placeholder}
+                      class="py-3 px-4 block w-full text-md rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                    />
+                  )
+                }
+              </div>
+            )
+        )}
+      </div>
+    )
   }
 
   {
     textarea && (
-      <div>
-        <label for="textarea" class="block text-sm font-medium">
+      <div class="space-y-2">
+        <label for="textarea" class="block text-sm font-semibold text-gray-700 dark:text-gray-300">
           {textarea.label}
         </label>
         <textarea
@@ -41,7 +61,36 @@ const { inputs, textarea, disclaimer, button = 'Contact us', description = '' } 
           name={textarea.name ? textarea.name : 'message'}
           rows={textarea.rows ? textarea.rows : 4}
           placeholder={textarea.placeholder}
-          class="py-3 px-4 block w-full text-md rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-900"
+          class="py-3 px-4 block w-full text-md rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors resize-none"
+        />
+      </div>
+    )
+  }
+
+  {
+    captcha && (
+      <div class="space-y-2">
+        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+          Captcha Verification
+        </label>
+        <div class="flex items-center space-x-4">
+          <div class="flex-1 bg-gray-100 dark:bg-gray-800 p-3 rounded-lg text-center font-mono text-lg tracking-wider">
+            {captcha.text || 'ABC123'}
+          </div>
+          <button 
+            type="button" 
+            class="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+            onclick="this.previousElementSibling.textContent = Math.random().toString(36).substring(2, 8).toUpperCase()"
+          >
+            ↻
+          </button>
+        </div>
+        <input
+          type="text"
+          name="captcha"
+          placeholder="Enter the code above"
+          required
+          class="py-3 px-4 block w-full text-md rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
         />
       </div>
     )
@@ -49,28 +98,25 @@ const { inputs, textarea, disclaimer, button = 'Contact us', description = '' } 
 
   {
     disclaimer && (
-      <div class="mt-3 flex items-start">
-        <div class="flex mt-0.5">
-          <input
-            id="disclaimer"
-            name="disclaimer"
-            type="checkbox"
-            class="cursor-pointer mt-1 py-3 px-4 block w-full text-md rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-900"
-          />
-        </div>
-        <div class="ml-3">
-          <label for="disclaimer" class="cursor-pointer select-none text-sm text-gray-600 dark:text-gray-400">
-            {disclaimer.label}
-          </label>
-        </div>
+      <div class="flex items-start space-x-3">
+        <input
+          id="disclaimer"
+          name="disclaimer"
+          type="checkbox"
+          required
+          class="mt-1 h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+        />
+        <label for="disclaimer" class="text-sm text-gray-600 dark:text-gray-400">
+          {disclaimer.label}
+        </label>
       </div>
     )
   }
 
   {
     button && (
-      <div class="mt-10 grid">
-        <Button variant="primary" type="submit">
+      <div class="pt-4">
+        <Button variant="primary" type="submit" class="w-full py-4 text-lg font-semibold">
           {button}
         </Button>
       </div>
@@ -79,7 +125,7 @@ const { inputs, textarea, disclaimer, button = 'Contact us', description = '' } 
 
   {
     description && (
-      <div class="mt-3 text-center">
+      <div class="text-center pt-4">
         <p class="text-sm text-gray-600 dark:text-gray-400">{description}</p>
       </div>
     )

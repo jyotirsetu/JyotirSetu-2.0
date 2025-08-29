@@ -1,9 +1,32 @@
 ---
 import { SITE } from 'astrowind:config';
+import Image from '~/components/common/Image.astro';
 ---
 
-<span
-  class="self-center ml-2 rtl:ml-0 rtl:mr-2 text-2xl md:text-xl font-bold text-gray-900 whitespace-nowrap dark:text-white"
->
-  🚀 {SITE?.name}
-</span>
+<a href="/" class="flex items-center logo-container">
+  <Image
+    src="~/assets/images/Jyotirsetu-logo.png"
+    alt="JyotirSetu Logo"
+    width={200}
+    height={60}
+    class="h-10 md:h-12 w-auto max-w-[180px] md:max-w-[220px] object-contain"
+  />
+</a>
+
+<style>
+  .logo-container {
+    transform: translateX(-120px);
+    margin-left: -20px;
+    min-height: 50px;
+    padding: 4px 0;
+  }
+  
+  @media (min-width: 768px) {
+    .logo-container {
+      transform: translateX(-220px);
+      margin-left: -50px;
+      min-height: 60px;
+      padding: 6px 0;
+    }
+  }
+</style>

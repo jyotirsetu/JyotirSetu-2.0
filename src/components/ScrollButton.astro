@@ -1,0 +1,151 @@
+---
+// Scroll Button Component
+---
+
+<!-- Scroll Button -->
+<button
+  id="scrollButton"
+  class="fixed bottom-6 left-6 z-40 bg-primary hover:bg-primary-dark text-white p-3 rounded-full shadow-lg transition-all duration-300 transform hover:scale-110 opacity-0 pointer-events-none"
+  aria-label="Scroll to top or bottom"
+  title="Scroll to top or bottom"
+>
+  <!-- Up Arrow Icon (for going to top) -->
+  <svg id="upIcon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
+  </svg>
+  
+  <!-- Down Arrow Icon (for going to bottom) -->
+  <svg id="downIcon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+  </svg>
+</button>
+
+<script>
+  class ScrollButton {
+    constructor() {
+      this.button = document.getElementById('scrollButton');
+      this.upIcon = document.getElementById('upIcon');
+      this.downIcon = document.getElementById('downIcon');
+      this.isVisible = false;
+      this.isAtBottom = false;
+      
+      this.init();
+    }
+    
+    init() {
+      if (!this.button) return;
+      
+      this.checkScrollPosition();
+      this.bindEvents();
+    }
+    
+    bindEvents() {
+      // Scroll event
+      window.addEventListener('scroll', () => {
+        this.checkScrollPosition();
+      });
+      
+      // Button click event
+      this.button.addEventListener('click', () => {
+        this.scrollToTarget();
+      });
+    }
+    
+    checkScrollPosition() {
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      const windowHeight = window.innerHeight;
+      const documentHeight = document.documentElement.scrollHeight;
+      const scrollPercentage = (scrollTop / (documentHeight - windowHeight)) * 100;
+      
+      // Show button when scrolled down a bit
+      if (scrollTop > 300) {
+        this.showButton();
+      } else {
+        this.hideButton();
+        return;
+      }
+      
+      // Determine if we're at the bottom (last 10% of page)
+      this.isAtBottom = scrollPercentage > 90;
+      
+      // Update button appearance
+      if (this.isAtBottom) {
+        this.showUpIcon();
+        this.button.title = 'Go to Top';
+      } else {
+        this.showDownIcon();
+        this.button.title = 'Go to Bottom';
+      }
+    }
+    
+    showButton() {
+      if (!this.isVisible) {
+        this.button.classList.remove('opacity-0', 'pointer-events-none');
+        this.button.classList.add('opacity-100');
+        this.isVisible = true;
+      }
+    }
+    
+    hideButton() {
+      if (this.isVisible) {
+        this.button.classList.add('opacity-0', 'pointer-events-none');
+        this.button.classList.remove('opacity-100');
+        this.isVisible = false;
+      }
+    }
+    
+    showUpIcon() {
+      this.upIcon.classList.remove('hidden');
+      this.downIcon.classList.add('hidden');
+    }
+    
+    showDownIcon() {
+      this.downIcon.classList.remove('hidden');
+      this.upIcon.classList.add('hidden');
+    }
+    
+    scrollToTarget() {
+      if (this.isAtBottom) {
+        // Scroll to top
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        });
+      } else {
+        // Scroll to bottom
+        window.scrollTo({
+          top: document.documentElement.scrollHeight,
+          behavior: 'smooth'
+        });
+      }
+    }
+  }
+  
+  // Initialize scroll button when DOM is loaded
+  document.addEventListener('DOMContentLoaded', () => {
+    new ScrollButton();
+  });
+</script>
+
+<style>
+  /* Ensure the scroll button is above other content */
+  #scrollButton {
+    z-index: 9998;
+  }
+  
+  /* Animation for the button */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  #scrollButton.opacity-100 {
+    animation: fadeIn 0.3s ease-out;
+  }
+</style>
