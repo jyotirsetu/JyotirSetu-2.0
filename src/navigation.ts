@@ -11,8 +11,8 @@ export const headerData = {
       href: getPermalink('/about'),
     },
     {
-      text: 'Blog',
-      href: getBlogPermalink(),
+      text: 'Online Kundli',
+      href: getPermalink('/online-kundli'),
     },
     {
       text: 'Testimonials',
@@ -41,7 +41,6 @@ export const footerData = {
       links: [
         { text: 'About Us', href: '/about' },
         { text: 'Testimonials', href: '/testimonials' },
-        { text: 'Blog', href: '/blog' },
         { text: 'Contact', href: '/contact' },
       ],
     },

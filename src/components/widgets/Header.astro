@@ -74,7 +74,20 @@ const currentPath = `/${trimSlash(new URL(Astro.url).pathname)}`;
       <a class="flex items-center" href={getHomePermalink()}>
         <Logo />
       </a>
+      <!-- Mobile Header Buttons - Always Visible -->
       <div class="flex items-center md:hidden">
+        <div class="flex items-center mr-2">
+          {showToggleTheme && <ToggleTheme iconClass="w-6 h-6" />}
+          <!-- Call Icon -->
+          <a
+            href="tel:+919266991298"
+            class="text-muted dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5 inline-flex items-center ml-2"
+            aria-label="Call Us"
+            title="Call +91 9266991298"
+          >
+            <Icon name="tabler:phone-call" class="w-5 h-5" />
+          </a>
+        </div>
         <ToggleMenu />
       </div>
     </div>
@@ -149,10 +162,10 @@ const currentPath = `/${trimSlash(new URL(Astro.url).pathname)}`;
               </a>
             )
           }
-          <!-- Call Icon -->
+          <!-- Call Icon - Desktop Only -->
           <a
             href="tel:+919266991298"
-            class="text-muted dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5 inline-flex items-center ml-2"
+            class="text-muted dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5 inline-flex items-center ml-2 hidden md:inline-flex"
             aria-label="Call Us"
             title="Call +91 9266991298"
           >

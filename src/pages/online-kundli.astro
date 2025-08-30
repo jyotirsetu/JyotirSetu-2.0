@@ -1,0 +1,343 @@
+---
+import Layout from '~/layouts/PageLayout.astro';
+import Hero from '~/components/widgets/Hero.astro';
+import CallToAction from '~/components/widgets/CallToAction.astro';
+
+const metadata = {
+  title: 'Online Kundli - Get Accurate Birth Chart Instantly | JyotirSetu',
+  description: 'Create your Janam Kundli online with JyotirSetu. Get accurate birth chart analysis instantly based on your date, time, and place of birth. Professional Vedic astrology consultation.',
+};
+---
+
+<script>
+  function generateKundli(event) {
+    event.preventDefault();
+    
+    const formData = new FormData(event.target);
+    const name = formData.get('name');
+    const gender = formData.get('gender');
+    const day = formData.get('day');
+    const month = formData.get('month');
+    const year = formData.get('year');
+    const hour = formData.get('hour');
+    const minute = formData.get('minute');
+    const second = formData.get('second');
+    const place = formData.get('place');
+    const country = formData.get('country');
+    const chartStyle = formData.get('chartStyle');
+    
+    if (!name || !gender || !day || !month || !year || !hour || !minute || !second || !place || !country || !chartStyle) {
+      alert('Please fill in all required fields');
+      return;
+    }
+    
+    // Show loading state
+    const submitBtn = event.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Generating Kundli...';
+    submitBtn.disabled = true;
+    
+    // Simulate API call
+    setTimeout(() => {
+      // Hide form and show results
+      document.getElementById('kundli-form').style.display = 'none';
+      document.getElementById('kundli-results').style.display = 'block';
+      
+      // Populate results
+      document.getElementById('user-name').textContent = name;
+      document.getElementById('birth-details').textContent = `${day}/${month}/${year} at ${hour}:${minute}:${second}`;
+      document.getElementById('birth-place').textContent = `${place}, ${country}`;
+      document.getElementById('chart-style').textContent = chartStyle === 'north' ? 'North Indian' : 'South Indian';
+      
+      // Reset button
+      submitBtn.innerHTML = originalText;
+      submitBtn.disabled = false;
+    }, 2000);
+  }
+  
+  function generateNewKundli() {
+    document.getElementById('kundli-form').style.display = 'block';
+    document.getElementById('kundli-results').style.display = 'none';
+    document.querySelector('form').reset();
+  }
+</script>
+
+<Layout metadata={metadata}>
+  <!-- Hero Widget ******************* -->
+
+  <Hero
+    actions={[
+      {
+        variant: 'primary',
+        text: 'Consult Astrologer Punita Sharma',
+        href: '/ScheduleAppointmentJyotirSetu',
+        icon: 'tabler:calendar',
+      },
+      { text: 'Learn more', href: '#kundli-form' },
+    ]}
+    image={{ src: 'https://images.unsplash.com/photo-1615829676042-f8f0a12315b1?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MjB8fGdsb3dpbmclMjBwYXRoJTIwYXN0cm9sb2d5fGVufDB8MnwwfHx8Mg%3D%3D', alt: 'Vedic Astrology Kundli' }}
+  >
+    <div slot="title">
+      Online Kundli<br />
+      <span class="text-accent dark:text-white">Get Accurate Birth Chart Instantly</span>
+    </div>
+
+    <div slot="subtitle">
+      Discover your life's blueprint with JyotirSetu's advanced online Kundli generator. 
+      Get instant access to your detailed birth chart, planetary positions, and cosmic insights 
+      based on authentic Vedic astrology principles.
+    </div>
+  </Hero>
+
+  <!-- Kundli Form Section ****************** -->
+
+  <section id="kundli-form" class="px-4 py-16 mx-auto max-w-4xl lg:py-20 kundli-form-container">
+    <div class="text-center mb-12">
+      <h2 class="text-3xl font-bold leading-tight tracking-tight text-gray-900 md:text-4xl lg:text-5xl dark:text-white">
+        Create Your Janam Kundli
+      </h2>
+      <p class="mt-4 text-xl text-gray-600 dark:text-slate-400">
+        Enter your birth details to generate your personalized birth chart instantly
+      </p>
+    </div>
+
+    <div class="bg-white dark:bg-slate-900 rounded-lg shadow-xl p-8 border border-gray-200 dark:border-slate-700">
+      <form class="space-y-6" onsubmit="generateKundli(event)">
+        <!-- Name and Gender -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Full Name</label>
+            <input type="text" id="name" name="name" required class="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-800 dark:text-white">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Gender</label>
+            <div class="flex space-x-4">
+              <label class="flex items-center">
+                <input type="radio" name="gender" value="male" class="mr-2">
+                <span class="text-gray-700 dark:text-gray-300">Male</span>
+              </label>
+              <label class="flex items-center">
+                <input type="radio" name="gender" value="female" class="mr-2">
+                <span class="text-gray-700 dark:text-gray-300">Female</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Date of Birth -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label for="day" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Day</label>
+            <select id="day" name="day" required class="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-800 dark:text-white">
+              <option value="">Select Day</option>
+              {Array.from({length: 31}, (_, i) => i + 1).map(day => (
+                <option value={day}>{day}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label for="month" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Month</label>
+            <select id="month" name="month" required class="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-800 dark:text-white">
+              <option value="">Select Month</option>
+              <option value="1">January</option>
+              <option value="2">February</option>
+              <option value="3">March</option>
+              <option value="4">April</option>
+              <option value="5">May</option>
+              <option value="6">June</option>
+              <option value="7">July</option>
+              <option value="8">August</option>
+              <option value="9">September</option>
+              <option value="10">October</option>
+              <option value="11">November</option>
+              <option value="12">December</option>
+            </select>
+          </div>
+          <div>
+            <label for="year" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Year</label>
+            <select id="year" name="year" required class="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-800 dark:text-white">
+              <option value="">Select Year</option>
+              {Array.from({length: 106}, (_, i) => 1920 + i).reverse().map(year => (
+                <option value={year}>{year}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <!-- Time of Birth -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label for="hour" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Hour</label>
+            <select id="hour" name="hour" required class="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-800 dark:text-white">
+              <option value="">Select Hour</option>
+              {Array.from({length: 24}, (_, i) => i).map(hour => (
+                <option value={hour}>{hour.toString().padStart(2, '0')}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label for="minute" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Minute</label>
+            <select id="minute" name="minute" required class="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-800 dark:text-white">
+              <option value="">Select Minute</option>
+              {Array.from({length: 60}, (_, i) => i).map(minute => (
+                <option value={minute}>{minute.toString().padStart(2, '0')}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label for="second" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Second</label>
+            <select id="second" name="second" required class="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-800 dark:text-white">
+              <option value="">Select Second</option>
+              {Array.from({length: 60}, (_, i) => i).map(second => (
+                <option value={second}>{second.toString().padStart(2, '0')}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <!-- Place of Birth -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label for="place" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Place of Birth</label>
+            <input type="text" id="place" name="place" placeholder="Enter city name" required class="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-800 dark:text-white">
+          </div>
+          <div>
+            <label for="country" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Country</label>
+            <select id="country" name="country" required class="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-800 dark:text-white">
+              <option value="">Select Country</option>
+              <option value="India">India</option>
+              <option value="USA">United States</option>
+              <option value="UK">United Kingdom</option>
+              <option value="Canada">Canada</option>
+              <option value="Australia">Australia</option>
+              <option value="Germany">Germany</option>
+              <option value="France">France</option>
+              <option value="Japan">Japan</option>
+              <option value="China">China</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Chart Style -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Chart Style</label>
+          <div class="flex space-x-4">
+            <label class="flex items-center">
+              <input type="radio" name="chartStyle" value="north" class="mr-2">
+              <span class="text-gray-700 dark:text-gray-300">North Indian Chart Style</span>
+            </label>
+            <label class="flex items-center">
+              <input type="radio" name="chartStyle" value="south" class="mr-2">
+              <span class="text-gray-700 dark:text-gray-300">South Indian Chart Style</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="text-center">
+          <button type="submit" class="inline-flex items-center justify-center px-8 py-4 text-base font-medium text-white transition duration-500 ease-in-out transform bg-blue-600 border border-transparent rounded-md shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+                         Generate Your Kundli Now
+          </button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <!-- Kundli Results Section ****************** -->
+
+  <section id="kundli-results" class="px-4 py-16 mx-auto max-w-4xl lg:py-20 results-container" style="display: none;">
+    <div class="text-center mb-12">
+      <h2 class="text-3xl font-bold leading-tight tracking-tight text-gray-900 md:text-4xl lg:text-5xl dark:text-white">
+        Your Janam Kundli
+      </h2>
+      <p class="mt-4 text-xl text-gray-600 dark:text-slate-400">
+        Your personalized birth chart has been generated successfully
+      </p>
+    </div>
+
+    <div class="bg-white dark:bg-slate-900 rounded-lg shadow-xl p-8 border border-gray-200 dark:border-slate-700">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <!-- Personal Details -->
+        <div class="space-y-4">
+          <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Personal Details</h3>
+          <div class="space-y-3">
+            <div class="flex justify-between">
+              <span class="text-gray-600 dark:text-gray-400">Name:</span>
+              <span class="font-medium text-gray-900 dark:text-white" id="user-name"></span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600 dark:text-gray-400">Birth Date & Time:</span>
+              <span class="font-medium text-gray-900 dark:text-white" id="birth-details"></span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600 dark:text-gray-400">Place of Birth:</span>
+              <span class="font-medium text-gray-900 dark:text-white" id="birth-place"></span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600 dark:text-gray-400">Chart Style:</span>
+              <span class="font-medium text-gray-900 dark:text-white" id="chart-style"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Kundli Chart Preview -->
+        <div class="space-y-4">
+          <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Birth Chart Preview</h3>
+          <div class="bg-gray-50 dark:bg-slate-800 rounded-lg p-6 text-center">
+            <div class="w-48 h-48 mx-auto bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900 dark:to-purple-900 rounded-lg border-2 border-blue-200 dark:border-blue-700 flex items-center justify-center chart-preview">
+              <div class="text-center">
+                <div class="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-2">Kundli</div>
+                <div class="text-sm text-gray-600 dark:text-gray-400">Chart Generated</div>
+              </div>
+            </div>
+            <p class="mt-4 text-sm text-gray-600 dark:text-gray-400">
+              Your detailed birth chart with planetary positions and house analysis
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-col sm:flex-row gap-4 mt-8 justify-center">
+        <button onclick="generateNewKundli()" class="inline-flex items-center justify-center px-6 py-3 text-base font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:bg-blue-900/20 dark:border-blue-700 dark:text-blue-400 dark:hover:bg-blue-900/30">
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+          </svg>
+          Generate New Kundli
+        </button>
+        <a href="/ScheduleAppointmentJyotirSetu" class="inline-flex items-center justify-center px-6 py-3 text-base font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+          </svg>
+          Book Expert Consultation
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Call to Action Section ****************** -->
+
+  <CallToAction
+    actions={[
+      {
+        variant: 'primary',
+        text: 'Book Expert Consultation',
+        href: '/ScheduleAppointmentJyotirSetu',
+        icon: 'tabler:calendar',
+      },
+    ]}
+  >
+    <div slot="title">
+      Ready for Deeper Insights?<br class="block sm:hidden" /><span class="sm:whitespace-nowrap"></span>
+    </div>
+
+    <div slot="subtitle">
+      While our online Kundli provides valuable insights, nothing compares to personalized guidance from an expert astrologer. 
+      Book a consultation with Astrologer Punita Sharma for detailed analysis, remedies, and life guidance.
+    </div>
+  </CallToAction>
+</Layout>
