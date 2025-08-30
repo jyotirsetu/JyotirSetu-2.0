@@ -58,17 +58,24 @@ html, body {
     line-height: 1.5 !important;
   }
   
-  /* Services grid mobile optimization - Scrollable Cards */
+  /* Services grid mobile optimization - Staggered Cards */
   .Features2 .grid {
-    display: flex !important;
-    flex-direction: row !important;
-    overflow-x: auto !important;
-    scroll-snap-type: x mandatory !important;
-    gap: 1rem !important;
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 1.5rem !important;
     padding: 0.5rem 0 !important;
-    -webkit-overflow-scrolling: touch !important;
-    scrollbar-width: none !important; /* Firefox */
-    -ms-overflow-style: none !important; /* IE and Edge */
+  }
+  
+  .Features2 .card:nth-child(odd) {
+    transform: translateX(0) !important;
+  }
+  
+  .Features2 .card:nth-child(even) {
+    transform: translateX(1rem) !important;
+  }
+  
+  .Features2 .card:nth-child(3n) {
+    transform: translateX(-0.5rem) !important;
   }
   
   .Features2 .grid::-webkit-scrollbar {
@@ -93,31 +100,7 @@ html, body {
     box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.2) !important;
   }
   
-  /* Add scroll indicators */
-  .Features2 {
-    position: relative !important;
-  }
-  
-  .Features2::before,
-  .Features2::after {
-    content: '' !important;
-    position: absolute !important;
-    top: 0 !important;
-    bottom: 0 !important;
-    width: 20px !important;
-    pointer-events: none !important;
-    z-index: 10 !important;
-  }
-  
-  .Features2::before {
-    left: 0 !important;
-    background: linear-gradient(to right, rgba(0, 0, 0, 0.3), transparent) !important;
-  }
-  
-  .Features2::after {
-    right: 0 !important;
-    background: linear-gradient(to left, rgba(0, 0, 0, 0.3), transparent) !important;
-  }
+
   
   /* Statistics mobile optimization */
   .Stats .grid {

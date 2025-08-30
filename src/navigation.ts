@@ -33,6 +33,7 @@ export const footerData = {
         { text: 'Astrology', href: '/services/astrology' },
         { text: 'Palmistry', href: '/services/palmistry' },
         { text: 'Numerology', href: '/services/numerology' },
+        { text: 'Online Kundli', href: '/online-kundli' },
         { text: 'Book Appointment', href: '/ScheduleAppointmentJyotirSetu' },
       ],
     },
