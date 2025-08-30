@@ -264,6 +264,7 @@ const metadata = {
   </section>
 
   <Content
+    id="meet-our-expert"
     isReversed
     tagline=" "
     title="Meet Our Expert"
@@ -465,9 +466,35 @@ const metadata = {
       { title: 'Doshas Identified & Resolved', amount: '4500+' },
       { title: 'Gemstone Consultations', amount: '3000+' },
       { title: 'Years of Expertise', amount: '25+' },
-      { title: 'Page Viewed', amount: '95487' },
+      { title: 'Page Viewed', amount: '95487', id: 'page-viewed' },
     ]}
   />
+
+  <script>
+    // Function to update page viewed count
+    function updatePageViewed() {
+      // Get current count from localStorage or start with 95487
+      const storedCount = localStorage.getItem('pageViewedCount');
+      let currentCount = storedCount ? parseInt(storedCount) : 95487;
+      
+      // Increment the count
+      currentCount++;
+      
+      // Save to localStorage
+      localStorage.setItem('pageViewedCount', String(currentCount));
+      
+      // Update the display
+      const pageViewedElement = document.querySelector('[data-stat-id="page-viewed"] .font-heading');
+      if (pageViewedElement) {
+        pageViewedElement.textContent = currentCount.toLocaleString();
+      }
+    }
+
+    // Update count when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+      updatePageViewed();
+    });
+  </script>
 
   <!-- CallToAction Widget *********** -->
 
