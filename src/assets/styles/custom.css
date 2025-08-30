@@ -71,14 +71,15 @@ html, body {
     height: 80px !important;
     margin: 0 !important;
     display: block !important;
-    filter: brightness(1.5) contrast(1.2) saturate(1.3) !important;
-    border: 2px solid rgba(255, 255, 255, 0.3) !important;
-    background: rgba(255, 255, 255, 0.1) !important;
+    filter: brightness(2.0) contrast(1.5) saturate(1.5) drop-shadow(0 0 10px rgba(255, 255, 255, 0.3)) !important;
+    border: 3px solid rgba(255, 255, 255, 0.4) !important;
+    background: rgba(255, 255, 255, 0.2) !important;
     object-fit: contain !important;
     max-width: 100% !important;
     height: auto !important;
     position: relative !important;
     z-index: 10 !important;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.2) !important;
   }
   
   /* Ensure footer logo container maintains left position like desktop */
@@ -141,6 +142,36 @@ html, body {
     width: 80px !important;
     height: 80px !important;
     border-radius: 50% !important;
+  }
+  
+  /* Enhanced mobile footer logo visibility */
+  footer .footer-logo-container {
+    position: relative !important;
+    z-index: 5 !important;
+  }
+  
+  footer .footer-logo-container::before {
+    content: '' !important;
+    position: absolute !important;
+    top: -5px !important;
+    left: -5px !important;
+    right: -5px !important;
+    bottom: -5px !important;
+    background: linear-gradient(45deg, rgba(59, 130, 246, 0.3), rgba(147, 51, 234, 0.3)) !important;
+    border-radius: 50% !important;
+    z-index: -1 !important;
+    animation: logoGlow 2s ease-in-out infinite alternate !important;
+  }
+  
+  @keyframes logoGlow {
+    from {
+      opacity: 0.5;
+      transform: scale(1);
+    }
+    to {
+      opacity: 0.8;
+      transform: scale(1.05);
+    }
   }
 }
 
@@ -540,11 +571,175 @@ a:focus {
   }
 }
 
+/* Mobile scroll container for services */
+@media (max-width: 768px) {
+  .mobile-services-scroll {
+    display: flex !important;
+    overflow-x: auto !important;
+    scroll-snap-type: x mandatory !important;
+    gap: 1rem !important;
+    padding: 0.5rem 0 !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important; /* Firefox */
+    -ms-overflow-style: none !important; /* IE and Edge */
+  }
+  
+  .mobile-services-scroll::-webkit-scrollbar {
+    display: none !important; /* Chrome, Safari, Opera */
+  }
+  
+  .mobile-services-scroll > div {
+    flex: 0 0 280px !important;
+    scroll-snap-align: start !important;
+    min-width: 280px !important;
+    margin-right: 0 !important;
+    transition: all 0.3s ease !important;
+  }
+  
+  .mobile-services-scroll > div:hover {
+    transform: translateY(-3px) !important;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1) !important;
+  }
+  
+  /* Scroll indicators */
+  .mobile-services-scroll::before,
+  .mobile-services-scroll::after {
+    content: '';
+    flex: 0 0 1rem;
+  }
+  
+  /* Smooth scroll behavior */
+  .mobile-services-scroll {
+    scroll-behavior: smooth;
+  }
+  
+  /* Active card styling */
+  .mobile-services-scroll > div:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+  }
+}
+
+/* Mobile scroll container for Trust & Excellence stats */
+@media (max-width: 768px) {
+  .mobile-stats-scroll {
+    display: flex !important;
+    overflow-x: auto !important;
+    scroll-snap-type: x mandatory !important;
+    gap: 1rem !important;
+    padding: 0.5rem 0 !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important; /* Firefox */
+    -ms-overflow-style: none !important; /* IE and Edge */
+  }
+  
+  .mobile-stats-scroll::-webkit-scrollbar {
+    display: none !important; /* Chrome, Safari, Opera */
+  }
+  
+  .mobile-stats-scroll .trust-card {
+    flex: 0 0 280px !important;
+    scroll-snap-align: start !important;
+    min-width: 280px !important;
+    margin-right: 0 !important;
+    transition: all 0.3s ease !important;
+  }
+  
+  .mobile-stats-scroll .trust-card:hover {
+    transform: translateY(-3px) !important;
+    box-shadow: 0 8px 20px rgba(255, 255, 255, 0.1) !important;
+    background: rgba(255, 255, 255, 0.15) !important;
+  }
+  
+  /* Scroll indicators */
+  .mobile-stats-scroll::before,
+  .mobile-stats-scroll::after {
+    content: '';
+    flex: 0 0 1rem;
+  }
+  
+  /* Smooth scroll behavior */
+  .mobile-stats-scroll {
+    scroll-behavior: smooth;
+  }
+  
+  /* Active card styling */
+  .mobile-stats-scroll .trust-card:focus {
+    outline: 2px solid #ffffff;
+    outline-offset: 2px;
+  }
+}
+
+/* Mobile scroll container for certifications */
+@media (max-width: 768px) {
+  .mobile-certifications-scroll {
+    display: flex !important;
+    overflow-x: auto !important;
+    scroll-snap-type: x mandatory !important;
+    gap: 1rem !important;
+    padding: 0.5rem 0 !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important; /* Firefox */
+    -ms-overflow-style: none !important; /* IE and Edge */
+  }
+  
+  .mobile-certifications-scroll::-webkit-scrollbar {
+    display: none !important; /* Chrome, Safari, Opera */
+  }
+  
+  .mobile-certifications-scroll .certification-card {
+    flex: 0 0 auto !important;
+    scroll-snap-align: start !important;
+    min-width: 120px !important;
+    margin-right: 0 !important;
+    transition: all 0.3s ease !important;
+  }
+  
+  .mobile-certifications-scroll .certification-card:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2) !important;
+    background: rgba(255, 255, 255, 0.25) !important;
+  }
+  
+  /* Scroll indicators */
+  .mobile-certifications-scroll::before,
+  .mobile-certifications-scroll::after {
+    content: '';
+    flex: 0 0 1rem;
+  }
+  
+  /* Smooth scroll behavior */
+  .mobile-certifications-scroll {
+    scroll-behavior: smooth;
+  }
+  
+  /* Active card styling */
+  .mobile-certifications-scroll .certification-card:focus {
+    outline: 2px solid #ffffff;
+    outline-offset: 2px;
+  }
+}
+
 /* Enhanced mobile experience */
 @media (max-width: 640px) {
   .mobile-scroll-container .testimonial-card {
     flex: 0 0 260px !important;
     min-width: 260px !important;
+  }
+  
+  .mobile-services-scroll > div {
+    flex: 0 0 260px !important;
+    min-width: 260px !important;
+  }
+  
+  .mobile-stats-scroll .trust-card {
+    flex: 0 0 260px !important;
+    min-width: 260px !important;
+  }
+  
+  .mobile-certifications-scroll .certification-card {
+    flex: 0 0 auto !important;
+    min-width: 100px !important;
   }
 }
 
@@ -557,6 +752,24 @@ a:focus {
   transform: scale(1.2);
 }
 
+/* Services scroll indicator animations */
+.mobile-services-scroll + div .w-2 {
+  transition: all 0.3s ease;
+}
+
+.mobile-services-scroll + div .w-2.bg-blue-400 {
+  transform: scale(1.2);
+}
+
+/* Trust & Excellence scroll indicator animations */
+.mobile-stats-scroll + div .w-2 {
+  transition: all 0.3s ease;
+}
+
+.mobile-stats-scroll + div .w-2.bg-white {
+  transform: scale(1.2);
+}
+
 /* Smooth scroll snap for better mobile experience */
 @media (max-width: 768px) {
   .mobile-scroll-container {
@@ -564,6 +777,30 @@ a:focus {
   }
   
   .mobile-scroll-container .testimonial-card {
+    scroll-margin: 0 1rem;
+  }
+  
+  .mobile-services-scroll {
+    scroll-padding: 0 1rem;
+  }
+  
+  .mobile-services-scroll > div {
+    scroll-margin: 0 1rem;
+  }
+  
+  .mobile-stats-scroll {
+    scroll-padding: 0 1rem;
+  }
+  
+  .mobile-stats-scroll .trust-card {
+    scroll-margin: 0 1rem;
+  }
+  
+  .mobile-certifications-scroll {
+    scroll-padding: 0 1rem;
+  }
+  
+  .mobile-certifications-scroll .certification-card {
     scroll-margin: 0 1rem;
   }
 }

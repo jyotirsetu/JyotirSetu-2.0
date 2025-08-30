@@ -421,36 +421,49 @@ const metadata = {
       <div class="text-center mb-12">
         <h2 class="text-3xl font-bold text-white mb-4">Trust & Excellence</h2>
         <p class="text-xl text-purple-100">Certified expertise you can rely on</p>
+        <!-- Mobile swipe instruction -->
+        <div class="md:hidden mt-4">
+          <p class="text-sm text-purple-200">← Swipe to see more stats →</p>
+        </div>
       </div>
       
-      <div class="grid md:grid-cols-3 gap-8 mb-12">
-        <div class="text-center bg-white/10 rounded-xl p-8 backdrop-blur-sm stats-counter">
+      <div class="grid md:grid-cols-3 gap-8 mb-12 mobile-stats-scroll">
+        <div class="text-center bg-white/10 rounded-xl p-8 backdrop-blur-sm stats-counter trust-card">
           <div class="text-4xl mb-4">🌍</div>
           <div class="text-3xl font-bold text-white mb-2">10,000+</div>
           <div class="text-purple-100">Clients Guided</div>
         </div>
-        <div class="text-center bg-white/10 rounded-xl p-8 backdrop-blur-sm stats-counter">
+        <div class="text-center bg-white/10 rounded-xl p-8 backdrop-blur-sm stats-counter trust-card">
           <div class="text-4xl mb-4">📜</div>
           <div class="text-3xl font-bold text-white mb-2">25+</div>
           <div class="text-purple-100">Years of Expertise</div>
         </div>
-        <div class="text-center bg-white/10 rounded-xl p-8 backdrop-blur-sm stats-counter">
+        <div class="text-center bg-white/10 rounded-xl p-8 backdrop-blur-sm stats-counter trust-card">
           <div class="text-4xl mb-4">🎓</div>
           <div class="text-lg font-bold text-white mb-2">Certified Astrologer</div>
           <div class="text-purple-100">ICAS & Bharatiya Vidya Bhavan</div>
         </div>
       </div>
       
+      <!-- Mobile scroll indicators for stats -->
+      <div class="md:hidden mt-8 text-center">
+        <div class="flex justify-center space-x-2">
+          <div class="w-2 h-2 bg-white rounded-full"></div>
+          <div class="w-2 h-2 bg-white/50 rounded-full"></div>
+          <div class="w-2 h-2 bg-white/50 rounded-full"></div>
+        </div>
+      </div>
+      
       <div class="text-center">
         <h3 class="text-xl font-semibold text-white mb-6">Certified by Leading Institutions</h3>
-        <div class="flex justify-center items-center gap-8 flex-wrap">
-          <div class="bg-white/20 rounded-lg p-4 backdrop-blur-sm">
+        <div class="flex justify-center items-center gap-8 flex-wrap mobile-certifications-scroll">
+          <div class="bg-white/20 rounded-lg p-4 backdrop-blur-sm certification-card">
             <span class="text-white font-semibold">ICAS</span>
           </div>
-          <div class="bg-white/20 rounded-lg p-4 backdrop-blur-sm">
+          <div class="bg-white/20 rounded-lg p-4 backdrop-blur-sm certification-card">
             <span class="text-white font-semibold">Bharatiya Vidya Bhavan</span>
           </div>
-          <div class="bg-white/20 rounded-lg p-4 backdrop-blur-sm">
+          <div class="bg-white/20 rounded-lg p-4 backdrop-blur-sm certification-card">
             <span class="text-white font-semibold">AIFAS</span>
           </div>
         </div>
@@ -517,6 +530,59 @@ const metadata = {
             } else {
               indicator.classList.remove('bg-blue-400');
               indicator.classList.add('bg-gray-300');
+            }
+          });
+        });
+        
+        // Add touch/swipe support for better mobile experience
+        let isScrolling = false;
+        let startX = 0;
+        let scrollLeft = 0;
+        
+        container.addEventListener('touchstart', function(e) {
+          isScrolling = true;
+          const touchEvent = e as TouchEvent;
+          startX = touchEvent.touches[0].pageX - container.offsetLeft;
+          scrollLeft = container.scrollLeft;
+        });
+        
+        container.addEventListener('touchmove', function(e) {
+          if (!isScrolling) return;
+          e.preventDefault();
+          const touchEvent = e as TouchEvent;
+          const x = touchEvent.touches[0].pageX - container.offsetLeft;
+          const walk = (x - startX) * 2;
+          container.scrollLeft = scrollLeft - walk;
+        });
+        
+        container.addEventListener('touchend', function() {
+          isScrolling = false;
+        });
+      }
+    });
+
+    // Mobile scroll enhancement for Trust & Excellence stats
+    document.addEventListener('DOMContentLoaded', function() {
+      const statsScrollContainer = document.querySelector('.mobile-stats-scroll');
+      const statsScrollIndicators = document.querySelectorAll('.mobile-stats-scroll + div .w-2');
+      
+      if (statsScrollContainer && statsScrollIndicators.length > 0) {
+        const container = statsScrollContainer as HTMLElement;
+        // Update scroll indicators based on scroll position
+        container.addEventListener('scroll', function() {
+          const scrollLeft = container.scrollLeft;
+          const maxScroll = container.scrollWidth - container.clientWidth;
+          const scrollPercentage = scrollLeft / maxScroll;
+          
+          // Update indicator colors based on scroll position
+          statsScrollIndicators.forEach((indicator, index) => {
+            const threshold = index / (statsScrollIndicators.length - 1);
+            if (scrollPercentage >= threshold) {
+              indicator.classList.remove('bg-white/50');
+              indicator.classList.add('bg-white');
+            } else {
+              indicator.classList.remove('bg-white');
+              indicator.classList.add('bg-white/50');
             }
           });
         });
