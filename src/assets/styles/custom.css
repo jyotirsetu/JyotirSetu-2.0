@@ -416,6 +416,158 @@ a:focus {
   }
 }
 
+/* Testimonials page enhancements */
+.testimonial-card {
+  transition: all 0.3s ease;
+  transform: translateY(0);
+}
+
+.testimonial-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Featured testimonial animations */
+.featured-testimonial {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Quote icon animation */
+.quote-icon {
+  animation: quotePulse 3s ease-in-out infinite;
+}
+
+@keyframes quotePulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+}
+
+/* Stats counter animation */
+.stats-counter {
+  animation: countUp 2s ease-out;
+}
+
+@keyframes countUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Gradient text animation */
+.gradient-text {
+  background: linear-gradient(45deg, #8b5cf6, #3b82f6, #f59e0b);
+  background-size: 200% 200%;
+  animation: gradientShift 3s ease infinite;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Mobile scroll container for testimonials */
+@media (max-width: 768px) {
+  .mobile-scroll-container {
+    display: flex !important;
+    overflow-x: auto !important;
+    scroll-snap-type: x mandatory !important;
+    gap: 1rem !important;
+    padding: 0.5rem 0 !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important; /* Firefox */
+    -ms-overflow-style: none !important; /* IE and Edge */
+  }
+  
+  .mobile-scroll-container::-webkit-scrollbar {
+    display: none !important; /* Chrome, Safari, Opera */
+  }
+  
+  .mobile-scroll-container .testimonial-card {
+    flex: 0 0 280px !important;
+    scroll-snap-align: start !important;
+    min-width: 280px !important;
+    margin-right: 0 !important;
+  }
+  
+  /* Scroll indicators */
+  .mobile-scroll-container::before,
+  .mobile-scroll-container::after {
+    content: '';
+    flex: 0 0 1rem;
+  }
+  
+  /* Smooth scroll behavior */
+  .mobile-scroll-container {
+    scroll-behavior: smooth;
+  }
+  
+  /* Active card styling */
+  .mobile-scroll-container .testimonial-card:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+  }
+}
+
+/* Enhanced mobile experience */
+@media (max-width: 640px) {
+  .mobile-scroll-container .testimonial-card {
+    flex: 0 0 260px !important;
+    min-width: 260px !important;
+  }
+}
+
+/* Scroll indicator animations */
+.mobile-scroll-container + div .w-2 {
+  transition: all 0.3s ease;
+}
+
+.mobile-scroll-container + div .w-2.bg-blue-400 {
+  transform: scale(1.2);
+}
+
+/* Smooth scroll snap for better mobile experience */
+@media (max-width: 768px) {
+  .mobile-scroll-container {
+    scroll-padding: 0 1rem;
+  }
+  
+  .mobile-scroll-container .testimonial-card {
+    scroll-margin: 0 1rem;
+  }
+}
+
 /* Print styles */
 @media print {
   .no-print {
