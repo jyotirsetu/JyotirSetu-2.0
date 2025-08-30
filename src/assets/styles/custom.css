@@ -65,8 +65,8 @@ html, body {
     padding: 0.25rem 0 !important;
   }
   
-  /* Fix footer logo visibility on mobile */
-  footer img[alt="JyotirSetu Logo"] {
+  /* Fix footer logo visibility on mobile - PERMANENT SOLUTION */
+  footer .footer-logo {
     width: 80px !important;
     height: 80px !important;
     margin: 0 !important;
@@ -77,12 +77,17 @@ html, body {
     object-fit: contain !important;
     max-width: 100% !important;
     height: auto !important;
+    position: relative !important;
+    z-index: 10 !important;
   }
   
   /* Ensure footer logo container maintains left position like desktop */
-  footer .flex.justify-start {
+  footer .footer-logo-container {
     justify-content: flex-start !important;
     margin: 1rem 0 !important;
+    display: flex !important;
+    position: relative !important;
+    z-index: 5 !important;
   }
   
   /* Add gaps between social icons in footer */
@@ -122,6 +127,20 @@ html, body {
   footer .flex.items-center.gap-4 svg {
     width: 1.5rem !important;
     height: 1.5rem !important;
+  }
+  
+  /* Additional mobile footer logo fixes */
+  footer .footer-logo-container a {
+    display: block !important;
+    width: 80px !important;
+    height: 80px !important;
+    position: relative !important;
+  }
+  
+  footer .footer-logo-container .absolute {
+    width: 80px !important;
+    height: 80px !important;
+    border-radius: 50% !important;
   }
 }
 
