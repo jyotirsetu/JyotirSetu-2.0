@@ -98,17 +98,27 @@ const { inputs, textarea, disclaimer, button = 'Contact us', description = '', a
 
   {
     disclaimer && (
-      <div class="flex items-start space-x-3">
-        <input
-          id="disclaimer"
-          name="disclaimer"
-          type="checkbox"
-          required
-          class="mt-1 h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
-        />
-        <label for="disclaimer" class="text-sm text-gray-600 dark:text-gray-400">
-          {disclaimer.label}
-        </label>
+      <div class="space-y-4">
+        <!-- Combined Policy Summary -->
+                           <div class="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                     <p class="text-sm text-gray-700 dark:text-gray-300">
+                       <strong>Privacy & Terms:</strong> We respect your privacy - your data is encrypted, never shared with third parties, and retained only as long as necessary for service delivery. By booking, you agree to our terms: no advance payments and guidance-based services. For full details, see our <a href="/privacy" class="underline hover:text-blue-600 dark:hover:text-blue-300">Privacy Policy</a> and <a href="/terms" class="underline hover:text-blue-600 dark:hover:text-blue-300">Terms & Conditions</a>.
+                     </p>
+                   </div>
+        
+        <!-- Disclaimer Checkbox -->
+        <div class="flex items-start space-x-3">
+          <input
+            id="disclaimer"
+            name="disclaimer"
+            type="checkbox"
+            required
+            class="mt-1 h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+          />
+          <label for="disclaimer" class="text-sm text-gray-600 dark:text-gray-400">
+            {disclaimer.label}
+          </label>
+        </div>
       </div>
     )
   }

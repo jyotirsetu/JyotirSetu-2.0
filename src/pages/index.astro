@@ -547,10 +547,118 @@ const metadata = {
       }
     }
 
+    // Mobile scroll enhancement for FAQs
+    function initFaqsScroll() {
+      const scrollContainer = document.querySelector('.mobile-faqs-scroll');
+      const scrollIndicators = document.querySelectorAll('.mobile-faqs-scroll + div .w-2');
+      
+      if (scrollContainer && scrollIndicators.length > 0) {
+        const container = scrollContainer as HTMLElement;
+        // Update scroll indicators based on scroll position
+        container.addEventListener('scroll', function() {
+          const scrollLeft = container.scrollLeft;
+          const maxScroll = container.scrollWidth - container.clientWidth;
+          const scrollPercentage = scrollLeft / maxScroll;
+          
+          // Update indicator colors based on scroll position
+          scrollIndicators.forEach((indicator, index) => {
+            const threshold = index / (scrollIndicators.length - 1);
+            if (scrollPercentage >= threshold) {
+              indicator.classList.remove('bg-gray-300');
+              indicator.classList.add('bg-blue-400');
+            } else {
+              indicator.classList.remove('bg-blue-400');
+              indicator.classList.add('bg-gray-300');
+            }
+          });
+        });
+        
+        // Add touch/swipe support for better mobile experience
+        let isScrolling = false;
+        let startX = 0;
+        let scrollLeft = 0;
+        
+        container.addEventListener('touchstart', function(e) {
+          isScrolling = true;
+          const touchEvent = e as TouchEvent;
+          startX = touchEvent.touches[0].pageX - container.offsetLeft;
+          scrollLeft = container.scrollLeft;
+        });
+        
+        container.addEventListener('touchmove', function(e) {
+          if (!isScrolling) return;
+          e.preventDefault();
+          const touchEvent = e as TouchEvent;
+          const x = touchEvent.touches[0].pageX - container.offsetLeft;
+          const walk = (x - startX) * 2;
+          container.scrollLeft = scrollLeft - walk;
+        });
+        
+        container.addEventListener('touchend', function() {
+          isScrolling = false;
+        });
+      }
+    }
+
+    // Mobile scroll enhancement for Features (Why Choose section)
+    function initFeaturesScroll() {
+      const scrollContainer = document.querySelector('.mobile-features-scroll');
+      const scrollIndicators = document.querySelectorAll('.mobile-features-scroll + div .w-2');
+      
+      if (scrollContainer && scrollIndicators.length > 0) {
+        const container = scrollContainer as HTMLElement;
+        // Update scroll indicators based on scroll position
+        container.addEventListener('scroll', function() {
+          const scrollLeft = container.scrollLeft;
+          const maxScroll = container.scrollWidth - container.clientWidth;
+          const scrollPercentage = scrollLeft / maxScroll;
+          
+          // Update indicator colors based on scroll position
+          scrollIndicators.forEach((indicator, index) => {
+            const threshold = index / (scrollIndicators.length - 1);
+            if (scrollPercentage >= threshold) {
+              indicator.classList.remove('bg-gray-300');
+              indicator.classList.add('bg-blue-400');
+            } else {
+              indicator.classList.remove('bg-blue-400');
+              indicator.classList.add('bg-gray-300');
+            }
+          });
+        });
+        
+        // Add touch/swipe support for better mobile experience
+        let isScrolling = false;
+        let startX = 0;
+        let scrollLeft = 0;
+        
+        container.addEventListener('touchstart', function(e) {
+          isScrolling = true;
+          const touchEvent = e as TouchEvent;
+          startX = touchEvent.touches[0].pageX - container.offsetLeft;
+          scrollLeft = container.scrollLeft;
+        });
+        
+        container.addEventListener('touchmove', function(e) {
+          if (!isScrolling) return;
+          e.preventDefault();
+          const touchEvent = e as TouchEvent;
+          const x = touchEvent.touches[0].pageX - container.offsetLeft;
+          const walk = (x - startX) * 2;
+          container.scrollLeft = scrollLeft - walk;
+        });
+        
+        container.addEventListener('touchend', function() {
+          isScrolling = false;
+        });
+      }
+    }
+
     // Update count when page loads
     document.addEventListener('DOMContentLoaded', function() {
       updatePageViewed();
       initServicesScroll();
+      initFaqsScroll();
+      initFeaturesScroll();
     });
   </script>
 
