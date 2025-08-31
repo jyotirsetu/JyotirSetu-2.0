@@ -204,7 +204,7 @@ html, body {
   
   /* Smooth scroll behavior */
   .mobile-faqs-scroll {
-    scroll-behavior: smooth;
+  scroll-behavior: smooth;
   }
   
   /* Active card styling */
@@ -573,9 +573,9 @@ html, body {
     position: relative !important;
   }
   
-  /* Center the last two stats in bottom row */
+  /* Spread the last two stats in bottom row (left and right) */
   .stat-item[data-stat-index="3"] {
-    grid-column: 2 / 3 !important;
+    grid-column: 1 / 2 !important;
   }
   
   .stat-item[data-stat-index="4"] {
@@ -599,6 +599,8 @@ html, body {
   .dark .stat-item[data-stat-index="1"]::after {
     background: #374151 !important;
   }
+  
+
   
   /* Horizontal separator for bottom row */
   .stat-item[data-stat-index="0"]::before,

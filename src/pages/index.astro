@@ -470,27 +470,27 @@ const metadata = {
       { title: 'Doshas Identified & Resolved', amount: '4500+' },
       { title: 'Gemstone Consultations', amount: '3000+' },
       { title: 'Years of Expertise', amount: '25+' },
-      { title: 'Page Viewed', amount: '95487', id: 'page-viewed' },
+      { title: 'Trusted Visitors', amount: '95487', id: 'trusted-visitors' },
     ]}
   />
 
   <script>
-    // Function to update page viewed count
-    function updatePageViewed() {
+    // Function to update trusted visitors count
+    function updateTrustedVisitors() {
       // Get current count from localStorage or start with 95487
-      const storedCount = localStorage.getItem('pageViewedCount');
+      const storedCount = localStorage.getItem('trustedVisitorsCount');
       let currentCount = storedCount ? parseInt(storedCount) : 95487;
       
       // Increment the count
       currentCount++;
       
       // Save to localStorage
-      localStorage.setItem('pageViewedCount', String(currentCount));
+      localStorage.setItem('trustedVisitorsCount', String(currentCount));
       
       // Update the display
-      const pageViewedElement = document.querySelector('[data-stat-id="page-viewed"] .font-heading');
-      if (pageViewedElement) {
-        pageViewedElement.textContent = currentCount.toLocaleString();
+      const trustedVisitorsElement = document.querySelector('[data-stat-id="trusted-visitors"] .stat-amount');
+      if (trustedVisitorsElement) {
+        trustedVisitorsElement.textContent = currentCount.toLocaleString();
       }
     }
 
@@ -655,7 +655,7 @@ const metadata = {
 
     // Update count when page loads
     document.addEventListener('DOMContentLoaded', function() {
-      updatePageViewed();
+      updateTrustedVisitors();
       initServicesScroll();
       initFaqsScroll();
       initFeaturesScroll();
