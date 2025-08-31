@@ -758,6 +758,7 @@ a:focus {
 @media (max-width: 768px) {
   .mobile-services-scroll {
     display: flex !important;
+    grid-template-columns: none !important;
     overflow-x: auto !important;
     scroll-snap-type: x mandatory !important;
     gap: 1rem !important;
@@ -771,51 +772,80 @@ a:focus {
     display: none !important; /* Chrome, Safari, Opera */
   }
   
-  .mobile-services-scroll > div {
+  .mobile-services-scroll > div,
+  .mobile-services-scroll > a {
     flex: 0 0 160px !important;
     scroll-snap-align: start !important;
     min-width: 160px !important;
     max-width: 160px !important;
+    min-height: 160px !important;
+    max-height: 160px !important;
+    height: 160px !important;
     margin-right: 0 !important;
     transition: all 0.3s ease !important;
     aspect-ratio: 1 !important;
     padding: 0.75rem !important;
   }
   
-  .mobile-services-scroll > div:hover {
+  .mobile-services-scroll > div:hover,
+  .mobile-services-scroll > a:hover {
     transform: translateY(-3px) !important;
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1) !important;
   }
   
   /* Make service cards more compact on mobile */
-  .mobile-services-scroll > div {
+  .mobile-services-scroll > div,
+  .mobile-services-scroll > a {
     border-radius: 12px !important;
     display: flex !important;
     flex-direction: column !important;
     justify-content: center !important;
     align-items: center !important;
     text-align: center !important;
+    box-sizing: border-box !important;
+    flex-shrink: 0 !important;
   }
   
-  .mobile-services-scroll > div .mb-2 {
+  .mobile-services-scroll > div .mb-2,
+  .mobile-services-scroll > a .mb-2 {
     margin-bottom: 0.5rem !important;
   }
   
-  .mobile-services-scroll > div .text-xl {
+  .mobile-services-scroll > div .text-xl,
+  .mobile-services-scroll > a .text-xl {
     font-size: 0.875rem !important;
     line-height: 1.1 !important;
     margin-bottom: 0.25rem !important;
   }
   
-  .mobile-services-scroll > div .text-muted {
+  .mobile-services-scroll > div .text-muted,
+  .mobile-services-scroll > a .text-muted {
     font-size: 0.625rem !important;
     line-height: 1.1 !important;
   }
   
-  .mobile-services-scroll > div svg {
+  .mobile-services-scroll > div svg,
+  .mobile-services-scroll > a svg {
     width: 1.5rem !important;
     height: 1.5rem !important;
     margin-bottom: 0.25rem !important;
+  }
+  
+  /* Ensure content fits properly in square cards */
+  .mobile-services-scroll > div .relative,
+  .mobile-services-scroll > a .relative {
+    width: 100% !important;
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+  }
+  
+  /* Handle absolute positioned elements in mobile cards */
+  .mobile-services-scroll > div .absolute,
+  .mobile-services-scroll > a .absolute {
+    pointer-events: none !important;
   }
   
   /* Scroll indicators */
@@ -831,7 +861,8 @@ a:focus {
   }
   
   /* Active card styling */
-  .mobile-services-scroll > div:focus {
+  .mobile-services-scroll > div:focus,
+  .mobile-services-scroll > a:focus {
     outline: 2px solid #3b82f6;
     outline-offset: 2px;
   }
@@ -944,10 +975,14 @@ a:focus {
     min-width: 260px !important;
   }
   
-  .mobile-services-scroll > div {
+  .mobile-services-scroll > div,
+  .mobile-services-scroll > a {
     flex: 0 0 140px !important;
     min-width: 140px !important;
     max-width: 140px !important;
+    min-height: 140px !important;
+    max-height: 140px !important;
+    height: 140px !important;
     aspect-ratio: 1 !important;
     padding: 0.5rem !important;
   }
