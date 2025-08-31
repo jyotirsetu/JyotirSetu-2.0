@@ -216,6 +216,41 @@ footer .contact-info-section .flex:hover svg {
     height: 1.5rem !important;
   }
   
+  /* Enhanced social media spacing for mobile */
+  footer ul.flex.mb-4 li {
+    margin-right: 1.5rem !important;
+  }
+  
+  footer ul.flex.mb-4 li:last-child {
+    margin-right: 0 !important;
+  }
+  
+  /* Mobile Support section repositioning */
+  footer .col-span-6.md\\:col-span-3.lg\\:col-span-2:nth-child(4) {
+    order: 4 !important;
+    margin-top: 2rem !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+    padding-top: 1.5rem !important;
+  }
+  
+  /* Ensure proper grid layout for mobile */
+  footer .grid.grid-cols-12 {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  
+  footer .col-span-12.lg\\:col-span-4 {
+    order: 1 !important;
+  }
+  
+  footer .col-span-6.md\\:col-span-3.lg\\:col-span-2:nth-child(2) {
+    order: 2 !important;
+  }
+  
+  footer .col-span-6.md\\:col-span-3.lg\\:col-span-2:nth-child(3) {
+    order: 3 !important;
+  }
+  
   /* Mobile Logo Optimization */
   footer .footer-logo-mobile {
     filter: brightness(1.2) contrast(1.1) saturate(1.1) !important;
@@ -734,16 +769,50 @@ a:focus {
   }
   
   .mobile-services-scroll > div {
-    flex: 0 0 280px !important;
+    flex: 0 0 200px !important;
     scroll-snap-align: start !important;
-    min-width: 280px !important;
+    min-width: 200px !important;
+    max-width: 200px !important;
     margin-right: 0 !important;
     transition: all 0.3s ease !important;
+    aspect-ratio: 1 !important;
+    padding: 1rem !important;
   }
   
   .mobile-services-scroll > div:hover {
     transform: translateY(-3px) !important;
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1) !important;
+  }
+  
+  /* Make service cards more compact on mobile */
+  .mobile-services-scroll > div {
+    border-radius: 12px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+    text-align: center !important;
+  }
+  
+  .mobile-services-scroll > div .mb-2 {
+    margin-bottom: 0.5rem !important;
+  }
+  
+  .mobile-services-scroll > div .text-xl {
+    font-size: 1rem !important;
+    line-height: 1.2 !important;
+    margin-bottom: 0.25rem !important;
+  }
+  
+  .mobile-services-scroll > div .text-muted {
+    font-size: 0.75rem !important;
+    line-height: 1.1 !important;
+  }
+  
+  .mobile-services-scroll > div svg {
+    width: 2rem !important;
+    height: 2rem !important;
+    margin-bottom: 0.5rem !important;
   }
   
   /* Scroll indicators */
@@ -873,8 +942,11 @@ a:focus {
   }
   
   .mobile-services-scroll > div {
-    flex: 0 0 260px !important;
-    min-width: 260px !important;
+    flex: 0 0 180px !important;
+    min-width: 180px !important;
+    max-width: 180px !important;
+    aspect-ratio: 1 !important;
+    padding: 0.75rem !important;
   }
   
   .mobile-stats-scroll .trust-card {
