@@ -29,200 +29,264 @@ const { socialLinks = [], secondaryLinks = [], links = [], footNote = '', theme 
 <footer class:list={[{ dark: theme === 'dark' }, 'relative border-t border-gray-200 dark:border-slate-800 not-prose']}>
   <div class="dark:bg-dark absolute inset-0 pointer-events-none" aria-hidden="true"></div>
   <div
-    class="relative max-w-7xl mx-auto px-4 sm:px-6 dark:text-slate-300 intersect-once intersect-quarter intersect-no-queue motion-safe:md:opacity-0 motion-safe:md:intersect:animate-fade"
+    class="relative max-w-8xl mx-auto px-8 sm:px-8 dark:text-slate-500 intersect-once intersect-quarter intersect-no-queue motion-safe:md:opacity-2 motion-safe:md:intersect:animate-fade"
   >
-    <div class="grid grid-cols-12 gap-4 gap-y-8 sm:gap-8 py-8 md:py-12">
-      <div class="col-span-12 lg:col-span-4">
-        <div class="mb-2">
-          <a class="inline-block font-bold text-xl" href={getHomePermalink()}>{SITE?.name}</a>
-        </div>
-        <div class="text-sm text-muted flex gap-1 mb-4">
-          {
-            secondaryLinks.map(({ text, href }, index) => (
-              <>
-                {index !== 0 ? ' · ' : ''}
-                <a
-                  class="text-muted hover:text-gray-700 dark:text-gray-400 hover:underline transition duration-150 ease-in-out"
-                  href={href}
-                  set:html={text}
-                />
-              </>
-            ))
-          }
-        </div>
-        <div class="flex justify-start">
-          <a href="/" class="relative group block footer-logo-container">
-            <div class="absolute inset-0 bg-gradient-to-br from-blue-600/20 to-purple-600/20 rounded-full blur-xl group-hover:blur-2xl transition-all duration-200"></div>
-            
-            <!-- Desktop Logo -->
+    <!-- Mobile Footer Layout -->
+    <div class="mobile-footer-layout md:hidden py-8">
+      <!-- Logo + Tagline Centered -->
+      <div class="footer-brand-section text-center mb-6">
+        <div class="flex justify-center mb-3">
+          <a href="/" class="relative group block">
             <img
               src="/JyotirSetu Full Logo Transparent.png"
               alt="JyotirSetu Logo"
-              class="relative w-28 h-28 rounded-full object-cover shadow-lg hover:shadow-3xl transition-all duration-300 border-2 border-white/10 hover:border-white/20 backdrop-blur-sm cursor-pointer footer-logo hidden md:block"
-              onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
+              class="w-28 h-28 rounded-full object-cover shadow-lg transition-all duration-300 border-2 border-white/20 backdrop-blur-sm"
               loading="lazy"
             />
-            
-            <!-- Mobile Logo -->
-            <img
-              src="/JyotirSetu Full Logo Transparent.png"
-              alt="JyotirSetu Mobile Logo"
-              class="relative w-28 h-28 rounded-full object-cover shadow-lg hover:shadow-3xl transition-all duration-300 border-2 border-white/20 hover:border-white/30 backdrop-blur-sm cursor-pointer footer-logo-mobile block md:hidden"
-              onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
-              loading="lazy"
-            />
-            
-            <!-- Fallback text logo if both images fail to load -->
-            <div class="hidden relative w-20 h-20 md:w-28 md:h-28 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-white font-bold text-lg shadow-lg border-2 border-white/20 backdrop-blur-sm cursor-pointer">
-              JS
-            </div>
           </a>
         </div>
-        
-        <!-- Contact Information Section -->
-        <div class="mt-6 contact-info-section">
-          <h3 class="text-lg font-semibold text-heading dark:text-white mb-4">Contact Us</h3>
-          <div class="space-y-3">
-            <!-- Phone -->
-            <div class="flex items-start space-x-3">
-              <div class="w-5 h-5 mt-0.5 flex-shrink-0">
+        <div class="mb-1">
+          <a class="inline-block font-bold text-lg text-heading dark:text-white" href={getHomePermalink()}>{SITE?.name}</a>
+        </div>
+        <div class="text-xs text-muted dark:text-gray-400">
+          Your Spiritual Guide
+        </div>
+      </div>
+
+      <!-- Contact Information -->
+      <div class="contact-info-section mb-6 text-center">
+        <div class="space-y-2">
+          <div class="flex items-center justify-center space-x-2">
+            <svg class="w-4 h-4 text-primary" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56a.977.977 0 00-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99C3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/>
+            </svg>
+            <a href="tel:+919266991298" class="text-sm text-muted dark:text-gray-400 hover:text-primary transition-colors">
+              +91-9266991298
+            </a>
+          </div>
+          <div class="flex items-center justify-center space-x-2">
+            <svg class="w-4 h-4 text-primary" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+            </svg>
+            <a href="mailto:guidance@jyotirsetu.com" class="text-sm text-muted dark:text-gray-400 hover:text-primary transition-colors">
+              guidance@jyotirsetu.com
+            </a>
+          </div>
+          <div class="flex items-center justify-center space-x-2">
+            <svg class="w-4 h-4 text-primary" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+            </svg>
+            <span class="text-sm text-muted dark:text-gray-400">
+              Sector-15, Gurugram, Haryana
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Services Section -->
+      <div class="footer-section mb-4">
+        <div class="footer-section-header">
+          <h3 class="text-sm font-semibold text-heading dark:text-white mb-2">Services</h3>
+        </div>
+        <div class="footer-section-content">
+          <ul class="space-y-1">
+            <li><a href="/services/kundli-analysis" class="text-xs text-muted dark:text-gray-400 hover:text-primary transition-colors">• Kundli Analysis</a></li>
+            <li><a href="/services/palmistry" class="text-xs text-muted dark:text-gray-400 hover:text-primary transition-colors">• Palmistry</a></li>
+            <li><a href="/services/numerology" class="text-xs text-muted dark:text-gray-400 hover:text-primary transition-colors">• Numerology</a></li>
+            <li><a href="/services/gemstone-consultation" class="text-xs text-muted dark:text-gray-400 hover:text-primary transition-colors">• Gemstone Consultation</a></li>
+            <li><a href="/services/spiritual-guidance" class="text-xs text-muted dark:text-gray-400 hover:text-primary transition-colors">• Spiritual Guidance</a></li>
+            <li><a href="/#services" class="text-xs text-primary font-medium hover:underline">• View All</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Company Section -->
+      <div class="footer-section mb-4">
+        <div class="footer-section-header">
+          <h3 class="text-sm font-semibold text-heading dark:text-white mb-2">Company</h3>
+        </div>
+        <div class="footer-section-content">
+          <ul class="space-y-1">
+            <li><a href="/about" class="text-xs text-muted dark:text-gray-400 hover:text-primary transition-colors">• About Us</a></li>
+            <li><a href="/testimonials" class="text-xs text-muted dark:text-gray-400 hover:text-primary transition-colors">• Testimonials</a></li>
+            <li><a href="/contact" class="text-xs text-muted dark:text-gray-400 hover:text-primary transition-colors">• Contact</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Support Section -->
+      <div class="footer-section mb-6">
+        <div class="footer-section-header">
+          <h3 class="text-sm font-semibold text-heading dark:text-white mb-2">Support</h3>
+        </div>
+        <div class="footer-section-content">
+          <ul class="space-y-1">
+            <li><a href="/faq" class="text-xs text-muted dark:text-gray-400 hover:text-primary transition-colors">• FAQ</a></li>
+            <li><a href="/privacy" class="text-xs text-muted dark:text-gray-400 hover:text-primary transition-colors">• Privacy Policy</a></li>
+            <li><a href="/terms" class="text-xs text-muted dark:text-gray-400 hover:text-primary transition-colors">• Terms & Conditions</a></li>
+          </ul>
+        </div>
+      </div>
+
+
+
+      <!-- Social Icons -->
+      <div class="social-icons-section mb-4">
+        <div class="flex justify-center space-x-4">
+          {socialLinks.map(({ text, href, icon, ariaLabel }) => (
+            <a
+              class="text-muted hover:text-primary dark:text-gray-400 hover:text-primary transition-colors duration-200"
+              href={href}
+              aria-label={ariaLabel}
+            >
+              {icon && <Icon name={icon} class="w-4 h-4" />}
+              {text && <span class="sr-only">{text}</span>}
+            </a>
+          ))}
+        </div>
+      </div>
+
+      <!-- Copyright -->
+      <div class="copyright-section text-center">
+        <div class="text-xs text-muted dark:text-gray-400">
+          © 2025 JyotirSetu. All Rights Reserved.
+        </div>
+      </div>
+    </div>
+
+    <!-- Desktop Footer Layout -->
+    <div class="hidden md:block py-10">
+      <div class="grid grid-cols-10 gap-8">
+        <!-- Brand & Contact Section -->
+        <div class="col-span-12 lg:col-span-4">
+          <div class="mb-6">
+            <div class="flex items-center mb-6">
+              <img
+                src="/JyotirSetu Full Logo Transparent.png"
+                alt="JyotirSetu Logo"
+                class="w-32 h-32 rounded-full object-cover shadow-lg mr-4"
+                loading="lazy"
+              />
+              <div>
+                <a class="inline-block font-bold text-3xl text-subheading dark:text-white" href={getHomePermalink()}>{SITE?.name}</a>
+                <div class="text-sm text-muted dark:text-gray-400">
+                  Your Spiritual Guide
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Contact Information -->
+          <div class="contact-info-section mb-6">
+            <div class="space-y-3">
+              <div class="flex items-center space-x-3">
                 <svg class="w-5 h-5 text-primary" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56a.977.977 0 00-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99C3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/>
                 </svg>
-              </div>
-              <div>
-                <a href="tel:+919266991298" class="text-muted hover:text-primary dark:text-gray-400 dark:hover:text-primary transition-colors duration-200 font-medium">
+                <a href="tel:+919266991298" class="text-base text-muted dark:text-gray-400 hover:text-primary transition-colors font-medium">
                   +91-9266991298
                 </a>
               </div>
-            </div>
-            
-            <!-- Email -->
-            <div class="flex items-start space-x-3">
-              <div class="w-5 h-5 mt-0.5 flex-shrink-0">
+              <div class="flex items-center space-x-3">
                 <svg class="w-5 h-5 text-primary" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
                 </svg>
-              </div>
-              <div>
-                <a href="mailto:guidance@jyotirsetu.com" class="text-muted hover:text-primary dark:text-gray-400 dark:hover:text-primary transition-colors duration-200 font-medium">
+                <a href="mailto:guidance@jyotirsetu.com" class="text-base text-muted dark:text-gray-400 hover:text-primary transition-colors font-medium">
                   guidance@jyotirsetu.com
                 </a>
               </div>
-            </div>
-            
-            <!-- Address -->
-            <div class="flex items-start space-x-3">
-              <div class="w-5 h-5 mt-0.5 flex-shrink-0">
+              <div class="flex items-center space-x-3">
                 <svg class="w-5 h-5 text-primary" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
                 </svg>
-              </div>
-              <div>
-                <p class="text-muted dark:text-gray-400 font-medium leading-relaxed">
+                <span class="text-base text-muted dark:text-gray-400 font-medium">
                   40A/5, Sector-15, Part-2,<br />
                   Gurugram, Haryana
-                </p>
+                </span>
               </div>
+            </div>
+          </div>
+
+
+
+          <!-- Social Icons -->
+          <div class="social-icons-section">
+            <div class="flex space-x-6">
+              {socialLinks.map(({ text, href, icon, ariaLabel }) => (
+                <a
+                  class="text-muted hover:text-primary dark:text-gray-400 hover:text-primary transition-colors duration-200"
+                  href={href}
+                  aria-label={ariaLabel}
+                >
+                  {icon && <Icon name={icon} class="w-6 h-6" />}
+                  {text && <span class="sr-only">{text}</span>}
+                </a>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <!-- Services Section -->
+        <div class="col-span-6 lg:col-span-2">
+          <div class="footer-section">
+            <div class="footer-section-header">
+              <h3 class="text-lg font-semibold text-heading dark:text-white mb-4">Services</h3>
+            </div>
+            <div class="footer-section-content">
+              <ul class="space-y-0.5">
+                <li><a href="/services/kundli-analysis" class="text-sm text-muted dark:text-gray-400 hover:text-primary transition-colors">• Kundli Analysis</a></li>
+                <li><a href="/services/palmistry" class="text-sm text-muted dark:text-gray-400 hover:text-primary transition-colors">• Palmistry</a></li>
+                <li><a href="/services/numerology" class="text-sm text-muted dark:text-gray-400 hover:text-primary transition-colors">• Numerology</a></li>
+                <li><a href="/services/gemstone-consultation" class="text-sm text-muted dark:text-gray-400 hover:text-primary transition-colors">• Gemstone Consultation</a></li>
+                            <li><a href="/services/spiritual-guidance" class="text-sm text-muted dark:text-gray-400 hover:text-primary transition-colors">• Spiritual Guidance</a></li>
+            <li><a href="/services/vastu-consultation" class="text-sm text-muted dark:text-gray-400 hover:text-primary transition-colors">• Vastu Consultation</a></li>
+            <li><a href="/services/relationship-compatibility" class="text-sm text-muted dark:text-gray-400 hover:text-primary transition-colors">• Relationship Compatibility</a></li>
+            <li><a href="/services/career-guidance" class="text-sm text-muted dark:text-gray-400 hover:text-primary transition-colors">• Career Guidance</a></li>
+            <li><a href="/services/health-astrology" class="text-sm text-muted dark:text-gray-400 hover:text-primary transition-colors">• Health Astrology</a></li>
+            <li><a href="/#services" class="text-sm text-primary font-medium hover:underline">• View All</a></li>
+          </ul>
+        </div>
+      </div>
+        </div>
+
+        <!-- Company Section -->
+        <div class="col-span-6 lg:col-span-3">
+          <div class="footer-section">
+            <div class="footer-section-header">
+              <h3 class="text-lg font-semibold text-heading dark:text-white mb-4">Company</h3>
+            </div>
+            <div class="footer-section-content">
+              <ul class="space-y-2">
+                <li><a href="/about" class="text-sm text-muted dark:text-gray-400 hover:text-primary transition-colors">• About Us</a></li>
+                <li><a href="/testimonials" class="text-sm text-muted dark:text-gray-400 hover:text-primary transition-colors">• Testimonials</a></li>
+                <li><a href="/contact" class="text-sm text-muted dark:text-gray-400 hover:text-primary transition-colors">• Contact</a></li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="footer-section mt-8">
+            <div class="footer-section-header">
+              <h3 class="text-lg font-semibold text-heading dark:text-white mb-4">Support</h3>
+            </div>
+            <div class="footer-section-content">
+              <ul class="space-y-2">
+                <li><a href="/faq" class="text-sm text-muted dark:text-gray-400 hover:text-primary transition-colors">• FAQ</a></li>
+                <li><a href="/privacy" class="text-sm text-muted dark:text-gray-400 hover:text-primary transition-colors">• Privacy Policy</a></li>
+                <li><a href="/terms" class="text-sm text-muted dark:text-gray-400 hover:text-primary transition-colors">• Terms & Conditions</a></li>
+              </ul>
             </div>
           </div>
         </div>
       </div>
-      <div class="col-span-12 lg:col-span-8">
-        <div class="footer-links-grid">
-          {
-            links.map(({ title, links }) => (
-              <div class="footer-link-section">
-                <div class="dark:text-gray-300 font-medium mb-2">{title}</div>
-                {links && Array.isArray(links) && links.length > 0 && (
-                  <ul class="text-sm">
-                    {links.map(({ text, href, ariaLabel }) => (
-                      <li class="mb-2">
-                        <a
-                          class="text-muted hover:text-gray-700 hover:underline dark:text-gray-400 transition duration-150 ease-in-out"
-                          href={href}
-                          aria-label={ariaLabel}
-                        >
-                          <Fragment set:html={text} />
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            ))
-          }
+
+      <!-- Copyright -->
+      <div class="copyright-section mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+        <div class="text-center">
+          <div class="text-sm text-muted dark:text-gray-400">
+            © 2025 JyotirSetu. All Rights Reserved.
+          </div>
         </div>
       </div>
     </div>
-    <div class="md:flex md:items-center md:justify-between py-6 md:py-8">
-      {
-        socialLinks?.length ? (
-          <ul class="flex mb-4 md:order-1 -ml-2 md:ml-4 md:mb-0 rtl:ml-0 rtl:-mr-2 rtl:md:ml-0 rtl:md:mr-4">
-            {socialLinks.map(({ ariaLabel, href, text, icon }) => (
-              <li>
-                <a
-                  class="text-muted dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5 inline-flex items-center"
-                  aria-label={ariaLabel}
-                  href={href}
-                >
-                  {icon && <Icon name={icon} class="w-5 h-5" />}
-                  <Fragment set:html={text} />
-                </a>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          ''
-        )
-      }
-
-      <div class="text-sm mr-4 dark:text-muted">
-        <Fragment set:html={footNote} />
-      </div>
-    </div>
   </div>
-  
-  <script>
-    // Footer logo fallback mechanism
-    document.addEventListener('DOMContentLoaded', function() {
-      const desktopLogo = document.querySelector('.footer-logo');
-      const mobileLogo = document.querySelector('.footer-logo-mobile');
-      const fallbackLogo = document.querySelector('.footer-logo-container div:last-child');
-      
-      // Check if images loaded successfully
-      function checkImageLoad(img) {
-        return new Promise((resolve) => {
-          if (img.complete) {
-            resolve(img.naturalWidth !== 0);
-          } else {
-            img.onload = () => resolve(true);
-            img.onerror = () => resolve(false);
-          }
-        });
-      }
-      
-      // Handle logo fallback
-      async function handleLogoFallback() {
-        const isDesktop = window.innerWidth >= 768;
-        const currentLogo = isDesktop ? desktopLogo : mobileLogo;
-        
-        if (currentLogo) {
-          const loaded = await checkImageLoad(currentLogo);
-          if (!loaded) {
-            currentLogo.style.display = 'none';
-            if (fallbackLogo) {
-              fallbackLogo.style.display = 'flex';
-            }
-          }
-        }
-      }
-      
-      // Initial check
-      handleLogoFallback();
-      
-      // Check on window resize
-      window.addEventListener('resize', handleLogoFallback);
-    });
-  </script>
 </footer>
