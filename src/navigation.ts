@@ -11,6 +11,21 @@ export const headerData = {
       href: getPermalink('/about'),
     },
     {
+      text: 'Services',
+      links: [
+        { text: 'Kundli Analysis', href: '/services/kundli-analysis' },
+        { text: 'Palmistry', href: '/services/palmistry' },
+        { text: 'Matchmaking (Kundli Milan)', href: '/services/matchmaking' },
+        { text: 'Numerology', href: '/services/numerology' },
+        { text: 'Gemstone Consultation', href: '/services/gemstone-consultation' },
+        { text: 'Career & Finance Guidance', href: '/services/career-finance' },
+        { text: 'Spiritual Guidance', href: '/services/spiritual-guidance' },
+        { text: 'Remedial Solutions', href: '/services/remedial-solutions' },
+        { text: 'Dosha Analysis & Remedies', href: '/services/dosha-analysis' },
+        { text: 'Online Kundli', href: '/online-kundli' },
+      ],
+    },
+    {
       text: 'Online Kundli',
       href: getPermalink('/online-kundli'),
     },
@@ -30,9 +45,15 @@ export const footerData = {
     {
       title: 'Services',
       links: [
-        { text: 'Astrology', href: '/services/astrology' },
+        { text: 'Kundli Analysis', href: '/services/kundli-analysis' },
         { text: 'Palmistry', href: '/services/palmistry' },
+        { text: 'Matchmaking (Kundli Milan)', href: '/services/matchmaking' },
         { text: 'Numerology', href: '/services/numerology' },
+        { text: 'Gemstone Consultation', href: '/services/gemstone-consultation' },
+        { text: 'Career & Finance Guidance', href: '/services/career-finance' },
+        { text: 'Spiritual Guidance', href: '/services/spiritual-guidance' },
+        { text: 'Remedial Solutions', href: '/services/remedial-solutions' },
+        { text: 'Dosha Analysis & Remedies', href: '/services/dosha-analysis' },
         { text: 'Online Kundli', href: '/online-kundli' },
         { text: 'Book Appointment', href: '/ScheduleAppointmentJyotirSetu' },
       ],
@@ -48,7 +69,7 @@ export const footerData = {
     {
       title: 'Support',
       links: [
-        { text: 'FAQ', href: '/faq' },
+        { text: 'FAQ', href: '/#faqs' },
         { text: 'Privacy Policy', href: '/privacy' },
         { text: 'Terms & Conditions', href: '/terms' },
       ],

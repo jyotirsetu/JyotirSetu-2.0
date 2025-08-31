@@ -293,6 +293,54 @@ footer .contact-info-section .flex:hover svg {
   }
 }
 
+/* Service Pages Mobile Scroll */
+.mobile-service-cards-scroll {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  scroll-padding: 0 1rem;
+  scroll-margin: 0 1rem;
+}
+
+.mobile-service-cards-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.mobile-service-cards-scroll > * {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+  min-width: 280px;
+  max-width: 320px;
+}
+
+@media (min-width: 768px) {
+  .mobile-service-cards-scroll {
+    display: grid;
+    overflow-x: visible;
+    scroll-snap-type: none;
+  }
+  
+  .mobile-service-cards-scroll > * {
+    min-width: auto;
+    max-width: none;
+  }
+}
+
+/* Service Cards Animation */
+.service-card {
+  transition: all 0.3s ease;
+  transform: translateY(0);
+}
+
+.service-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
 /* Desktop optimization */
 @media (min-width: 1024px) {
   .kundli-form-container {

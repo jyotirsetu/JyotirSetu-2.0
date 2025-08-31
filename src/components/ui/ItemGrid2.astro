@@ -32,28 +32,77 @@ const {
         containerClass
       )}
     >
-      {items.map(({ title, description, icon, callToAction, classes: itemClasses = {} }) => (
-        <div
-          class={twMerge(
-            'relative flex flex-col intersect-once intersect-quarter intersect-no-queue motion-safe:md:opacity-0 motion-safe:md:intersect:animate-fade',
-            panelClass,
-            itemClasses?.panel
-          )}
-        >
-          {(icon || defaultIcon) && (
-            <Icon name={icon || defaultIcon} class={twMerge('mb-2 w-10 h-10', defaultIconClass, itemClasses?.icon)} />
-          )}
-          <div class={twMerge('text-xl font-bold', titleClass, itemClasses?.title)}>{title}</div>
-          {description && (
-            <p class={twMerge('text-muted mt-2', descriptionClass, itemClasses?.description)} set:html={description} />
-          )}
-          {callToAction && (
-            <div class="mt-2">
-              <Button {...callToAction} />
+      {items.map(({ title, description, icon, href, callToAction, classes: itemClasses = {} }) => {
+        const cardContent = (
+          <>
+            {(icon || defaultIcon) && (
+              <Icon name={icon || defaultIcon} class={twMerge('mb-2 w-10 h-10', defaultIconClass, itemClasses?.icon)} />
+            )}
+            <div class={twMerge('text-xl font-bold', titleClass, itemClasses?.title)}>{title}</div>
+            {description && (
+              <p class={twMerge('text-muted mt-2', descriptionClass, itemClasses?.description)} set:html={description} />
+            )}
+            {callToAction && (
+              <div class="mt-2">
+                <Button {...callToAction} />
+              </div>
+            )}
+          </>
+        );
+
+        if (href) {
+          return (
+            <a
+              href={href}
+              class={twMerge(
+                'group relative flex flex-col p-6 rounded-xl bg-white dark:bg-slate-900 shadow-lg hover:shadow-2xl border border-gray-200 dark:border-gray-700 intersect-once intersect-quarter intersect-no-queue motion-safe:md:opacity-0 motion-safe:md:intersect:animate-fade transition-all duration-300 hover:scale-105 hover:-translate-y-2 cursor-pointer overflow-hidden',
+                panelClass,
+                itemClasses?.panel
+              )}
+            >
+              {/* Animated background gradient */}
+              <div class="absolute inset-0 bg-gradient-to-br from-blue-50 via-transparent to-purple-50 dark:from-blue-900/20 dark:via-transparent dark:to-purple-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              
+              {/* Animated border glow */}
+              <div class="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-sm"></div>
+              
+              {/* Content with relative positioning */}
+              <div class="relative z-10">
+                {cardContent}
+              </div>
+              
+              {/* Floating particles effect */}
+              <div class="absolute top-2 right-2 w-2 h-2 bg-blue-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-pulse transition-all duration-300"></div>
+              <div class="absolute bottom-4 left-4 w-1 h-1 bg-purple-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-bounce transition-all duration-300 delay-100"></div>
+            </a>
+          );
+        }
+
+        return (
+          <div
+            class={twMerge(
+              'group relative flex flex-col p-6 rounded-xl bg-white dark:bg-slate-900 shadow-lg hover:shadow-2xl border border-gray-200 dark:border-gray-700 intersect-once intersect-quarter intersect-no-queue motion-safe:md:opacity-0 motion-safe:md:intersect:animate-fade transition-all duration-300 hover:scale-105 hover:-translate-y-2 overflow-hidden',
+              panelClass,
+              itemClasses?.panel
+            )}
+          >
+            {/* Animated background gradient */}
+            <div class="absolute inset-0 bg-gradient-to-br from-blue-50 via-transparent to-purple-50 dark:from-blue-900/20 dark:via-transparent dark:to-purple-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            
+            {/* Animated border glow */}
+            <div class="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-sm"></div>
+            
+            {/* Content with relative positioning */}
+            <div class="relative z-10">
+              {cardContent}
             </div>
-          )}
-        </div>
-      ))}
+            
+            {/* Floating particles effect */}
+            <div class="absolute top-2 right-2 w-2 h-2 bg-blue-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-pulse transition-all duration-300"></div>
+            <div class="absolute bottom-4 left-4 w-1 h-1 bg-purple-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-bounce transition-all duration-300 delay-100"></div>
+          </div>
+        );
+      })}
     </div>
   )
 }

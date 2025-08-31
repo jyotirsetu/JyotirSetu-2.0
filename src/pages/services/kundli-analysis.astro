@@ -1,0 +1,583 @@
+---
+import Layout from '~/layouts/PageLayout.astro';
+import Hero from '~/components/widgets/Hero.astro';
+import Content from '~/components/widgets/Content.astro';
+import CallToAction from '~/components/widgets/CallToAction.astro';
+
+const metadata = {
+  title: 'Kundli Analysis - JyotirSetu',
+  description: 'Professional Kundli Analysis and Birth Chart Reading. Understand your life path, strengths, and opportunities through expert Vedic Astrology.',
+};
+---
+
+<Layout metadata={metadata}>
+  <!-- Hero Section -->
+  <Hero
+    title="🔮 Kundli Analysis & Birth Chart Reading"
+    subtitle="Discover your life's blueprint through expert Vedic Astrology. Understand your personality, career path, relationships, and life's purpose."
+    actions={[
+      {
+        variant: 'primary',
+        text: 'Book Kundli Analysis',
+        href: '/ScheduleAppointmentJyotirSetu',
+        icon: 'tabler:calendar',
+      },
+      { text: 'Learn More', href: '#what-is-kundli' },
+    ]}
+    image={{ src: 'https://images.unsplash.com/photo-1615829676042-f8f0a12315b1?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MjB8fGdsb3dpbmclMjBwYXRoJTIwYXN0cm9sb2d5fGVufDB8MnwwfHx8Mg%3D%3D', alt: 'Kundli Analysis' }}
+  >
+    <div slot="title">
+      🔮 <span class="text-accent dark:text-white">Kundli Analysis</span> & Birth Chart Reading
+    </div>
+  </Hero>
+
+  <!-- What is Kundli Section -->
+  <section id="what-is-kundli" class="py-16 bg-page">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl font-bold text-heading mb-4">What is Kundli Analysis?</h2>
+        <p class="text-lg text-muted">Your birth chart is like a cosmic fingerprint - unique and revealing</p>
+      </div>
+      
+      <div class="grid lg:grid-cols-2 gap-12 items-center">
+        <div>
+          <h3 class="text-2xl font-bold text-heading mb-6">🌌 Your Cosmic Blueprint</h3>
+          <p class="text-muted mb-6">
+            A Kundli (birth chart) is a map of the sky at the exact moment you were born. It shows the positions of all planets, stars, and cosmic bodies that influence your life journey.
+          </p>
+          
+          <div class="space-y-4">
+            <div class="flex items-start space-x-4">
+              <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                <span class="text-white font-bold text-sm">1</span>
+              </div>
+              <div>
+                <h4 class="font-semibold text-heading mb-2">Planetary Positions</h4>
+                <p class="text-muted">Shows where each planet was when you were born and how they affect different areas of your life.</p>
+              </div>
+            </div>
+            
+            <div class="flex items-start space-x-4">
+              <div class="w-8 h-8 bg-secondary rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                <span class="text-white font-bold text-sm">2</span>
+              </div>
+              <div>
+                <h4 class="font-semibold text-heading mb-2">Zodiac Signs (Rashi)</h4>
+                <p class="text-muted">The 12 zodiac signs that influence your personality traits and behavior patterns.</p>
+              </div>
+            </div>
+            
+            <div class="flex items-start space-x-4">
+              <div class="w-8 h-8 bg-accent rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                <span class="text-white font-bold text-sm">3</span>
+              </div>
+              <div>
+                <h4 class="font-semibold text-heading mb-2">Life Houses (Bhava)</h4>
+                <p class="text-muted">12 houses that represent different aspects of life like career, relationships, health, and wealth.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="rounded-lg shadow-[0_4px_30px_rgba(0,0,0,0.1)] backdrop-blur border border-[#ffffff29] bg-white dark:bg-slate-900 p-8">
+          <h4 class="text-xl font-bold text-heading mb-6 text-center">📊 Sample Kundli Chart</h4>
+          <div class="grid grid-cols-3 gap-4 text-center">
+            <!-- Chart representation -->
+            <div class="rounded-lg p-4 border-2 border-primary bg-gradient-to-br from-primary/10 to-primary/5">
+              <div class="text-2xl mb-2">♈</div>
+              <div class="text-sm font-semibold text-heading">Aries</div>
+              <div class="text-xs text-muted">1st House</div>
+            </div>
+            <div class="rounded-lg p-4 border-2 border-secondary bg-gradient-to-br from-secondary/10 to-secondary/5">
+              <div class="text-2xl mb-2">♉</div>
+              <div class="text-sm font-semibold text-heading">Taurus</div>
+              <div class="text-xs text-muted">2nd House</div>
+            </div>
+            <div class="rounded-lg p-4 border-2 border-accent bg-gradient-to-br from-accent/10 to-accent/5">
+              <div class="text-2xl mb-2">♊</div>
+              <div class="text-sm font-semibold text-heading">Gemini</div>
+              <div class="text-xs text-muted">3rd House</div>
+            </div>
+            <div class="rounded-lg p-4 border-2 border-yellow-500 bg-gradient-to-br from-yellow-500/10 to-yellow-500/5">
+              <div class="text-2xl mb-2">♋</div>
+              <div class="text-sm font-semibold text-heading">Cancer</div>
+              <div class="text-xs text-muted">4th House</div>
+            </div>
+            <div class="rounded-lg p-4 border-2 border-red-500 bg-gradient-to-br from-red-500/10 to-red-500/5">
+              <div class="text-2xl mb-2">♌</div>
+              <div class="text-sm font-semibold text-heading">Leo</div>
+              <div class="text-xs text-muted">5th House</div>
+            </div>
+            <div class="rounded-lg p-4 border-2 border-green-500 bg-gradient-to-br from-green-500/10 to-green-500/5">
+              <div class="text-2xl mb-2">♍</div>
+              <div class="text-sm font-semibold text-heading">Virgo</div>
+              <div class="text-xs text-muted">6th House</div>
+            </div>
+            <div class="rounded-lg p-4 border-2 border-blue-500 bg-gradient-to-br from-blue-500/10 to-blue-500/5">
+              <div class="text-2xl mb-2">♎</div>
+              <div class="text-sm font-semibold text-heading">Libra</div>
+              <div class="text-xs text-muted">7th House</div>
+            </div>
+            <div class="rounded-lg p-4 border-2 border-purple-500 bg-gradient-to-br from-purple-500/10 to-purple-500/5">
+              <div class="text-2xl mb-2">♏</div>
+              <div class="text-sm font-semibold text-heading">Scorpio</div>
+              <div class="text-xs text-muted">8th House</div>
+            </div>
+            <div class="rounded-lg p-4 border-2 border-indigo-500 bg-gradient-to-br from-indigo-500/10 to-indigo-500/5">
+              <div class="text-2xl mb-2">♐</div>
+              <div class="text-sm font-semibold text-heading">Sagittarius</div>
+              <div class="text-xs text-muted">9th House</div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Mobile Scroll Indicators -->
+        <div class="md:hidden mt-8 text-center">
+          <div class="flex justify-center space-x-2">
+            <div class="w-2 h-2 bg-blue-400 rounded-full"></div>
+            <div class="w-2 h-2 bg-gray-300 rounded-full"></div>
+            <div class="w-2 h-2 bg-gray-300 rounded-full"></div>
+            <div class="w-2 h-2 bg-gray-300 rounded-full"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Zodiac Signs Section -->
+  <section class="py-16 bg-light">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl font-bold text-heading mb-4">🌟 The 12 Zodiac Signs (Rashi)</h2>
+        <p class="text-lg text-muted">Each sign has unique characteristics and influences</p>
+        
+        <!-- Mobile Swipe Instruction -->
+        <div class="md:hidden text-center mt-4">
+          <div class="inline-flex items-center px-4 py-2 bg-blue-100 dark:bg-blue-900/30 rounded-full text-sm text-blue-700 dark:text-blue-300">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16l-4-4m0 0l4-4m-4 4h18"></path>
+            </svg>
+            Swipe to see more signs
+          </div>
+        </div>
+      </div>
+      
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mobile-service-cards-scroll">
+        <!-- Aries -->
+        <div class="rounded-lg shadow-[0_4px_30px_rgba(0,0,0,0.1)] backdrop-blur border border-[#ffffff29] bg-white dark:bg-slate-900 p-6 border-l-4 border-red-500 service-card">
+          <div class="flex items-center mb-4">
+            <span class="text-3xl mr-3">♈</span>
+            <div>
+              <h3 class="font-bold text-heading">Aries (Mesh)</h3>
+              <p class="text-sm text-muted">March 21 - April 19</p>
+            </div>
+          </div>
+          <p class="text-muted text-sm">Natural leaders, energetic, courageous, and enthusiastic. They are pioneers who love new challenges.</p>
+        </div>
+
+        <!-- Taurus -->
+        <div class="rounded-lg shadow-[0_4px_30px_rgba(0,0,0,0.1)] backdrop-blur border border-[#ffffff29] bg-white dark:bg-slate-900 p-6 border-l-4 border-green-500">
+          <div class="flex items-center mb-4">
+            <span class="text-3xl mr-3">♉</span>
+            <div>
+              <h3 class="font-bold text-heading">Taurus (Vrishabh)</h3>
+              <p class="text-sm text-muted">April 20 - May 20</p>
+            </div>
+          </div>
+          <p class="text-muted text-sm">Patient, reliable, practical, and determined. They value security and have a strong connection to nature.</p>
+        </div>
+
+        <!-- Gemini -->
+        <div class="rounded-lg shadow-[0_4px_30px_rgba(0,0,0,0.1)] backdrop-blur border border-[#ffffff29] bg-white dark:bg-slate-900 p-6 border-l-4 border-yellow-500">
+          <div class="flex items-center mb-4">
+            <span class="text-3xl mr-3">♊</span>
+            <div>
+              <h3 class="font-bold text-heading">Gemini (Mithun)</h3>
+              <p class="text-sm text-muted">May 21 - June 20</p>
+            </div>
+          </div>
+          <p class="text-muted text-sm">Adaptable, curious, and excellent communicators. They love learning and connecting with others.</p>
+        </div>
+
+        <!-- Cancer -->
+        <div class="rounded-lg shadow-[0_4px_30px_rgba(0,0,0,0.1)] backdrop-blur border border-[#ffffff29] bg-white dark:bg-slate-900 p-6 border-l-4 border-silver-500">
+          <div class="flex items-center mb-4">
+            <span class="text-3xl mr-3">♋</span>
+            <div>
+              <h3 class="font-bold text-heading">Cancer (Kark)</h3>
+              <p class="text-sm text-muted">June 21 - July 22</p>
+            </div>
+          </div>
+          <p class="text-muted text-sm">Nurturing, protective, and deeply emotional. They are very family-oriented and intuitive.</p>
+        </div>
+
+        <!-- Leo -->
+        <div class="rounded-lg shadow-[0_4px_30px_rgba(0,0,0,0.1)] backdrop-blur border border-[#ffffff29] bg-white dark:bg-slate-900 p-6 border-l-4 border-orange-500">
+          <div class="flex items-center mb-4">
+            <span class="text-3xl mr-3">♌</span>
+            <div>
+              <h3 class="font-bold text-heading">Leo (Singh)</h3>
+              <p class="text-sm text-muted">July 23 - August 22</p>
+            </div>
+          </div>
+          <p class="text-muted text-sm">Confident, creative, and natural performers. They love being the center of attention and are very generous.</p>
+        </div>
+
+        <!-- Virgo -->
+        <div class="rounded-lg shadow-[0_4px_30px_rgba(0,0,0,0.1)] backdrop-blur border border-[#ffffff29] bg-white dark:bg-slate-900 p-6 border-l-4 border-green-600">
+          <div class="flex items-center mb-4">
+            <span class="text-3xl mr-3">♍</span>
+            <div>
+              <h3 class="font-bold text-heading">Virgo (Kanya)</h3>
+              <p class="text-sm text-muted">August 23 - September 22</p>
+            </div>
+          </div>
+          <p class="text-muted text-sm">Analytical, practical, and detail-oriented. They are perfectionists who love helping others.</p>
+        </div>
+
+        <!-- Libra -->
+        <div class="rounded-lg shadow-[0_4px_30px_rgba(0,0,0,0.1)] backdrop-blur border border-[#ffffff29] bg-white dark:bg-slate-900 p-6 border-l-4 border-pink-500">
+          <div class="flex items-center mb-4">
+            <span class="text-3xl mr-3">♎</span>
+            <div>
+              <h3 class="font-bold text-heading">Libra (Tula)</h3>
+              <p class="text-sm text-muted">September 23 - October 22</p>
+            </div>
+          </div>
+          <p class="text-muted text-sm">Diplomatic, fair-minded, and peace-loving. They seek balance and harmony in all relationships.</p>
+        </div>
+
+        <!-- Scorpio -->
+        <div class="rounded-lg shadow-[0_4px_30px_rgba(0,0,0,0.1)] backdrop-blur border border-[#ffffff29] bg-white dark:bg-slate-900 p-6 border-l-4 border-red-600">
+          <div class="flex items-center mb-4">
+            <span class="text-3xl mr-3">♏</span>
+            <div>
+              <h3 class="font-bold text-heading">Scorpio (Vrishchik)</h3>
+              <p class="text-sm text-muted">October 23 - November 21</p>
+            </div>
+          </div>
+          <p class="text-muted text-sm">Passionate, mysterious, and determined. They have strong intuition and are very loyal to loved ones.</p>
+        </div>
+
+        <!-- Sagittarius -->
+        <div class="rounded-lg shadow-[0_4px_30px_rgba(0,0,0,0.1)] backdrop-blur border border-[#ffffff29] bg-white dark:bg-slate-900 p-6 border-l-4 border-purple-500">
+          <div class="flex items-center mb-4">
+            <span class="text-3xl mr-3">♐</span>
+            <div>
+              <h3 class="font-bold text-heading">Sagittarius (Dhanu)</h3>
+              <p class="text-sm text-muted">November 22 - December 21</p>
+            </div>
+          </div>
+          <p class="text-muted text-sm">Optimistic, adventurous, and philosophical. They love freedom and exploring new horizons.</p>
+        </div>
+
+        <!-- Capricorn -->
+        <div class="rounded-lg shadow-[0_4px_30px_rgba(0,0,0,0.1)] backdrop-blur border border-[#ffffff29] bg-white dark:bg-slate-900 p-6 border-l-4 border-gray-600">
+          <div class="flex items-center mb-4">
+            <span class="text-3xl mr-3">♑</span>
+            <div>
+              <h3 class="font-bold text-heading">Capricorn (Makar)</h3>
+              <p class="text-sm text-muted">December 22 - January 19</p>
+            </div>
+          </div>
+          <p class="text-muted text-sm">Ambitious, disciplined, and responsible. They are natural leaders who work hard to achieve their goals.</p>
+        </div>
+
+        <!-- Aquarius -->
+        <div class="rounded-lg shadow-[0_4px_30px_rgba(0,0,0,0.1)] backdrop-blur border border-[#ffffff29] bg-white dark:bg-slate-900 p-6 border-l-4 border-blue-500">
+          <div class="flex items-center mb-4">
+            <span class="text-3xl mr-3">♒</span>
+            <div>
+              <h3 class="font-bold text-heading">Aquarius (Kumbh)</h3>
+              <p class="text-sm text-muted">January 20 - February 18</p>
+            </div>
+          </div>
+          <p class="text-muted text-sm">Innovative, independent, and humanitarian. They are visionaries who think outside the box.</p>
+        </div>
+
+        <!-- Pisces -->
+        <div class="rounded-lg shadow-[0_4px_30px_rgba(0,0,0,0.1)] backdrop-blur border border-[#ffffff29] bg-white dark:bg-slate-900 p-6 border-l-4 border-blue-600">
+          <div class="flex items-center mb-4">
+            <span class="text-3xl mr-3">♓</span>
+            <div>
+              <h3 class="font-bold text-heading">Pisces (Meen)</h3>
+              <p class="text-sm text-muted">February 19 - March 20</p>
+            </div>
+          </div>
+          <p class="text-muted text-sm">Compassionate, artistic, and intuitive. They are deeply spiritual and very empathetic towards others.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- What Kundli Analysis Reveals -->
+  <section class="py-16 bg-page">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl font-bold text-heading mb-4">🔍 What Kundli Analysis Reveals</h2>
+        <p class="text-lg text-muted">Comprehensive insights into every aspect of your life</p>
+      </div>
+      
+      <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <!-- Personality & Character -->
+        <div class="text-center">
+          <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
+            <span class="text-2xl">🧠</span>
+          </div>
+          <h3 class="text-xl font-bold text-heading mb-4">Personality & Character</h3>
+          <p class="text-muted">Understand your natural traits, strengths, weaknesses, and behavioral patterns.</p>
+        </div>
+
+        <!-- Career & Profession -->
+        <div class="text-center">
+          <div class="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
+            <span class="text-2xl">💼</span>
+          </div>
+          <h3 class="text-xl font-bold text-heading mb-4">Career & Profession</h3>
+          <p class="text-muted">Discover your ideal career path, timing for success, and professional opportunities.</p>
+        </div>
+
+        <!-- Relationships & Marriage -->
+        <div class="text-center">
+          <div class="w-16 h-16 bg-gradient-to-br from-pink-500 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-6">
+            <span class="text-2xl">💕</span>
+          </div>
+          <h3 class="text-xl font-bold text-heading mb-4">Relationships & Marriage</h3>
+          <p class="text-muted">Learn about your compatibility, marriage timing, and relationship dynamics.</p>
+        </div>
+
+        <!-- Health & Wellbeing -->
+        <div class="text-center">
+          <div class="w-16 h-16 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center mx-auto mb-6">
+            <span class="text-2xl">🏥</span>
+          </div>
+          <h3 class="text-xl font-bold text-heading mb-4">Health & Wellbeing</h3>
+          <p class="text-muted">Identify potential health concerns and get guidance for maintaining good health.</p>
+        </div>
+
+        <!-- Wealth & Finance -->
+        <div class="text-center">
+          <div class="w-16 h-16 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-full flex items-center justify-center mx-auto mb-6">
+            <span class="text-2xl">💰</span>
+          </div>
+          <h3 class="text-xl font-bold text-heading mb-4">Wealth & Finance</h3>
+          <p class="text-muted">Understand your financial prospects, wealth accumulation, and investment timing.</p>
+        </div>
+
+        <!-- Education & Learning -->
+        <div class="text-center">
+          <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
+            <span class="text-2xl">📚</span>
+          </div>
+          <h3 class="text-xl font-bold text-heading mb-4">Education & Learning</h3>
+          <p class="text-muted">Get insights into your learning abilities, educational success, and knowledge areas.</p>
+        </div>
+
+        <!-- Travel & Foreign -->
+        <div class="text-center">
+          <div class="w-16 h-16 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6">
+            <span class="text-2xl">✈️</span>
+          </div>
+          <h3 class="text-xl font-bold text-heading mb-4">Travel & Foreign</h3>
+          <p class="text-muted">Learn about travel opportunities, foreign connections, and international prospects.</p>
+        </div>
+
+        <!-- Spiritual Growth -->
+        <div class="text-center">
+          <div class="w-16 h-16 bg-gradient-to-br from-teal-500 to-teal-600 rounded-full flex items-center justify-center mx-auto mb-6">
+            <span class="text-2xl">🕉️</span>
+          </div>
+          <h3 class="text-xl font-bold text-heading mb-4">Spiritual Growth</h3>
+          <p class="text-muted">Discover your spiritual path, meditation benefits, and inner development journey.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Process Section -->
+  <section class="py-16 bg-light">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl font-bold text-heading mb-4">📋 Our Kundli Analysis Process</h2>
+        <p class="text-lg text-muted">Simple steps to get your detailed birth chart analysis</p>
+      </div>
+      
+      <div class="grid md:grid-cols-4 gap-8">
+        <div class="text-center">
+          <div class="w-20 h-20 bg-primary rounded-full flex items-center justify-center mx-auto mb-6">
+            <span class="text-3xl font-bold text-white">1</span>
+          </div>
+          <h3 class="text-xl font-bold text-heading mb-4">Share Birth Details</h3>
+          <p class="text-muted">Provide your exact date, time, and place of birth for accurate chart calculation.</p>
+        </div>
+        
+        <div class="text-center">
+          <div class="w-20 h-20 bg-secondary rounded-full flex items-center justify-center mx-auto mb-6">
+            <span class="text-3xl font-bold text-white">2</span>
+          </div>
+          <h3 class="text-xl font-bold text-heading mb-4">Chart Calculation</h3>
+          <p class="text-muted">Our expert creates your precise birth chart using traditional Vedic calculations.</p>
+        </div>
+        
+        <div class="text-center">
+          <div class="w-20 h-20 bg-accent rounded-full flex items-center justify-center mx-auto mb-6">
+            <span class="text-3xl font-bold text-white">3</span>
+          </div>
+          <h3 class="text-xl font-bold text-heading mb-4">Detailed Analysis</h3>
+          <p class="text-muted">Comprehensive analysis of all planetary positions, houses, and their influences.</p>
+        </div>
+        
+        <div class="text-center">
+          <div class="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
+            <span class="text-3xl font-bold text-white">4</span>
+          </div>
+          <h3 class="text-xl font-bold text-heading mb-4">Personal Consultation</h3>
+          <p class="text-muted">One-on-one session with our expert to explain findings and answer your questions.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Why Choose JyotirSetu -->
+  <section class="py-16 bg-page">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl font-bold text-heading mb-4">⭐ Why Choose JyotirSetu for Kundli Analysis?</h2>
+        <p class="text-lg text-muted">Expert guidance backed by 25+ years of experience</p>
+      </div>
+      
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div class="rounded-lg shadow-[0_4px_30px_rgba(0,0,0,0.1)] backdrop-blur border border-[#ffffff29] bg-white dark:bg-slate-900 p-6">
+          <div class="w-12 h-12 bg-primary rounded-lg flex items-center justify-center mb-4">
+            <span class="text-white text-xl">🎯</span>
+          </div>
+          <h3 class="text-xl font-bold text-heading mb-4">Accurate Calculations</h3>
+          <p class="text-muted">Using traditional Vedic methods and precise astronomical calculations for 100% accuracy.</p>
+        </div>
+        
+        <div class="rounded-lg shadow-[0_4px_30px_rgba(0,0,0,0.1)] backdrop-blur border border-[#ffffff29] bg-white dark:bg-slate-900 p-6">
+          <div class="w-12 h-12 bg-secondary rounded-lg flex items-center justify-center mb-4">
+            <span class="text-white text-xl">👩‍🏫</span>
+          </div>
+          <h3 class="text-xl font-bold text-heading mb-4">Expert Astrologer</h3>
+          <p class="text-muted">Punita Sharma, M.A. Sanskrit with 25+ years of experience in Vedic Astrology.</p>
+        </div>
+        
+        <div class="rounded-lg shadow-[0_4px_30px_rgba(0,0,0,0.1)] backdrop-blur border border-[#ffffff29] bg-white dark:bg-slate-900 p-6">
+          <div class="w-12 h-12 bg-accent rounded-lg flex items-center justify-center mb-4">
+            <span class="text-white text-xl">📖</span>
+          </div>
+          <h3 class="text-xl font-bold text-heading mb-4">Detailed Report</h3>
+          <p class="text-muted">Comprehensive written report with practical insights and actionable guidance.</p>
+        </div>
+        
+        <div class="rounded-lg shadow-[0_4px_30px_rgba(0,0,0,0.1)] backdrop-blur border border-[#ffffff29] bg-white dark:bg-slate-900 p-6">
+          <div class="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center mb-4">
+            <span class="text-white text-xl">💬</span>
+          </div>
+          <h3 class="text-xl font-bold text-heading mb-4">Personal Consultation</h3>
+          <p class="text-muted">One-on-one session to discuss your chart and get answers to specific questions.</p>
+        </div>
+        
+        <div class="rounded-lg shadow-[0_4px_30px_rgba(0,0,0,0.1)] backdrop-blur border border-[#ffffff29] bg-white dark:bg-slate-900 p-6">
+          <div class="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center mb-4">
+            <span class="text-white text-xl">🔮</span>
+          </div>
+          <h3 class="text-xl font-bold text-heading mb-4">Remedial Solutions</h3>
+          <p class="text-muted">Practical remedies and solutions to overcome challenges and enhance positive influences.</p>
+        </div>
+        
+        <div class="rounded-lg shadow-[0_4px_30px_rgba(0,0,0,0.1)] backdrop-blur border border-[#ffffff29] bg-white dark:bg-slate-900 p-6">
+          <div class="w-12 h-12 bg-red-500 rounded-lg flex items-center justify-center mb-4">
+            <span class="text-white text-xl">🤝</span>
+          </div>
+          <h3 class="text-xl font-bold text-heading mb-4">Ongoing Support</h3>
+          <p class="text-muted">Continued guidance and support to help you navigate life's journey successfully.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <CallToAction
+    actions={[
+      {
+        variant: 'primary',
+        text: 'Book Your Kundli Analysis',
+        href: '/ScheduleAppointmentJyotirSetu',
+        icon: 'tabler:calendar',
+      },
+    ]}
+  >
+    <div slot="title">
+      Ready to Discover Your <span class="text-accent dark:text-white">Life's Blueprint</span>?
+    </div>
+
+    <div slot="subtitle">
+      Book your Kundli Analysis today and gain deep insights into your personality, career, relationships, and life path. 
+      <br class="hidden md:inline" />
+      Start your journey of self-discovery with expert Vedic Astrology guidance.
+    </div>
+  </CallToAction>
+  
+  <script>
+    // Mobile scroll functionality for service cards
+    function initServiceCardsScroll() {
+      const scrollContainer = document.querySelector('.mobile-service-cards-scroll');
+      const scrollIndicators = document.querySelectorAll('.mobile-service-cards-scroll + div .w-2');
+      
+      if (scrollContainer && scrollIndicators.length > 0) {
+        const container = scrollContainer as HTMLElement;
+        
+        // Update scroll indicators based on scroll position
+        container.addEventListener('scroll', function() {
+          const scrollLeft = container.scrollLeft;
+          const maxScroll = container.scrollWidth - container.clientWidth;
+          const scrollPercentage = scrollLeft / maxScroll;
+          
+          // Update indicator colors based on scroll position
+          scrollIndicators.forEach((indicator, index) => {
+            const threshold = index / (scrollIndicators.length - 1);
+            if (scrollPercentage >= threshold) {
+              indicator.classList.remove('bg-gray-300');
+              indicator.classList.add('bg-blue-400');
+            } else {
+              indicator.classList.remove('bg-blue-400');
+              indicator.classList.add('bg-gray-300');
+            }
+          });
+        });
+        
+        // Add touch/swipe support for better mobile experience
+        let isScrolling = false;
+        let startX = 0;
+        let scrollLeft = 0;
+        
+        container.addEventListener('touchstart', function(e) {
+          isScrolling = true;
+          const touchEvent = e as TouchEvent;
+          startX = touchEvent.touches[0].pageX - container.offsetLeft;
+          scrollLeft = container.scrollLeft;
+        });
+        
+        container.addEventListener('touchmove', function(e) {
+          if (!isScrolling) return;
+          e.preventDefault();
+          const touchEvent = e as TouchEvent;
+          const x = touchEvent.touches[0].pageX - container.offsetLeft;
+          const walk = (x - startX) * 2;
+          container.scrollLeft = scrollLeft - walk;
+        });
+        
+        container.addEventListener('touchend', function() {
+          isScrolling = false;
+        });
+      }
+    }
+
+    // Initialize when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+      initServiceCardsScroll();
+    });
+  </script>
+</Layout>
