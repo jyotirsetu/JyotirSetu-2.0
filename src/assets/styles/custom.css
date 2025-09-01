@@ -414,8 +414,16 @@ html, body {
 @media (max-width: 768px) {
   /* Mobile Footer Container */
   .mobile-footer-layout {
-    padding: 1.5rem 0 !important;
+    padding: 1.5rem 1rem !important;
     background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
+    width: 100vw !important;
+    margin-left: calc(-50vw + 50%) !important;
+    margin-right: calc(-50vw + 50%) !important;
+    box-sizing: border-box !important;
+    position: relative !important;
+    left: 50% !important;
+    right: 50% !important;
+    transform: translateX(-50%) !important;
   }
   
   .dark .mobile-footer-layout {
@@ -424,12 +432,34 @@ html, body {
   
   /* Footer Brand Section - Mobile */
   .footer-brand-section {
-    margin-bottom: 1.5rem !important;
+    margin-bottom: 0 !important;
+    flex-shrink: 0 !important;
+    text-align: center !important;
+  }
+
+  /* Horizontal Layout for Logo + Contact Card */
+  .footer-brand-contact-row {
+    display: flex !important;
+    align-items: flex-start !important;
+    gap: 1.5rem !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+  }
+
+  .footer-brand-section {
+    flex: 0 0 auto !important;
+    width: auto !important;
+  }
+
+  .contact-info-section {
+    flex: 1 !important;
+    min-width: 0 !important;
+    margin-bottom: 0 !important;
   }
   
   .footer-brand-section img {
-    width: 6rem !important;
-    height: 6rem !important;
+    width: 5rem !important;
+    height: 5rem !important;
     border-radius: 50% !important;
     object-fit: cover !important;
     box-shadow: 0 8px 25px rgba(59, 130, 246, 0.15) !important;
@@ -456,18 +486,192 @@ html, body {
   .dark .footer-brand-section .text-xs {
     color: #94a3b8 !important;
   }
+
+  /* Mobile Footer Logo Animation & Glow Effects */
+  .footer-brand-section img {
+    animation: logoGlow 3s ease-in-out infinite alternate !important;
+    filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.4)) !important;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    position: relative !important;
+  }
+
+  .footer-brand-section img::before {
+    content: '' !important;
+    position: absolute !important;
+    top: -10px !important;
+    left: -10px !important;
+    right: -10px !important;
+    bottom: -10px !important;
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.3) 0%, transparent 70%) !important;
+    border-radius: 50% !important;
+    z-index: -1 !important;
+    animation: logoPulse 2s ease-in-out infinite !important;
+  }
+
+  .footer-brand-section img:hover {
+    transform: scale(1.05) rotate(2deg) !important;
+    filter: 
+      drop-shadow(0 0 15px rgba(59, 130, 246, 0.6)) !important,
+      drop-shadow(0 0 25px rgba(139, 92, 246, 0.4)) !important,
+      drop-shadow(0 0 35px rgba(236, 72, 153, 0.3)) !important;
+    animation: logoHover 0.6s ease-out !important;
+  }
+
+  @keyframes logoGlow {
+    0% {
+      filter: 
+        drop-shadow(0 0 8px rgba(59, 130, 246, 0.4)) !important,
+        drop-shadow(0 0 12px rgba(139, 92, 246, 0.2)) !important;
+    }
+    50% {
+      filter: 
+        drop-shadow(0 0 12px rgba(59, 130, 246, 0.6)) !important,
+        drop-shadow(0 0 18px rgba(139, 92, 246, 0.4)) !important,
+        drop-shadow(0 0 24px rgba(236, 72, 153, 0.2)) !important;
+    }
+    100% {
+      filter: 
+        drop-shadow(0 0 8px rgba(59, 130, 246, 0.4)) !important,
+        drop-shadow(0 0 12px rgba(139, 92, 246, 0.2)) !important;
+    }
+  }
+
+  @keyframes logoPulse {
+    0%, 100% {
+      opacity: 0.3 !important;
+      transform: scale(1) !important;
+    }
+    50% {
+      opacity: 0.6 !important;
+      transform: scale(1.1) !important;
+    }
+  }
+
+  @keyframes logoHover {
+    0% {
+      transform: scale(1) rotate(0deg) !important;
+    }
+    50% {
+      transform: scale(1.08) rotate(1deg) !important;
+    }
+    100% {
+      transform: scale(1.05) rotate(2deg) !important;
+    }
+  }
+
+  /* Logo Container Glow Effect */
+  .footer-brand-section .relative {
+    position: relative !important;
+  }
+
+  .footer-brand-section .relative::after {
+    content: '' !important;
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    width: 120px !important;
+    height: 120px !important;
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, transparent 70%) !important;
+    border-radius: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    z-index: -1 !important;
+    animation: containerGlow 4s ease-in-out infinite !important;
+  }
+
+  @keyframes containerGlow {
+    0%, 100% {
+      opacity: 0.3 !important;
+      transform: translate(-50%, -50%) scale(1) !important;
+    }
+    50% {
+      opacity: 0.6 !important;
+      transform: translate(-50%, -50%) scale(1.2) !important;
+    }
+  }
   
   /* Contact Info Section - Mobile */
   .contact-info-section {
     margin-bottom: 1.5rem !important;
-    padding: 1rem !important;
+    padding: 0.75rem !important;
     background: rgba(255, 255, 255, 0.7) !important;
     border-radius: 12px !important;
     backdrop-filter: blur(10px) !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
   }
   
   .dark .contact-info-section {
     background: rgba(30, 41, 59, 0.7) !important;
+  }
+
+  /* Mobile Contact Icon Styling */
+  .mobile-contact-icon {
+    width: 1.25rem !important;
+    height: 1.25rem !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%) !important;
+    border-radius: 50% !important;
+    color: white !important;
+    box-shadow: 
+      0 2px 8px rgba(59, 130, 246, 0.3) !important,
+      0 0 0 1px rgba(255, 255, 255, 0.2) !important;
+    flex-shrink: 0 !important;
+    transition: all 0.3s ease !important;
+  }
+
+  .mobile-contact-icon:hover {
+    transform: scale(1.1) !important;
+    box-shadow: 
+      0 4px 12px rgba(59, 130, 246, 0.4) !important,
+      0 0 0 1px rgba(255, 255, 255, 0.3) !important;
+  }
+
+  /* Mobile Contact Item Styling */
+  .mobile-contact-item {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.75rem !important;
+    margin-bottom: 0.75rem !important;
+    padding: 0.5rem !important;
+    border-radius: 8px !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    transition: all 0.3s ease !important;
+  }
+
+  .mobile-contact-item:last-child {
+    margin-bottom: 0 !important;
+  }
+
+  .mobile-contact-item:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-color: rgba(59, 130, 246, 0.3) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2) !important;
+  }
+
+  /* Mobile Contact Text Styling */
+  .mobile-contact-link,
+  .mobile-contact-text {
+    font-size: 0.75rem !important;
+    font-weight: 500 !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+    text-decoration: none !important;
+    line-height: 1.3 !important;
+    transition: all 0.3s ease !important;
+  }
+
+  .mobile-contact-link:hover {
+    color: #60a5fa !important;
+    text-shadow: 0 0 8px rgba(96, 165, 250, 0.4) !important;
+  }
+
+  .mobile-contact-text {
+    color: rgba(255, 255, 255, 0.8) !important;
   }
   
   .contact-info-section .space-y-2 > div {
@@ -493,10 +697,14 @@ html, body {
   /* Footer Sections - Mobile */
   .footer-section {
     margin-bottom: 1rem !important;
-    padding: 1rem !important;
+    padding: 0.75rem !important;
     background: rgba(255, 255, 255, 0.5) !important;
     border-radius: 8px !important;
     border-left: 3px solid #3b82f6 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
   }
   
   .dark .footer-section {
@@ -622,8 +830,8 @@ html, body {
   }
   
   .footer-brand-section img {
-    width: 5rem !important;
-    height: 5rem !important;
+    width: 6rem !important;
+    height: 6rem !important;
     border-radius: 50% !important;
     object-fit: cover !important;
     box-shadow: 0 8px 25px rgba(59, 130, 246, 0.15) !important;
