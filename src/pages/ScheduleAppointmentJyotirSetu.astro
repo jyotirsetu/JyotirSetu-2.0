@@ -117,7 +117,7 @@ for (let i = 0; i < 7; i++) {
   <Appointment
     id="appointment-form"
     title="Book Your Consultation"
-    subtitle="Fill out the form below to schedule your personalized astrology consultation. Our expert astrologers will guide you towards clarity and success."
+    subtitle="Fill out the form below to schedule your personalized astrology consultation. Our expert astrologers will guide you towards clarity and success. Please provide accurate birth details for precise astrological analysis."
     columns={2}
     inputs={[
       { 
@@ -141,6 +141,8 @@ for (let i = 0; i < 7; i++) {
       { type: 'tel', name: 'phone', label: 'Phone Number', required: true, autocomplete: 'tel', placeholder: '+91-XXXXXXXXXX' },
       { type: 'email', name: 'email', label: 'Email Address', required: true, autocomplete: 'email', placeholder: 'you@example.com' },
       { type: 'date', name: 'dob', label: 'Date of Birth', required: true, autocomplete: 'bday' },
+      { type: 'text', name: 'birth_time', label: 'Birth Time (if known)', required: false, placeholder: 'e.g., 2:30 PM' },
+      { type: 'text', name: 'birth_place', label: 'Birth Place', required: false, placeholder: 'City, State, Country' },
       { 
         type: 'select', 
         name: 'gender', 
@@ -162,6 +164,17 @@ for (let i = 0; i < 7; i++) {
         ] 
       },
       { type: 'text', name: 'city', label: 'City', required: true, autocomplete: 'address-level2', placeholder: 'Enter your city' },
+      { 
+        type: 'select', 
+        name: 'consultation_method', 
+        label: 'Preferred Consultation Method', 
+        required: true,
+        options: [
+          { label: 'Phone Call', value: 'phone' },
+          { label: 'Video Call (Zoom/Meet)', value: 'video' },
+          { label: 'In-Person (Gurugram)', value: 'in-person' },
+        ] 
+      },
       { 
         type: 'select', 
         name: 'appointment_date', 
@@ -188,7 +201,8 @@ for (let i = 0; i < 7; i++) {
     captcha={{ text: 'JY48ST' }}
     disclaimer={{ label: 'I agree to the terms and conditions and privacy policy of JyotirSetu.' }}
     button="Book My Consultation"
-    id="appointment-form"
+    action="https://formspree.io/f/xnnbzveo"
+    method="POST"
   />
 
   <!-- WhatsApp Quick Booking -->
