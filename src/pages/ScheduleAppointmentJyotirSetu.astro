@@ -1,6 +1,6 @@
 ---
 import Layout from '~/layouts/PageLayout.astro';
-import Appointment from '~/components/widgets/appointment.astro';
+import DynamicAppointmentForm from '~/components/widgets/DynamicAppointmentForm.astro';
 import Hero from '~/components/widgets/Hero.astro';
 
 // Generate upcoming week dates
@@ -113,97 +113,17 @@ for (let i = 0; i < 7; i++) {
     </div>
   </section>
 
-  <!-- Appointment Form Section -->
-  <Appointment
-    id="appointment-form"
-    title="Book Your Consultation"
-    subtitle="Fill out the form below to schedule your personalized astrology consultation. Our expert astrologers will guide you towards clarity and success. Please provide accurate birth details for precise astrological analysis."
-    columns={2}
-    inputs={[
-      { 
-        type: 'select', 
-        name: 'service', 
-        label: 'Select Service', 
-        required: true,
-        fullWidth: true,
-        options: [
-          { label: 'Astrology', value: 'astrology' },
-          { label: 'Gemstone Consultation', value: 'gemstone' },
-          { label: 'Palmistry', value: 'palmistry' },
-          { label: 'Career & Finance', value: 'career-finance' },
-          { label: 'Matchmaking', value: 'matchmaking' },
-          { label: 'Study', value: 'study' },
-          { label: 'Corporate', value: 'corporate' },
-          { label: 'Other Reason', value: 'other' },
-        ] 
-      },
-      { type: 'text', name: 'name', label: 'Full Name', required: true, autocomplete: 'name', placeholder: 'Enter your full name' },
-      { type: 'tel', name: 'phone', label: 'Phone Number', required: true, autocomplete: 'tel', placeholder: '+91-XXXXXXXXXX' },
-      { type: 'email', name: 'email', label: 'Email Address', required: true, autocomplete: 'email', placeholder: 'you@example.com' },
-      { type: 'date', name: 'dob', label: 'Date of Birth', required: true, autocomplete: 'bday' },
-      { type: 'text', name: 'birth_time', label: 'Birth Time (if known)', required: false, placeholder: 'e.g., 2:30 PM' },
-      { type: 'text', name: 'birth_place', label: 'Birth Place', required: false, placeholder: 'City, State, Country' },
-      { 
-        type: 'select', 
-        name: 'gender', 
-        label: 'Gender', 
-        required: true,
-        options: [
-          { label: 'Male', value: 'male' },
-          { label: 'Female', value: 'female' },
-        ] 
-      },
-      { 
-        type: 'select', 
-        name: 'marital_status', 
-        label: 'Marital Status', 
-        required: true,
-        options: [
-          { label: 'Married', value: 'married' },
-          { label: 'Unmarried', value: 'unmarried' },
-        ] 
-      },
-      { type: 'text', name: 'city', label: 'City', required: true, autocomplete: 'address-level2', placeholder: 'Enter your city' },
-      { 
-        type: 'select', 
-        name: 'consultation_method', 
-        label: 'Preferred Consultation Method', 
-        required: true,
-        options: [
-          { label: 'Phone Call', value: 'phone' },
-          { label: 'Video Call (Zoom/Meet)', value: 'video' },
-          { label: 'In-Person (Gurugram)', value: 'in-person' },
-        ] 
-      },
-      { 
-        type: 'select', 
-        name: 'appointment_date', 
-        label: 'Preferred Date', 
-        required: true,
-        options: upcomingDates
-      },
-      { 
-        type: 'select', 
-        name: 'appointment_time', 
-        label: 'Preferred Time', 
-        required: true,
-        options: [
-          { label: '10:00 AM - 11:00 AM', value: '10:00-11:00' },
-          { label: '11:00 AM - 12:00 PM', value: '11:00-12:00' },
-          { label: '2:00 PM - 3:00 PM', value: '14:00-15:00' },
-          { label: '3:00 PM - 4:00 PM', value: '15:00-16:00' },
-          { label: '6:00 PM - 7:00 PM', value: '18:00-19:00' },
-          { label: '7:00 PM - 8:00 PM', value: '19:00-20:00' },
-        ] 
-      },
-    ]}
-    textarea={{ label: 'Message', name: 'message', placeholder: 'Tell us about your concerns or specific questions you would like to discuss...' }}
-    captcha={{ text: 'JY48ST' }}
-    disclaimer={{ label: 'I agree to the terms and conditions and privacy policy of JyotirSetu.' }}
-    button="Book My Consultation"
-    action="https://formspree.io/f/xnnbzveo"
-    method="POST"
-  />
+  <!-- Dynamic Appointment Form Section -->
+  <section id="appointment-form" class="py-16 bg-page">
+    <div class="max-w-4xl mx-auto px-6">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl font-bold text-heading mb-4">Book Your Consultation</h2>
+        <p class="text-lg text-muted">Select your service and fill out the form below to schedule your personalized astrology consultation. Our expert astrologers will guide you towards clarity and success.</p>
+      </div>
+      
+      <DynamicAppointmentForm />
+    </div>
+  </section>
 
   <!-- WhatsApp Quick Booking -->
   <section class="py-12 bg-green-50">

@@ -1,0 +1,853 @@
+---
+// Dynamic Appointment Form with Service-Specific Fields
+---
+
+<div class="max-w-4xl mx-auto px-4 sm:px-6">
+  <form id="dynamic-appointment-form" class="space-y-6 sm:space-y-8" data-formspree="true" action="https://formspree.io/f/xnnbzveo" method="POST">
+    
+    <!-- Common Fields Section -->
+    <div class="bg-white dark:bg-gray-800 rounded-2xl sm:rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6 shadow-sm">
+      <h3 class="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-4 sm:mb-6 flex items-center">
+        <div class="w-8 h-8 sm:w-6 sm:h-6 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg sm:rounded mr-3 flex items-center justify-center">
+          <svg class="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+          </svg>
+        </div>
+        <span class="text-lg sm:text-xl">🌐 Common Information</span>
+      </h3>
+      
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+        <!-- Full Name -->
+        <div class="space-y-2">
+          <label for="fullName" class="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+            Full Name <span class="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            id="fullName"
+            name="fullName"
+            required
+            placeholder="Enter your full name"
+            class="w-full px-4 py-3.5 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-xl sm:rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-base transition-all duration-200"
+          />
+        </div>
+
+        <!-- Mobile Number -->
+        <div class="space-y-2">
+          <label for="mobileNumber" class="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+            Mobile Number <span class="text-red-500">*</span>
+          </label>
+          <input
+            type="tel"
+            id="mobileNumber"
+            name="mobileNumber"
+            required
+            placeholder="+91-XXXXXXXXXX"
+            pattern="^\+[0-9]{1,3}-[0-9]{6,12}$"
+            class="w-full px-4 py-3.5 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-xl sm:rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-base transition-all duration-200"
+          />
+        </div>
+
+        <!-- Email Address -->
+        <div class="space-y-2">
+          <label for="emailAddress" class="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+            Email Address <span class="text-red-500">*</span>
+          </label>
+          <input
+            type="email"
+            id="emailAddress"
+            name="emailAddress"
+            required
+            placeholder="your.email@example.com"
+            class="w-full px-4 py-3.5 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-xl sm:rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-base transition-all duration-200"
+          />
+        </div>
+
+        <!-- Preferred Consultation Method -->
+        <div class="space-y-2">
+          <label for="consultationMethod" class="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+            Preferred Consultation Method <span class="text-red-500">*</span>
+          </label>
+          <select
+            id="consultationMethod"
+            name="consultationMethod"
+            required
+            class="w-full px-4 py-3.5 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-xl sm:rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-base transition-all duration-200"
+          >
+            <option value="">Select method...</option>
+            <option value="call">Call</option>
+            <option value="video-call">Video Call</option>
+            <option value="in-person">In-person</option>
+            <option value="whatsapp">WhatsApp</option>
+          </select>
+        </div>
+
+        <!-- Appointment Date -->
+        <div class="space-y-2">
+          <label for="appointmentDate" class="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+            Select Appointment Date <span class="text-red-500">*</span>
+          </label>
+          <input
+            type="date"
+            id="appointmentDate"
+            name="appointmentDate"
+            required
+            min={new Date().toISOString().split('T')[0]}
+            class="w-full px-4 py-3.5 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-xl sm:rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-base transition-all duration-200"
+          />
+        </div>
+
+        <!-- Appointment Time -->
+        <div class="space-y-2">
+          <label for="appointmentTime" class="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+            Select Appointment Time <span class="text-red-500">*</span>
+          </label>
+          <select
+            id="appointmentTime"
+            name="appointmentTime"
+            required
+            class="w-full px-4 py-3.5 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-xl sm:rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-base transition-all duration-200"
+          >
+            <option value="">Select time...</option>
+            <option value="09:00-09:30">9:00 AM - 9:30 AM</option>
+            <option value="09:30-10:00">9:30 AM - 10:00 AM</option>
+            <option value="10:00-10:30">10:00 AM - 10:30 AM</option>
+            <option value="10:30-11:00">10:30 AM - 11:00 AM</option>
+            <option value="11:00-11:30">11:00 AM - 11:30 AM</option>
+            <option value="11:30-12:00">11:30 AM - 12:00 PM</option>
+            <option value="14:00-14:30">2:00 PM - 2:30 PM</option>
+            <option value="14:30-15:00">2:30 PM - 3:00 PM</option>
+            <option value="15:00-15:30">3:00 PM - 3:30 PM</option>
+            <option value="15:30-16:00">3:30 PM - 4:00 PM</option>
+            <option value="16:00-16:30">4:00 PM - 4:30 PM</option>
+            <option value="16:30-17:00">4:30 PM - 5:00 PM</option>
+            <option value="17:00-17:30">5:00 PM - 5:30 PM</option>
+            <option value="17:30-18:00">5:30 PM - 6:00 PM</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Service Selection Section -->
+    <div class="bg-white dark:bg-gray-800 rounded-2xl sm:rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6 shadow-sm">
+      <h3 class="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-4 sm:mb-6 flex items-center">
+        <div class="w-8 h-8 sm:w-6 sm:h-6 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg sm:rounded mr-3 flex items-center justify-center">
+          <svg class="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+          </svg>
+        </div>
+        <span class="text-lg sm:text-xl">🎯 Select Your Service</span>
+      </h3>
+      
+      <div class="space-y-2">
+        <label for="serviceType" class="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+          Service Type <span class="text-red-500">*</span>
+        </label>
+        <select
+          id="serviceType"
+          name="serviceType"
+          required
+          class="w-full px-4 py-3.5 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-xl sm:rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-base transition-all duration-200"
+        >
+                     <option value="">Choose your service...</option>
+           <option value="astrology">🔮 Astrology</option>
+           <option value="gemstone">💎 Gemstone Consultation</option>
+           <option value="palmistry">✋ Palmistry</option>
+           <option value="numerology">🔢 Numerology</option>
+           <option value="career-finance">💼 Career & Finance</option>
+           <option value="matchmaking">💕 Matchmaking</option>
+           <option value="study-education">📚 Study / Education</option>
+           <option value="corporate">🏢 Corporate Consultation</option>
+           <option value="other">✨ Other Reason</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Service-Specific Fields Container -->
+    <div id="serviceSpecificFields" class="space-y-6" style="display: none;">
+      <!-- Fields will be dynamically loaded here -->
+    </div>
+
+    <!-- Query Section -->
+    <div class="bg-white dark:bg-gray-800 rounded-2xl sm:rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6 shadow-sm">
+      <h3 class="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-4 sm:mb-6 flex items-center">
+        <div class="w-8 h-8 sm:w-6 sm:h-6 bg-gradient-to-br from-green-500 to-green-600 rounded-lg sm:rounded mr-3 flex items-center justify-center">
+          <svg class="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+          </svg>
+        </div>
+        <span class="text-lg sm:text-xl">💬 Your Query / Notes</span>
+      </h3>
+      
+      <div class="space-y-2">
+        <label for="userQuery" class="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+          Tell us about your concerns or questions
+        </label>
+        <textarea
+          id="userQuery"
+          name="userQuery"
+          rows="4"
+          placeholder="Please share your specific questions, concerns, or what you'd like to discuss during the consultation..."
+          class="w-full px-4 py-3.5 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-xl sm:rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none text-base transition-all duration-200"
+        ></textarea>
+      </div>
+    </div>
+
+    <!-- Disclaimer Section -->
+    <div class="bg-white dark:bg-gray-800 rounded-2xl sm:rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6 shadow-sm">
+      <h3 class="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-4 sm:mb-6 flex items-center">
+        <div class="w-8 h-8 sm:w-6 sm:h-6 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg sm:rounded mr-3 flex items-center justify-center">
+          <svg class="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+        <span class="text-lg sm:text-xl">📋 Terms & Privacy</span>
+      </h3>
+      
+      <!-- Combined Policy Summary -->
+      <div class="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl sm:rounded-lg p-4 mb-4 sm:mb-6">
+        <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+          <strong>Privacy & Terms:</strong> We respect your privacy - your data is encrypted, never shared with third parties, and retained only as long as necessary for service delivery. By booking, you agree to our terms: no advance payments and guidance-based services. For full details, see our <a href="/privacy" class="underline hover:text-blue-600 dark:hover:text-blue-300">Privacy Policy</a> and <a href="/terms" class="underline hover:text-blue-600 dark:hover:text-blue-300">Terms & Conditions</a>.
+        </p>
+      </div>
+      
+      <!-- Disclaimer Checkbox -->
+      <div class="flex items-start space-x-3">
+        <input
+          id="disclaimer"
+          name="disclaimer"
+          type="checkbox"
+          required
+          class="mt-1 h-5 w-5 sm:h-4 sm:w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+        />
+        <label for="disclaimer" class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+          I agree to the terms and conditions and privacy policy of JyotirSetu.
+        </label>
+      </div>
+    </div>
+
+    <!-- Submit Button -->
+    <div class="text-center">
+      <button
+        type="submit"
+        class="w-full px-6 py-4 sm:py-4 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-semibold rounded-2xl sm:rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-200 focus:ring-4 focus:ring-purple-300 focus:outline-none text-lg"
+      >
+        🔮 Book Your Consultation
+      </button>
+    </div>
+        </form>
+      
+      <!-- Success Message -->
+      <div id="form-success" class="hidden mt-6 p-4 sm:p-6 bg-green-50 border border-green-200 rounded-2xl sm:rounded-lg">
+        <div class="flex items-start sm:items-center">
+          <div class="flex-shrink-0">
+            <svg class="w-6 h-6 sm:w-5 sm:h-5 text-green-600 mt-1 sm:mt-0 mr-3 sm:mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+            </svg>
+          </div>
+          <div>
+            <h4 class="text-lg font-semibold text-green-800 mb-2">🌠 Appointment Request Submitted Successfully</h4>
+            <p class="text-green-700 leading-relaxed">Thank you for trusting JyotirSetu. Your consultation request has been recorded, and we'll confirm your appointment according to your selected date and time.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+<script>
+  // Service-specific field configurations
+  const serviceFields = {
+    astrology: {
+      title: "🔮 Astrology Consultation Details",
+      fields: [
+        {
+          type: "select",
+          name: "concernArea",
+          label: "Concern Area",
+          required: true,
+          options: [
+            { value: "health", label: "Health" },
+            { value: "career", label: "Career" },
+            { value: "relationship", label: "Relationship" },
+            { value: "finance", label: "Finance" },
+            { value: "general", label: "General" }
+          ]
+        },
+        {
+          type: "text",
+          name: "currentProfession",
+          label: "Current Profession",
+          required: false,
+          placeholder: "e.g., Software Engineer, Business Owner, Student"
+        },
+        {
+          type: "date",
+          name: "dateOfBirth",
+          label: "Date of Birth",
+          required: true
+        },
+        {
+          type: "time",
+          name: "birthTime",
+          label: "Birth Time",
+          required: false
+        },
+        {
+          type: "text",
+          name: "placeOfBirth",
+          label: "Place of Birth",
+          required: false,
+          placeholder: "City, State, Country"
+        }
+      ]
+    },
+    gemstone: {
+      title: "💎 Gemstone Consultation Details",
+      fields: [
+        {
+          type: "select",
+          name: "wearingPurpose",
+          label: "Wearing Purpose",
+          required: true,
+          options: [
+            { value: "healing", label: "Healing" },
+            { value: "wealth", label: "Wealth" },
+            { value: "career", label: "Career" },
+            { value: "protection", label: "Protection" },
+            { value: "spirituality", label: "Spirituality" }
+          ]
+        },
+        {
+          type: "text",
+          name: "currentProfession",
+          label: "Current Profession",
+          required: false,
+          placeholder: "e.g., Software Engineer, Business Owner, Student"
+        },
+        {
+          type: "date",
+          name: "dateOfBirth",
+          label: "Date of Birth",
+          required: true
+        },
+        {
+          type: "time",
+          name: "birthTime",
+          label: "Birth Time",
+          required: false
+        },
+        {
+          type: "text",
+          name: "currentGemstone",
+          label: "Wearing Any Gemstone Currently?",
+          required: false,
+          placeholder: "e.g., Ruby, Emerald, Diamond, None"
+        }
+      ]
+    },
+         palmistry: {
+       title: "✋ Palmistry Consultation Details",
+       fields: [
+         {
+           type: "select",
+           name: "focusArea",
+           label: "Focus Area",
+           required: true,
+           options: [
+             { value: "career", label: "Career" },
+             { value: "marriage", label: "Marriage" },
+             { value: "finance", label: "Finance" },
+             { value: "health", label: "Health" },
+             { value: "general", label: "General Prediction" }
+           ]
+         },
+         {
+           type: "select",
+           name: "handDominance",
+           label: "Hand Dominance",
+           required: true,
+           options: [
+             { value: "left", label: "Left" },
+             { value: "right", label: "Right" },
+             { value: "both", label: "Both" }
+           ]
+         },
+         {
+           type: "textarea",
+           name: "specificConcerns",
+           label: "Specific Concerns / Questions",
+           required: false,
+           placeholder: "Tell us what you would like to know from palm reading...",
+           rows: 3
+         }
+       ],
+       // Special instruction for palmistry
+       instruction: {
+         title: "📸 Hand Image Upload",
+         content: "For accurate palm reading, please upload clear photos of your palms. You can use any of these methods:",
+         methods: [
+           "📱 WhatsApp: Send photos to +91-9266991298",
+           "📧 Email: Send to guidance@jyotirsetu.com",
+           "☁️ Cloud: Upload to Google Drive/Dropbox and share link"
+         ],
+         note: "Ensure photos are well-lit, close-up, and show the entire palm clearly."
+       }
+     },
+     numerology: {
+       title: "🔢 Numerology Consultation Details",
+       fields: [
+         {
+           type: "text",
+           name: "officialFullName",
+           label: "Full Name (as per official records)",
+           required: true,
+           placeholder: "Enter your exact official name as per documents"
+         },
+         {
+           type: "text",
+           name: "commonName",
+           label: "Name You Are Commonly Known By",
+           required: false,
+           placeholder: "Nickname or name you use daily (optional)"
+         },
+         {
+           type: "date",
+           name: "dateOfBirth",
+           label: "Date of Birth",
+           required: true
+         },
+         {
+           type: "select",
+           name: "gender",
+           label: "Gender",
+           required: true,
+           options: [
+             { value: "male", label: "Male" },
+             { value: "female", label: "Female" },
+             { value: "other", label: "Other" }
+           ]
+         },
+         {
+           type: "select",
+           name: "focusArea",
+           label: "Specific Focus Area",
+           required: true,
+           options: [
+             { value: "career-finance", label: "Career & Finance" },
+             { value: "relationship-marriage", label: "Relationship / Marriage" },
+             { value: "health-wellness", label: "Health & Wellness" },
+             { value: "name-correction", label: "Name Correction / Lucky Name" },
+             { value: "general-guidance", label: "General Guidance" }
+           ]
+         },
+         {
+           type: "textarea",
+           name: "messageNotes",
+           label: "Message / Notes",
+           required: false,
+           placeholder: "Specify any concern or ask a direct question...",
+           rows: 3
+         }
+       ],
+       // Special instruction for numerology
+       instruction: {
+         title: "📝 Important Note for Numerology",
+         content: "Numerology is name-based, so the exact spelling is very important for accurate calculations. Please ensure:",
+         methods: [
+           "✅ Use your official name as per birth certificate or official documents",
+           "✅ Include middle names if you have them",
+           "✅ Mention any name changes you've had in the past",
+           "✅ Provide the exact spelling you want analyzed"
+         ],
+         note: "The more accurate your name details, the more precise your numerology reading will be."
+       }
+     },
+    "career-finance": {
+      title: "💼 Career & Finance Consultation Details",
+      fields: [
+        {
+          type: "text",
+          name: "currentProfession",
+          label: "Current Profession / Industry",
+          required: true,
+          placeholder: "e.g., IT, Finance, Healthcare, Manufacturing"
+        },
+        {
+          type: "select",
+          name: "financialConcerns",
+          label: "Financial Concerns",
+          required: true,
+          options: [
+            { value: "business-growth", label: "Business Growth" },
+            { value: "job-change", label: "Job Change" },
+            { value: "investments", label: "Investments" },
+            { value: "debt-issues", label: "Debt Issues" },
+            { value: "general-guidance", label: "General Guidance" }
+          ]
+        }
+      ]
+    },
+    matchmaking: {
+      title: "💕 Matchmaking Consultation Details",
+      fields: [
+        // Person 1 (Your Details)
+        {
+          type: "section-header",
+          label: "👤 Person 1 (Your Details)"
+        },
+        {
+          type: "text",
+          name: "person1Name",
+          label: "Full Name",
+          required: true,
+          placeholder: "Enter your full name"
+        },
+        {
+          type: "select",
+          name: "person1Gender",
+          label: "Gender",
+          required: true,
+          options: [
+            { value: "male", label: "Male" },
+            { value: "female", label: "Female" },
+            { value: "other", label: "Other" }
+          ]
+        },
+        {
+          type: "date",
+          name: "person1DOB",
+          label: "Date of Birth",
+          required: true
+        },
+        {
+          type: "time",
+          name: "person1TOB",
+          label: "Time of Birth",
+          required: true
+        },
+        {
+          type: "text",
+          name: "person1POB",
+          label: "Place of Birth",
+          required: true,
+          placeholder: "City, State, Country"
+        },
+        // Person 2 (Partner's Details)
+        {
+          type: "section-header",
+          label: "💑 Person 2 (Partner's Details)"
+        },
+        {
+          type: "text",
+          name: "person2Name",
+          label: "Full Name",
+          required: true,
+          placeholder: "Enter partner's full name"
+        },
+        {
+          type: "select",
+          name: "person2Gender",
+          label: "Gender",
+          required: true,
+          options: [
+            { value: "male", label: "Male" },
+            { value: "female", label: "Female" },
+            { value: "other", label: "Other" }
+          ]
+        },
+        {
+          type: "date",
+          name: "person2DOB",
+          label: "Date of Birth",
+          required: true
+        },
+        {
+          type: "time",
+          name: "person2TOB",
+          label: "Time of Birth",
+          required: true
+        },
+        {
+          type: "text",
+          name: "person2POB",
+          label: "Place of Birth",
+          required: true,
+          placeholder: "City, State, Country"
+        }
+      ]
+    },
+    "study-education": {
+      title: "📚 Study / Education Consultation Details",
+      fields: [
+        {
+          type: "select",
+          name: "futureGoal",
+          label: "Future Goal",
+          required: true,
+          options: [
+            { value: "higher-studies", label: "Higher Studies" },
+            { value: "abroad-studies", label: "Abroad Studies" },
+            { value: "career-guidance", label: "Career Guidance" }
+          ]
+        }
+      ]
+    },
+    corporate: {
+      title: "🏢 Corporate Consultation Details",
+      fields: [
+        {
+          type: "text",
+          name: "companyName",
+          label: "Company Name",
+          required: true,
+          placeholder: "Your company or organization name"
+        },
+        {
+          type: "select",
+          name: "businessType",
+          label: "Business Type",
+          required: true,
+          options: [
+            { value: "it", label: "IT" },
+            { value: "finance", label: "Finance" },
+            { value: "retail", label: "Retail" },
+            { value: "manufacturing", label: "Manufacturing" },
+            { value: "startup", label: "Startup" },
+            { value: "other", label: "Other" }
+          ]
+        },
+        {
+          type: "select",
+          name: "employeeCount",
+          label: "Number of Employees",
+          required: true,
+          options: [
+            { value: "1-10", label: "1-10" },
+            { value: "10-50", label: "10-50" },
+            { value: "50-100", label: "50-100" },
+            { value: "100+", label: "100+" }
+          ]
+        },
+        {
+          type: "select",
+          name: "concernArea",
+          label: "Concern Area",
+          required: true,
+          options: [
+            { value: "growth-strategy", label: "Growth Strategy" },
+            { value: "team-harmony", label: "Team Harmony" },
+            { value: "leadership", label: "Leadership" },
+            { value: "financial-stability", label: "Financial Stability" },
+            { value: "market-expansion", label: "Market Expansion" }
+          ]
+        }
+      ]
+    },
+    other: {
+      title: "✨ Other Consultation Details",
+      fields: [
+        {
+          type: "text",
+          name: "subjectTitle",
+          label: "Subject / Title of Concern",
+          required: true,
+          placeholder: "Brief title for your concern"
+        },
+        {
+          type: "textarea",
+          name: "detailedConcern",
+          label: "Detailed Concern",
+          required: true,
+          placeholder: "Please provide detailed information about your concern...",
+          rows: 4
+        }
+      ]
+    }
+  };
+
+  // Function to render service-specific fields
+  function renderServiceFields(serviceType) {
+    const container = document.getElementById('serviceSpecificFields');
+    const serviceConfig = serviceFields[serviceType];
+    
+    if (!serviceConfig) {
+      container.style.display = 'none';
+      return;
+    }
+
+    let fieldsHTML = `
+      <div class="bg-white dark:bg-gray-800 rounded-2xl sm:rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6 shadow-sm">
+        <h3 class="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-4 sm:mb-6 flex items-center">
+          <div class="w-8 h-8 sm:w-6 sm:h-6 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-lg sm:rounded mr-3 flex items-center justify-center">
+            <svg class="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+          <span class="text-lg sm:text-xl">${serviceConfig.title}</span>
+        </h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+    `;
+
+    serviceConfig.fields.forEach(field => {
+      if (field.type === 'section-header') {
+        // Section header - spans full width with special styling
+        fieldsHTML += `
+          <div class="sm:col-span-2 mb-4">
+            <h4 class="text-lg font-semibold text-purple-600 dark:text-purple-400 border-b-2 border-purple-200 dark:border-purple-700 pb-2">
+              ${field.label}
+            </h4>
+          </div>
+        `;
+      } else if (field.type === 'select') {
+        fieldsHTML += `
+          <div class="space-y-2">
+            <label for="${field.name}" class="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+              ${field.label} ${field.required ? '<span class="text-red-500">*</span>' : ''}
+            </label>
+            <select
+              id="${field.name}"
+              name="${field.name}"
+              ${field.required ? 'required' : ''}
+              class="w-full px-4 py-3.5 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-xl sm:rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-base transition-all duration-200"
+            >
+              <option value="">Choose one...</option>
+              ${field.options.map(option => `<option value="${option.value}">${option.label}</option>`).join('')}
+            </select>
+          </div>
+        `;
+      } else if (field.type === 'textarea') {
+        fieldsHTML += `
+          <div class="space-y-2 sm:col-span-2">
+            <label for="${field.name}" class="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+              ${field.label} ${field.required ? '<span class="text-red-500">*</span>' : ''}
+            </label>
+            <textarea
+              id="${field.name}"
+              name="${field.name}"
+              ${field.required ? 'required' : ''}
+              rows="${field.rows || 4}"
+              placeholder="${field.placeholder || ''}"
+              class="w-full px-4 py-3.5 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-xl sm:rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none text-base transition-all duration-200"
+            ></textarea>
+          </div>
+        `;
+      } else {
+        fieldsHTML += `
+          <div class="space-y-2">
+            <label for="${field.name}" class="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+              ${field.label} ${field.required ? '<span class="text-red-500">*</span>' : ''}
+            </label>
+            <input
+              type="${field.type}"
+              id="${field.name}"
+              name="${field.name}"
+              ${field.required ? 'required' : ''}
+              placeholder="${field.placeholder || ''}"
+              class="w-full px-4 py-3.5 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-xl sm:rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-base transition-all duration-200"
+            />
+          </div>
+        `;
+      }
+    });
+
+    fieldsHTML += `
+        </div>
+      </div>
+    `;
+
+    // Add special instruction if available (for palmistry)
+    if (serviceConfig.instruction) {
+      fieldsHTML += `
+        <div class="mt-6 p-4 sm:p-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-2xl sm:rounded-lg">
+          <h4 class="text-lg font-semibold text-blue-800 dark:text-blue-200 mb-3 flex items-center">
+            <div class="w-6 h-6 sm:w-5 sm:h-5 bg-blue-500 rounded-lg sm:rounded mr-3 flex items-center justify-center">
+              <svg class="w-4 h-4 sm:w-4 sm:h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </div>
+            ${serviceConfig.instruction.title}
+          </h4>
+          <p class="text-blue-700 dark:text-blue-300 mb-3 leading-relaxed">${serviceConfig.instruction.content}</p>
+          <ul class="space-y-2 mb-3">
+            ${serviceConfig.instruction.methods.map(method => `<li class="text-blue-600 dark:text-blue-400 flex items-start">
+              <span class="mr-2 mt-1">•</span>
+              <span>${method}</span>
+            </li>`).join('')}
+          </ul>
+          <p class="text-sm text-blue-600 dark:text-blue-400 font-medium leading-relaxed">${serviceConfig.instruction.note}</p>
+        </div>
+      `;
+    }
+
+    container.innerHTML = fieldsHTML;
+    container.style.display = 'block';
+    
+    // Smooth scroll to the new fields
+    container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  // Event listener for service type change
+  document.getElementById('serviceType').addEventListener('change', function() {
+    const selectedService = this.value;
+    if (selectedService) {
+      renderServiceFields(selectedService);
+    } else {
+      document.getElementById('serviceSpecificFields').style.display = 'none';
+    }
+  });
+
+  // Set default dates
+  document.addEventListener('DOMContentLoaded', function() {
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+    
+    document.getElementById('appointmentDate').value = tomorrow.toISOString().split('T')[0];
+  });
+
+  // Form submission handling
+  document.getElementById('dynamic-appointment-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    // Show loading state
+    const submitBtn = this.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '⏳ Submitting...';
+    submitBtn.disabled = true;
+    
+    // Collect form data
+    const formData = new FormData(this);
+    
+    // Submit to Formspree
+    fetch('https://formspree.io/f/xnnbzveo', {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'Accept': 'application/json'
+      }
+    })
+    .then(response => {
+      if (response.ok) {
+        // Show success message
+        document.getElementById('form-success').classList.remove('hidden');
+        this.reset();
+        
+        // Reset service-specific fields
+        document.getElementById('serviceSpecificFields').style.display = 'none';
+        
+        // Scroll to success message
+        document.getElementById('form-success').scrollIntoView({ behavior: 'smooth' });
+      } else {
+        throw new Error('Form submission failed');
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('Sorry, there was an error submitting your form. Please try again or contact us directly.');
+    })
+    .finally(() => {
+      // Reset button state
+      submitBtn.innerHTML = originalText;
+      submitBtn.disabled = false;
+    });
+  });
+</script>

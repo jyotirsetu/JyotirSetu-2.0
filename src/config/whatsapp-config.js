@@ -4,8 +4,8 @@
 export const WHATSAPP_CONFIG = {
   // WhatsApp Business API Credentials
   // Get these from Facebook Developers Console
-  ACCESS_TOKEN: 'your_access_token_here', // Replace with your actual access token
-  PHONE_NUMBER_ID: 'your_phone_number_id_here', // Replace with your actual phone number ID
+  ACCESS_TOKEN: 'YOUR_ACCESS_TOKEN_HERE', // Replace with your actual access token from Meta
+  PHONE_NUMBER_ID: 'YOUR_PHONE_NUMBER_ID_HERE', // Replace with your actual phone number ID from Meta
   
   // Business Information
   BUSINESS_NAME: 'JyotirSetu',
