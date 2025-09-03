@@ -1,0 +1,178 @@
+---
+// DailyTipsDisplay.astro - Displays daily tips from Supabase on the website
+---
+
+<div class="daily-tips-section bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 py-16">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Section Header -->
+    <div class="text-center mb-12">
+      <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+        ✨ Daily Cosmic Insights
+      </h2>
+      <p class="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+        Discover today's spiritual guidance and cosmic wisdom to illuminate your path
+      </p>
+    </div>
+
+    <!-- Tips Container -->
+    <div id="daily-tips-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <!-- Loading State -->
+      <div class="col-span-full text-center py-12">
+        <div class="inline-flex items-center space-x-2">
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+          <span class="text-gray-600 dark:text-gray-400">Loading cosmic insights...</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- No Tips State (hidden by default) -->
+    <div id="no-tips-state" class="hidden text-center py-12">
+      <div class="text-gray-500 dark:text-gray-400">
+        <span class="text-6xl block mb-4">🌟</span>
+        <p class="text-lg">No cosmic insights available yet</p>
+        <p class="text-sm mt-2">Check back soon for daily wisdom</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Supabase Client Script -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+  // Initialize Supabase client
+  let supabase;
+  
+  async function initSupabase() {
+    try {
+      // @ts-ignore
+      supabase = window.supabase.createClient(
+        'https://czbypbrrxxjcjdfjxczv.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN6YnlwYnJyeHhqY2pkZmp4Y3p2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY5MjU2NDcsImV4cCI6MjA3MjUwMTY0N30.SQ-eabMNo5RBy8N0MHWDmlxVH7Tmh-EGykI0Qt5wDjg'
+      );
+      console.log('DailyTipsDisplay: Supabase initialized successfully');
+      await loadDailyTips();
+    } catch (error) {
+      console.error('DailyTipsDisplay: Error initializing Supabase:', error);
+      showFallbackTips();
+    }
+  }
+
+  // Load daily tips from Supabase
+  async function loadDailyTips() {
+    try {
+      console.log('DailyTipsDisplay: Loading tips from Supabase...');
+      
+      const { data: tips, error } = await supabase
+        .from('daily_tips')
+        .select('*')
+        .eq('active', true)
+        .order('created_at', { ascending: false })
+        .limit(6); // Show latest 6 tips
+      
+      if (error) {
+        console.error('DailyTipsDisplay: Supabase error:', error);
+        showFallbackTips();
+        return;
+      }
+      
+      console.log('DailyTipsDisplay: Tips loaded:', tips);
+      
+      if (tips && tips.length > 0) {
+        displayTips(tips);
+      } else {
+        showNoTipsState();
+      }
+    } catch (error) {
+      console.error('DailyTipsDisplay: Error loading tips:', error);
+      showFallbackTips();
+    }
+  }
+
+  // Display tips in the grid
+  function displayTips(tips) {
+    const container = document.getElementById('daily-tips-container');
+    if (!container) return;
+    
+    container.innerHTML = tips.map(tip => `
+      <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border border-purple-200 dark:border-purple-700 overflow-hidden group">
+        <!-- Tip Header -->
+        <div class="bg-gradient-to-r from-purple-500 to-blue-500 px-6 py-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-semibold text-white">${tip.title}</h3>
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-white/20 text-white">
+              ${tip.category}
+            </span>
+          </div>
+        </div>
+        
+        <!-- Tip Content -->
+        <div class="p-6">
+          <p class="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
+            ${tip.content}
+          </p>
+          
+          <!-- Tip Footer -->
+          <div class="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
+            <span>${formatDate(tip.date)}</span>
+            <span class="text-purple-500">✨</span>
+          </div>
+        </div>
+        
+        <!-- Hover Effect -->
+        <div class="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+      </div>
+    `).join('');
+  }
+
+  // Show fallback tips if Supabase fails
+  function showFallbackTips() {
+    const container = document.getElementById('daily-tips-container');
+    if (!container) return;
+    
+    const fallbackTips = [
+      {
+        title: "Moon in Aries",
+        content: "Today's energy is perfect for new beginnings and taking bold actions. Trust your intuition and embrace change.",
+        category: "Zodiac",
+        date: new Date().toISOString().split('T')[0]
+      },
+      {
+        title: "Mercury Retrograde",
+        content: "Communication may be challenging. Double-check all messages and contracts. Patience is your ally.",
+        category: "Planets",
+        date: new Date().toISOString().split('T')[0]
+      },
+      {
+        title: "Spiritual Awakening",
+        content: "The universe is calling you to explore deeper spiritual practices. Meditation and reflection will bring clarity.",
+        category: "Spiritual",
+        date: new Date().toISOString().split('T')[0]
+      }
+    ];
+    
+    displayTips(fallbackTips);
+  }
+
+  // Show no tips state
+  function showNoTipsState() {
+    const container = document.getElementById('daily-tips-container');
+    const noTipsState = document.getElementById('no-tips-state');
+    
+    if (container) container.innerHTML = '';
+    if (noTipsState) noTipsState.classList.remove('hidden');
+  }
+
+  // Format date for display
+  function formatDate(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric',
+      year: 'numeric'
+    });
+  }
+
+  // Initialize when DOM is ready
+  document.addEventListener('DOMContentLoaded', initSupabase);
+</script>
