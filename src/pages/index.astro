@@ -2,6 +2,7 @@
 import Layout from '~/layouts/PageLayout.astro';
 
 import Hero from '~/components/widgets/Hero.astro';
+import DailyAstroTip from '~/components/widgets/DailyAstroTip.astro';
 import Note from '~/components/widgets/Note.astro';
 import Features from '~/components/widgets/Features.astro';
 import Features2 from '~/components/widgets/Features2.astro';
@@ -11,6 +12,7 @@ import Content from '~/components/widgets/Content.astro';
 import FAQs from '~/components/widgets/FAQs.astro';
 import Stats from '~/components/widgets/Stats.astro';
 import CallToAction from '~/components/widgets/CallToAction.astro';
+import EmailCapture from '~/components/widgets/EmailCapture.astro';
 
 const metadata = {
   title: 'JyotirSetu',
@@ -42,6 +44,9 @@ const metadata = {
       <span class="font-semibold">At JyotirSetu,</span> we offer expert guidance in Vedic Astrology, Palmistry, and Numerology — helping you gain deeper clarity, direction, and peace of mind in life's journey.
     </div>
   </Hero>
+
+  <!-- Daily Astro Tip Widget ******************* -->
+  <DailyAstroTip />
 
   <!-- Note Widget ******************* -->
 
@@ -224,7 +229,7 @@ const metadata = {
 
   <Content
     isReversed
-    tagline="Inside template"
+    tagline="Ancient Wisdom, Modern Solutions"
     title="JyotirSetu’s Blueprint: Ancient Wisdom for Modern Living"
     items={[
       {
@@ -336,6 +341,7 @@ const metadata = {
   <!-- Steps Widget ****************** -->
 
   <Steps
+    id="path-to-clarity"
     title="Your Path to Clarity with JyotirSetu"
     items={[
       {
@@ -383,6 +389,18 @@ const metadata = {
           Book Your Appointment
         </a>
       </div>
+    </div>
+  </section>
+
+  <!-- Retention Loop - Email Capture Section -->
+  <section class="py-16 bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl font-bold text-heading mb-4">🌟 Stay Connected with Cosmic Wisdom</h2>
+        <p class="text-lg text-muted">Get weekly insights, remedies, and cosmic guidance delivered to your inbox</p>
+      </div>
+      
+      <EmailCapture />
     </div>
   </section>
 

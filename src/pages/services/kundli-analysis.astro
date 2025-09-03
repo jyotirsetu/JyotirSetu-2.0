@@ -1,8 +1,9 @@
 ---
 import Layout from '~/layouts/PageLayout.astro';
 import Hero from '~/components/widgets/Hero.astro';
-import Content from '~/components/widgets/Content.astro';
 import CallToAction from '~/components/widgets/CallToAction.astro';
+import AstrologyQuiz from '~/components/widgets/AstrologyQuiz.astro';
+import ServicePageEnhancer from '~/components/widgets/ServicePageEnhancer.astro';
 
 const metadata = {
   title: 'Kundli Analysis - JyotirSetu',
@@ -497,6 +498,22 @@ const metadata = {
       </div>
     </div>
   </section>
+
+  <!-- Interactive Astrology Quiz Section -->
+  <section class="py-16 bg-page">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl font-bold text-heading mb-4">🪐 Discover Your Cosmic Path</h2>
+        <p class="text-lg text-muted">Take our interactive quiz to get a glimpse of your astrological insights</p>
+      </div>
+      
+      <!-- Display the Astrology Quiz component -->
+      <AstrologyQuiz />
+    </div>
+  </section>
+
+  <!-- Enhanced Service Page Elements -->
+  <ServicePageEnhancer />
 
   <!-- CTA Section -->
   <CallToAction

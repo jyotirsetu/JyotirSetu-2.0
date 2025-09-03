@@ -1,0 +1,160 @@
+---
+// Performance Optimizer Component
+// Adds performance optimizations and enhancements to pages
+---
+
+<!-- Performance Optimization Scripts -->
+<script is:inline>
+  // Lazy loading for images
+  function initLazyLoading() {
+    if ('IntersectionObserver' in window) {
+      const imageObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const img = entry.target;
+            img.src = img.dataset.src;
+            img.classList.remove('lazy');
+            imageObserver.unobserve(img);
+          }
+        });
+      });
+
+      document.querySelectorAll('img[data-src]').forEach(img => {
+        imageObserver.observe(img);
+      });
+    }
+  }
+
+  // Preload critical resources
+  function preloadCriticalResources() {
+    const criticalResources = [
+      '/ScheduleAppointmentJyotirSetu',
+      '/about',
+      '/contact'
+    ];
+
+    criticalResources.forEach(resource => {
+      const link = document.createElement('link');
+      link.rel = 'prefetch';
+      link.href = resource;
+      document.head.appendChild(link);
+    });
+  }
+
+  // Optimize scroll performance
+  function optimizeScrollPerformance() {
+    let ticking = false;
+    
+    function updateScroll() {
+      // Add scroll-based animations or effects here
+      ticking = false;
+    }
+    
+    function requestTick() {
+      if (!ticking) {
+        requestAnimationFrame(updateScroll);
+        ticking = true;
+      }
+    }
+    
+    window.addEventListener('scroll', requestTick, { passive: true });
+  }
+
+  // Initialize performance optimizations
+  document.addEventListener('DOMContentLoaded', function() {
+    initLazyLoading();
+    preloadCriticalResources();
+    optimizeScrollPerformance();
+  });
+
+  // Service Worker registration for offline support
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+      navigator.serviceWorker.register('/sw.js')
+        .then(function(registration) {
+          console.log('SW registered: ', registration);
+        })
+        .catch(function(registrationError) {
+          console.log('SW registration failed: ', registrationError);
+        });
+    });
+  }
+</script>
+
+<!-- Performance Monitoring -->
+<script is:inline>
+  // Performance monitoring
+  window.addEventListener('load', function() {
+    // Measure page load performance
+    if ('performance' in window) {
+      const perfData = performance.getEntriesByType('navigation')[0];
+      const loadTime = perfData.loadEventEnd - perfData.loadEventStart;
+      
+      console.log('Page load time:', loadTime + 'ms');
+      
+      // Send performance data to analytics (if configured)
+      if (loadTime > 3000) {
+        console.warn('Page load time is slow:', loadTime + 'ms');
+      }
+    }
+  });
+
+  // Monitor Core Web Vitals
+  if ('PerformanceObserver' in window) {
+    try {
+      const observer = new PerformanceObserver((list) => {
+        for (const entry of list.getEntries()) {
+          if (entry.entryType === 'largest-contentful-paint') {
+            console.log('LCP:', entry.startTime + 'ms');
+          }
+          if (entry.entryType === 'first-input') {
+            console.log('FID:', entry.processingStart - entry.startTime + 'ms');
+          }
+        }
+      });
+      
+      observer.observe({ entryTypes: ['largest-contentful-paint', 'first-input'] });
+    } catch (e) {
+      console.log('Performance monitoring not supported');
+    }
+  }
+</script>
+
+<!-- Resource Hints -->
+<link rel="dns-prefetch" href="//images.unsplash.com">
+<link rel="dns-prefetch" href="//formspree.io">
+<link rel="dns-prefetch" href="//wa.me">
+
+<!-- Preconnect to external domains -->
+<link rel="preconnect" href="https://images.unsplash.com" crossorigin>
+<link rel="preconnect" href="https://formspree.io" crossorigin>
+
+<!-- Critical CSS inline -->
+<style>
+  /* Critical CSS for above-the-fold content */
+  .critical-load {
+    opacity: 0;
+    animation: fadeIn 0.3s ease-in forwards;
+  }
+  
+  @keyframes fadeIn {
+    to { opacity: 1; }
+  }
+  
+  /* Optimize images */
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+  
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  /* Optimize animations */
+  .animate-optimized {
+    will-change: transform;
+    transform: translateZ(0);
+  }
+</style>

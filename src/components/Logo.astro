@@ -4,12 +4,24 @@ import Image from '~/components/common/Image.astro';
 ---
 
 <a href="/" class="flex items-center logo-container">
+  <!-- Dark Theme Logo (White/Transparent) -->
   <Image
     src="~/assets/images/Jyotirsetu-logo.png"
     alt="JyotirSetu Logo"
     width={200}
     height={60}
-    class="h-10 md:h-12 w-auto max-w-[180px] md:max-w-[220px] object-contain"
+    class="h-10 md:h-12 w-auto max-w-[180px] md:max-w-[220px] object-contain dark:block hidden"
+    id="logo-dark"
+  />
+  
+  <!-- Light Theme Logo (Blue) -->
+  <Image
+    src="~/assets/images/Jyotirsetu-logo-blue.png"
+    alt="JyotirSetu Logo"
+    width={200}
+    height={60}
+    class="h-10 md:h-12 w-auto max-w-[180px] md:max-w-[220px] object-contain block dark:hidden"
+    id="logo-light"
   />
 </a>
 
@@ -29,4 +41,53 @@ import Image from '~/components/common/Image.astro';
       padding: 6px 0;
     }
   }
+  
+  /* Smooth logo transitions */
+  .logo-container img {
+    transition: opacity 0.3s ease-in-out;
+  }
 </style>
+
+<script>
+  // Theme-based logo switching
+  function updateLogoVisibility() {
+    const logoDark = document.getElementById('logo-dark');
+    const logoLight = document.getElementById('logo-light');
+    
+    if (logoDark && logoLight) {
+      // Check if dark mode is active
+      const isDarkMode = document.documentElement.classList.contains('dark');
+      
+      if (isDarkMode) {
+        // Dark theme: show white logo, hide blue logo
+        logoDark.style.display = 'block';
+        logoLight.style.display = 'none';
+      } else {
+        // Light theme: show blue logo, hide white logo
+        logoDark.style.display = 'none';
+        logoLight.style.display = 'block';
+      }
+    }
+  }
+
+  // Update logo on page load
+  document.addEventListener('DOMContentLoaded', updateLogoVisibility);
+  
+  // Update logo when theme changes
+  document.addEventListener('astro:page-load', updateLogoVisibility);
+  
+  // Watch for theme changes
+  const observer = new MutationObserver(function(mutations) {
+    mutations.forEach(function(mutation) {
+      if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+        updateLogoVisibility();
+      }
+    });
+  });
+  
+  // Start observing the document element for class changes
+  observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['class']
+  });
+</script>

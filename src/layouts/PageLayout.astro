@@ -3,8 +3,10 @@ import Layout from '~/layouts/Layout.astro';
 import Header from '~/components/widgets/Header.astro';
 import Footer from '~/components/widgets/Footer.astro';
 import Announcement from '~/components/widgets/Announcement.astro';
-import FloatingWhatsApp from '~/components/FloatingWhatsApp.astro';
 import ScrollButton from '~/components/ScrollButton.astro';
+
+import PerformanceOptimizer from '~/components/widgets/PerformanceOptimizer.astro';
+import UserEngagement from '~/components/widgets/UserEngagement.astro';
 
 import { headerData, footerData } from '~/navigation';
 
@@ -30,6 +32,8 @@ const { metadata } = Astro.props;
   <slot name="footer">
     <Footer {...footerData} />
   </slot>
-  <FloatingWhatsApp />
   <ScrollButton />
+  
+      <PerformanceOptimizer />
+    <UserEngagement />
 </Layout>

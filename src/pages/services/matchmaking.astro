@@ -3,6 +3,7 @@ import Layout from '~/layouts/PageLayout.astro';
 import Hero from '~/components/widgets/Hero.astro';
 import Content from '~/components/widgets/Content.astro';
 import CallToAction from '~/components/widgets/CallToAction.astro';
+import ServicePageEnhancer from '~/components/widgets/ServicePageEnhancer.astro';
 
 const metadata = {
   title: 'Matchmaking (Kundli Milan) - JyotirSetu',
@@ -438,7 +439,10 @@ const metadata = {
     </div>
   </section>
 
-  <!-- CTA Section -->
+  <!-- Enhanced Service Page Elements -->
+  <ServicePageEnhancer />
+
+  <!-- Call to Action -->
   <CallToAction
     actions={[
       {

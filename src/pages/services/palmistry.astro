@@ -2,6 +2,8 @@
 import Layout from '~/layouts/PageLayout.astro';
 import Hero from '~/components/widgets/Hero.astro';
 import CallToAction from '~/components/widgets/CallToAction.astro';
+import PalmistryQuiz from '~/components/widgets/PalmistryQuiz.astro';
+import ServicePageEnhancer from '~/components/widgets/ServicePageEnhancer.astro';
 
 const metadata = {
   title: 'Palmistry - JyotirSetu',
@@ -402,7 +404,23 @@ const metadata = {
     </div>
   </section>
 
-  <!-- Call to Action -->
+  <!-- Interactive Palmistry Quiz Section -->
+  <section class="py-16 bg-page">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl font-bold text-heading mb-4">✋ Discover Your Palm Reading</h2>
+        <p class="text-lg text-muted">Take our interactive quiz to reveal fascinating palmistry insights</p>
+      </div>
+      
+      <!-- Display the Palmistry Quiz component -->
+      <PalmistryQuiz />
+    </div>
+  </section>
+
+  <!-- Enhanced Service Page Elements -->
+  <ServicePageEnhancer />
+
+  <!-- CTA Section -->
   <CallToAction
     title="Ready to Discover Your Palm's Secrets?"
     subtitle="Book your palmistry consultation today and unlock the wisdom written in your hands"

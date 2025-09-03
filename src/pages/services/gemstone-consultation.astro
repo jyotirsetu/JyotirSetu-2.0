@@ -2,6 +2,8 @@
 import Layout from '~/layouts/PageLayout.astro';
 import Hero from '~/components/widgets/Hero.astro';
 import CallToAction from '~/components/widgets/CallToAction.astro';
+import GemstoneQuiz from '~/components/widgets/GemstoneQuiz.astro';
+import ServicePageEnhancer from '~/components/widgets/ServicePageEnhancer.astro';
 
 const metadata = {
   title: 'Gemstone Consultation - JyotirSetu',
@@ -435,6 +437,22 @@ const metadata = {
       </div>
     </div>
   </section>
+
+  <!-- Interactive Gemstone Quiz Section -->
+  <section class="py-16 bg-page">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl font-bold text-heading mb-4">🔮 Discover Your Perfect Gemstone</h2>
+        <p class="text-lg text-muted">Take our interactive quiz to get a personalized gemstone recommendation</p>
+      </div>
+      
+      <!-- Import and display the Gemstone Quiz component -->
+      <GemstoneQuiz />
+    </div>
+  </section>
+
+  <!-- Enhanced Service Page Elements -->
+  <ServicePageEnhancer />
 
   <!-- CTA Section -->
   <CallToAction

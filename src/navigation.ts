@@ -22,13 +22,9 @@ export const headerData = {
         { text: 'Spiritual Guidance', href: '/services/spiritual-guidance' },
         { text: 'Remedial Solutions', href: '/services/remedial-solutions' },
         { text: 'Dosha Analysis & Remedies', href: '/services/dosha-analysis' },
-        { text: 'Online Kundli', href: '/online-kundli' },
       ],
     },
-    {
-      text: 'Online Kundli',
-      href: getPermalink('/online-kundli'),
-    },
+
     {
       text: 'Testimonials',
       href: getPermalink('/testimonials'),
@@ -54,7 +50,6 @@ export const footerData = {
         { text: 'Spiritual Guidance', href: '/services/spiritual-guidance' },
         { text: 'Remedial Solutions', href: '/services/remedial-solutions' },
         { text: 'Dosha Analysis & Remedies', href: '/services/dosha-analysis' },
-        { text: 'Online Kundli', href: '/online-kundli' },
         { text: 'Book Appointment', href: '/ScheduleAppointmentJyotirSetu' },
       ],
     },
@@ -62,6 +57,7 @@ export const footerData = {
       title: 'Company',
       links: [
         { text: 'About Us', href: '/about' },
+        { text: 'Success Stories', href: '/success-stories' },
         { text: 'Testimonials', href: '/testimonials' },
         { text: 'Contact', href: '/contact' },
       ],
@@ -70,6 +66,7 @@ export const footerData = {
       title: 'Support',
       links: [
         { text: 'FAQ', href: '/#faqs' },
+        { text: 'Free Resources', href: '/resources' },
         { text: 'Privacy Policy', href: '/privacy' },
         { text: 'Terms & Conditions', href: '/terms' },
       ],
@@ -83,7 +80,6 @@ export const footerData = {
     { ariaLabel: 'X', icon: 'tabler:brand-x', href: '#' },
     { ariaLabel: 'Instagram', icon: 'tabler:brand-instagram', href: 'https://www.instagram.com/jyotirsetu' },
     { ariaLabel: 'Facebook', icon: 'tabler:brand-facebook', href: '#' },
-    { ariaLabel: 'Whatsapp', icon: 'tabler:brand-whatsapp', href: 'https://wa.me/919266991298' },
     { ariaLabel: 'Google', icon: 'tabler:brand-google', href: 'https://g.page/r/CXjH6HavONOeEBM/review' },
   ],
   footNote: `

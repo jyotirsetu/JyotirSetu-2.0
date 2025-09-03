@@ -253,412 +253,371 @@
       </div>
     </div>
 
-<script>
-  // Service-specific field configurations
-  const serviceFields = {
-    astrology: {
-      title: "🔮 Astrology Consultation Details",
+<script is:inline>
+  // Service configurations for dynamic fields
+  const serviceConfigs = {
+    'astrology': {
       fields: [
         {
-          type: "select",
-          name: "concernArea",
-          label: "Concern Area",
+          name: 'astrologyConcern',
+          label: 'Astrology Concern Area',
+          type: 'select',
           required: true,
           options: [
-            { value: "health", label: "Health" },
-            { value: "career", label: "Career" },
-            { value: "relationship", label: "Relationship" },
-            { value: "finance", label: "Finance" },
-            { value: "general", label: "General" }
+            { value: 'health', label: 'Health' },
+            { value: 'career', label: 'Career' },
+            { value: 'relationship', label: 'Relationship' },
+            { value: 'finance', label: 'Finance' },
+            { value: 'general', label: 'General' }
           ]
         },
         {
-          type: "text",
-          name: "currentProfession",
-          label: "Current Profession",
+          name: 'currentProfession',
+          label: 'Current Profession',
+          type: 'text',
+          required: true,
+          placeholder: 'e.g., Software Engineer, Business Owner'
+        },
+        {
+          name: 'dateOfBirth',
+          label: 'Date of Birth',
+          type: 'date',
+          required: true
+        },
+        {
+          name: 'birthTime',
+          label: 'Birth Time',
+          type: 'time',
+          required: true
+        },
+        {
+          name: 'birthPlace',
+          label: 'Place of Birth',
+          type: 'text',
+          required: true,
+          placeholder: 'City, State, Country'
+        }
+      ]
+    },
+    'gemstone': {
+      fields: [
+        {
+          name: 'wearingPurpose',
+          label: 'Wearing Purpose',
+          type: 'select',
+          required: true,
+          options: [
+            { value: 'healing', label: 'Healing' },
+            { value: 'wealth', label: 'Wealth' },
+            { value: 'career', label: 'Career' },
+            { value: 'protection', label: 'Protection' },
+            { value: 'spirituality', label: 'Spirituality' }
+          ]
+        },
+        {
+          name: 'currentProfession',
+          label: 'Current Profession',
+          type: 'text',
+          required: true,
+          placeholder: 'e.g., Software Engineer, Business Owner'
+        },
+        {
+          name: 'dateOfBirth',
+          label: 'Date of Birth',
+          type: 'date',
+          required: true
+        },
+        {
+          name: 'birthTime',
+          label: 'Birth Time',
+          type: 'time',
+          required: true
+        },
+        {
+          name: 'wearingGemstone',
+          label: 'Wearing Any Gemstone Currently?',
+          type: 'text',
           required: false,
-          placeholder: "e.g., Software Engineer, Business Owner, Student"
+          placeholder: 'If yes, which one?'
+        }
+      ]
+    },
+    'palmistry': {
+      fields: [
+        {
+          name: 'focusArea',
+          label: 'Focus Area',
+          type: 'select',
+          required: true,
+          options: [
+            { value: 'career', label: 'Career' },
+            { value: 'marriage', label: 'Marriage' },
+            { value: 'finance', label: 'Finance' },
+            { value: 'health', label: 'Health' },
+            { value: 'general', label: 'General Prediction' }
+          ]
         },
         {
-          type: "date",
-          name: "dateOfBirth",
-          label: "Date of Birth",
-          required: true
+          name: 'handDominance',
+          label: 'Hand Dominance',
+          type: 'select',
+          required: true,
+          options: [
+            { value: 'left', label: 'Left' },
+            { value: 'right', label: 'Right' },
+            { value: 'both', label: 'Both' }
+          ]
         },
         {
-          type: "time",
-          name: "birthTime",
-          label: "Birth Time",
-          required: false
-        },
-        {
-          type: "text",
-          name: "placeOfBirth",
-          label: "Place of Birth",
+          name: 'specificConcerns',
+          label: 'Specific Concerns / Questions',
+          type: 'textarea',
           required: false,
-          placeholder: "City, State, Country"
+          placeholder: 'Tell us what you would like to know from palm reading.'
         }
-      ]
+      ],
+      instruction: {
+        title: '📸 Hand Image Upload Instructions',
+        content: 'For accurate palm reading, please upload clear photos of your palms:',
+        methods: [
+          'Take photos in good lighting',
+          'Ensure all lines are clearly visible',
+          'Include both left and right palms',
+          'Upload to Google Drive or Dropbox and share the link'
+        ],
+        note: 'You can share the image link in the "Message" field below or send via WhatsApp.'
+      }
     },
-    gemstone: {
-      title: "💎 Gemstone Consultation Details",
+    'matchmaking': {
       fields: [
         {
-          type: "select",
-          name: "wearingPurpose",
-          label: "Wearing Purpose",
+          name: 'person1Name',
+          label: 'Your Full Name',
+          type: 'text',
+          required: true,
+          placeholder: 'Your full name as per official records'
+        },
+        {
+          name: 'person1Gender',
+          label: 'Your Gender',
+          type: 'select',
           required: true,
           options: [
-            { value: "healing", label: "Healing" },
-            { value: "wealth", label: "Wealth" },
-            { value: "career", label: "Career" },
-            { value: "protection", label: "Protection" },
-            { value: "spirituality", label: "Spirituality" }
+            { value: 'male', label: 'Male' },
+            { value: 'female', label: 'Female' },
+            { value: 'other', label: 'Other' }
           ]
         },
         {
-          type: "text",
-          name: "currentProfession",
-          label: "Current Profession",
+          name: 'person1DOB',
+          label: 'Your Date of Birth',
+          type: 'date',
+          required: true
+        },
+        {
+          name: 'person1TOB',
+          label: 'Your Time of Birth',
+          type: 'time',
+          required: true
+        },
+        {
+          name: 'person1POB',
+          label: 'Your Place of Birth',
+          type: 'text',
+          required: true,
+          placeholder: 'City, State, Country'
+        },
+        {
+          name: 'person2Name',
+          label: 'Partner\'s Full Name',
+          type: 'text',
+          required: true,
+          placeholder: 'Partner\'s full name as per official records'
+        },
+        {
+          name: 'person2Gender',
+          label: 'Partner\'s Gender',
+          type: 'select',
+          required: true,
+          options: [
+            { value: 'male', label: 'Male' },
+            { value: 'female', label: 'Female' },
+            { value: 'other', label: 'Other' }
+          ]
+        },
+        {
+          name: 'person2DOB',
+          label: 'Partner\'s Date of Birth',
+          type: 'date',
+          required: true
+        },
+        {
+          name: 'person2TOB',
+          label: 'Partner\'s Time of Birth',
+          type: 'time',
+          required: true
+        },
+        {
+          name: 'person2POB',
+          label: 'Partner\'s Place of Birth',
+          type: 'text',
+          required: true,
+          placeholder: 'City, State, Country'
+        }
+      ]
+    },
+    'numerology': {
+      fields: [
+        {
+          name: 'officialName',
+          label: 'Full Name (as per official records)',
+          type: 'text',
+          required: true,
+          placeholder: 'Exact spelling is very important for numerology'
+        },
+        {
+          name: 'commonName',
+          label: 'Name You Are Commonly Known By',
+          type: 'text',
           required: false,
-          placeholder: "e.g., Software Engineer, Business Owner, Student"
+          placeholder: 'Nickname or different spelling (optional)'
         },
         {
-          type: "date",
-          name: "dateOfBirth",
-          label: "Date of Birth",
+          name: 'dateOfBirth',
+          label: 'Date of Birth',
+          type: 'date',
           required: true
         },
         {
-          type: "time",
-          name: "birthTime",
-          label: "Birth Time",
-          required: false
-        },
-        {
-          type: "text",
-          name: "currentGemstone",
-          label: "Wearing Any Gemstone Currently?",
-          required: false,
-          placeholder: "e.g., Ruby, Emerald, Diamond, None"
-        }
-      ]
-    },
-         palmistry: {
-       title: "✋ Palmistry Consultation Details",
-       fields: [
-         {
-           type: "select",
-           name: "focusArea",
-           label: "Focus Area",
-           required: true,
-           options: [
-             { value: "career", label: "Career" },
-             { value: "marriage", label: "Marriage" },
-             { value: "finance", label: "Finance" },
-             { value: "health", label: "Health" },
-             { value: "general", label: "General Prediction" }
-           ]
-         },
-         {
-           type: "select",
-           name: "handDominance",
-           label: "Hand Dominance",
-           required: true,
-           options: [
-             { value: "left", label: "Left" },
-             { value: "right", label: "Right" },
-             { value: "both", label: "Both" }
-           ]
-         },
-         {
-           type: "textarea",
-           name: "specificConcerns",
-           label: "Specific Concerns / Questions",
-           required: false,
-           placeholder: "Tell us what you would like to know from palm reading...",
-           rows: 3
-         }
-       ],
-       // Special instruction for palmistry
-       instruction: {
-         title: "📸 Hand Image Upload",
-         content: "For accurate palm reading, please upload clear photos of your palms. You can use any of these methods:",
-         methods: [
-           "📱 WhatsApp: Send photos to +91-9266991298",
-           "📧 Email: Send to guidance@jyotirsetu.com",
-           "☁️ Cloud: Upload to Google Drive/Dropbox and share link"
-         ],
-         note: "Ensure photos are well-lit, close-up, and show the entire palm clearly."
-       }
-     },
-     numerology: {
-       title: "🔢 Numerology Consultation Details",
-       fields: [
-         {
-           type: "text",
-           name: "officialFullName",
-           label: "Full Name (as per official records)",
-           required: true,
-           placeholder: "Enter your exact official name as per documents"
-         },
-         {
-           type: "text",
-           name: "commonName",
-           label: "Name You Are Commonly Known By",
-           required: false,
-           placeholder: "Nickname or name you use daily (optional)"
-         },
-         {
-           type: "date",
-           name: "dateOfBirth",
-           label: "Date of Birth",
-           required: true
-         },
-         {
-           type: "select",
-           name: "gender",
-           label: "Gender",
-           required: true,
-           options: [
-             { value: "male", label: "Male" },
-             { value: "female", label: "Female" },
-             { value: "other", label: "Other" }
-           ]
-         },
-         {
-           type: "select",
-           name: "focusArea",
-           label: "Specific Focus Area",
-           required: true,
-           options: [
-             { value: "career-finance", label: "Career & Finance" },
-             { value: "relationship-marriage", label: "Relationship / Marriage" },
-             { value: "health-wellness", label: "Health & Wellness" },
-             { value: "name-correction", label: "Name Correction / Lucky Name" },
-             { value: "general-guidance", label: "General Guidance" }
-           ]
-         },
-         {
-           type: "textarea",
-           name: "messageNotes",
-           label: "Message / Notes",
-           required: false,
-           placeholder: "Specify any concern or ask a direct question...",
-           rows: 3
-         }
-       ],
-       // Special instruction for numerology
-       instruction: {
-         title: "📝 Important Note for Numerology",
-         content: "Numerology is name-based, so the exact spelling is very important for accurate calculations. Please ensure:",
-         methods: [
-           "✅ Use your official name as per birth certificate or official documents",
-           "✅ Include middle names if you have them",
-           "✅ Mention any name changes you've had in the past",
-           "✅ Provide the exact spelling you want analyzed"
-         ],
-         note: "The more accurate your name details, the more precise your numerology reading will be."
-       }
-     },
-    "career-finance": {
-      title: "💼 Career & Finance Consultation Details",
-      fields: [
-        {
-          type: "text",
-          name: "currentProfession",
-          label: "Current Profession / Industry",
-          required: true,
-          placeholder: "e.g., IT, Finance, Healthcare, Manufacturing"
-        },
-        {
-          type: "select",
-          name: "financialConcerns",
-          label: "Financial Concerns",
+          name: 'gender',
+          label: 'Gender',
+          type: 'select',
           required: true,
           options: [
-            { value: "business-growth", label: "Business Growth" },
-            { value: "job-change", label: "Job Change" },
-            { value: "investments", label: "Investments" },
-            { value: "debt-issues", label: "Debt Issues" },
-            { value: "general-guidance", label: "General Guidance" }
+            { value: 'male', label: 'Male' },
+            { value: 'female', label: 'Female' },
+            { value: 'other', label: 'Other' }
+          ]
+        },
+        {
+          name: 'focusArea',
+          label: 'Specific Focus Area',
+          type: 'select',
+          required: true,
+          options: [
+            { value: 'career-finance', label: 'Career & Finance' },
+            { value: 'relationship-marriage', label: 'Relationship / Marriage' },
+            { value: 'health-wellness', label: 'Health & Wellness' },
+            { value: 'name-correction', label: 'Name Correction / Lucky Name' },
+            { value: 'general-guidance', label: 'General Guidance' }
           ]
         }
       ]
     },
-    matchmaking: {
-      title: "💕 Matchmaking Consultation Details",
-      fields: [
-        // Person 1 (Your Details)
-        {
-          type: "section-header",
-          label: "👤 Person 1 (Your Details)"
-        },
-        {
-          type: "text",
-          name: "person1Name",
-          label: "Full Name",
-          required: true,
-          placeholder: "Enter your full name"
-        },
-        {
-          type: "select",
-          name: "person1Gender",
-          label: "Gender",
-          required: true,
-          options: [
-            { value: "male", label: "Male" },
-            { value: "female", label: "Female" },
-            { value: "other", label: "Other" }
-          ]
-        },
-        {
-          type: "date",
-          name: "person1DOB",
-          label: "Date of Birth",
-          required: true
-        },
-        {
-          type: "time",
-          name: "person1TOB",
-          label: "Time of Birth",
-          required: true
-        },
-        {
-          type: "text",
-          name: "person1POB",
-          label: "Place of Birth",
-          required: true,
-          placeholder: "City, State, Country"
-        },
-        // Person 2 (Partner's Details)
-        {
-          type: "section-header",
-          label: "💑 Person 2 (Partner's Details)"
-        },
-        {
-          type: "text",
-          name: "person2Name",
-          label: "Full Name",
-          required: true,
-          placeholder: "Enter partner's full name"
-        },
-        {
-          type: "select",
-          name: "person2Gender",
-          label: "Gender",
-          required: true,
-          options: [
-            { value: "male", label: "Male" },
-            { value: "female", label: "Female" },
-            { value: "other", label: "Other" }
-          ]
-        },
-        {
-          type: "date",
-          name: "person2DOB",
-          label: "Date of Birth",
-          required: true
-        },
-        {
-          type: "time",
-          name: "person2TOB",
-          label: "Time of Birth",
-          required: true
-        },
-        {
-          type: "text",
-          name: "person2POB",
-          label: "Place of Birth",
-          required: true,
-          placeholder: "City, State, Country"
-        }
-      ]
-    },
-    "study-education": {
-      title: "📚 Study / Education Consultation Details",
+    'career-finance': {
       fields: [
         {
-          type: "select",
-          name: "futureGoal",
-          label: "Future Goal",
+          name: 'currentProfession',
+          label: 'Current Profession / Industry',
+          type: 'text',
+          required: true,
+          placeholder: 'e.g., Software Engineer, Business Owner'
+        },
+        {
+          name: 'financialConcerns',
+          label: 'Financial Concerns',
+          type: 'select',
           required: true,
           options: [
-            { value: "higher-studies", label: "Higher Studies" },
-            { value: "abroad-studies", label: "Abroad Studies" },
-            { value: "career-guidance", label: "Career Guidance" }
+            { value: 'business-growth', label: 'Business Growth' },
+            { value: 'job-change', label: 'Job Change' },
+            { value: 'investments', label: 'Investments' },
+            { value: 'debt-issues', label: 'Debt Issues' },
+            { value: 'general-guidance', label: 'General Guidance' }
           ]
         }
       ]
     },
-    corporate: {
-      title: "🏢 Corporate Consultation Details",
+    'study-education': {
       fields: [
         {
-          type: "text",
-          name: "companyName",
-          label: "Company Name",
-          required: true,
-          placeholder: "Your company or organization name"
-        },
-        {
-          type: "select",
-          name: "businessType",
-          label: "Business Type",
+          name: 'futureGoal',
+          label: 'Future Goal',
+          type: 'select',
           required: true,
           options: [
-            { value: "it", label: "IT" },
-            { value: "finance", label: "Finance" },
-            { value: "retail", label: "Retail" },
-            { value: "manufacturing", label: "Manufacturing" },
-            { value: "startup", label: "Startup" },
-            { value: "other", label: "Other" }
-          ]
-        },
-        {
-          type: "select",
-          name: "employeeCount",
-          label: "Number of Employees",
-          required: true,
-          options: [
-            { value: "1-10", label: "1-10" },
-            { value: "10-50", label: "10-50" },
-            { value: "50-100", label: "50-100" },
-            { value: "100+", label: "100+" }
-          ]
-        },
-        {
-          type: "select",
-          name: "concernArea",
-          label: "Concern Area",
-          required: true,
-          options: [
-            { value: "growth-strategy", label: "Growth Strategy" },
-            { value: "team-harmony", label: "Team Harmony" },
-            { value: "leadership", label: "Leadership" },
-            { value: "financial-stability", label: "Financial Stability" },
-            { value: "market-expansion", label: "Market Expansion" }
+            { value: 'higher-studies', label: 'Higher Studies' },
+            { value: 'abroad-studies', label: 'Abroad Studies' },
+            { value: 'career-guidance', label: 'Career Guidance' }
           ]
         }
       ]
     },
-    other: {
-      title: "✨ Other Consultation Details",
+    'corporate': {
       fields: [
         {
-          type: "text",
-          name: "subjectTitle",
-          label: "Subject / Title of Concern",
+          name: 'companyName',
+          label: 'Company Name',
+          type: 'text',
           required: true,
-          placeholder: "Brief title for your concern"
+          placeholder: 'Your company or organization name'
         },
         {
-          type: "textarea",
-          name: "detailedConcern",
-          label: "Detailed Concern",
+          name: 'businessType',
+          label: 'Business Type',
+          type: 'select',
           required: true,
-          placeholder: "Please provide detailed information about your concern...",
-          rows: 4
+          options: [
+            { value: 'it', label: 'IT' },
+            { value: 'finance', label: 'Finance' },
+            { value: 'retail', label: 'Retail' },
+            { value: 'manufacturing', label: 'Manufacturing' },
+            { value: 'startup', label: 'Startup' },
+            { value: 'other', label: 'Other' }
+          ]
+        },
+        {
+          name: 'employeeCount',
+          label: 'Number of Employees',
+          type: 'select',
+          required: true,
+          options: [
+            { value: '1-10', label: '1–10' },
+            { value: '10-50', label: '10–50' },
+            { value: '50-100', label: '50–100' },
+            { value: '100+', label: '100+' }
+          ]
+        },
+        {
+          name: 'concernArea',
+          label: 'Concern Area',
+          type: 'select',
+          required: true,
+          options: [
+            { value: 'growth-strategy', label: 'Growth Strategy' },
+            { value: 'team-harmony', label: 'Team Harmony' },
+            { value: 'leadership', label: 'Leadership' },
+            { value: 'financial-stability', label: 'Financial Stability' },
+            { value: 'market-expansion', label: 'Market Expansion' }
+          ]
+        }
+      ]
+    },
+    'other': {
+      fields: [
+        {
+          name: 'subjectTitle',
+          label: 'Subject / Title of Concern',
+          type: 'text',
+          required: true,
+          placeholder: 'Brief title of your concern'
+        },
+        {
+          name: 'detailedConcern',
+          label: 'Detailed Concern',
+          type: 'textarea',
+          required: true,
+          placeholder: 'Please describe your concern in detail'
         }
       ]
     }
@@ -667,7 +626,7 @@
   // Function to render service-specific fields
   function renderServiceFields(serviceType) {
     const container = document.getElementById('serviceSpecificFields');
-    const serviceConfig = serviceFields[serviceType];
+    const serviceConfig = serviceConfigs[serviceType];
     
     if (!serviceConfig) {
       container.style.display = 'none';
@@ -677,27 +636,19 @@
     let fieldsHTML = `
       <div class="bg-white dark:bg-gray-800 rounded-2xl sm:rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6 shadow-sm">
         <h3 class="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-4 sm:mb-6 flex items-center">
-          <div class="w-8 h-8 sm:w-6 sm:h-6 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-lg sm:rounded mr-3 flex items-center justify-center">
+          <div class="w-8 h-8 sm:w-6 sm:h-6 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg sm:rounded mr-3 flex items-center justify-center">
             <svg class="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
             </svg>
           </div>
-          <span class="text-lg sm:text-xl">${serviceConfig.title}</span>
+          <span class="text-lg sm:text-xl">🎯 ${serviceConfig.title || 'Service-Specific Information'}</span>
         </h3>
+        
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
     `;
 
     serviceConfig.fields.forEach(field => {
-      if (field.type === 'section-header') {
-        // Section header - spans full width with special styling
-        fieldsHTML += `
-          <div class="sm:col-span-2 mb-4">
-            <h4 class="text-lg font-semibold text-purple-600 dark:text-purple-400 border-b-2 border-purple-200 dark:border-purple-700 pb-2">
-              ${field.label}
-            </h4>
-          </div>
-        `;
-      } else if (field.type === 'select') {
+      if (field.type === 'select') {
         fieldsHTML += `
           <div class="space-y-2">
             <label for="${field.name}" class="block text-sm font-semibold text-gray-700 dark:text-gray-300">
@@ -707,9 +658,9 @@
               id="${field.name}"
               name="${field.name}"
               ${field.required ? 'required' : ''}
-              class="w-full px-4 py-3.5 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-xl sm:rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-base transition-all duration-200"
+              class="w-full px-4 py-3.5 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-xl sm:rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-base transition-all duration-200"
             >
-              <option value="">Choose one...</option>
+              <option value="">Select ${field.label.toLowerCase()}...</option>
               ${field.options.map(option => `<option value="${option.value}">${option.label}</option>`).join('')}
             </select>
           </div>
@@ -724,9 +675,9 @@
               id="${field.name}"
               name="${field.name}"
               ${field.required ? 'required' : ''}
-              rows="${field.rows || 4}"
-              placeholder="${field.placeholder || ''}"
-              class="w-full px-4 py-3.5 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-xl sm:rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none text-base transition-all duration-200"
+              rows="4"
+              placeholder="${field.placeholder}"
+              class="w-full px-4 py-3.5 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-xl sm:rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-base transition-all duration-200 resize-none"
             ></textarea>
           </div>
         `;
@@ -742,7 +693,7 @@
               name="${field.name}"
               ${field.required ? 'required' : ''}
               placeholder="${field.placeholder || ''}"
-              class="w-full px-4 py-3.5 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-xl sm:rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-base transition-all duration-200"
+              class="w-full px-4 py-3.5 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-xl sm:rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-base transition-all duration-200"
             />
           </div>
         `;
@@ -760,7 +711,7 @@
         <div class="mt-6 p-4 sm:p-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-2xl sm:rounded-lg">
           <h4 class="text-lg font-semibold text-blue-800 dark:text-blue-200 mb-3 flex items-center">
             <div class="w-6 h-6 sm:w-5 sm:h-5 bg-blue-500 rounded-lg sm:rounded mr-3 flex items-center justify-center">
-              <svg class="w-4 h-4 sm:w-4 sm:h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-4 h-4 sm:w-4 sm:w-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
               </svg>
             </div>
@@ -827,15 +778,8 @@
     })
     .then(response => {
       if (response.ok) {
-        // Show success message
-        document.getElementById('form-success').classList.remove('hidden');
-        this.reset();
-        
-        // Reset service-specific fields
-        document.getElementById('serviceSpecificFields').style.display = 'none';
-        
-        // Scroll to success message
-        document.getElementById('form-success').scrollIntoView({ behavior: 'smooth' });
+        // Redirect to thank you page
+        window.location.href = '/thank-you';
       } else {
         throw new Error('Form submission failed');
       }
