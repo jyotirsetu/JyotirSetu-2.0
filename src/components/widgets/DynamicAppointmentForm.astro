@@ -3,7 +3,7 @@
 ---
 
 <div class="max-w-4xl mx-auto px-4 sm:px-6">
-  <form id="dynamic-appointment-form" class="space-y-6 sm:space-y-8" data-formspree="true" action="https://formspree.io/f/xnnbzveo" method="POST">
+     <form id="dynamic-appointment-form" class="space-y-6 sm:space-y-8">
     
     <!-- Common Fields Section -->
     <div class="bg-white dark:bg-gray-800 rounded-2xl sm:rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6 shadow-sm">
@@ -42,10 +42,16 @@
             id="mobileNumber"
             name="mobileNumber"
             required
-            placeholder="+91-XXXXXXXXXX"
-            pattern="^\+[0-9]{1,3}-[0-9]{6,12}$"
+            maxlength="10"
+            pattern="[0-9]{10}"
+            placeholder="Enter 10 digit mobile number"
+            title="Please enter a valid 10-digit mobile number"
             class="w-full px-4 py-3.5 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-xl sm:rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-base transition-all duration-200"
+            oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10)"
           />
+          <div class="text-xs text-gray-500 dark:text-gray-400">
+            Enter 10-digit mobile number (e.g., 9876543210)
+          </div>
         </div>
 
         <!-- Email Address -->
@@ -736,15 +742,16 @@
     container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
-  // Event listener for service type change
-  document.getElementById('serviceType').addEventListener('change', function() {
-    const selectedService = this.value;
-    if (selectedService) {
-      renderServiceFields(selectedService);
-    } else {
-      document.getElementById('serviceSpecificFields').style.display = 'none';
-    }
-  });
+     // Event listener for service type change
+   document.getElementById('serviceType').addEventListener('change', function() {
+     const selectedService = this.value;
+     console.log('Service type changed to:', selectedService);
+     if (selectedService) {
+       renderServiceFields(selectedService);
+     } else {
+       document.getElementById('serviceSpecificFields').style.display = 'none';
+     }
+   });
 
   // Set default dates
   document.addEventListener('DOMContentLoaded', function() {
@@ -756,42 +763,321 @@
   });
 
   // Form submission handling
-  document.getElementById('dynamic-appointment-form').addEventListener('submit', function(e) {
-    e.preventDefault();
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOMContentLoaded event fired');
     
-    // Show loading state
-    const submitBtn = this.querySelector('button[type="submit"]');
-    const originalText = submitBtn.innerHTML;
-    submitBtn.innerHTML = '⏳ Submitting...';
-    submitBtn.disabled = true;
+    const form = document.getElementById('dynamic-appointment-form');
+    console.log('Form element found:', form);
     
-    // Collect form data
-    const formData = new FormData(this);
-    
-    // Submit to Formspree
-    fetch('https://formspree.io/f/xnnbzveo', {
-      method: 'POST',
-      body: formData,
-      headers: {
-        'Accept': 'application/json'
-      }
-    })
-    .then(response => {
-      if (response.ok) {
-        // Redirect to thank you page
-        window.location.href = '/thank-you';
-      } else {
-        throw new Error('Form submission failed');
-      }
-    })
-    .catch(error => {
-      console.error('Error:', error);
-      alert('Sorry, there was an error submitting your form. Please try again or contact us directly.');
-    })
-    .finally(() => {
-      // Reset button state
-      submitBtn.innerHTML = originalText;
-      submitBtn.disabled = false;
-    });
+    if (form) {
+            console.log('Attaching submit event listener to form');
+      
+      form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        console.log('Form submit event triggered!');
+        console.log('Form data being collected...');
+        
+        // Show loading state
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '⏳ Submitting...';
+        submitBtn.disabled = true;
+        
+        try {
+          // Wait for Supabase client to be available
+          let attempts = 0;
+          const maxAttempts = 10;
+          
+          while (!window.supabaseClient && attempts < maxAttempts) {
+            console.log(`Waiting for Supabase client... Attempt ${attempts + 1}/${maxAttempts}`);
+            await new Promise(resolve => setTimeout(resolve, 200));
+            attempts++;
+          }
+          
+          if (!window.supabaseClient) {
+            throw new Error('Supabase client not available after waiting. Please refresh the page and try again.');
+          }
+          
+          // Collect form data
+          const formData = new FormData(this);
+          
+          // Validate mobile number
+          const mobileNumber = formData.get('mobileNumber');
+          if (!mobileNumber || mobileNumber.length !== 10 || !/^[0-9]{10}$/.test(mobileNumber)) {
+            alert('Please enter a valid 10-digit mobile number');
+            return;
+          }
+          
+          // Debug: Log all form data
+          console.log('=== FORM SUBMISSION DEBUG ===');
+          for (const [key, value] of formData.entries()) {
+            console.log(`${key}: ${value}`);
+          }
+          
+          const appointmentData = {
+            name: formData.get('fullName'),
+            email: formData.get('emailAddress'),
+            phone: formData.get('mobileNumber'),
+            service: formData.get('serviceType'),
+            date: formData.get('appointmentDate'),
+            time: formData.get('appointmentTime'),
+            consultation_method: formData.get('consultationMethod'),
+            message: formData.get('userQuery'),
+            status: 'pending',
+            // Service-specific data
+            service_details: {}
+          };
+          
+          // Collect service-specific fields
+          const serviceType = formData.get('serviceType');
+          console.log('Selected service type:', serviceType);
+          
+          if (serviceType && serviceConfigs[serviceType]) {
+            console.log('Service config found:', serviceConfigs[serviceType]);
+            serviceConfigs[serviceType].fields.forEach(field => {
+              const value = formData.get(field.name);
+              console.log(`Field ${field.name}: ${value}`);
+              if (value) {
+                appointmentData.service_details[field.name] = value;
+              }
+            });
+          } else {
+            console.log('No service config found for:', serviceType);
+          }
+          
+          console.log('Final appointment data:', appointmentData);
+          
+          console.log('Supabase client available, attempting to save...');
+          
+          try {
+            // Try to save to Supabase first
+            const { data, error } = await window.supabaseClient
+              .from('appointments')
+              .insert([appointmentData])
+              .select()
+              .single();
+            
+            if (error) {
+              console.error('Supabase error:', error);
+              throw new Error(error.message);
+            }
+            
+            console.log('Successfully saved to Supabase:', data);
+            
+            // Show success message
+            showSuccessMessage();
+            
+            // Reset form
+            this.reset();
+            const serviceSpecificFields = document.getElementById('serviceSpecificFields');
+            if (serviceSpecificFields) {
+              serviceSpecificFields.style.display = 'none';
+            }
+            
+          } catch (supabaseError) {
+            console.error('Supabase failed, trying Formspree fallback:', supabaseError);
+            
+            // Fallback to Formspree
+            const formspreeData = new FormData();
+            formspreeData.append('name', appointmentData.name);
+            formspreeData.append('email', appointmentData.email);
+            formspreeData.append('phone', appointmentData.phone);
+            formspreeData.append('service', appointmentData.service);
+            formspreeData.append('date', appointmentData.date);
+            formspreeData.append('time', appointmentData.time);
+            formspreeData.append('consultation_method', appointmentData.consultation_method);
+            formspreeData.append('message', appointmentData.message);
+            formspreeData.append('service_details', JSON.stringify(appointmentData.service_details));
+            
+            const formspreeResponse = await fetch('https://formspree.io/f/xnnbzveo', {
+              method: 'POST',
+              body: formspreeData,
+              headers: {
+                'Accept': 'application/json'
+              }
+            });
+            
+            if (formspreeResponse.ok) {
+              console.log('Successfully sent via Formspree fallback');
+              showSuccessMessage();
+              this.reset();
+              const serviceSpecificFields = document.getElementById('serviceSpecificFields');
+              if (serviceSpecificFields) {
+                serviceSpecificFields.style.display = 'none';
+              }
+            } else {
+              throw new Error('Both Supabase and Formspree failed');
+            }
+          }
+          
+        } catch (error) {
+          console.error('Form submission error:', error);
+          
+          // Show user-friendly error message
+          let errorMessage = 'Sorry, there was an error submitting your form. ';
+          if (error.message.includes('Supabase client not available')) {
+            errorMessage += 'Please refresh the page and try again.';
+          } else if (error.message.includes('network') || error.message.includes('fetch')) {
+            errorMessage += 'Please check your internet connection and try again.';
+          } else {
+            errorMessage += 'Please try again or contact us directly.';
+          }
+          
+          alert(errorMessage);
+        } finally {
+          // Reset button state
+          submitBtn.innerHTML = originalText;
+          submitBtn.disabled = false;
+        }
+      });
+      
+      console.log('Form submit event listener attached successfully');
+    } else {
+      console.error('Form element not found!');
+    }
   });
+  
+  // Show success message
+  function showSuccessMessage() {
+    const successDiv = document.createElement('div');
+    successDiv.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+    successDiv.innerHTML = '✅ Appointment booked successfully! We will contact you soon.';
+    document.body.appendChild(successDiv);
+    
+    setTimeout(() => {
+      successDiv.remove();
+    }, 5000);
+  }
+   
+   // Add click handler to submit button as backup
+   document.addEventListener('DOMContentLoaded', function() {
+     const submitBtn = document.querySelector('button[type="submit"]');
+     if (submitBtn) {
+       submitBtn.addEventListener('click', function() {
+         console.log('Submit button clicked!');
+         
+         // Manually trigger form submission
+         const form = document.getElementById('dynamic-appointment-form');
+         if (form) {
+           console.log('Manually submitting form from button click');
+           
+                       // Collect form data manually
+            const formData = new FormData(form);
+            
+            // Validate mobile number
+            const mobileNumber = formData.get('mobileNumber');
+            if (!mobileNumber || mobileNumber.length !== 10 || !/^[0-9]{10}$/.test(mobileNumber)) {
+              alert('Please enter a valid 10-digit mobile number');
+              return;
+            }
+            
+            // Debug: Log all form data
+            console.log('=== MANUAL FORM SUBMISSION DEBUG ===');
+            for (const [key, value] of formData.entries()) {
+              console.log(`${key}: ${value}`);
+            }
+           
+           const appointmentData = {
+             name: formData.get('fullName'),
+             email: formData.get('emailAddress'),
+             phone: formData.get('mobileNumber'),
+             service: formData.get('serviceType'),
+             date: formData.get('appointmentDate'),
+             time: formData.get('appointmentTime'),
+             consultation_method: formData.get('consultationMethod'),
+             message: formData.get('userQuery'),
+             status: 'pending',
+             service_details: {}
+           };
+           
+           // Collect service-specific fields
+           const serviceType = formData.get('serviceType');
+           console.log('Selected service type:', serviceType);
+           
+           if (serviceType && serviceConfigs[serviceType]) {
+             console.log('Service config found:', serviceConfigs[serviceType]);
+             serviceConfigs[serviceType].fields.forEach(field => {
+               const value = formData.get(field.name);
+               console.log(`Field ${field.name}: ${value}`);
+               if (value) {
+                 appointmentData.service_details[field.name] = value;
+               }
+             });
+           }
+           
+           console.log('Final appointment data:', appointmentData);
+           
+           // Check if Supabase client is available
+           if (!window.supabaseClient) {
+             console.error('Supabase client not available');
+             alert('Supabase client not initialized. Please refresh the page and try again.');
+             return;
+           }
+           
+           console.log('Supabase client available, attempting to save...');
+           
+           // Save to Supabase
+           window.supabaseClient
+             .from('appointments')
+             .insert([appointmentData])
+             .select()
+             .single()
+             .then(({ data, error }) => {
+               if (error) {
+                 console.error('Supabase error:', error);
+                 // Try Formspree fallback
+                 console.log('Supabase failed, trying Formspree fallback...');
+                 
+                 const formspreeData = new FormData();
+                 formspreeData.append('name', appointmentData.name);
+                 formspreeData.append('email', appointmentData.email);
+                 formspreeData.append('phone', appointmentData.phone);
+                 formspreeData.append('service', appointmentData.service);
+                 formspreeData.append('date', appointmentData.date);
+                 formspreeData.append('time', appointmentData.time);
+                 formspreeData.append('consultation_method', appointmentData.consultation_method);
+                 formspreeData.append('message', appointmentData.message);
+                 formspreeData.append('service_details', JSON.stringify(appointmentData.service_details));
+                 
+                 return fetch('https://formspree.io/f/xnnbzveo', {
+                   method: 'POST',
+                   body: formspreeData,
+                   headers: {
+                     'Accept': 'application/json'
+                   }
+                 });
+               } else {
+                 console.log('Successfully saved to Supabase:', data);
+                 showSuccessMessage();
+                 form.reset();
+                 const serviceSpecificFields = document.getElementById('serviceSpecificFields');
+                 if (serviceSpecificFields) {
+                   serviceSpecificFields.style.display = 'none';
+                 }
+                 return Promise.resolve({ ok: true });
+               }
+             })
+             .then(response => {
+               if (response && response.ok) {
+                 console.log('Successfully sent via Formspree fallback');
+                 showSuccessMessage();
+                 form.reset();
+                 const serviceSpecificFields = document.getElementById('serviceSpecificFields');
+                 if (serviceSpecificFields) {
+                   serviceSpecificFields.style.display = 'none';
+                 }
+               }
+             })
+             .catch(error => {
+               console.error('Form submission error:', error);
+               alert('Sorry, there was an error submitting your form. Please try again or contact us directly.');
+             });
+         }
+       });
+       
+       console.log('Submit button click handler attached successfully');
+     } else {
+       console.error('Submit button not found!');
+     }
+   });
 </script>

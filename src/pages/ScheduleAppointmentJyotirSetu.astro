@@ -124,6 +124,49 @@ for (let i = 0; i < 7; i++) {
       <DynamicAppointmentForm />
     </div>
   </section>
+  
+  <!-- Load Supabase for form submission -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    // Wait for Supabase to load and then initialize
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('Page loaded, initializing Supabase...');
+      
+      // Function to initialize Supabase
+      function initializeSupabase() {
+        if (typeof window.supabase !== 'undefined') {
+          try {
+            window.supabaseClient = window.supabase.createClient(
+              'https://czbypbrrxxjcjdfjxczv.supabase.co',
+              'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN6YnlwYnJyeHhqY2pkZmp4Y3p2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY5MjU2NDcsImV4cCI6MjA3MjUwMTY0N30.SQ-eabMNo5RBy8N0MHWDmlxVH7Tmh-EGykI0Qt5wDjg'
+            );
+            console.log('Supabase client initialized successfully');
+            
+            // Dispatch a custom event to notify that Supabase is ready
+            window.dispatchEvent(new CustomEvent('supabaseReady'));
+            
+          } catch (error) {
+            console.error('Error creating Supabase client:', error);
+          }
+        } else {
+          console.log('Supabase library not loaded yet, retrying...');
+          // Retry after a short delay
+          setTimeout(initializeSupabase, 200);
+        }
+      }
+      
+      // Start initialization
+      initializeSupabase();
+      
+      // Also try to initialize after a longer delay as backup
+      setTimeout(function() {
+        if (!window.supabaseClient) {
+          console.log('Backup Supabase initialization...');
+          initializeSupabase();
+        }
+      }, 1000);
+    });
+  </script>
 
   <!-- WhatsApp Quick Booking -->
   <section class="py-12 bg-green-50">
