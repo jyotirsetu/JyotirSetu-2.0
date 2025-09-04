@@ -1,0 +1,670 @@
+---
+import Layout from '~/layouts/AdminLayout.astro';
+
+// This will be a client-side rendered page for dynamic content
+---
+
+<Layout metadata={{
+  title: "Email Marketing - JyotirSetu Admin",
+  description: "Manage email campaigns, subscribers, and marketing automation"
+}}>
+
+<!-- Load Supabase from CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<div class="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-purple-900 dark:to-gray-900">
+  
+  <!-- Clean Admin Header -->
+  <header class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-b border-purple-100 dark:border-purple-800 sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-6 py-4">
+      <div class="flex justify-between items-center">
+        <div class="flex items-center space-x-4">
+          <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center">
+              <span class="text-white text-xl">📧</span>
+            </div>
+            <div>
+              <h1 class="text-xl font-bold text-gray-900 dark:text-white">
+                Email Marketing
+              </h1>
+              <p class="text-sm text-gray-500 dark:text-gray-400">Manage campaigns and subscribers</p>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center space-x-3">
+          <button
+            onclick="window.location.href='/admin'"
+            class="bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md"
+          >
+            ← Back to Admin
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="max-w-7xl mx-auto px-6 py-8">
+    
+    <!-- Quick Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-purple-100 dark:border-purple-800 hover:shadow-xl transition-all duration-300">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div class="w-12 h-12 bg-gradient-to-br from-purple-100 to-purple-200 dark:from-purple-900 dark:to-purple-800 rounded-xl flex items-center justify-center">
+              <span class="text-purple-600 dark:text-purple-400 text-xl">👥</span>
+            </div>
+          </div>
+          <div class="ml-4">
+            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Subscribers</p>
+            <p class="text-2xl font-bold text-gray-900 dark:text-white" id="total-subscribers">0</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-blue-100 dark:border-blue-800 hover:shadow-xl transition-all duration-300">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div class="w-12 h-12 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900 dark:to-blue-800 rounded-xl flex items-center justify-center">
+              <span class="text-blue-600 dark:text-blue-400 text-xl">📧</span>
+            </div>
+          </div>
+          <div class="ml-4">
+            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Campaigns Sent</p>
+            <p class="text-2xl font-bold text-gray-900 dark:text-white" id="campaigns-sent">0</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-green-100 dark:border-green-800 hover:shadow-xl transition-all duration-300">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div class="w-12 h-12 bg-gradient-to-br from-green-100 to-green-200 dark:from-green-900 dark:to-green-800 rounded-xl flex items-center justify-center">
+              <span class="text-green-600 dark:text-green-400 text-xl">📊</span>
+            </div>
+          </div>
+          <div class="ml-4">
+            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Open Rate</p>
+            <p class="text-2xl font-bold text-gray-900 dark:text-white" id="open-rate">0%</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-yellow-100 dark:border-yellow-800 hover:shadow-xl transition-all duration-300">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div class="w-12 h-12 bg-gradient-to-br from-yellow-100 to-yellow-200 dark:from-yellow-900 dark:to-yellow-800 rounded-xl flex items-center justify-center">
+              <span class="text-yellow-600 dark:text-yellow-400 text-xl">🎯</span>
+            </div>
+          </div>
+          <div class="ml-4">
+            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Click Rate</p>
+            <p class="text-2xl font-bold text-gray-900 dark:text-white" id="click-rate">0%</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Tabs -->
+    <div class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm rounded-2xl shadow-lg border border-purple-100 dark:border-purple-800 mb-8">
+      <div class="border-b border-gray-200 dark:border-gray-700">
+        <nav class="flex space-x-8 px-6" aria-label="Tabs">
+          <button
+            id="subscribers-tab"
+            class="tab-button active py-4 px-1 border-b-2 border-purple-500 font-medium text-sm text-purple-600 dark:text-purple-400"
+            onclick="switchTab('subscribers')"
+          >
+            👥 Subscribers
+          </button>
+          <button
+            id="campaigns-tab"
+            class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+            onclick="switchTab('campaigns')"
+          >
+            📧 Campaigns
+          </button>
+          <button
+            id="templates-tab"
+            class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+            onclick="switchTab('templates')"
+          >
+            📝 Templates
+          </button>
+          <button
+            id="analytics-tab"
+            class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+            onclick="switchTab('analytics')"
+          >
+            📊 Analytics
+          </button>
+        </nav>
+      </div>
+
+      <!-- Tab Content -->
+      <div class="p-6">
+        
+        <!-- Subscribers Tab -->
+        <div id="subscribers-content" class="tab-content">
+          <div class="flex justify-between items-center mb-6">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Subscriber Management</h3>
+            <div class="flex space-x-3">
+              <button
+                id="import-appointments-btn"
+                class="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md"
+                onclick="importFromAppointments()"
+              >
+                📅 Import from Appointments
+              </button>
+              <button
+                id="upload-csv-btn"
+                class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md"
+                onclick="showCSVUpload()"
+              >
+                📁 Upload CSV
+              </button>
+              <button
+                id="add-subscriber-btn"
+                class="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md"
+                onclick="showAddSubscriber()"
+              >
+                ➕ Add Subscriber
+              </button>
+            </div>
+          </div>
+
+          <!-- Import Status -->
+          <div id="import-status" class="hidden mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+            <div class="flex items-center">
+              <div class="flex-shrink-0">
+                <div class="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+              </div>
+              <div class="ml-3">
+                <p class="text-sm text-blue-800 dark:text-blue-200" id="import-status-text">Importing subscribers...</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Subscribers Table -->
+          <div class="bg-white dark:bg-slate-800 rounded-lg shadow overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <thead class="bg-gray-50 dark:bg-gray-700">
+                  <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                      Email
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                      Name
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                      Source
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                      Added
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody id="subscribers-table-body" class="bg-white dark:bg-slate-800 divide-y divide-gray-200 dark:divide-gray-700">
+                  <tr>
+                    <td colspan="6" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                      <div class="flex flex-col items-center">
+                        <span class="text-4xl mb-4">📧</span>
+                        <p class="text-lg font-medium mb-2">No subscribers yet</p>
+                        <p class="text-sm">Import from appointments or upload a CSV file to get started</p>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Campaigns Tab -->
+        <div id="campaigns-content" class="tab-content hidden">
+          <div class="flex justify-between items-center mb-6">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Email Campaigns</h3>
+            <button
+              id="create-campaign-btn"
+              class="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md"
+              onclick="showCreateCampaign()"
+            >
+              ➕ Create Campaign
+            </button>
+          </div>
+
+          <!-- Campaigns List -->
+          <div id="campaigns-list" class="space-y-4">
+            <div class="text-center py-12 text-gray-500 dark:text-gray-400">
+              <span class="text-4xl mb-4 block">📧</span>
+              <p class="text-lg font-medium mb-2">No campaigns yet</p>
+              <p class="text-sm">Create your first email campaign to get started</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Templates Tab -->
+        <div id="templates-content" class="tab-content hidden">
+          <div class="flex justify-between items-center mb-6">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Email Templates</h3>
+            <button
+              id="create-template-btn"
+              class="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md"
+              onclick="showCreateTemplate()"
+            >
+              ➕ Create Template
+            </button>
+          </div>
+
+          <!-- Templates Grid -->
+          <div id="templates-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="text-center py-12 text-gray-500 dark:text-gray-400 col-span-full">
+              <span class="text-4xl mb-4 block">📝</span>
+              <p class="text-lg font-medium mb-2">No templates yet</p>
+              <p class="text-sm">Create your first email template to get started</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Analytics Tab -->
+        <div id="analytics-content" class="tab-content hidden">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-6">Email Marketing Analytics</h3>
+          
+          <!-- Analytics Charts -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div class="bg-white dark:bg-slate-800 rounded-lg shadow p-6">
+              <h4 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Campaign Performance</h4>
+              <div class="h-64 flex items-center justify-center text-gray-500 dark:text-gray-400">
+                <div class="text-center">
+                  <span class="text-4xl mb-2 block">📊</span>
+                  <p>No data available yet</p>
+                </div>
+              </div>
+            </div>
+            
+            <div class="bg-white dark:bg-slate-800 rounded-lg shadow p-6">
+              <h4 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Subscriber Growth</h4>
+              <div class="h-64 flex items-center justify-center text-gray-500 dark:text-gray-400">
+                <div class="text-center">
+                  <span class="text-4xl mb-2 block">📈</span>
+                  <p>No data available yet</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Modals -->
+<div id="modal-container"></div>
+
+<script>
+  // Global variables
+  let supabase = null;
+  let currentUser = null;
+
+  // Initialize Supabase
+  async function initSupabase() {
+    try {
+      const { createClient } = window.supabase;
+      supabase = createClient(
+        'https://your-project.supabase.co',
+        'your-anon-key'
+      );
+      console.log('Supabase initialized for email marketing');
+    } catch (error) {
+      console.error('Error initializing Supabase:', error);
+    }
+  }
+
+  // Check authentication
+  function checkAuth() {
+    const adminEmail = localStorage.getItem('admin_email');
+    if (!adminEmail) {
+      window.location.href = '/admin';
+      return;
+    }
+    currentUser = { email: adminEmail };
+  }
+
+  // Tab switching
+  function switchTab(tabName) {
+    // Hide all tab contents
+    document.querySelectorAll('.tab-content').forEach(content => {
+      content.classList.add('hidden');
+    });
+    
+    // Remove active class from all tabs
+    document.querySelectorAll('.tab-button').forEach(button => {
+      button.classList.remove('active', 'border-purple-500', 'text-purple-600', 'dark:text-purple-400');
+      button.classList.add('border-transparent', 'text-gray-500', 'dark:text-gray-400');
+    });
+    
+    // Show selected tab content
+    document.getElementById(`${tabName}-content`).classList.remove('hidden');
+    
+    // Add active class to selected tab
+    const activeTab = document.getElementById(`${tabName}-tab`);
+    activeTab.classList.add('active', 'border-purple-500', 'text-purple-600', 'dark:text-purple-400');
+    activeTab.classList.remove('border-transparent', 'text-gray-500', 'dark:text-gray-400');
+    
+    // Load tab-specific data
+    if (tabName === 'subscribers') {
+      loadSubscribers();
+    } else if (tabName === 'campaigns') {
+      loadCampaigns();
+    } else if (tabName === 'templates') {
+      loadTemplates();
+    } else if (tabName === 'analytics') {
+      loadAnalytics();
+    }
+  }
+
+  // Import subscribers from appointments
+  async function importFromAppointments() {
+    try {
+      showImportStatus('Importing subscribers from appointments...');
+      
+      if (!supabase) {
+        throw new Error('Supabase not initialized');
+      }
+
+      // Get all appointments with email addresses
+      const { data: appointments, error } = await supabase
+        .from('appointments')
+        .select('id, name, email, service_type, created_at')
+        .not('email', 'is', null);
+
+      if (error) {
+        throw error;
+      }
+
+      if (!appointments || appointments.length === 0) {
+        showImportStatus('No appointments with email addresses found.', 'warning');
+        return;
+      }
+
+      // Process each appointment
+      let importedCount = 0;
+      for (const appointment of appointments) {
+        // Check if subscriber already exists
+        const { data: existingSubscriber } = await supabase
+          .from('email_subscribers')
+          .select('id')
+          .eq('email', appointment.email)
+          .single();
+
+        if (!existingSubscriber) {
+          // Add new subscriber
+          const { error: insertError } = await supabase
+            .from('email_subscribers')
+            .insert({
+              email: appointment.email,
+              name: appointment.name,
+              source: 'appointment_form',
+              status: 'active',
+              service_interest: appointment.service_type,
+              created_at: new Date().toISOString()
+            });
+
+          if (!insertError) {
+            importedCount++;
+          }
+        }
+      }
+
+      showImportStatus(`Successfully imported ${importedCount} new subscribers from appointments!`, 'success');
+      loadSubscribers();
+      
+    } catch (error) {
+      console.error('Error importing from appointments:', error);
+      showImportStatus('Error importing subscribers. Please try again.', 'error');
+    }
+  }
+
+  // Show import status
+  function showImportStatus(message, type = 'info') {
+    const statusDiv = document.getElementById('import-status');
+    const statusText = document.getElementById('import-status-text');
+    
+    statusText.textContent = message;
+    statusDiv.classList.remove('hidden');
+    
+    // Update styling based on type
+    statusDiv.className = 'mb-4 p-4 rounded-lg';
+    if (type === 'success') {
+      statusDiv.classList.add('bg-green-50', 'dark:bg-green-900/20', 'border', 'border-green-200', 'dark:border-green-800');
+      statusText.classList.add('text-green-800', 'dark:text-green-200');
+    } else if (type === 'warning') {
+      statusDiv.classList.add('bg-yellow-50', 'dark:bg-yellow-900/20', 'border', 'border-yellow-200', 'dark:border-yellow-800');
+      statusText.classList.add('text-yellow-800', 'dark:text-yellow-200');
+    } else if (type === 'error') {
+      statusDiv.classList.add('bg-red-50', 'dark:bg-red-900/20', 'border', 'border-red-200', 'dark:border-red-800');
+      statusText.classList.add('text-red-800', 'dark:text-red-200');
+    } else {
+      statusDiv.classList.add('bg-blue-50', 'dark:bg-blue-900/20', 'border', 'border-blue-200', 'dark:border-blue-800');
+      statusText.classList.add('text-blue-800', 'dark:text-blue-200');
+    }
+    
+    // Hide after 5 seconds for success/warning/error
+    if (type !== 'info') {
+      setTimeout(() => {
+        statusDiv.classList.add('hidden');
+      }, 5000);
+    }
+  }
+
+  // Load subscribers
+  async function loadSubscribers() {
+    try {
+      if (!supabase) {
+        console.log('Supabase not initialized, using mock data');
+        loadMockSubscribers();
+        return;
+      }
+
+      const { data: subscribers, error } = await supabase
+        .from('email_subscribers')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        throw error;
+      }
+
+      displaySubscribers(subscribers || []);
+      
+    } catch (error) {
+      console.error('Error loading subscribers:', error);
+      loadMockSubscribers();
+    }
+  }
+
+  // Load mock subscribers for demo
+  function loadMockSubscribers() {
+    const mockSubscribers = [
+      {
+        id: 1,
+        email: 'john.doe@example.com',
+        name: 'John Doe',
+        source: 'appointment_form',
+        status: 'active',
+        service_interest: 'Kundli Analysis',
+        created_at: '2024-01-15T10:30:00Z'
+      },
+      {
+        id: 2,
+        email: 'jane.smith@example.com',
+        name: 'Jane Smith',
+        source: 'csv_upload',
+        status: 'active',
+        service_interest: 'Palmistry',
+        created_at: '2024-01-14T15:45:00Z'
+      }
+    ];
+    
+    displaySubscribers(mockSubscribers);
+  }
+
+  // Display subscribers in table
+  function displaySubscribers(subscribers) {
+    const tbody = document.getElementById('subscribers-table-body');
+    
+    if (!subscribers || subscribers.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="6" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+            <div class="flex flex-col items-center">
+              <span class="text-4xl mb-4">📧</span>
+              <p class="text-lg font-medium mb-2">No subscribers yet</p>
+              <p class="text-sm">Import from appointments or upload a CSV file to get started</p>
+            </div>
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    tbody.innerHTML = subscribers.map(subscriber => `
+      <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+          ${subscriber.email}
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+          ${subscriber.name || 'N/A'}
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+            subscriber.source === 'appointment_form' 
+              ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
+              : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+          }">
+            ${subscriber.source === 'appointment_form' ? '📅 Appointment' : '📁 CSV Upload'}
+          </span>
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+            subscriber.status === 'active' 
+              ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
+              : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+          }">
+            ${subscriber.status === 'active' ? '✅ Active' : '❌ Inactive'}
+          </span>
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+          ${new Date(subscriber.created_at).toLocaleDateString()}
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+          <button
+            onclick="editSubscriber(${subscriber.id})"
+            class="text-purple-600 hover:text-purple-900 dark:text-purple-400 dark:hover:text-purple-300 mr-3"
+          >
+            ✏️ Edit
+          </button>
+          <button
+            onclick="deleteSubscriber(${subscriber.id})"
+            class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+          >
+            🗑️ Delete
+          </button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  // Load campaigns
+  function loadCampaigns() {
+    // TODO: Implement campaign loading
+    console.log('Loading campaigns...');
+  }
+
+  // Load templates
+  function loadTemplates() {
+    // TODO: Implement template loading
+    console.log('Loading templates...');
+  }
+
+  // Load analytics
+  function loadAnalytics() {
+    // TODO: Implement analytics loading
+    console.log('Loading analytics...');
+  }
+
+  // Show CSV upload modal
+  function showCSVUpload() {
+    // TODO: Implement CSV upload modal
+    alert('CSV Upload feature coming soon!');
+  }
+
+  // Show add subscriber modal
+  function showAddSubscriber() {
+    // TODO: Implement add subscriber modal
+    alert('Add Subscriber feature coming soon!');
+  }
+
+  // Show create campaign modal
+  function showCreateCampaign() {
+    // TODO: Implement create campaign modal
+    alert('Create Campaign feature coming soon!');
+  }
+
+  // Show create template modal
+  function showCreateTemplate() {
+    // TODO: Implement create template modal
+    alert('Create Template feature coming soon!');
+  }
+
+  // Edit subscriber
+  function editSubscriber(id) {
+    // TODO: Implement edit subscriber
+    alert(`Edit subscriber ${id} - coming soon!`);
+  }
+
+  // Delete subscriber
+  function deleteSubscriber(id) {
+    if (confirm('Are you sure you want to delete this subscriber?')) {
+      // TODO: Implement delete subscriber
+      alert(`Delete subscriber ${id} - coming soon!`);
+    }
+  }
+
+  // Initialize page
+  document.addEventListener('DOMContentLoaded', async function() {
+    console.log('Email Marketing page loaded');
+    
+    try {
+      await initSupabase();
+      checkAuth();
+      loadSubscribers();
+      console.log('Email Marketing page initialized successfully');
+    } catch (error) {
+      console.error('Error initializing email marketing page:', error);
+    }
+  });
+</script>
+
+<style>
+  .tab-button.active {
+    border-bottom-color: rgb(147 51 234);
+    color: rgb(147 51 234);
+  }
+  
+  .tab-button:hover {
+    color: rgb(75 85 99);
+  }
+  
+  .dark .tab-button:hover {
+    color: rgb(209 213 219);
+  }
+</style>
+
+</Layout>
