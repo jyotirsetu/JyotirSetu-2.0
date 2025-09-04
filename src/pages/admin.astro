@@ -293,6 +293,8 @@ import { supabase } from '~/lib/supabase';
          // Make functions globally accessible for onclick attributes
     window.testLogin = testLogin;
     window.handleLoginSubmit = handleLoginSubmit;
+    window.togglePasswordVisibility = togglePasswordVisibility;
+    window.closeModal = closeModal;
      
      // Initialize Supabase client
      function initSupabase() {
@@ -501,6 +503,9 @@ import { supabase } from '~/lib/supabase';
               closeModal();
             });
           }
+          
+          // Setup escape key functionality
+          setupModalEscapeKey();
        }, 100);
     }
     
@@ -828,6 +833,45 @@ import { supabase } from '~/lib/supabase';
       }
     }
 
+    // Toggle password visibility
+    function togglePasswordVisibility(inputId, toggleId) {
+      const input = document.getElementById(inputId);
+      const toggle = document.getElementById(toggleId);
+      
+      if (input && toggle) {
+        if (input.type === 'password') {
+          input.type = 'text';
+          // Change to eye-slash icon (hidden)
+          toggle.innerHTML = `
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"></path>
+          `;
+        } else {
+          input.type = 'password';
+          // Change to eye icon (visible)
+          toggle.innerHTML = `
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+          `;
+        }
+      }
+    }
+
+    // Setup escape key functionality for modals
+    function setupModalEscapeKey() {
+      // Remove any existing escape key listeners
+      document.removeEventListener('keydown', handleEscapeKey);
+      // Add new escape key listener
+      document.addEventListener('keydown', handleEscapeKey);
+    }
+
+    // Handle escape key press
+    function handleEscapeKey(event) {
+      if (event.key === 'Escape') {
+        console.log('Escape key pressed - closing modal');
+        closeModal();
+      }
+    }
+
     // Update user display
     function updateUserDisplay() {
       const userSpan = document.getElementById('admin-welcome');
@@ -881,58 +925,85 @@ import { supabase } from '~/lib/supabase';
        }
      }
 
-     // Show change password modal
-     function showChangePasswordModal() {
-       console.log('Showing change password modal');
-       const modal = document.getElementById('modal-container');
-       if (!modal) {
-         console.error('Modal container not found!');
-         return;
-       }
-       
-       modal.innerHTML = `
-         <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-           <div class="bg-white dark:bg-slate-800 rounded-xl p-8 max-w-md w-full mx-4">
-             <div class="text-center mb-6">
-               <span class="text-4xl">🔐</span>
-               <h2 class="text-2xl font-bold text-gray-900 dark:text-white mt-2">Change Password</h2>
-               <p class="text-gray-600 dark:text-gray-400">Update your admin password</p>
-             </div>
-             <form id="change-password-form" class="space-y-4">
-               <div>
-                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Current Password</label>
-                 <input type="password" id="current-password" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-slate-700 dark:text-white">
-               </div>
-               <div>
-                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">New Password</label>
-                 <input type="password" id="new-password" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-slate-700 dark:text-white">
-               </div>
-               <div>
-                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Confirm New Password</label>
-                 <input type="password" id="confirm-password" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-slate-700 dark:text-white">
-               </div>
-               <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-lg font-medium transition-colors duration-200">
-                 Update Password
-               </button>
-             </form>
-             <div class="mt-4 text-center">
-               <button onclick="closeModal()" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
-                 Cancel
-               </button>
-             </div>
-           </div>
-         </div>
-       `;
+         // Show change password modal
+    function showChangePasswordModal() {
+      console.log('Showing change password modal');
+      const modal = document.getElementById('modal-container');
+      if (!modal) {
+        console.error('Modal container not found!');
+        return;
+      }
+      
+      modal.innerHTML = `
+        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" id="change-password-modal-overlay">
+          <div class="bg-white dark:bg-slate-800 rounded-xl p-8 max-w-md w-full mx-4">
+            <div class="text-center mb-6">
+              <span class="text-4xl">🔐</span>
+              <h2 class="text-2xl font-bold text-gray-900 dark:text-white mt-2">Change Password</h2>
+              <p class="text-gray-600 dark:text-gray-400">Update your admin password</p>
+            </div>
+            <form id="change-password-form" class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Current Password</label>
+                <div class="relative">
+                  <input type="password" id="current-password" required class="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-slate-700 dark:text-white">
+                  <button type="button" onclick="togglePasswordVisibility('current-password', 'current-password-toggle')" class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                    <svg id="current-password-toggle" class="h-5 w-5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">New Password</label>
+                <div class="relative">
+                  <input type="password" id="new-password" required class="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-slate-700 dark:text-white">
+                  <button type="button" onclick="togglePasswordVisibility('new-password', 'new-password-toggle')" class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                    <svg id="new-password-toggle" class="h-5 w-5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Confirm New Password</label>
+                <div class="relative">
+                  <input type="password" id="confirm-password" required class="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-slate-700 dark:text-white">
+                  <button type="button" onclick="togglePasswordVisibility('confirm-password', 'confirm-password-toggle')" class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                    <svg id="confirm-password-toggle" class="h-5 w-5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-lg font-medium transition-colors duration-200">
+                Update Password
+              </button>
+            </form>
+            <div class="mt-4 text-center">
+              <button id="cancel-password-btn" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 px-4 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200">
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
 
-       // Wait for DOM to update, then setup form handler
-       setTimeout(() => {
-         setupChangePasswordForm();
-       }, 100);
-     }
+      // Wait for DOM to update, then setup form handler and escape key
+      setTimeout(() => {
+        setupChangePasswordForm();
+        setupModalEscapeKey();
+      }, 100);
+    }
 
      // Setup change password form handler
      function setupChangePasswordForm() {
        const changePasswordForm = document.getElementById('change-password-form');
+       const cancelBtn = document.getElementById('cancel-password-btn');
+       
        if (changePasswordForm) {
          console.log('Setting up change password form handler');
          // Remove any existing event listeners
@@ -941,6 +1012,16 @@ import { supabase } from '~/lib/supabase';
          changePasswordForm.addEventListener('submit', handleChangePasswordSubmit);
        } else {
          console.error('Change password form not found!');
+       }
+       
+       if (cancelBtn) {
+         console.log('Setting up cancel button handler');
+         cancelBtn.addEventListener('click', function() {
+           console.log('Cancel button clicked - closing modal');
+           closeModal();
+         });
+       } else {
+         console.error('Cancel button not found!');
        }
      }
 
