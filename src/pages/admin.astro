@@ -1,18 +1,42 @@
 ---
-import Layout from '~/layouts/PageLayout.astro';
-import { supabase } from '~/lib/supabase';
-
 // This will be a client-side rendered page for dynamic content
 ---
 
-<Layout metadata={{
-  title: "Admin Dashboard - JyotirSetu",
-  description: "Manage JyotirSetu website content, appointments, and daily tips"
-}}>
-
-<!-- Load Supabase from CDN -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <div class="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-purple-900 dark:to-gray-900">
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard - JyotirSetu</title>
+  <meta name="description" content="Manage JyotirSetu website content, appointments, and daily tips">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              50: '#faf5ff',
+              100: '#f3e8ff',
+              200: '#e9d5ff',
+              300: '#d8b4fe',
+              400: '#c084fc',
+              500: '#a855f7',
+              600: '#9333ea',
+              700: '#7c3aed',
+              800: '#6b21a8',
+              900: '#581c87',
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="h-full bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-purple-900 dark:to-gray-900">
+  <!-- Load Supabase from CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <!-- Login Page (shown by default) -->
     <div id="login-page" class="min-h-screen flex">
@@ -97,33 +121,39 @@ import { supabase } from '~/lib/supabase';
     </div>
 
     <!-- Admin Dashboard (hidden by default) -->
-    <div id="admin-dashboard" class="hidden">
-      <!-- Admin Header -->
-      <header class="bg-white dark:bg-slate-800 shadow-lg border-b border-purple-200 dark:border-purple-700">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div class="flex justify-between items-center py-6">
-            <div class="flex items-center">
-              <div class="flex-shrink-0">
-                <h1 class="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                  🌟 JyotirSetu Admin
-                </h1>
+    <div id="admin-dashboard" class="hidden min-h-screen">
+      <!-- Clean Admin Header -->
+      <header class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-b border-purple-100 dark:border-purple-800 sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-6 py-4">
+          <div class="flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+              <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center">
+                  <span class="text-white text-xl">🌟</span>
+                </div>
+                <div>
+                  <h1 class="text-xl font-bold text-gray-900 dark:text-white">
+                    JyotirSetu Admin
+                  </h1>
+                  <p class="text-sm text-gray-500 dark:text-gray-400">Cosmic Management Portal</p>
+                </div>
               </div>
             </div>
-            <div class="flex items-center space-x-4">
-              <span class="text-sm text-gray-600 dark:text-gray-400" id="admin-welcome">
+            <div class="flex items-center space-x-3">
+              <span class="text-sm text-gray-600 dark:text-gray-400 px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full" id="admin-welcome">
                 Welcome, Admin
               </span>
               <button
                 id="change-password-btn"
-                class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200"
+                class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md"
               >
-                Change Password
+                🔐 Change Password
               </button>
               <button
                 id="logout-btn"
-                class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200"
+                class="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md"
               >
-                Logout
+                🚪 Logout
               </button>
             </div>
           </div>
@@ -131,74 +161,74 @@ import { supabase } from '~/lib/supabase';
       </header>
 
       <!-- Main Admin Content -->
-      <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <!-- Quick Stats -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-purple-200 dark:border-purple-700">
-          <div class="flex items-center">
-            <div class="flex-shrink-0">
-              <div class="w-8 h-8 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center">
-                <span class="text-purple-600 dark:text-purple-400 text-xl">✨</span>
+      <main class="max-w-7xl mx-auto px-6 py-8">
+        <!-- Quick Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-purple-100 dark:border-purple-800 hover:shadow-xl transition-all duration-300">
+            <div class="flex items-center">
+              <div class="flex-shrink-0">
+                <div class="w-12 h-12 bg-gradient-to-br from-purple-100 to-purple-200 dark:from-purple-900 dark:to-purple-800 rounded-xl flex items-center justify-center">
+                  <span class="text-purple-600 dark:text-purple-400 text-xl">✨</span>
+                </div>
+              </div>
+              <div class="ml-4">
+                <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Daily Tips</p>
+                <p class="text-2xl font-bold text-gray-900 dark:text-white" id="tips-count">0</p>
               </div>
             </div>
-            <div class="ml-4">
-              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Daily Tips</p>
-              <p class="text-2xl font-bold text-gray-900 dark:text-white" id="tips-count">0</p>
-            </div>
           </div>
-        </div>
 
-        <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-purple-200 dark:border-purple-700">
-          <div class="flex items-center">
-            <div class="flex-shrink-0">
-              <div class="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
-                <span class="text-blue-600 dark:text-blue-400 text-xl">♈</span>
+          <div class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-blue-100 dark:border-blue-800 hover:shadow-xl transition-all duration-300">
+            <div class="flex items-center">
+              <div class="flex-shrink-0">
+                <div class="w-12 h-12 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900 dark:to-blue-800 rounded-xl flex items-center justify-center">
+                  <span class="text-blue-600 dark:text-blue-400 text-xl">♈</span>
+                </div>
+              </div>
+              <div class="ml-4">
+                <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Horoscopes</p>
+                <p class="text-2xl font-bold text-gray-900 dark:text-white" id="horoscopes-count">0</p>
               </div>
             </div>
-            <div class="ml-4">
-              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Horoscopes</p>
-              <p class="text-2xl font-bold text-gray-900 dark:text-white" id="horoscopes-count">0</p>
-            </div>
           </div>
-        </div>
 
-        <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-purple-200 dark:border-purple-700">
-          <div class="flex items-center">
-            <div class="flex-shrink-0">
-              <div class="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center">
-                <span class="text-green-600 dark:text-green-400 text-xl">📅</span>
+          <div class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-green-100 dark:border-green-800 hover:shadow-xl transition-all duration-300">
+            <div class="flex items-center">
+              <div class="flex-shrink-0">
+                <div class="w-12 h-12 bg-gradient-to-br from-green-100 to-green-200 dark:from-green-900 dark:to-green-800 rounded-xl flex items-center justify-center">
+                  <span class="text-green-600 dark:text-green-400 text-xl">📅</span>
+                </div>
+              </div>
+              <div class="ml-4">
+                <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Appointments</p>
+                <p class="text-2xl font-bold text-gray-900 dark:text-white" id="appointments-count">0</p>
               </div>
             </div>
-            <div class="ml-4">
-              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Appointments</p>
-              <p class="text-2xl font-bold text-gray-900 dark:text-white" id="appointments-count">0</p>
-            </div>
           </div>
-        </div>
 
-        <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-purple-200 dark:border-purple-700">
-          <div class="flex items-center">
-            <div class="flex-shrink-0">
-              <div class="w-8 h-8 bg-yellow-100 dark:bg-yellow-900 rounded-lg flex items-center justify-center">
-                <span class="text-yellow-600 dark:text-yellow-400 text-xl">📝</span>
+          <div class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-yellow-100 dark:border-yellow-800 hover:shadow-xl transition-all duration-300">
+            <div class="flex items-center">
+              <div class="flex-shrink-0">
+                <div class="w-12 h-12 bg-gradient-to-br from-yellow-100 to-yellow-200 dark:from-yellow-900 dark:to-yellow-800 rounded-xl flex items-center justify-center">
+                  <span class="text-yellow-600 dark:text-yellow-400 text-xl">📝</span>
+                </div>
+              </div>
+              <div class="ml-4">
+                <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Blog Posts</p>
+                <p class="text-2xl font-bold text-gray-900 dark:text-white" id="blog-count">0</p>
               </div>
             </div>
-            <div class="ml-4">
-              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Blog Posts</p>
-              <p class="text-2xl font-bold text-gray-900 dark:text-white" id="blog-count">0</p>
-            </div>
           </div>
-        </div>
       </div>
 
       <!-- Admin Navigation -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         <!-- Daily Tips Manager -->
-        <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-purple-200 dark:border-purple-700 hover:shadow-xl transition-shadow duration-200 cursor-pointer"
+        <div class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-purple-100 dark:border-purple-800 hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer group"
              id="daily-tips-card"
              onclick="console.log('Daily Tips clicked via onclick'); window.location.href='/admin/dailytips';">
           <div class="text-center">
-            <div class="w-16 h-16 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div class="w-16 h-16 bg-gradient-to-br from-purple-100 to-purple-200 dark:from-purple-900 dark:to-purple-800 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
               <span class="text-purple-600 dark:text-purple-400 text-2xl">✨</span>
             </div>
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Daily Tips Manager</h3>
@@ -207,11 +237,11 @@ import { supabase } from '~/lib/supabase';
         </div>
 
         <!-- Horoscope Manager -->
-        <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-purple-200 dark:border-purple-700 hover:shadow-xl transition-shadow duration-200 cursor-pointer"
+        <div class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-blue-100 dark:border-blue-800 hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer group"
              id="horoscope-card"
              onclick="console.log('Horoscope clicked via onclick'); alert('Horoscope Manager - Coming Soon!');">
           <div class="text-center">
-            <div class="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div class="w-16 h-16 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900 dark:to-blue-800 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
               <span class="text-blue-600 dark:text-blue-400 text-2xl">♈</span>
             </div>
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Horoscope Manager</h3>
@@ -220,11 +250,11 @@ import { supabase } from '~/lib/supabase';
         </div>
 
         <!-- Appointment Dashboard -->
-        <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-purple-200 dark:border-purple-700 hover:shadow-xl transition-shadow duration-200 cursor-pointer"
+        <div class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-green-100 dark:border-green-800 hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer group"
              id="appointment-card"
              onclick="window.location.href='/admin/appointmentdashboard';">
           <div class="text-center">
-            <div class="w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div class="w-16 h-16 bg-gradient-to-br from-green-100 to-green-200 dark:from-green-900 dark:to-green-800 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
               <span class="text-green-600 dark:text-green-400 text-2xl">📅</span>
             </div>
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Appointment Dashboard</h3>
@@ -233,10 +263,10 @@ import { supabase } from '~/lib/supabase';
         </div>
 
         <!-- Blog Manager -->
-        <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-purple-200 dark:border-purple-700 hover:shadow-xl transition-shadow duration-200 cursor-pointer"
+        <div class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-yellow-100 dark:border-yellow-800 hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer group"
              id="blog-card">
           <div class="text-center">
-            <div class="w-16 h-16 bg-yellow-100 dark:bg-yellow-900 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div class="w-16 h-16 bg-gradient-to-br from-yellow-100 to-yellow-200 dark:from-yellow-900 dark:to-yellow-800 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
               <span class="text-yellow-600 dark:text-yellow-400 text-2xl">📝</span>
             </div>
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Blog Manager</h3>
@@ -245,10 +275,10 @@ import { supabase } from '~/lib/supabase';
         </div>
 
         <!-- Image Manager -->
-        <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-purple-200 dark:border-purple-700 hover:shadow-xl transition-shadow duration-200 cursor-pointer"
+        <div class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-pink-100 dark:border-pink-800 hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer group"
              id="image-card">
           <div class="text-center">
-            <div class="w-16 h-16 bg-pink-100 dark:bg-pink-900 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div class="w-16 h-16 bg-gradient-to-br from-pink-100 to-pink-200 dark:from-pink-900 dark:to-pink-800 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
               <span class="text-pink-600 dark:text-pink-400 text-2xl">🖼️</span>
             </div>
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Image Manager</h3>
@@ -257,10 +287,10 @@ import { supabase } from '~/lib/supabase';
         </div>
 
         <!-- Analytics -->
-        <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-purple-200 dark:border-purple-700 hover:shadow-xl transition-shadow duration-200 cursor-pointer"
+        <div class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-indigo-100 dark:border-indigo-800 hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer group"
              id="analytics-card">
           <div class="text-center">
-            <div class="w-16 h-16 bg-indigo-100 dark:bg-indigo-900 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div class="w-16 h-16 bg-gradient-to-br from-indigo-100 to-indigo-200 dark:from-indigo-900 dark:to-indigo-800 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
               <span class="text-indigo-600 dark:text-indigo-400 text-2xl">📊</span>
             </div>
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Analytics</h3>
@@ -288,11 +318,18 @@ import { supabase } from '~/lib/supabase';
 
      <script>
      // Load Supabase from CDN
-     let supabase;
+           let supabase = null; // Initialize as null, will be set in initSupabase()
      
-         // Make functions globally accessible for onclick attributes
-    window.testLogin = testLogin;
-    window.handleLoginSubmit = handleLoginSubmit;
+     // Make functions globally accessible for onclick attributes
+     declare global {
+       interface Window {
+         testLogin: typeof testLogin;
+         handleLoginSubmit: typeof handleLoginSubmit;
+       }
+     }
+     
+     window.testLogin = testLogin;
+     window.handleLoginSubmit = handleLoginSubmit;
     window.togglePasswordVisibility = togglePasswordVisibility;
     window.closeModal = closeModal;
     window.getStoredPassword = getStoredPassword;
@@ -912,9 +949,13 @@ import { supabase } from '~/lib/supabase';
 
     // Real-time password validation functions
     function validateCurrentPassword() {
-      const currentPassword = document.getElementById('current-password').value;
+      const currentPasswordInput = document.getElementById('current-password') as HTMLInputElement;
       const errorDiv = document.getElementById('current-password-error');
       const storedPassword = getStoredPassword();
+      
+      if (!currentPasswordInput || !errorDiv) return false;
+      
+      const currentPassword = currentPasswordInput.value;
       
       if (currentPassword && currentPassword !== storedPassword) {
         errorDiv.textContent = '❌ Current password is incorrect';
@@ -930,9 +971,13 @@ import { supabase } from '~/lib/supabase';
     }
 
     function validateNewPassword() {
-      const newPassword = document.getElementById('new-password').value;
+      const newPasswordInput = document.getElementById('new-password') as HTMLInputElement;
       const errorDiv = document.getElementById('new-password-error');
       const successDiv = document.getElementById('new-password-success');
+      
+      if (!newPasswordInput || !errorDiv || !successDiv) return false;
+      
+      const newPassword = newPasswordInput.value;
       
       if (newPassword && newPassword.length < 8) {
         errorDiv.textContent = '❌ Password must be at least 8 characters long';
@@ -951,10 +996,15 @@ import { supabase } from '~/lib/supabase';
     }
 
     function validatePasswordMatch() {
-      const newPassword = document.getElementById('new-password').value;
-      const confirmPassword = document.getElementById('confirm-password').value;
+      const newPasswordInput = document.getElementById('new-password') as HTMLInputElement;
+      const confirmPasswordInput = document.getElementById('confirm-password') as HTMLInputElement;
       const errorDiv = document.getElementById('confirm-password-error');
       const successDiv = document.getElementById('confirm-password-success');
+      
+      if (!newPasswordInput || !confirmPasswordInput || !errorDiv || !successDiv) return false;
+      
+      const newPassword = newPasswordInput.value;
+      const confirmPassword = confirmPasswordInput.value;
       
       if (confirmPassword && newPassword !== confirmPassword) {
         errorDiv.textContent = '❌ Passwords do not match';
@@ -978,7 +1028,7 @@ import { supabase } from '~/lib/supabase';
       const newValid = validateNewPassword();
       const matchValid = validatePasswordMatch();
       
-      const updateBtn = document.getElementById('update-password-btn');
+      const updateBtn = document.getElementById('update-password-btn') as HTMLButtonElement;
       if (updateBtn) {
         if (currentValid && newValid && matchValid) {
           updateBtn.disabled = false;
@@ -1636,4 +1686,5 @@ import { supabase } from '~/lib/supabase';
      //   }
      // }
    </script>
-</Layout>
+</body>
+</html>
