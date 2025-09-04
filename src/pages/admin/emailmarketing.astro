@@ -200,6 +200,9 @@ import Layout from '~/layouts/AdminLayout.astro';
                       Source
                     </th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                      Tags
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                       Status
                     </th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
@@ -212,7 +215,7 @@ import Layout from '~/layouts/AdminLayout.astro';
                 </thead>
                 <tbody id="subscribers-table-body" class="bg-white dark:bg-slate-800 divide-y divide-gray-200 dark:divide-gray-700">
                   <tr>
-                    <td colspan="6" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                    <td colspan="7" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
                       <div class="flex flex-col items-center">
                         <span class="text-4xl mb-4">📧</span>
                         <p class="text-lg font-medium mb-2">No subscribers yet</p>
@@ -375,7 +378,17 @@ import Layout from '~/layouts/AdminLayout.astro';
       showImportStatus('Importing subscribers from appointments...');
       
       if (!supabase) {
-        throw new Error('Supabase not initialized');
+        showImportStatus('Supabase not initialized. Using mock data for testing.', 'warning');
+        
+        // Use mock data for testing
+        const mockAppointments = [
+          { id: 1, name: 'John Doe', email: 'john.doe@example.com', service_type: 'Kundli Analysis', created_at: '2024-01-15T10:30:00Z' },
+          { id: 2, name: 'Jane Smith', email: 'jane.smith@example.com', service_type: 'Palmistry', created_at: '2024-01-14T15:45:00Z' },
+          { id: 3, name: 'Mike Johnson', email: 'mike.johnson@example.com', service_type: 'Numerology', created_at: '2024-01-13T09:20:00Z' }
+        ];
+        
+        await processAppointmentsData(mockAppointments);
+        return;
       }
 
       // Get all appointments with email addresses from Supabase
@@ -385,7 +398,9 @@ import Layout from '~/layouts/AdminLayout.astro';
         .not('email', 'is', null);
 
       if (error) {
-        throw error;
+        console.error('Supabase error:', error);
+        showImportStatus('Error connecting to database. Please try again.', 'error');
+        return;
       }
 
       if (!appointments || appointments.length === 0) {
@@ -393,42 +408,48 @@ import Layout from '~/layouts/AdminLayout.astro';
         return;
       }
 
-      // Get existing subscribers from localStorage
-      let existingSubscribers = JSON.parse(localStorage.getItem('email_subscribers') || '[]');
-      
-      let importedCount = 0;
-      for (const appointment of appointments) {
-        // Check if subscriber already exists
-        const existingSubscriber = existingSubscribers.find(sub => sub.email === appointment.email);
-        
-        if (!existingSubscriber) {
-          // Add new subscriber
-          const newSubscriber = {
-            id: Date.now() + Math.random(),
-            email: appointment.email,
-            name: appointment.name,
-            source: 'appointment_form',
-            status: 'active',
-            service_interest: appointment.service_type,
-            created_at: new Date().toISOString()
-          };
-          
-          existingSubscribers.push(newSubscriber);
-          importedCount++;
-        }
-      }
-      
-      // Save to localStorage
-      localStorage.setItem('email_subscribers', JSON.stringify(existingSubscribers));
-      
-      showImportStatus(`Successfully imported ${importedCount} new subscribers from appointments!`, 'success');
-      loadSubscribers();
-      updateStats();
+      await processAppointmentsData(appointments);
       
     } catch (error) {
       console.error('Error importing from appointments:', error);
       showImportStatus('Error importing subscribers. Please try again.', 'error');
     }
+  }
+
+  // Process appointments data
+  async function processAppointmentsData(appointments) {
+    // Get existing subscribers from localStorage
+    let existingSubscribers = JSON.parse(localStorage.getItem('email_subscribers') || '[]');
+    
+    let importedCount = 0;
+    for (const appointment of appointments) {
+      // Check if subscriber already exists
+      const existingSubscriber = existingSubscribers.find(sub => sub.email === appointment.email);
+      
+      if (!existingSubscriber) {
+        // Add new subscriber
+        const newSubscriber = {
+          id: Date.now() + Math.random(),
+          email: appointment.email,
+          name: appointment.name,
+          source: 'appointment_form',
+          status: 'active',
+          service_interest: appointment.service_type,
+          tags: [appointment.service_type.toLowerCase().replace(/\s+/g, '_')],
+          created_at: new Date().toISOString()
+        };
+        
+        existingSubscribers.push(newSubscriber);
+        importedCount++;
+      }
+    }
+    
+    // Save to localStorage
+    localStorage.setItem('email_subscribers', JSON.stringify(existingSubscribers));
+    
+    showImportStatus(`Successfully imported ${importedCount} new subscribers from appointments!`, 'success');
+    loadSubscribers();
+    updateStats();
   }
 
   // Show import status
@@ -507,10 +528,19 @@ import Layout from '~/layouts/AdminLayout.astro';
           <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
             subscriber.source === 'appointment_form' 
               ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
-              : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+              : subscriber.source === 'csv_upload'
+              ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+              : 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
           }">
-            ${subscriber.source === 'appointment_form' ? '📅 Appointment' : '📁 CSV Upload'}
+            ${subscriber.source === 'appointment_form' ? '📅 Appointment' : subscriber.source === 'csv_upload' ? '📁 CSV Upload' : '✋ Manual'}
           </span>
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+          <div class="flex flex-wrap gap-1">
+            ${(subscriber.tags && subscriber.tags.length > 0) ? subscriber.tags.map(tag => 
+              `<span class="px-2 py-1 text-xs bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded-full">${tag.replace(/_/g, ' ')}</span>`
+            ).join('') : '<span class="text-gray-400 text-xs">No tags</span>'}
+          </div>
         </td>
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
           <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
@@ -777,18 +807,19 @@ import Layout from '~/layouts/AdminLayout.astro';
           const name = values[1]?.trim() || '';
           const source = values[2]?.trim() || 'csv_upload';
           
-          if (email && !existingSubscribers.find(sub => sub.email === email)) {
-            existingSubscribers.push({
-              id: Date.now() + Math.random(),
-              email: email,
-              name: name,
-              source: source,
-              status: 'active',
-              service_interest: '',
-              created_at: new Date().toISOString()
-            });
-            importedCount++;
-          }
+                                if (email && !existingSubscribers.find(sub => sub.email === email)) {
+                        existingSubscribers.push({
+                          id: Date.now() + Math.random(),
+                          email: email,
+                          name: name,
+                          source: 'csv_upload',
+                          status: 'active',
+                          service_interest: '',
+                          tags: [],
+                          created_at: new Date().toISOString()
+                        });
+                        importedCount++;
+                      }
         }
       }
       
@@ -864,6 +895,8 @@ import Layout from '~/layouts/AdminLayout.astro';
       return;
     }
     
+    const tags = service ? [service.toLowerCase().replace(/\s+/g, '_')] : [];
+    
     existingSubscribers.push({
       id: Date.now() + Math.random(),
       email: email,
@@ -871,6 +904,7 @@ import Layout from '~/layouts/AdminLayout.astro';
       source: 'manual_add',
       status: 'active',
       service_interest: service,
+      tags: tags,
       created_at: new Date().toISOString()
     });
     
@@ -879,6 +913,59 @@ import Layout from '~/layouts/AdminLayout.astro';
     showImportStatus('Subscriber added successfully!', 'success');
     loadSubscribers();
     updateStats();
+  }
+
+  // Load template into campaign
+  function loadTemplate() {
+    const templateSelect = document.getElementById('template-select') as HTMLSelectElement;
+    const contentTextarea = document.getElementById('campaign-content') as HTMLTextAreaElement;
+    
+    if (templateSelect.value) {
+      const templates = JSON.parse(localStorage.getItem('email_templates') || '[]');
+      const selectedTemplate = templates.find(t => t.id == templateSelect.value);
+      
+      if (selectedTemplate) {
+        contentTextarea.value = selectedTemplate.content;
+      }
+    }
+  }
+
+  // Get selected tags
+  function getSelectedTags() {
+    const checkboxes = document.querySelectorAll('.tag-checkbox:checked');
+    return Array.from(checkboxes).map(cb => cb.value);
+  }
+
+  // Get recipient count based on selection and tags
+  function getRecipientCount(subscribers, recipientType, selectedTags) {
+    let filteredSubscribers = subscribers;
+    
+    // Filter by source type
+    if (recipientType !== 'all') {
+      filteredSubscribers = subscribers.filter(sub => sub.source === recipientType);
+    }
+    
+    // Filter by selected tags
+    if (selectedTags.length > 0) {
+      filteredSubscribers = filteredSubscribers.filter(sub => {
+        if (!sub.tags || !Array.isArray(sub.tags)) return false;
+        return selectedTags.some(tag => sub.tags.includes(tag));
+      });
+    }
+    
+    return filteredSubscribers.length;
+  }
+
+  // Update recipient count based on selection
+  function updateRecipientCount() {
+    const recipientSelect = document.getElementById('campaign-recipients') as HTMLSelectElement;
+    const countDiv = document.getElementById('recipient-count');
+    const subscribers = JSON.parse(localStorage.getItem('email_subscribers') || '[]');
+    
+    const selectedTags = getSelectedTags();
+    const count = getRecipientCount(subscribers, recipientSelect.value, selectedTags);
+    
+    countDiv.textContent = `Will send to ${count} subscribers`;
   }
 
   // Show create campaign modal
@@ -898,17 +985,33 @@ import Layout from '~/layouts/AdminLayout.astro';
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</label>
                 <textarea id="campaign-description" rows="3" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-slate-700 dark:text-white"></textarea>
               </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email Content</label>
-                <textarea id="campaign-content" rows="8" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-slate-700 dark:text-white" placeholder="Write your email content here..."></textarea>
-              </div>
+                                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email Content</label>
+                            <div class="mb-2">
+                              <select id="template-select" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-slate-700 dark:text-white" onchange="loadTemplate()">
+                                <option value="">Select a template (optional)</option>
+                              </select>
+                            </div>
+                            <textarea id="campaign-content" rows="8" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-slate-700 dark:text-white" placeholder="Write your email content here..."></textarea>
+                          </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Recipients</label>
-                <select id="campaign-recipients" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-slate-700 dark:text-white">
+                <select id="campaign-recipients" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-slate-700 dark:text-white" onchange="updateRecipientCount()">
                   <option value="all">All Subscribers</option>
                   <option value="appointment_form">Appointment Form Subscribers</option>
                   <option value="csv_upload">CSV Upload Subscribers</option>
+                  <option value="manual_add">Manually Added Subscribers</option>
                 </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Target by Tags</label>
+                <div id="tag-selection" class="space-y-2">
+                  <div class="text-sm text-gray-500 dark:text-gray-400">Select tags to target specific subscriber groups:</div>
+                  <div id="available-tags" class="flex flex-wrap gap-2">
+                    <!-- Tags will be populated dynamically -->
+                  </div>
+                </div>
+                <div id="recipient-count" class="mt-2 text-sm text-blue-600 dark:text-blue-400"></div>
               </div>
             </div>
             <div class="flex justify-end space-x-3 mt-6">
@@ -926,6 +1029,64 @@ import Layout from '~/layouts/AdminLayout.astro';
         </div>
       </div>
     `;
+    
+    // Load templates into dropdown
+    loadTemplatesIntoCampaign();
+    
+    // Load available tags
+    loadAvailableTags();
+    
+    // Update recipient count
+    updateRecipientCount();
+  }
+
+  // Load templates into campaign dropdown
+  function loadTemplatesIntoCampaign() {
+    const templateSelect = document.getElementById('template-select') as HTMLSelectElement;
+    const templates = JSON.parse(localStorage.getItem('email_templates') || '[]');
+    
+    // Clear existing options except the first one
+    templateSelect.innerHTML = '<option value="">Select a template (optional)</option>';
+    
+    templates.forEach(template => {
+      const option = document.createElement('option');
+      option.value = template.id;
+      option.textContent = template.name;
+      templateSelect.appendChild(option);
+    });
+  }
+
+  // Load available tags
+  function loadAvailableTags() {
+    const tagsContainer = document.getElementById('available-tags');
+    const subscribers = JSON.parse(localStorage.getItem('email_subscribers') || '[]');
+    
+    // Get all unique tags from subscribers
+    const allTags = new Set();
+    subscribers.forEach(sub => {
+      if (sub.tags && Array.isArray(sub.tags)) {
+        sub.tags.forEach(tag => allTags.add(tag));
+      }
+    });
+    
+    tagsContainer.innerHTML = '';
+    
+    if (allTags.size === 0) {
+      tagsContainer.innerHTML = '<div class="text-sm text-gray-500 dark:text-gray-400">No tags available</div>';
+      return;
+    }
+    
+    allTags.forEach(tag => {
+      const tagElement = document.createElement('div');
+      tagElement.className = 'flex items-center space-x-2';
+      tagElement.innerHTML = `
+        <input type="checkbox" id="tag-${tag}" value="${tag}" class="tag-checkbox" onchange="updateRecipientCount()">
+        <label for="tag-${tag}" class="text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
+          ${tag.replace(/_/g, ' ')}
+        </label>
+      `;
+      tagsContainer.appendChild(tagElement);
+    });
   }
 
   // Save campaign
@@ -941,8 +1102,8 @@ import Layout from '~/layouts/AdminLayout.astro';
     }
     
     const subscribers = JSON.parse(localStorage.getItem('email_subscribers') || '[]');
-    const recipientCount = recipients === 'all' ? subscribers.length : 
-                         subscribers.filter(sub => sub.source === recipients).length;
+    const selectedTags = getSelectedTags();
+    const recipientCount = getRecipientCount(subscribers, recipients, selectedTags);
     
     const campaigns = JSON.parse(localStorage.getItem('email_campaigns') || '[]');
     campaigns.push({
@@ -951,6 +1112,8 @@ import Layout from '~/layouts/AdminLayout.astro';
       description: description,
       content: content,
       recipients: recipientCount,
+      recipientType: recipients,
+      selectedTags: selectedTags,
       status: 'draft',
       created_at: new Date().toISOString(),
       opens: 0,
@@ -977,8 +1140,13 @@ import Layout from '~/layouts/AdminLayout.astro';
     }
     
     const subscribers = JSON.parse(localStorage.getItem('email_subscribers') || '[]');
-    const recipientCount = recipients === 'all' ? subscribers.length : 
-                         subscribers.filter(sub => sub.source === recipients).length;
+    const selectedTags = getSelectedTags();
+    const recipientCount = getRecipientCount(subscribers, recipients, selectedTags);
+    
+    if (recipientCount === 0) {
+      alert('No subscribers match your criteria. Please adjust your selection.');
+      return;
+    }
     
     const campaigns = JSON.parse(localStorage.getItem('email_campaigns') || '[]');
     campaigns.push({
@@ -987,6 +1155,8 @@ import Layout from '~/layouts/AdminLayout.astro';
       description: description,
       content: content,
       recipients: recipientCount,
+      recipientType: recipients,
+      selectedTags: selectedTags,
       status: 'sent',
       created_at: new Date().toISOString(),
       sent_at: new Date().toISOString(),
@@ -996,9 +1166,51 @@ import Layout from '~/layouts/AdminLayout.astro';
     
     localStorage.setItem('email_campaigns', JSON.stringify(campaigns));
     closeModal();
-    showImportStatus(`Campaign sent to ${recipientCount} subscribers!`, 'success');
+    
+    // Simulate email sending
+    showImportStatus(`Campaign sent to ${recipientCount} subscribers! (Note: This is a demo - emails are not actually sent)`, 'success');
+    
+    // Show email preview
+    setTimeout(() => {
+      showEmailPreview(subject, content, recipientCount);
+    }, 1000);
+    
     loadCampaigns();
     updateStats();
+  }
+
+  // Show email preview (demo)
+  function showEmailPreview(subject, content, recipientCount) {
+    const modal = document.getElementById('modal-container');
+    modal.innerHTML = `
+      <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-2xl w-full mx-4">
+          <div class="p-6">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">📧 Email Campaign Preview</h3>
+            <div class="space-y-4">
+              <div class="bg-green-100 dark:bg-green-900 p-4 rounded-lg">
+                <p class="text-green-800 dark:text-green-200 font-medium">✅ Campaign sent successfully!</p>
+                <p class="text-green-700 dark:text-green-300 text-sm">Recipients: ${recipientCount} subscribers</p>
+              </div>
+              <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                <h4 class="font-semibold text-gray-900 dark:text-white mb-2">Subject: ${subject}</h4>
+                <div class="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">${content}</div>
+              </div>
+              <div class="bg-blue-100 dark:bg-blue-900 p-4 rounded-lg">
+                <p class="text-blue-800 dark:text-blue-200 text-sm">
+                  <strong>Note:</strong> This is a demo system. In a real implementation, emails would be sent via an email service like SendGrid, Mailchimp, or similar.
+                </p>
+              </div>
+            </div>
+            <div class="flex justify-end mt-6">
+              <button onclick="closeModal()" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
   }
 
   // Show create template modal
@@ -1210,6 +1422,13 @@ import Layout from '~/layouts/AdminLayout.astro';
   window.saveAndSendCampaign = saveAndSendCampaign;
   window.saveTemplate = saveTemplate;
   window.updateSubscriber = updateSubscriber;
+  window.loadTemplate = loadTemplate;
+  window.updateRecipientCount = updateRecipientCount;
+  window.getSelectedTags = getSelectedTags;
+  window.getRecipientCount = getRecipientCount;
+  window.loadTemplatesIntoCampaign = loadTemplatesIntoCampaign;
+  window.loadAvailableTags = loadAvailableTags;
+  window.showEmailPreview = showEmailPreview;
 
   // Initialize page
   document.addEventListener('DOMContentLoaded', async function() {
