@@ -847,7 +847,7 @@ function exportToCSV() {
     'wearingGemstone': 'Currently Wearing Gemstone',
     
     // Palmistry fields
-    'focusArea': 'Focus Area',
+    'palmistryFocusArea': 'Palmistry Focus Area',
     'handDominance': 'Hand Dominance',
     'specificConcerns': 'Specific Concerns',
     
@@ -867,7 +867,7 @@ function exportToCSV() {
     'officialName': 'Official Name',
     'commonName': 'Common Name',
     'gender': 'Gender',
-    'focusArea': 'Focus Area',
+    'numerologyFocusArea': 'Numerology Focus Area',
     
     // Career & Finance fields
     'financialConcerns': 'Financial Concerns',
@@ -917,6 +917,12 @@ function exportToCSV() {
         }
       }
 
+      // Field mapping for backward compatibility
+      const fieldMapping = {
+        'focusArea': 'palmistryFocusArea', // Map old focusArea to new palmistryFocusArea
+        'numerologyFocusArea': 'numerologyFocusArea' // Keep new field name
+      };
+
       // Base appointment data
       const baseData = [
         `"${apt.name || ''}"`,
@@ -933,7 +939,15 @@ function exportToCSV() {
 
       // Add service-specific field values in predefined order
       const serviceFieldValues = Object.keys(serviceSpecificColumns).map(fieldKey => {
-        const value = serviceDetails[fieldKey] || '';
+        // Check if we need to map from old field name
+        let value = '';
+        if (fieldKey === 'palmistryFocusArea' && serviceDetails['focusArea']) {
+          value = serviceDetails['focusArea'];
+        } else if (fieldKey === 'numerologyFocusArea' && serviceDetails['focusArea']) {
+          value = serviceDetails['focusArea'];
+        } else {
+          value = serviceDetails[fieldKey] || '';
+        }
         return `"${value}"`;
       });
 
