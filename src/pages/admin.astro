@@ -13,34 +13,102 @@ import { supabase } from '~/lib/supabase';
 <!-- Load Supabase from CDN -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <div class="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-purple-900 dark:to-gray-900">
-    <!-- Admin Header -->
-    <header class="bg-white dark:bg-slate-800 shadow-lg border-b border-purple-200 dark:border-purple-700">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center py-6">
-          <div class="flex items-center">
-            <div class="flex-shrink-0">
-              <h1 class="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                🌟 JyotirSetu Admin
-              </h1>
+    
+    <!-- Login Page (shown by default) -->
+    <div id="login-page" class="min-h-screen flex items-center justify-center">
+      <div class="max-w-md w-full mx-4">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl overflow-hidden">
+          <!-- Left side with logo and branding -->
+          <div class="bg-gradient-to-br from-purple-600 to-indigo-700 px-8 py-12 text-center">
+            <div class="mb-6">
+              <img 
+                src="/JyotirSetu Full Logo Transparent.png" 
+                alt="JyotirSetu Logo" 
+                class="h-16 mx-auto mb-4"
+                onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
+              />
+              <div class="hidden text-4xl mb-4">🌟</div>
+              <h1 class="text-2xl font-bold text-white">JyotirSetu</h1>
+              <p class="text-purple-100 mt-2">Admin Dashboard</p>
             </div>
           </div>
-          <div class="flex items-center space-x-4">
-            <span class="text-sm text-gray-600 dark:text-gray-400">
-              Welcome, Admin
-            </span>
-            <button
-              id="logout-btn"
-              class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200"
-            >
-              Logout
-            </button>
+          
+          <!-- Right side with login form -->
+          <div class="px-8 py-12">
+            <div class="text-center mb-8">
+              <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Welcome Back</h2>
+              <p class="text-gray-600 dark:text-gray-400">Please login to access the admin dashboard</p>
+            </div>
+            
+            <form id="login-form" class="space-y-6">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email Address</label>
+                <input 
+                  type="email" 
+                  id="login-email" 
+                  required 
+                  class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-slate-700 dark:text-white transition-colors"
+                  placeholder="Enter your email"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Password</label>
+                <input 
+                  type="password" 
+                  id="login-password" 
+                  required 
+                  class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-slate-700 dark:text-white transition-colors"
+                  placeholder="Enter your password"
+                />
+              </div>
+              <button 
+                type="submit" 
+                class="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white py-3 px-4 rounded-lg font-medium transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+              >
+                Sign In
+              </button>
+            </form>
+            
+            <div class="mt-6 text-center">
+              <p class="text-sm text-gray-500 dark:text-gray-400">
+                Secure access to JyotirSetu admin panel
+              </p>
+            </div>
           </div>
         </div>
       </div>
-    </header>
+    </div>
 
-    <!-- Main Admin Content -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Admin Dashboard (hidden by default) -->
+    <div id="admin-dashboard" class="hidden">
+      <!-- Admin Header -->
+      <header class="bg-white dark:bg-slate-800 shadow-lg border-b border-purple-200 dark:border-purple-700">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="flex justify-between items-center py-6">
+            <div class="flex items-center">
+              <div class="flex-shrink-0">
+                <h1 class="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                  🌟 JyotirSetu Admin
+                </h1>
+              </div>
+            </div>
+            <div class="flex items-center space-x-4">
+              <span class="text-sm text-gray-600 dark:text-gray-400" id="admin-welcome">
+                Welcome, Admin
+              </span>
+              <button
+                id="logout-btn"
+                class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200"
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Main Admin Content -->
+      <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <!-- Quick Stats -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-purple-200 dark:border-purple-700">
@@ -188,11 +256,12 @@ import { supabase } from '~/lib/supabase';
           </div>
         </div>
       </div>
-    </main>
-  </div>
+      </main>
+    </div>
 
-  <!-- Modals will be added here -->
-  <div id="modal-container"></div>
+    <!-- Modals will be added here -->
+    <div id="modal-container"></div>
+  </div>
 
      <script>
      // Load Supabase from CDN
@@ -419,8 +488,9 @@ import { supabase } from '~/lib/supabase';
          // Check authentication on page load
      document.addEventListener('DOMContentLoaded', async function() {
        await initSupabase(); // Initialize Supabase first
-       checkAuth();
-       loadDashboardData();
+       setupLoginForm(); // Setup login form handler
+       setupLogoutButton(); // Setup logout button handler
+       checkAuth(); // Check if user is already logged in
        setupEventListeners();
      });
     
@@ -486,11 +556,24 @@ import { supabase } from '~/lib/supabase';
     function checkAuth() {
       const adminEmail = localStorage.getItem('admin_email');
       if (!adminEmail) {
-        showLoginModal();
+        showLoginPage();
       } else {
         currentUser = { email: adminEmail };
+        showAdminDashboard();
         updateUserDisplay();
       }
+    }
+
+    // Show login page
+    function showLoginPage() {
+      document.getElementById('login-page').classList.remove('hidden');
+      document.getElementById('admin-dashboard').classList.add('hidden');
+    }
+
+    // Show admin dashboard
+    function showAdminDashboard() {
+      document.getElementById('login-page').classList.add('hidden');
+      document.getElementById('admin-dashboard').classList.remove('hidden');
     }
 
     // Load dashboard data
@@ -792,42 +875,8 @@ import { supabase } from '~/lib/supabase';
         }
       }
 
-    // Show login modal
-    function showLoginModal() {
-      const modal = document.getElementById('modal-container');
-      if (!modal) return;
-      
-      modal.innerHTML = `
-        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div class="bg-white dark:bg-slate-800 rounded-xl p-8 max-w-md w-full mx-4">
-            <div class="text-center mb-6">
-              <span class="text-4xl">🌟</span>
-              <h2 class="text-2xl font-bold text-gray-900 dark:text-white mt-2">Admin Login</h2>
-              <p class="text-gray-600 dark:text-gray-400">Access JyotirSetu Admin Panel</p>
-            </div>
-            <form id="login-form" class="space-y-4">
-              <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email</label>
-                <input type="email" id="login-email" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-slate-700 dark:text-white">
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Password</label>
-                <input type="password" id="login-password" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-slate-700 dark:text-white">
-              </div>
-              <button type="submit" id="login-submit-btn" class="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-lg font-medium transition-colors duration-200">
-                Login
-              </button>
-            </form>
-            <div class="mt-4 text-center">
-              <button onclick="closeModal()" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      `;
-
-      // Handle login form
+    // Handle login form submission
+    function setupLoginForm() {
       const loginForm = document.getElementById('login-form');
       if (loginForm) {
         loginForm.addEventListener('submit', function(e) {
@@ -845,11 +894,12 @@ import { supabase } from '~/lib/supabase';
           if (email === 'admin@jyotirsetu.com' && password === 'admin123') {
             localStorage.setItem('admin_email', email);
             currentUser = { email };
-            closeModal();
+            showAdminDashboard();
             updateUserDisplay();
             loadDashboardData();
+            showNotification('Login successful! Welcome to JyotirSetu Admin', 'success');
           } else {
-            alert('Invalid credentials. Use admin@jyotirsetu.com / admin123');
+            showNotification('Invalid credentials. Use admin@jyotirsetu.com / admin123', 'error');
           }
         });
       }
@@ -867,7 +917,7 @@ import { supabase } from '~/lib/supabase';
 
     // Update user display
     function updateUserDisplay() {
-      const userSpan = document.querySelector('span:contains("Welcome, Admin")');
+      const userSpan = document.getElementById('admin-welcome');
       if (userSpan && currentUser) {
         userSpan.textContent = `Welcome, ${currentUser.email}`;
       }
@@ -895,11 +945,17 @@ import { supabase } from '~/lib/supabase';
     }
     
          // Logout function
-     document.getElementById('logout-btn').addEventListener('click', function() {
-       localStorage.removeItem('admin_email');
-       currentUser = null;
-       showLoginModal();
-     });
+     function setupLogoutButton() {
+       const logoutBtn = document.getElementById('logout-btn');
+       if (logoutBtn) {
+         logoutBtn.addEventListener('click', function() {
+           localStorage.removeItem('admin_email');
+           currentUser = null;
+           showLoginPage();
+           showNotification('Logged out successfully', 'info');
+         });
+       }
+     }
 
      // ===== APPOINTMENT DASHBOARD FUNCTIONS =====
      
