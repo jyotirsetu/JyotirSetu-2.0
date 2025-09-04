@@ -353,30 +353,108 @@ async function initSupabaseWithRetry() {
 document.addEventListener('DOMContentLoaded', async function() {
   console.log('Appointment Dashboard - DOM Content Loaded');
   
-  // Wait for Supabase to be ready
-  const supabaseReady = await initSupabaseWithRetry();
-  if (!supabaseReady) {
-    console.error('Supabase initialization failed');
-    return;
+  // Show loading state immediately
+  const tbody = document.getElementById('appointments-tbody');
+  if (tbody) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+          <div class="inline-flex items-center space-x-2">
+            <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
+            <span>Initializing dashboard...</span>
+          </div>
+        </td>
+      </tr>
+    `;
   }
   
-  checkAuth();
-  loadAppointments();
-  setupEventListeners();
+  try {
+    // Wait for Supabase to be ready
+    const supabaseReady = await initSupabaseWithRetry();
+    if (!supabaseReady) {
+      console.error('Supabase initialization failed');
+      if (tbody) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" class="px-6 py-12 text-center text-red-500 dark:text-red-400">
+              <div class="space-y-2">
+                <div class="text-lg font-semibold">⚠️ Database Connection Failed</div>
+                <div class="text-sm">Unable to connect to database. Please check your connection and refresh.</div>
+                <button onclick="window.location.reload()" class="mt-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
+                  🔄 Refresh Page
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }
+      return;
+    }
+    
+    console.log('Supabase ready, proceeding with dashboard initialization');
+    
+    // Check authentication
+    const authResult = checkAuth();
+    if (!authResult) {
+      console.log('Authentication failed, redirecting to admin login');
+      return; // Don't continue if auth fails
+    }
+    
+    // Load appointments
+    await loadAppointments();
+    
+    // Setup event listeners
+    setupEventListeners();
+    
+    console.log('Dashboard initialized successfully');
+    
+  } catch (error) {
+    console.error('Error initializing dashboard:', error);
+    if (tbody) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="6" class="px-6 py-12 text-center text-red-500 dark:text-red-400">
+            <div class="space-y-2">
+              <div class="text-lg font-semibold">❌ Dashboard Error</div>
+              <div class="text-sm">${error.message || 'Unknown error occurred during initialization'}</div>
+              <button onclick="window.location.reload()" class="mt-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
+                🔄 Refresh Page
+              </button>
+            </div>
+          </td>
+        </tr>
+      `;
+    }
+  }
 });
 
 // Authentication check
 function checkAuth() {
-  const adminEmail = localStorage.getItem('admin_email');
-  if (!adminEmail) {
-    window.location.href = '/admin';
-    return;
-  }
-  
-  // Update display
-  const adminEmailSpan = document.getElementById('admin-email');
-  if (adminEmailSpan) {
-    adminEmailSpan.textContent = `Welcome, ${adminEmail}`;
+  try {
+    const adminEmail = localStorage.getItem('admin_email');
+    console.log('Checking auth, admin email:', adminEmail ? 'Found' : 'Not found');
+    
+    if (!adminEmail) {
+      console.log('No admin email found, redirecting to admin login');
+      // Add a small delay to prevent immediate redirect
+      setTimeout(() => {
+        window.location.href = '/admin';
+      }, 100);
+      return false;
+    }
+    
+    // Update display
+    const adminEmailSpan = document.getElementById('admin-email');
+    if (adminEmailSpan) {
+      adminEmailSpan.textContent = `Welcome, ${adminEmail}`;
+    }
+    
+    console.log('Authentication successful');
+    return true;
+    
+  } catch (error) {
+    console.error('Error in checkAuth:', error);
+    return false;
   }
 }
 
