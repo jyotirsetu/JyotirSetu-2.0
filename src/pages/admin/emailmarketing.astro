@@ -427,10 +427,18 @@ import Layout from '~/layouts/AdminLayout.astro';
       const existingSubscriber = existingSubscribers.find(sub => sub.email === appointment.email);
       
       if (!existingSubscriber) {
-        // Create tag from service type
-        const serviceTag = appointment.service_type ? 
-          appointment.service_type.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '') : 
-          'general';
+        // Create tag from service type - check multiple possible fields
+        let serviceTag = 'general';
+        if (appointment.service_type) {
+          serviceTag = appointment.service_type.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+        } else if (appointment.service) {
+          serviceTag = appointment.service.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+        } else if (appointment.selected_service) {
+          serviceTag = appointment.selected_service.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+        }
+        
+        console.log('Appointment data:', appointment);
+        console.log('Generated tag:', serviceTag);
         
         // Add new subscriber
         const newSubscriber = {
@@ -978,7 +986,7 @@ import Layout from '~/layouts/AdminLayout.astro';
     const modal = document.getElementById('modal-container');
     modal.innerHTML = `
       <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onclick="if(event.target === this) closeModal()">
-        <div class="bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-2xl w-full mx-4">
+        <div class="bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
           <div class="p-6">
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Create Email Campaign</h3>
             <div class="space-y-4">
@@ -1223,7 +1231,7 @@ import Layout from '~/layouts/AdminLayout.astro';
     const modal = document.getElementById('modal-container');
     modal.innerHTML = `
       <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onclick="if(event.target === this) closeModal()">
-        <div class="bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-2xl w-full mx-4">
+        <div class="bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto">
           <div class="p-6">
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Create Email Template</h3>
             <div class="space-y-4">
@@ -1387,7 +1395,81 @@ import Layout from '~/layouts/AdminLayout.astro';
 
   // Edit template
   function editTemplate(id) {
-    alert(`Edit template ${id} - Feature coming soon!`);
+    const templates = JSON.parse(localStorage.getItem('email_templates') || '[]');
+    const template = templates.find(t => t.id === id);
+    
+    if (!template) {
+      alert('Template not found');
+      return;
+    }
+    
+    const modal = document.getElementById('modal-container');
+    modal.innerHTML = `
+      <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onclick="if(event.target === this) closeModal()">
+        <div class="bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+          <div class="p-6">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Edit Email Template</h3>
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Template Name *</label>
+                <input type="text" id="edit-template-name" value="${template.name}" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-slate-700 dark:text-white" required>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</label>
+                <textarea id="edit-template-description" rows="2" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-slate-700 dark:text-white">${template.description || ''}</textarea>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Template Content</label>
+                <textarea id="edit-template-content" rows="10" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-slate-700 dark:text-white" placeholder="Write your template content here...">${template.content}</textarea>
+              </div>
+            </div>
+            <div class="flex justify-end space-x-3 mt-6">
+              <button onclick="closeModal()" class="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">
+                Cancel
+              </button>
+              <button onclick="updateTemplate(${id})" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
+                Update Template
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  // Update template
+  function updateTemplate(id) {
+    const nameInput = document.getElementById('edit-template-name');
+    const descriptionTextarea = document.getElementById('edit-template-description');
+    const contentTextarea = document.getElementById('edit-template-content');
+
+    const name = nameInput.value;
+    const description = descriptionTextarea.value;
+    const content = contentTextarea.value;
+    
+    if (!name) {
+      alert('Template name is required');
+      return;
+    }
+    
+    const templates = JSON.parse(localStorage.getItem('email_templates') || '[]');
+    const templateIndex = templates.findIndex(t => t.id === id);
+    
+    if (templateIndex !== -1) {
+      templates[templateIndex] = {
+        ...templates[templateIndex],
+        name: name,
+        description: description,
+        content: content,
+        preview: content.substring(0, 100) + '...',
+        updated_at: new Date().toISOString()
+      };
+      
+      localStorage.setItem('email_templates', JSON.stringify(templates));
+      closeModal();
+      showImportStatus('Template updated successfully!', 'success');
+      loadTemplates();
+    }
   }
 
   // Delete template
@@ -1446,6 +1528,7 @@ import Layout from '~/layouts/AdminLayout.astro';
   window.loadTemplatesIntoCampaign = loadTemplatesIntoCampaign;
   window.loadAvailableTags = loadAvailableTags;
   window.showEmailPreview = showEmailPreview;
+  window.updateTemplate = updateTemplate;
 
   // Initialize page
   document.addEventListener('DOMContentLoaded', async function() {
