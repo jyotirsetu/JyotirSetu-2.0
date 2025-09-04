@@ -97,7 +97,7 @@
     </div>
 
     <!-- Admin Dashboard (hidden by default) -->
-    <div id="admin-dashboard" class="hidden min-h-screen">
+    <div id="admin-dashboard" class="hidden min-h-screen" style="display: none;">
       <!-- Clean Admin Header -->
       <header class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-b border-purple-100 dark:border-purple-800 sticky top-0 z-40">
         <div class="max-w-7xl mx-auto px-6 py-4">
@@ -562,6 +562,10 @@
       console.log('DOM Content Loaded - Initializing admin panel');
       
       try {
+        // Force show login page first
+        console.log('Forcing login page to show...');
+        showLoginPage();
+        
         initializePasswordSystem(); // Initialize password system first
         console.log('Password system initialized');
         
@@ -662,14 +666,30 @@
 
     // Show login page
     function showLoginPage() {
-      document.getElementById('login-page').classList.remove('hidden');
-      document.getElementById('admin-dashboard').classList.add('hidden');
+      const loginPage = document.getElementById('login-page');
+      const adminDashboard = document.getElementById('admin-dashboard');
+      if (loginPage) {
+        loginPage.classList.remove('hidden');
+        loginPage.style.display = 'flex';
+      }
+      if (adminDashboard) {
+        adminDashboard.classList.add('hidden');
+        adminDashboard.style.display = 'none';
+      }
     }
 
     // Show admin dashboard
     function showAdminDashboard() {
-      document.getElementById('login-page').classList.add('hidden');
-      document.getElementById('admin-dashboard').classList.remove('hidden');
+      const loginPage = document.getElementById('login-page');
+      const adminDashboard = document.getElementById('admin-dashboard');
+      if (loginPage) {
+        loginPage.classList.add('hidden');
+        loginPage.style.display = 'none';
+      }
+      if (adminDashboard) {
+        adminDashboard.classList.remove('hidden');
+        adminDashboard.style.display = 'block';
+      }
     }
 
     // Load dashboard data
