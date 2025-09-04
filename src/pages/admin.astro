@@ -1,18 +1,17 @@
 ---
+import Layout from '~/layouts/AdminLayout.astro';
+
 // This will be a client-side rendered page for dynamic content
 ---
 
-<html lang="en" class="h-full">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Dashboard - JyotirSetu</title>
-  <meta name="description" content="Manage JyotirSetu website content, appointments, and daily tips">
-  <!-- Tailwind CSS will be loaded by the project's configuration -->
-</head>
-<body class="h-full bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-purple-900 dark:to-gray-900">
-  <!-- Load Supabase from CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<Layout metadata={{
+  title: "Admin Dashboard - JyotirSetu",
+  description: "Manage JyotirSetu website content, appointments, and daily tips"
+}}>
+
+<!-- Load Supabase from CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <div class="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-purple-900 dark:to-gray-900">
     
     <!-- Login Page (shown by default) -->
     <div id="login-page" class="min-h-screen flex">
@@ -97,7 +96,7 @@
     </div>
 
     <!-- Admin Dashboard (hidden by default) -->
-    <div id="admin-dashboard" class="hidden min-h-screen" style="display: none;">
+    <div id="admin-dashboard" class="hidden min-h-screen">
       <!-- Clean Admin Header -->
       <header class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-b border-purple-100 dark:border-purple-800 sticky top-0 z-40">
         <div class="max-w-7xl mx-auto px-6 py-4">
@@ -562,10 +561,6 @@
       console.log('DOM Content Loaded - Initializing admin panel');
       
       try {
-        // Force show login page first
-        console.log('Forcing login page to show...');
-        showLoginPage();
-        
         initializePasswordSystem(); // Initialize password system first
         console.log('Password system initialized');
         
@@ -666,30 +661,14 @@
 
     // Show login page
     function showLoginPage() {
-      const loginPage = document.getElementById('login-page');
-      const adminDashboard = document.getElementById('admin-dashboard');
-      if (loginPage) {
-        loginPage.classList.remove('hidden');
-        loginPage.style.display = 'flex';
-      }
-      if (adminDashboard) {
-        adminDashboard.classList.add('hidden');
-        adminDashboard.style.display = 'none';
-      }
+      document.getElementById('login-page').classList.remove('hidden');
+      document.getElementById('admin-dashboard').classList.add('hidden');
     }
 
     // Show admin dashboard
     function showAdminDashboard() {
-      const loginPage = document.getElementById('login-page');
-      const adminDashboard = document.getElementById('admin-dashboard');
-      if (loginPage) {
-        loginPage.classList.add('hidden');
-        loginPage.style.display = 'none';
-      }
-      if (adminDashboard) {
-        adminDashboard.classList.remove('hidden');
-        adminDashboard.style.display = 'block';
-      }
+      document.getElementById('login-page').classList.add('hidden');
+      document.getElementById('admin-dashboard').classList.remove('hidden');
     }
 
     // Load dashboard data
@@ -1682,5 +1661,4 @@
      //   }
      // }
    </script>
-</body>
-</html>
+</Layout>
