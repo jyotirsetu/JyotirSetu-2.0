@@ -369,6 +369,16 @@ document.addEventListener('DOMContentLoaded', async function() {
     `;
   }
   
+  // Show authentication check message
+  const mainContent = document.querySelector('main');
+  if (mainContent) {
+    const authMessage = document.createElement('div');
+    authMessage.id = 'auth-message';
+    authMessage.className = 'fixed top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+    authMessage.innerHTML = '🔐 Checking authentication...';
+    document.body.appendChild(authMessage);
+  }
+  
   try {
     console.log('Starting Supabase initialization...');
     
@@ -450,17 +460,26 @@ function checkAuth() {
     
     if (!adminEmail) {
       console.log('No admin email found, redirecting to admin login');
-      // Check if we're already on admin page to prevent redirect loops
-      if (window.location.pathname !== '/admin') {
-        // Add a small delay to prevent immediate redirect
-        setTimeout(() => {
-          console.log('Redirecting to admin login...');
-          window.location.href = '/admin';
-        }, 1000); // Increased delay to 1 second for debugging
-      } else {
-        console.log('Already on admin page, not redirecting');
+      
+      // Update auth message
+      const authMessage = document.getElementById('auth-message');
+      if (authMessage) {
+        authMessage.innerHTML = '🔐 Authentication required - redirecting to login...';
+        authMessage.className = 'fixed top-4 right-4 bg-orange-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
       }
+      
+      // Always redirect to admin login page
+      setTimeout(() => {
+        console.log('Redirecting to admin login...');
+        window.location.href = '/admin';
+      }, 1000); // Give user time to see the message
       return false;
+    }
+    
+    // Remove auth message if authentication is successful
+    const authMessage = document.getElementById('auth-message');
+    if (authMessage) {
+      authMessage.remove();
     }
     
     // Update display
