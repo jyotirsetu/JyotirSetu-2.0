@@ -394,7 +394,7 @@ import Layout from '~/layouts/AdminLayout.astro';
       // Get all appointments with email addresses from Supabase
       const { data: appointments, error } = await supabase
         .from('appointments')
-        .select('id, name, email, service_type, created_at')
+        .select('*')
         .not('email', 'is', null);
 
       if (error) {
@@ -427,6 +427,11 @@ import Layout from '~/layouts/AdminLayout.astro';
       const existingSubscriber = existingSubscribers.find(sub => sub.email === appointment.email);
       
       if (!existingSubscriber) {
+        // Create tag from service type
+        const serviceTag = appointment.service_type ? 
+          appointment.service_type.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '') : 
+          'general';
+        
         // Add new subscriber
         const newSubscriber = {
           id: Date.now() + Math.random(),
@@ -435,7 +440,7 @@ import Layout from '~/layouts/AdminLayout.astro';
           source: 'appointment_form',
           status: 'active',
           service_interest: appointment.service_type,
-          tags: [appointment.service_type.toLowerCase().replace(/\s+/g, '_')],
+          tags: [serviceTag],
           created_at: new Date().toISOString()
         };
         
@@ -752,7 +757,7 @@ import Layout from '~/layouts/AdminLayout.astro';
   function showCSVUpload() {
     const modal = document.getElementById('modal-container');
     modal.innerHTML = `
-      <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onclick="if(event.target === this) closeModal()">
         <div class="bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-md w-full mx-4">
           <div class="p-6">
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Upload CSV File</h3>
@@ -837,7 +842,7 @@ import Layout from '~/layouts/AdminLayout.astro';
   function showAddSubscriber() {
     const modal = document.getElementById('modal-container');
     modal.innerHTML = `
-      <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onclick="if(event.target === this) closeModal()">
         <div class="bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-md w-full mx-4">
           <div class="p-6">
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Add New Subscriber</h3>
@@ -972,7 +977,7 @@ import Layout from '~/layouts/AdminLayout.astro';
   function showCreateCampaign() {
     const modal = document.getElementById('modal-container');
     modal.innerHTML = `
-      <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onclick="if(event.target === this) closeModal()">
         <div class="bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-2xl w-full mx-4">
           <div class="p-6">
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Create Email Campaign</h3>
@@ -1183,7 +1188,7 @@ import Layout from '~/layouts/AdminLayout.astro';
   function showEmailPreview(subject, content, recipientCount) {
     const modal = document.getElementById('modal-container');
     modal.innerHTML = `
-      <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onclick="if(event.target === this) closeModal()">
         <div class="bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-2xl w-full mx-4">
           <div class="p-6">
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">📧 Email Campaign Preview</h3>
@@ -1217,7 +1222,7 @@ import Layout from '~/layouts/AdminLayout.astro';
   function showCreateTemplate() {
     const modal = document.getElementById('modal-container');
     modal.innerHTML = `
-      <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onclick="if(event.target === this) closeModal()">
         <div class="bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-2xl w-full mx-4">
           <div class="p-6">
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Create Email Template</h3>
@@ -1285,7 +1290,7 @@ import Layout from '~/layouts/AdminLayout.astro';
     
     const modal = document.getElementById('modal-container');
     modal.innerHTML = `
-      <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onclick="if(event.target === this) closeModal()">
         <div class="bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-md w-full mx-4">
           <div class="p-6">
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Edit Subscriber</h3>
@@ -1402,6 +1407,18 @@ import Layout from '~/layouts/AdminLayout.astro';
     document.getElementById('modal-container').innerHTML = '';
   }
 
+  // Add escape key functionality to modals
+  function addEscapeKeyListener() {
+    document.addEventListener('keydown', function(event) {
+      if (event.key === 'Escape') {
+        const modal = document.getElementById('modal-container');
+        if (modal && modal.innerHTML.trim() !== '') {
+          closeModal();
+        }
+      }
+    });
+  }
+
   // Make functions globally accessible
   window.switchTab = switchTab;
   window.importFromAppointments = importFromAppointments;
@@ -1439,6 +1456,7 @@ import Layout from '~/layouts/AdminLayout.astro';
       checkAuth();
       loadSubscribers();
       updateStats();
+      addEscapeKeyListener(); // Add escape key functionality
       console.log('Email Marketing page initialized successfully');
     } catch (error) {
       console.error('Error initializing email marketing page:', error);
