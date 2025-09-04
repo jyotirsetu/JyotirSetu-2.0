@@ -656,6 +656,7 @@ import Layout from '~/layouts/AdminLayout.astro';
         currentUser = { email: adminEmail };
         showAdminDashboard();
         updateUserDisplay();
+        loadDashboardData(); // Load real stats when user is already authenticated
       }
     }
 
