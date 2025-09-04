@@ -1,6 +1,5 @@
 ---
 import Layout from '~/layouts/PageLayout.astro';
-import { supabase } from '~/lib/supabase';
 ---
 
 <Layout metadata={{
@@ -352,6 +351,8 @@ async function initSupabaseWithRetry() {
 // Check authentication on page load
 document.addEventListener('DOMContentLoaded', async function() {
   console.log('Appointment Dashboard - DOM Content Loaded');
+  console.log('Current URL:', window.location.href);
+  console.log('Current pathname:', window.location.pathname);
   
   // Show loading state immediately
   const tbody = document.getElementById('appointments-tbody');
@@ -369,6 +370,8 @@ document.addEventListener('DOMContentLoaded', async function() {
   }
   
   try {
+    console.log('Starting Supabase initialization...');
+    
     // Wait for Supabase to be ready
     const supabaseReady = await initSupabaseWithRetry();
     if (!supabaseReady) {
@@ -394,14 +397,21 @@ document.addEventListener('DOMContentLoaded', async function() {
     console.log('Supabase ready, proceeding with dashboard initialization');
     
     // Check authentication
+    console.log('Checking authentication...');
     const authResult = checkAuth();
+    console.log('Authentication result:', authResult);
+    
     if (!authResult) {
       console.log('Authentication failed, redirecting to admin login');
       return; // Don't continue if auth fails
     }
     
+    console.log('Authentication successful, loading appointments...');
+    
     // Load appointments
     await loadAppointments();
+    
+    console.log('Appointments loaded, setting up event listeners...');
     
     // Setup event listeners
     setupEventListeners();
@@ -436,10 +446,16 @@ function checkAuth() {
     
     if (!adminEmail) {
       console.log('No admin email found, redirecting to admin login');
-      // Add a small delay to prevent immediate redirect
-      setTimeout(() => {
-        window.location.href = '/admin';
-      }, 100);
+      // Check if we're already on admin page to prevent redirect loops
+      if (window.location.pathname !== '/admin') {
+        // Add a small delay to prevent immediate redirect
+        setTimeout(() => {
+          console.log('Redirecting to admin login...');
+          window.location.href = '/admin';
+        }, 1000); // Increased delay to 1 second for debugging
+      } else {
+        console.log('Already on admin page, not redirecting');
+      }
       return false;
     }
     
