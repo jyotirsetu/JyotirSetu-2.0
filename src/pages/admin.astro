@@ -196,7 +196,7 @@ import { supabase } from '~/lib/supabase';
         <!-- Daily Tips Manager -->
         <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-purple-200 dark:border-purple-700 hover:shadow-xl transition-shadow duration-200 cursor-pointer"
              id="daily-tips-card"
-             onclick="console.log('Daily Tips clicked via onclick'); showDailyTipsManager();">
+             onclick="console.log('Daily Tips clicked via onclick'); window.location.href='/admin/dailytips';">
           <div class="text-center">
             <div class="w-16 h-16 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center mx-auto mb-4">
               <span class="text-purple-600 dark:text-purple-400 text-2xl">✨</span>
@@ -291,7 +291,6 @@ import { supabase } from '~/lib/supabase';
      let supabase;
      
          // Make functions globally accessible for onclick attributes
-    window.showDailyTipsManager = showDailyTipsManager;
     window.testLogin = testLogin;
     window.handleLoginSubmit = handleLoginSubmit;
      
@@ -541,14 +540,15 @@ import { supabase } from '~/lib/supabase';
     
          // Setup event listeners for all cards
      function setupEventListeners() {
-       // Daily Tips Manager
-       const dailyTipsCard = document.getElementById('daily-tips-card');
-       if (dailyTipsCard) {
-         dailyTipsCard.addEventListener('click', function() {
-           showDailyTipsManager();
-           console.log('Daily Tips Manager clicked!');
-         });
-       }
+             // Daily Tips Manager
+      const dailyTipsCard = document.getElementById('daily-tips-card');
+      if (dailyTipsCard) {
+        dailyTipsCard.addEventListener('click', function() {
+          // Navigate directly to the daily tips page instead of showing modal
+          window.location.href = '/admin/dailytips';
+          console.log('Navigating to Daily Tips Manager page');
+        });
+      }
       
       // Horoscope Manager
       const horoscopeCard = document.getElementById('horoscope-card');
@@ -680,245 +680,13 @@ import { supabase } from '~/lib/supabase';
       `;
     }
     
-         // Daily Tips Manager Functions
-     async function loadTipsFromSupabase() {
-       try {
-         console.log('Loading tips from Supabase...');
-         
-         // Load tips from Supabase
-         const { data: supabaseTips, error } = await supabase
-           .from('daily_tips')
-           .select('*')
-           .order('created_at', { ascending: false });
-         
-         if (error) {
-           console.error('Supabase error:', error);
-           // Fallback to mock data if Supabase fails
-           if (tips.length === 0) {
-             tips = [
-               {
-                 id: 1,
-                 title: "Moon in Aries",
-                 content: "Today's energy is perfect for new beginnings and taking bold actions.",
-                 category: "Zodiac",
-                 date: new Date().toISOString().split('T')[0],
-                 active: true
-               },
-               {
-                 id: 2,
-                 title: "Mercury Retrograde",
-                 content: "Communication may be challenging. Double-check all messages and contracts.",
-                 category: "Planets",
-                 date: new Date(Date.now() - 86400000).toISOString().split('T')[0],
-                 active: true
-               }
-             ];
-           }
-         } else {
-           console.log('Tips loaded from Supabase:', supabaseTips);
-           tips = supabaseTips || [];
-         }
-         
-         console.log('Displaying tips from array:', tips);
-         displayTips(tips);
-       } catch (error) {
-         console.error('Error loading tips:', error);
-         showNotification('Error loading tips', 'error');
-       }
-     }
+    // Daily Tips Manager functions moved to dedicated /admin/dailytips page
     
-    function displayTips(tips) {
-      const container = document.getElementById('existing-tips');
-      if (!container) return;
-      
-      if (!tips || tips.length === 0) {
-        container.innerHTML = `
-          <div class="text-center text-gray-500 dark:text-gray-400 py-8">
-            <span class="text-4xl">✨</span>
-            <p class="mt-2">No tips created yet</p>
-          </div>
-        `;
-        return;
-      }
-      
-      container.innerHTML = tips.map(tip => `
-        <div class="bg-white dark:bg-slate-800 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
-          <div class="flex justify-between items-start mb-3">
-            <div class="flex-1">
-              <h4 class="font-semibold text-gray-900 dark:text-white">${tip.title}</h4>
-              <p class="text-gray-600 dark:text-gray-400 mt-1">${tip.content}</p>
-              <div class="flex items-center space-x-3 mt-2">
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
-                  ${tip.category}
-                </span>
-                <span class="text-xs text-gray-500 dark:text-gray-400">${tip.date}</span>
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                  Active
-                </span>
-              </div>
-            </div>
-            <div class="flex space-x-2">
-              <button
-                class="edit-tip-btn text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium"
-                data-tip-id="${tip.id}"
-              >
-                Edit
-              </button>
-              <button
-                class="delete-tip-btn text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 text-sm font-medium"
-                data-tip-id="${tip.id}"
-              >
-                Delete
-            </div>
-          </div>
-        </div>
-      `).join('');
-    }
+    // displayTips function moved to dedicated /admin/dailytips page
     
-         async function handleTipSubmit(e) {
-       e.preventDefault();
-       console.log('Form submitted!'); // Debug log
-       
-       const titleInput = document.getElementById('tip-title');
-       const categoryInput = document.getElementById('tip-category');
-       const contentInput = document.getElementById('tip-content');
-       
-       console.log('Inputs found:', { titleInput, categoryInput, contentInput }); // Debug log
-       
-       if (!titleInput || !categoryInput || !contentInput) {
-         console.log('Missing inputs, returning'); // Debug log
-         return;
-       }
-       
-       const newTip = {
-         id: Date.now(),
-         title: titleInput.value,
-         content: contentInput.value,
-         category: categoryInput.value,
-         date: new Date().toISOString().split('T')[0],
-         active: true
-       };
-       
-       console.log('New tip object:', newTip); // Debug log
-       
-               try {
-          console.log('Creating new tip:', newTip);
-          
-          // Save tip to Supabase
-          const { data: savedTip, error } = await supabase
-            .from('daily_tips')
-            .insert([{
-              title: newTip.title,
-              content: newTip.content,
-              category: newTip.category,
-              date: newTip.date,
-              active: newTip.active
-            }])
-            .select()
-            .single();
-          
-          if (error) {
-            console.error('Supabase insert error:', error);
-            showNotification('Error saving tip to database: ' + error.message, 'error');
-            return;
-          }
-          
-          console.log('Tip saved to Supabase:', savedTip);
-          
-          // Add the new tip to our tips array
-          tips.unshift(savedTip); // Add to beginning of array
-          console.log('Tip added to array, total tips:', tips.length);
-          
-          console.log('Showing success notification...'); // Debug log
-          showNotification('Tip created and saved successfully!', 'success');
-          
-          console.log('Reloading tips...'); // Debug log
-          // Reload tips to show the new one
-          await loadTipsFromSupabase();
-          
-          console.log('Clearing form...'); // Debug log
-          // Clear form
-          clearTipForm();
-          
-          console.log('Tip creation completed successfully!'); // Debug log
-          
-          // Debug: Check if modal is still visible
-          const modalContainer = document.getElementById('modal-container');
-          if (modalContainer) {
-            console.log('Modal container still exists:', modalContainer.innerHTML.length > 0 ? 'Modal is OPEN' : 'Modal is CLOSED');
-            console.log('Modal HTML length:', modalContainer.innerHTML.length);
-            console.log('Modal HTML preview:', modalContainer.innerHTML.substring(0, 200) + '...');
-          }
-          
-          // Test: Try to make modal more visible
-          console.log('Making modal more visible...');
-          const modalOverlay = document.querySelector('.fixed.inset-0.bg-black.bg-opacity-50');
-          if (modalOverlay) {
-            (modalOverlay as HTMLElement).style.zIndex = '9998';
-            console.log('Modal overlay z-index set to 9998');
-          }
-          
-          // Test: Check if modal content is actually visible
-          const modalContent = document.querySelector('.bg-white.dark\\:bg-slate-800.rounded-xl.shadow-2xl');
-          if (modalContent) {
-            console.log('Modal content found:', modalContent);
-            console.log('Modal content visible:', (modalContent as HTMLElement).style.display !== 'none');
-          } else {
-            console.log('Modal content NOT found!');
-          }
-        } catch (error) {
-          console.error('Error creating tip:', error);
-          showNotification('Error creating tip', 'error');
-        }
-     }
+    // handleTipSubmit function moved to dedicated /admin/dailytips page
     
-    function clearTipForm() {
-      const titleInput = document.getElementById('tip-title');
-      const categoryInput = document.getElementById('tip-category');
-      const contentInput = document.getElementById('tip-content');
-      
-      if (titleInput) titleInput.value = '';
-      if (categoryInput) categoryInput.value = '';
-      if (contentInput) contentInput.value = '';
-    }
-    
-    function editTip(id) {
-      showNotification('Edit functionality coming soon!', 'info');
-    }
-    
-                   async function deleteTip(id) {
-        if (confirm('Are you sure you want to delete this tip?')) {
-          try {
-            console.log('Deleting tip from Supabase:', id);
-            
-            // Delete from Supabase database
-            const { error } = await supabase
-              .from('daily_tips')
-              .delete()
-              .eq('id', id);
-            
-            if (error) {
-              console.error('Supabase delete error:', error);
-              showNotification('Error deleting tip from database: ' + error.message, 'error');
-              return;
-            }
-            
-            console.log('Tip deleted from Supabase successfully');
-            
-            // Remove tip from local array
-            tips = tips.filter(tip => tip.id !== id);
-            console.log('Tip deleted from local array, remaining tips:', tips.length);
-            
-            showNotification('Tip deleted successfully!', 'success');
-            
-            // Reload tips to reflect the deletion
-            await loadTipsFromSupabase();
-          } catch (error) {
-            console.error('Error deleting tip:', error);
-            showNotification('Error deleting tip', 'error');
-          }
-        }
-      }
+    // clearTipForm, editTip, and deleteTip functions moved to dedicated /admin/dailytips page
 
     // Handle login form submission - Simplified and more robust
     function setupLoginForm() {
