@@ -315,10 +315,10 @@ import Layout from '~/layouts/AdminLayout.astro';
   // Initialize Supabase
   async function initSupabase() {
     try {
-      const { createClient } = window.supabase;
-      supabase = createClient(
-        'https://your-project.supabase.co',
-        'your-anon-key'
+      // @ts-ignore
+      supabase = window.supabase.createClient(
+        'https://czbypbrrxxjcjdfjxczv.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN6YnlwYnJyeHhqY2pkZmp4Y3p2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY5MjU2NDcsImV4cCI6MjA3MjUwMTY0N30.SQ-eabMNo5RBy8N0MHWDmlxVH7Tmh-EGykI0Qt5wDjg'
       );
       console.log('Supabase initialized for email marketing');
     } catch (error) {
@@ -374,21 +374,30 @@ import Layout from '~/layouts/AdminLayout.astro';
     try {
       showImportStatus('Importing subscribers from appointments...');
       
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Mock appointments data (replace with real Supabase call when ready)
-      const mockAppointments = [
-        { id: 1, name: 'John Doe', email: 'john.doe@example.com', service_type: 'Kundli Analysis', created_at: '2024-01-15T10:30:00Z' },
-        { id: 2, name: 'Jane Smith', email: 'jane.smith@example.com', service_type: 'Palmistry', created_at: '2024-01-14T15:45:00Z' },
-        { id: 3, name: 'Mike Johnson', email: 'mike.johnson@example.com', service_type: 'Numerology', created_at: '2024-01-13T09:20:00Z' }
-      ];
+      if (!supabase) {
+        throw new Error('Supabase not initialized');
+      }
+
+      // Get all appointments with email addresses from Supabase
+      const { data: appointments, error } = await supabase
+        .from('appointments')
+        .select('id, name, email, service_type, created_at')
+        .not('email', 'is', null);
+
+      if (error) {
+        throw error;
+      }
+
+      if (!appointments || appointments.length === 0) {
+        showImportStatus('No appointments with email addresses found.', 'warning');
+        return;
+      }
 
       // Get existing subscribers from localStorage
       let existingSubscribers = JSON.parse(localStorage.getItem('email_subscribers') || '[]');
       
       let importedCount = 0;
-      for (const appointment of mockAppointments) {
+      for (const appointment of appointments) {
         // Check if subscriber already exists
         const existingSubscriber = existingSubscribers.find(sub => sub.email === appointment.email);
         
@@ -1181,6 +1190,27 @@ import Layout from '~/layouts/AdminLayout.astro';
     document.getElementById('modal-container').innerHTML = '';
   }
 
+  // Make functions globally accessible
+  window.switchTab = switchTab;
+  window.importFromAppointments = importFromAppointments;
+  window.showCSVUpload = showCSVUpload;
+  window.showAddSubscriber = showAddSubscriber;
+  window.showCreateCampaign = showCreateCampaign;
+  window.showCreateTemplate = showCreateTemplate;
+  window.editSubscriber = editSubscriber;
+  window.deleteSubscriber = deleteSubscriber;
+  window.editCampaign = editCampaign;
+  window.deleteCampaign = deleteCampaign;
+  window.editTemplate = editTemplate;
+  window.deleteTemplate = deleteTemplate;
+  window.closeModal = closeModal;
+  window.processCSV = processCSV;
+  window.addNewSubscriber = addNewSubscriber;
+  window.saveCampaign = saveCampaign;
+  window.saveAndSendCampaign = saveAndSendCampaign;
+  window.saveTemplate = saveTemplate;
+  window.updateSubscriber = updateSubscriber;
+
   // Initialize page
   document.addEventListener('DOMContentLoaded', async function() {
     console.log('Email Marketing page loaded');
@@ -1189,6 +1219,7 @@ import Layout from '~/layouts/AdminLayout.astro';
       await initSupabase();
       checkAuth();
       loadSubscribers();
+      updateStats();
       console.log('Email Marketing page initialized successfully');
     } catch (error) {
       console.error('Error initializing email marketing page:', error);
