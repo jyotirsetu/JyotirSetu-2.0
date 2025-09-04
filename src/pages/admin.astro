@@ -82,7 +82,7 @@ import Layout from '~/layouts/AdminLayout.astro';
               onclick="testLogin()"
               class="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg font-medium text-sm transition-colors duration-200 mt-2"
             >
-              🧪 TEST LOGIN (Debug)
+              🧪 Debug Login Tool (Debug)
             </button>
           </form>
           
@@ -697,37 +697,157 @@ import Layout from '~/layouts/AdminLayout.astro';
       }
     }
 
-    // Load dashboard counts (mock data for now)
+    // Load dashboard counts from Supabase
     async function loadCounts() {
-      document.getElementById('tips-count').textContent = '12';
-      document.getElementById('horoscopes-count').textContent = '24';
-      document.getElementById('appointments-count').textContent = '8';
-      document.getElementById('blog-count').textContent = '6';
+      try {
+        if (!supabase) {
+          console.log('Supabase not initialized, using default counts');
+          setDefaultCounts();
+          return;
+        }
+
+        // Load daily tips count
+        const { data: tipsData, error: tipsError } = await supabase
+          .from('daily_tips')
+          .select('id', { count: 'exact' });
+        
+        if (tipsError) {
+          console.error('Error loading tips count:', tipsError);
+        } else {
+          document.getElementById('tips-count').textContent = tipsData?.length || 0;
+        }
+
+        // Load appointments count
+        const { data: appointmentsData, error: appointmentsError } = await supabase
+          .from('appointments')
+          .select('id', { count: 'exact' });
+        
+        if (appointmentsError) {
+          console.error('Error loading appointments count:', appointmentsError);
+        } else {
+          document.getElementById('appointments-count').textContent = appointmentsData?.length || 0;
+        }
+
+        // Set default counts for features not yet implemented
+        document.getElementById('horoscopes-count').textContent = '0';
+        document.getElementById('blog-count').textContent = '0';
+
+        console.log('Dashboard counts loaded successfully');
+      } catch (error) {
+        console.error('Error loading dashboard counts:', error);
+        setDefaultCounts();
+      }
     }
 
-    // Load recent activity (mock data for now)
+    // Set default counts when database is not available
+    function setDefaultCounts() {
+      document.getElementById('tips-count').textContent = '0';
+      document.getElementById('horoscopes-count').textContent = '0';
+      document.getElementById('appointments-count').textContent = '0';
+      document.getElementById('blog-count').textContent = '0';
+    }
+
+    // Load recent activity from Supabase
     async function loadRecentActivity() {
       const container = document.getElementById('recent-activity');
       if (!container) return;
       
-      container.innerHTML = `
-        <div class="space-y-3">
-          <div class="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-            <span class="text-purple-500">✨</span>
-            <div class="flex-1">
-              <p class="text-sm text-gray-900 dark:text-white">New daily tip created</p>
-              <p class="text-xs text-gray-500 dark:text-gray-400">2 hours ago</p>
+      try {
+        if (!supabase) {
+          container.innerHTML = `
+            <div class="text-center py-8">
+              <span class="text-4xl">🌟</span>
+              <p class="mt-2 text-gray-500 dark:text-gray-400">Loading recent activity...</p>
             </div>
-          </div>
-          <div class="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-            <span class="text-green-500">📅</span>
-            <div class="flex-1">
-              <p class="text-sm text-gray-900 dark:text-white">New appointment booked</p>
-              <p class="text-xs text-gray-500 dark:text-gray-400">6 hours ago</p>
+          `;
+          return;
+        }
+
+        // Load recent appointments
+        const { data: recentAppointments, error: appointmentsError } = await supabase
+          .from('appointments')
+          .select('id, name, service_type, created_at')
+          .order('created_at', { ascending: false })
+          .limit(5);
+
+        // Load recent daily tips
+        const { data: recentTips, error: tipsError } = await supabase
+          .from('daily_tips')
+          .select('id, title, created_at')
+          .order('created_at', { ascending: false })
+          .limit(3);
+
+        let activityHTML = '<div class="space-y-3">';
+
+        // Add recent appointments
+        if (recentAppointments && recentAppointments.length > 0) {
+          recentAppointments.forEach(appointment => {
+            const timeAgo = getTimeAgo(new Date(appointment.created_at));
+            activityHTML += `
+              <div class="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <div class="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
+                  <span class="text-green-600 dark:text-green-400 text-sm">📅</span>
+                </div>
+                <div class="flex-1">
+                  <p class="text-sm font-medium text-gray-900 dark:text-white">New appointment: ${appointment.name}</p>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">${appointment.service_type} • ${timeAgo}</p>
+                </div>
+              </div>
+            `;
+          });
+        }
+
+        // Add recent tips
+        if (recentTips && recentTips.length > 0) {
+          recentTips.forEach(tip => {
+            const timeAgo = getTimeAgo(new Date(tip.created_at));
+            activityHTML += `
+              <div class="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <div class="w-8 h-8 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center">
+                  <span class="text-purple-600 dark:text-purple-400 text-sm">✨</span>
+                </div>
+                <div class="flex-1">
+                  <p class="text-sm font-medium text-gray-900 dark:text-white">Daily tip: ${tip.title}</p>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">${timeAgo}</p>
+                </div>
+              </div>
+            `;
+          });
+        }
+
+        if (activityHTML === '<div class="space-y-3">') {
+          activityHTML += `
+            <div class="text-center py-8">
+              <span class="text-4xl">🌟</span>
+              <p class="mt-2 text-gray-500 dark:text-gray-400">No recent activity</p>
             </div>
+          `;
+        }
+
+        activityHTML += '</div>';
+        container.innerHTML = activityHTML;
+
+      } catch (error) {
+        console.error('Error loading recent activity:', error);
+        container.innerHTML = `
+          <div class="text-center py-8">
+            <span class="text-4xl">⚠️</span>
+            <p class="mt-2 text-gray-500 dark:text-gray-400">Error loading activity</p>
           </div>
-        </div>
-      `;
+        `;
+      }
+    }
+
+    // Helper function to get time ago
+    function getTimeAgo(date) {
+      const now = new Date();
+      const diffInSeconds = Math.floor((now - date) / 1000);
+      
+      if (diffInSeconds < 60) return 'Just now';
+      if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`;
+      if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
+      if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 86400)} days ago`;
+      return `${Math.floor(diffInSeconds / 2592000)} months ago`;
     }
     
     // Daily Tips Manager functions moved to dedicated /admin/dailytips page
