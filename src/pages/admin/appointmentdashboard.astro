@@ -398,6 +398,10 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     // Check authentication
     console.log('Checking authentication...');
+    
+    // Small delay to ensure page is fully loaded
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
     const authResult = checkAuth();
     console.log('Authentication result:', authResult);
     

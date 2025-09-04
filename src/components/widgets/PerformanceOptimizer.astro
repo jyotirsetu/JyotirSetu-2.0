@@ -70,7 +70,16 @@
   // Service Worker registration for offline support
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
-      navigator.serviceWorker.register('/sw.js')
+      // Check if service worker file exists before registering
+      fetch('/sw.js', { method: 'HEAD' })
+        .then(function(response) {
+          if (response.ok) {
+            return navigator.serviceWorker.register('/sw.js');
+          } else {
+            console.log('Service Worker file not found, skipping registration');
+            return Promise.reject('Service Worker file not found');
+          }
+        })
         .then(function(registration) {
           console.log('SW registered: ', registration);
         })
