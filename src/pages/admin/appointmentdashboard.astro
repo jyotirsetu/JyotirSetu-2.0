@@ -369,15 +369,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     `;
   }
   
-  // Show authentication check message
-  const mainContent = document.querySelector('main');
-  if (mainContent) {
-    const authMessage = document.createElement('div');
-    authMessage.id = 'auth-message';
-    authMessage.className = 'fixed top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
-    authMessage.innerHTML = '🔐 Checking authentication...';
-    document.body.appendChild(authMessage);
-  }
+  // Authentication is handled by the main admin page
+  // No need to show authentication messages here
   
   try {
     console.log('Starting Supabase initialization...');
@@ -406,21 +399,17 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     console.log('Supabase ready, proceeding with dashboard initialization');
     
-    // Check authentication
-    console.log('Checking authentication...');
+    // Authentication is handled by the main admin page
+    // No need to check authentication here since user can only reach this page
+    // by clicking the "Appointment Dashboard" button from the authenticated admin page
+    console.log('Skipping authentication check - handled by main admin page');
     
-    // Small delay to ensure page is fully loaded
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
-    const authResult = checkAuth();
-    console.log('Authentication result:', authResult);
-    
-    if (!authResult) {
-      console.log('Authentication failed, redirecting to admin login');
-      return; // Don't continue if auth fails
+    // Update admin email display from localStorage
+    const adminEmail = localStorage.getItem('admin_email');
+    const adminEmailSpan = document.getElementById('admin-email');
+    if (adminEmailSpan && adminEmail) {
+      adminEmailSpan.textContent = `Welcome, ${adminEmail}`;
     }
-    
-    console.log('Authentication successful, loading appointments...');
     
     // Load appointments
     await loadAppointments();
@@ -452,50 +441,9 @@ document.addEventListener('DOMContentLoaded', async function() {
   }
 });
 
-// Authentication check
-function checkAuth() {
-  try {
-    const adminEmail = localStorage.getItem('admin_email');
-    console.log('Checking auth, admin email:', adminEmail ? 'Found' : 'Not found');
-    
-    if (!adminEmail) {
-      console.log('No admin email found, redirecting to admin login');
-      
-      // Update auth message
-      const authMessage = document.getElementById('auth-message');
-      if (authMessage) {
-        authMessage.innerHTML = '🔐 Authentication required - redirecting to login...';
-        authMessage.className = 'fixed top-4 right-4 bg-orange-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
-      }
-      
-      // Always redirect to admin login page
-      setTimeout(() => {
-        console.log('Redirecting to admin login...');
-        window.location.href = '/admin';
-      }, 1000); // Give user time to see the message
-      return false;
-    }
-    
-    // Remove auth message if authentication is successful
-    const authMessage = document.getElementById('auth-message');
-    if (authMessage) {
-      authMessage.remove();
-    }
-    
-    // Update display
-    const adminEmailSpan = document.getElementById('admin-email');
-    if (adminEmailSpan) {
-      adminEmailSpan.textContent = `Welcome, ${adminEmail}`;
-    }
-    
-    console.log('Authentication successful');
-    return true;
-    
-  } catch (error) {
-    console.error('Error in checkAuth:', error);
-    return false;
-  }
-}
+// Authentication is handled by the main admin page
+// This function is no longer needed since users can only reach this page
+// by navigating from the authenticated admin dashboard
 
 // Load appointments from Supabase
 async function loadAppointments() {
