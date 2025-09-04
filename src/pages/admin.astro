@@ -75,6 +75,15 @@ import { supabase } from '~/lib/supabase';
                 SIGNING IN...
               </span>
             </button>
+            
+            <!-- Debug Test Button -->
+            <button 
+              type="button" 
+              onclick="testLogin()"
+              class="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg font-medium text-sm transition-colors duration-200 mt-2"
+            >
+              🧪 TEST LOGIN (Debug)
+            </button>
           </form>
           
           <div class="mt-8 text-center">
@@ -280,8 +289,9 @@ import { supabase } from '~/lib/supabase';
      // Load Supabase from CDN
      let supabase;
      
-     // Make functions globally accessible for onclick attributes
-     window.showDailyTipsManager = showDailyTipsManager;
+         // Make functions globally accessible for onclick attributes
+    window.showDailyTipsManager = showDailyTipsManager;
+    window.testLogin = testLogin;
      
      // Initialize Supabase client
      function initSupabase() {
@@ -908,24 +918,44 @@ import { supabase } from '~/lib/supabase';
         }
       }
 
-    // Handle login form submission
+    // Handle login form submission - Simplified and more robust
     function setupLoginForm() {
+      console.log('Setting up login form...');
+      
+      // Try multiple approaches to ensure the form is found
       const loginForm = document.getElementById('login-form');
+      const submitBtn = document.getElementById('login-submit-btn');
+      
       if (loginForm) {
+        console.log('Login form found, setting up event listener');
+        
         // Remove any existing event listeners
         loginForm.removeEventListener('submit', handleLoginSubmit);
+        
         // Add new event listener
         loginForm.addEventListener('submit', handleLoginSubmit);
+        
+        // Also add click listener to submit button as backup
+        if (submitBtn) {
+          submitBtn.removeEventListener('click', handleLoginSubmit);
+          submitBtn.addEventListener('click', handleLoginSubmit);
+          console.log('Submit button click listener added');
+        }
+        
         console.log('Login form event listener setup complete');
       } else {
-        console.error('Login form not found!');
+        console.error('Login form not found! Retrying in 500ms...');
+        // Retry if form not found (might be timing issue)
+        setTimeout(() => {
+          setupLoginForm();
+        }, 500);
       }
     }
 
     // Separate login submit handler for better debugging
     function handleLoginSubmit(e) {
       e.preventDefault();
-      console.log('Login form submitted!');
+      console.log('=== LOGIN ATTEMPT STARTED ===');
       
       const usernameInput = document.getElementById('login-username');
       const passwordInput = document.getElementById('login-password');
@@ -933,17 +963,30 @@ import { supabase } from '~/lib/supabase';
       const btnText = document.getElementById('login-btn-text');
       const btnLoading = document.getElementById('login-btn-loading');
       
-      console.log('Form elements found:', { usernameInput, passwordInput, submitBtn, btnText, btnLoading });
+      console.log('Form elements found:', { 
+        usernameInput: !!usernameInput, 
+        passwordInput: !!passwordInput, 
+        submitBtn: !!submitBtn, 
+        btnText: !!btnText, 
+        btnLoading: !!btnLoading 
+      });
       
       if (!usernameInput || !passwordInput) {
         console.error('Missing form inputs!');
+        showNotification('Form error: Missing input fields', 'error');
         return;
       }
       
       const username = usernameInput.value.trim();
       const password = passwordInput.value.trim();
       
-      console.log('Login attempt:', { username, password: '***' });
+      console.log('Login attempt:', { username, passwordLength: password.length });
+      
+      if (!username || !password) {
+        console.log('Empty credentials provided');
+        showNotification('Please enter both username and password', 'error');
+        return;
+      }
       
       // Show loading state
       if (submitBtn) {
@@ -952,30 +995,57 @@ import { supabase } from '~/lib/supabase';
         if (btnLoading) btnLoading.classList.remove('hidden');
       }
       
-      // Simulate login delay for better UX
-      setTimeout(() => {
-        // Simple authentication - Updated credentials
-        if (username === 'admin' && password === 'JyotirSetu2024!') {
-          console.log('Login successful!');
-          localStorage.setItem('admin_email', username);
-          localStorage.setItem('admin_username', username);
-          currentUser = { email: username, username: username };
-          showAdminDashboard();
-          updateUserDisplay();
-          loadDashboardData();
-          showNotification('Login successful! Welcome to JyotirSetu Admin', 'success');
-        } else {
-          console.log('Login failed - invalid credentials');
-          showNotification('Invalid credentials. Please check your username and password.', 'error');
-        }
+      // Immediate authentication (no delay for testing)
+      console.log('Checking credentials...');
+      
+      // Simple authentication - Updated credentials
+      if (username === 'admin' && password === 'JyotirSetu2024!') {
+        console.log('✅ LOGIN SUCCESSFUL!');
+        localStorage.setItem('admin_email', username);
+        localStorage.setItem('admin_username', username);
+        currentUser = { email: username, username: username };
+        showAdminDashboard();
+        updateUserDisplay();
+        loadDashboardData();
+        showNotification('Login successful! Welcome to JyotirSetu Admin', 'success');
+      } else {
+        console.log('❌ LOGIN FAILED - Invalid credentials');
+        console.log('Expected: admin / JyotirSetu2024!');
+        console.log('Received:', username, '/', password);
+        showNotification('Invalid credentials. Use: admin / JyotirSetu2024!', 'error');
+      }
+      
+      // Reset button state
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        if (btnText) btnText.classList.remove('hidden');
+        if (btnLoading) btnLoading.classList.add('hidden');
+      }
+      
+      console.log('=== LOGIN ATTEMPT COMPLETED ===');
+    }
+
+    // Test login function for debugging
+    function testLogin() {
+      console.log('🧪 TEST LOGIN FUNCTION CALLED');
+      
+      // Auto-fill the form with correct credentials
+      const usernameInput = document.getElementById('login-username');
+      const passwordInput = document.getElementById('login-password');
+      
+      if (usernameInput && passwordInput) {
+        usernameInput.value = 'admin';
+        passwordInput.value = 'JyotirSetu2024!';
+        console.log('✅ Form auto-filled with correct credentials');
         
-        // Reset button state
-        if (submitBtn) {
-          submitBtn.disabled = false;
-          if (btnText) btnText.classList.remove('hidden');
-          if (btnLoading) btnLoading.classList.add('hidden');
-        }
-      }, 1500); // 1.5 second delay for better UX
+        // Trigger the login
+        setTimeout(() => {
+          handleLoginSubmit(new Event('submit'));
+        }, 100);
+      } else {
+        console.error('❌ Form inputs not found for test login');
+        showNotification('Test login failed: Form inputs not found', 'error');
+      }
     }
 
     // Close modal
