@@ -225,95 +225,10 @@ import { supabase } from '~/lib/supabase';
      }
      
      // ===== APPOINTMENT DASHBOARD FUNCTION =====
-     async function showAppointmentDashboard() {
-       const modalContainer = document.getElementById('modal-container');
-       if (!modalContainer) return;
-       
-       modalContainer.innerHTML = `
-         <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[99999]">
-           <div class="bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-7xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-             <!-- Header -->
-             <div class="flex justify-between items-center p-6 border-b border-purple-200 dark:border-purple-700">
-               <div>
-                 <h2 class="text-2xl font-bold text-gray-900 dark:text-white">📅 Appointment Dashboard</h2>
-                 <p class="text-gray-600 dark:text-gray-400">Manage all consultation bookings</p>
-               </div>
-               <button
-                 id="close-appointment-modal-btn"
-                 class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-2xl font-bold"
-               >
-                 ×
-               </button>
-             </div>
-             
-             <!-- Content -->
-             <div class="p-6">
-               <!-- Filters -->
-               <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-6">
-                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                   <div>
-                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status</label>
-                     <select id="status-filter" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-slate-700 dark:text-white">
-                       <option value="">All Statuses</option>
-                       <option value="pending">Pending</option>
-                       <option value="confirmed">Confirmed</option>
-                       <option value="cancelled">Cancelled</option>
-                       <option value="completed">Completed</option>
-                     </select>
-                   </div>
-                   <div>
-                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Date From</label>
-                     <input type="date" id="date-from-filter" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-slate-700 dark:text-white">
-                   </div>
-                   <div>
-                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Date To</label>
-                     <input type="date" id="date-to-filter" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-slate-700 dark:text-white">
-                   </div>
-                   <div class="flex items-end">
-                     <button id="apply-filters-btn" class="w-full bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200">
-                       Apply Filters
-                     </button>
-                   </div>
-                 </div>
-               </div>
-               
-               <!-- Appointments Table -->
-               <div class="bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-600 overflow-hidden">
-                 <div class="overflow-x-auto">
-                   <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-600">
-                     <thead class="bg-gray-50 dark:bg-gray-700">
-                       <tr>
-                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Client</th>
-                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Service</th>
-                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Date & Time</th>
-                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
-                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
-                       </tr>
-                     </thead>
-                     <tbody id="appointments-tbody" class="bg-white dark:bg-slate-800 divide-y divide-gray-200 dark:divide-gray-600">
-                       <tr>
-                         <td colspan="5" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
-                           <div class="inline-flex items-center space-x-2">
-                             <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
-                             <span>Loading appointments...</span>
-                           </div>
-                         </td>
-                       </tr>
-                     </tbody>
-                   </table>
-                 </div>
-               </div>
-             </div>
-           </div>
-         </div>
-       `;
-       
-       // Load appointments
-       await loadAppointmentsFromSupabase();
-       
-       // Add event listeners
-       addAppointmentEventListeners();
-     }
+     // This function is no longer needed since we have a dedicated /admin/appointmentdashboard page
+     // async function showAppointmentDashboard() {
+     //   // Removed - now using dedicated /admin/appointmentdashboard page
+     // }
      
      // All manager functions are now handled by event listeners below
     
@@ -534,8 +449,9 @@ import { supabase } from '~/lib/supabase';
        const appointmentCard = document.getElementById('appointment-card');
        if (appointmentCard) {
          appointmentCard.addEventListener('click', function() {
-           showAppointmentDashboard();
-           console.log('Appointment Dashboard clicked!');
+           // Navigate directly to the appointment dashboard page instead of showing modal
+           window.location.href = '/admin/appointmentdashboard';
+           console.log('Navigating to Appointment Dashboard page');
          });
        }
       
