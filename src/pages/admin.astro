@@ -297,6 +297,10 @@ import { supabase } from '~/lib/supabase';
     window.closeModal = closeModal;
     window.getStoredPassword = getStoredPassword;
     window.updateStoredPassword = updateStoredPassword;
+    window.validateCurrentPassword = validateCurrentPassword;
+    window.validateNewPassword = validateNewPassword;
+    window.validatePasswordMatch = validatePasswordMatch;
+    window.checkAllValidations = checkAllValidations;
      
      // Initialize Supabase client
      function initSupabase() {
@@ -906,6 +910,86 @@ import { supabase } from '~/lib/supabase';
       }
     }
 
+    // Real-time password validation functions
+    function validateCurrentPassword() {
+      const currentPassword = document.getElementById('current-password').value;
+      const errorDiv = document.getElementById('current-password-error');
+      const storedPassword = getStoredPassword();
+      
+      if (currentPassword && currentPassword !== storedPassword) {
+        errorDiv.textContent = '❌ Current password is incorrect';
+        errorDiv.classList.remove('hidden');
+        return false;
+      } else if (currentPassword && currentPassword === storedPassword) {
+        errorDiv.classList.add('hidden');
+        return true;
+      } else {
+        errorDiv.classList.add('hidden');
+        return false;
+      }
+    }
+
+    function validateNewPassword() {
+      const newPassword = document.getElementById('new-password').value;
+      const errorDiv = document.getElementById('new-password-error');
+      const successDiv = document.getElementById('new-password-success');
+      
+      if (newPassword && newPassword.length < 8) {
+        errorDiv.textContent = '❌ Password must be at least 8 characters long';
+        errorDiv.classList.remove('hidden');
+        successDiv.classList.add('hidden');
+        return false;
+      } else if (newPassword && newPassword.length >= 8) {
+        errorDiv.classList.add('hidden');
+        successDiv.classList.remove('hidden');
+        return true;
+      } else {
+        errorDiv.classList.add('hidden');
+        successDiv.classList.add('hidden');
+        return false;
+      }
+    }
+
+    function validatePasswordMatch() {
+      const newPassword = document.getElementById('new-password').value;
+      const confirmPassword = document.getElementById('confirm-password').value;
+      const errorDiv = document.getElementById('confirm-password-error');
+      const successDiv = document.getElementById('confirm-password-success');
+      
+      if (confirmPassword && newPassword !== confirmPassword) {
+        errorDiv.textContent = '❌ Passwords do not match';
+        errorDiv.classList.remove('hidden');
+        successDiv.classList.add('hidden');
+        return false;
+      } else if (confirmPassword && newPassword === confirmPassword) {
+        errorDiv.classList.add('hidden');
+        successDiv.classList.remove('hidden');
+        return true;
+      } else {
+        errorDiv.classList.add('hidden');
+        successDiv.classList.add('hidden');
+        return false;
+      }
+    }
+
+    // Check if all validations pass
+    function checkAllValidations() {
+      const currentValid = validateCurrentPassword();
+      const newValid = validateNewPassword();
+      const matchValid = validatePasswordMatch();
+      
+      const updateBtn = document.getElementById('update-password-btn');
+      if (updateBtn) {
+        if (currentValid && newValid && matchValid) {
+          updateBtn.disabled = false;
+          updateBtn.classList.remove('disabled:bg-gray-400', 'disabled:cursor-not-allowed');
+        } else {
+          updateBtn.disabled = true;
+          updateBtn.classList.add('disabled:bg-gray-400', 'disabled:cursor-not-allowed');
+        }
+      }
+    }
+
     // Update user display
     function updateUserDisplay() {
       const userSpan = document.getElementById('admin-welcome');
@@ -980,7 +1064,7 @@ import { supabase } from '~/lib/supabase';
               <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Current Password</label>
                 <div class="relative">
-                  <input type="password" id="current-password" required class="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-slate-700 dark:text-white">
+                  <input type="password" id="current-password" required class="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-slate-700 dark:text-white" oninput="validateCurrentPassword()">
                   <button type="button" onclick="togglePasswordVisibility('current-password', 'current-password-toggle')" class="absolute inset-y-0 right-0 pr-3 flex items-center">
                     <svg id="current-password-toggle" class="h-5 w-5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
@@ -988,11 +1072,12 @@ import { supabase } from '~/lib/supabase';
                     </svg>
                   </button>
                 </div>
+                <div id="current-password-error" class="text-red-500 text-sm mt-1 hidden"></div>
               </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">New Password</label>
                 <div class="relative">
-                  <input type="password" id="new-password" required class="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-slate-700 dark:text-white">
+                  <input type="password" id="new-password" required class="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-slate-700 dark:text-white" oninput="validateNewPassword()">
                   <button type="button" onclick="togglePasswordVisibility('new-password', 'new-password-toggle')" class="absolute inset-y-0 right-0 pr-3 flex items-center">
                     <svg id="new-password-toggle" class="h-5 w-5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
@@ -1000,11 +1085,13 @@ import { supabase } from '~/lib/supabase';
                     </svg>
                   </button>
                 </div>
+                <div id="new-password-error" class="text-red-500 text-sm mt-1 hidden"></div>
+                <div id="new-password-success" class="text-green-500 text-sm mt-1 hidden">✅ Password strength is good</div>
               </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Confirm New Password</label>
                 <div class="relative">
-                  <input type="password" id="confirm-password" required class="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-slate-700 dark:text-white">
+                  <input type="password" id="confirm-password" required class="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-slate-700 dark:text-white" oninput="validatePasswordMatch()">
                   <button type="button" onclick="togglePasswordVisibility('confirm-password', 'confirm-password-toggle')" class="absolute inset-y-0 right-0 pr-3 flex items-center">
                     <svg id="confirm-password-toggle" class="h-5 w-5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
@@ -1012,15 +1099,22 @@ import { supabase } from '~/lib/supabase';
                     </svg>
                   </button>
                 </div>
+                <div id="confirm-password-error" class="text-red-500 text-sm mt-1 hidden"></div>
+                <div id="confirm-password-success" class="text-green-500 text-sm mt-1 hidden">✅ Passwords match</div>
               </div>
-              <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-lg font-medium transition-colors duration-200">
+              <button type="submit" id="update-password-btn" class="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-lg font-medium transition-colors duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed">
                 Update Password
               </button>
             </form>
-            <div class="mt-4 text-center">
+            <div class="mt-4 text-center space-y-2">
               <button id="cancel-password-btn" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 px-4 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200">
                 Cancel
               </button>
+              <div class="text-xs text-gray-400">
+                <button onclick="console.log('Current stored password:', getStoredPassword())" class="text-blue-500 hover:text-blue-700 underline">
+                  🔍 Debug: Check Stored Password
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -1037,6 +1131,7 @@ import { supabase } from '~/lib/supabase';
      function setupChangePasswordForm() {
        const changePasswordForm = document.getElementById('change-password-form');
        const cancelBtn = document.getElementById('cancel-password-btn');
+       const updateBtn = document.getElementById('update-password-btn');
        
        if (changePasswordForm) {
          console.log('Setting up change password form handler');
@@ -1057,6 +1152,53 @@ import { supabase } from '~/lib/supabase';
        } else {
          console.error('Cancel button not found!');
        }
+
+       // Add validation triggers to all password inputs
+       const currentPasswordInput = document.getElementById('current-password');
+       const newPasswordInput = document.getElementById('new-password');
+       const confirmPasswordInput = document.getElementById('confirm-password');
+       
+       if (currentPasswordInput) {
+         currentPasswordInput.addEventListener('input', function() {
+           validateCurrentPassword();
+           checkAllValidations();
+         });
+       }
+       
+       if (newPasswordInput) {
+         newPasswordInput.addEventListener('input', function() {
+           validateNewPassword();
+           validatePasswordMatch(); // Also check match when new password changes
+           checkAllValidations();
+         });
+       }
+       
+       if (confirmPasswordInput) {
+         confirmPasswordInput.addEventListener('input', function() {
+           validatePasswordMatch();
+           checkAllValidations();
+         });
+       }
+
+       // Add debug button for testing
+       if (updateBtn) {
+         updateBtn.addEventListener('click', function(e) {
+           console.log('Update button clicked - testing form submission');
+           console.log('Form element:', changePasswordForm);
+           console.log('Form submit event listener attached:', changePasswordForm ? 'Yes' : 'No');
+           
+           // Manually trigger form submission for debugging
+           if (changePasswordForm) {
+             const submitEvent = new Event('submit', { bubbles: true, cancelable: true });
+             changePasswordForm.dispatchEvent(submitEvent);
+           }
+         });
+       }
+
+       // Initial validation check
+       setTimeout(() => {
+         checkAllValidations();
+       }, 100);
      }
 
      // Handle change password form submission
