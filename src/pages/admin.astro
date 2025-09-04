@@ -295,6 +295,8 @@ import { supabase } from '~/lib/supabase';
     window.handleLoginSubmit = handleLoginSubmit;
     window.togglePasswordVisibility = togglePasswordVisibility;
     window.closeModal = closeModal;
+    window.getStoredPassword = getStoredPassword;
+    window.updateStoredPassword = updateStoredPassword;
      
      // Initialize Supabase client
      function initSupabase() {
@@ -514,34 +516,61 @@ import { supabase } from '~/lib/supabase';
      let horoscopes: any[] = [];
      let appointments: any[] = [];
 
-         // Check authentication on page load
-     document.addEventListener('DOMContentLoaded', async function() {
-       console.log('DOM Content Loaded - Initializing admin panel');
-       
-       try {
-         await initSupabase(); // Initialize Supabase first
-         console.log('Supabase initialized successfully');
-         
-         setupLoginForm(); // Setup login form handler
-         console.log('Login form setup complete');
-         
-         setupLogoutButton(); // Setup logout button handler
-         console.log('Logout button setup complete');
-         
-         setupChangePasswordButton(); // Setup change password button handler
-         console.log('Change password button setup complete');
-         
-         checkAuth(); // Check if user is already logged in
-         console.log('Auth check complete');
-         
-         setupEventListeners();
-         console.log('Event listeners setup complete');
-         
-         console.log('Admin panel initialization complete!');
-       } catch (error) {
-         console.error('Error during admin panel initialization:', error);
-       }
-     });
+             // Initialize password system
+    function initializePasswordSystem() {
+      // Check if password is already set, if not set default
+      const storedPassword = localStorage.getItem('admin_password');
+      if (!storedPassword) {
+        console.log('No password found, setting default password');
+        localStorage.setItem('admin_password', 'JyotirSetu2024!');
+        console.log('Default password set: JyotirSetu2024!');
+      } else {
+        console.log('Password system initialized with existing password');
+      }
+    }
+
+    // Get current stored password
+    function getStoredPassword() {
+      return localStorage.getItem('admin_password') || 'JyotirSetu2024!';
+    }
+
+    // Update stored password
+    function updateStoredPassword(newPassword) {
+      localStorage.setItem('admin_password', newPassword);
+      console.log('Password updated successfully');
+    }
+
+    // Check authentication on page load
+    document.addEventListener('DOMContentLoaded', async function() {
+      console.log('DOM Content Loaded - Initializing admin panel');
+      
+      try {
+        initializePasswordSystem(); // Initialize password system first
+        console.log('Password system initialized');
+        
+        await initSupabase(); // Initialize Supabase first
+        console.log('Supabase initialized successfully');
+        
+        setupLoginForm(); // Setup login form handler
+        console.log('Login form setup complete');
+        
+        setupLogoutButton(); // Setup logout button handler
+        console.log('Logout button setup complete');
+        
+        setupChangePasswordButton(); // Setup change password button handler
+        console.log('Change password button setup complete');
+        
+        checkAuth(); // Check if user is already logged in
+        console.log('Auth check complete');
+        
+        setupEventListeners();
+        console.log('Event listeners setup complete');
+        
+        console.log('Admin panel initialization complete!');
+      } catch (error) {
+        console.error('Error during admin panel initialization:', error);
+      }
+    });
     
          // Setup event listeners for all cards
      function setupEventListeners() {
@@ -773,8 +802,11 @@ import { supabase } from '~/lib/supabase';
       // Immediate authentication (no delay for testing)
       console.log('Checking credentials...');
       
-      // Simple authentication - Updated credentials
-      if (username === 'admin' && password === 'JyotirSetu2024!') {
+      // Get stored password for validation
+      const storedPassword = getStoredPassword();
+      
+      // Simple authentication - Use stored password
+      if (username === 'admin' && password === storedPassword) {
         console.log('✅ LOGIN SUCCESSFUL!');
         localStorage.setItem('admin_email', username);
         localStorage.setItem('admin_username', username);
@@ -785,9 +817,9 @@ import { supabase } from '~/lib/supabase';
         showNotification('Login successful! Welcome to JyotirSetu Admin', 'success');
       } else {
         console.log('❌ LOGIN FAILED - Invalid credentials');
-        console.log('Expected: admin / JyotirSetu2024!');
+        console.log('Expected: admin / [stored password]');
         console.log('Received:', username, '/', password);
-        showNotification('Invalid credentials. Use: admin / JyotirSetu2024!', 'error');
+        showNotification('Invalid credentials. Please check your username and password.', 'error');
       }
       
       // Reset button state
@@ -809,9 +841,11 @@ import { supabase } from '~/lib/supabase';
       const passwordInput = document.getElementById('login-password');
       
       if (usernameInput && passwordInput) {
+        const storedPassword = getStoredPassword();
         usernameInput.value = 'admin';
-        passwordInput.value = 'JyotirSetu2024!';
+        passwordInput.value = storedPassword;
         console.log('✅ Form auto-filled with correct credentials');
+        console.log('Using stored password:', storedPassword);
         
         // Trigger the login
         setTimeout(() => {
@@ -1040,9 +1074,12 @@ import { supabase } from '~/lib/supabase';
          confirmPassword: confirmPassword ? '***' : 'empty'
        });
        
-       // Validate current password
-       if (currentPassword !== 'JyotirSetu2024!') {
+       // Validate current password against stored password
+       const storedPassword = getStoredPassword();
+       if (currentPassword !== storedPassword) {
          console.log('Current password validation failed');
+         console.log('Expected:', storedPassword);
+         console.log('Received:', currentPassword);
          showNotification('Current password is incorrect', 'error');
          return;
        }
@@ -1062,9 +1099,12 @@ import { supabase } from '~/lib/supabase';
        }
        
        console.log('Password change successful!');
-       // In a real application, you would update the password in your database
-       // For now, we'll just show a success message
-       showNotification('Password updated successfully! Please note: This is a demo. In production, update your database.', 'success');
+       
+       // Actually update the stored password
+       updateStoredPassword(newPassword);
+       
+       // Show success message
+       showNotification('Password updated successfully! You can now use the new password to login.', 'success');
        closeModal();
      }
 
