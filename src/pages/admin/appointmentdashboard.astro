@@ -16,9 +16,9 @@ import Layout from '~/layouts/PageLayout.astro';
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between items-center py-6">
         <div class="flex items-center space-x-4">
-          <a href="/admin" class="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300">
+          <button onclick="goBackToAdminDashboard()" class="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 bg-transparent border-none cursor-pointer">
             ← Back to Admin Dashboard
-          </a>
+          </button>
           <div class="flex-shrink-0">
             <h1 class="text-2xl font-bold text-purple-600 dark:text-purple-400">
               📅 Appointment Management Dashboard
@@ -1380,6 +1380,22 @@ console.log('Appointment Dashboard loaded - basic structure ready');
 window.sendWhatsAppMessage = sendWhatsAppMessage;
 window.toggleAppointmentSelection = toggleAppointmentSelection;
 window.updateAppointmentStatus = updateAppointmentStatus;
+
+// Function to go back to admin dashboard while preserving authentication
+function goBackToAdminDashboard() {
+  console.log('Going back to admin dashboard...');
+  // Check if user is still authenticated
+  const adminEmail = localStorage.getItem('admin_email');
+  if (adminEmail) {
+    console.log('User is authenticated, navigating to admin dashboard');
+    window.location.href = '/admin';
+  } else {
+    console.log('User not authenticated, staying on current page');
+    alert('Session expired. Please login again.');
+  }
+}
+
+window.goBackToAdminDashboard = goBackToAdminDashboard;
 </script>
 </Layout>
 
