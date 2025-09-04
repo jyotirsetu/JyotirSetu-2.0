@@ -22,12 +22,12 @@ import { supabase } from '~/lib/supabase';
           <img 
             src="/JyotirSetu Full Logo Transparent.png" 
             alt="JyotirSetu Logo" 
-            class="h-32 mx-auto mb-8"
+            class="h-58 mx-auto mb-10"
             onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
           />
           <div class="hidden text-8xl mb-8">🌟</div>
-          <h1 class="text-4xl font-bold text-white mb-4">JyotirSetu</h1>
-          <p class="text-xl text-purple-100 mb-2">Admin Dashboard</p>
+          <h1 class="text-4xl font-bold text-white mb-4">JyotirSetu Astrology</h1>
+          <p class="text-xl text-purple-100 mb-2">Bridge to Cosmic Light</p>
           <p class="text-purple-200">Manage your cosmic insights and consultations</p>
         </div>
       </div>
@@ -500,12 +500,31 @@ import { supabase } from '~/lib/supabase';
 
          // Check authentication on page load
      document.addEventListener('DOMContentLoaded', async function() {
-       await initSupabase(); // Initialize Supabase first
-       setupLoginForm(); // Setup login form handler
-       setupLogoutButton(); // Setup logout button handler
-       setupChangePasswordButton(); // Setup change password button handler
-       checkAuth(); // Check if user is already logged in
-       setupEventListeners();
+       console.log('DOM Content Loaded - Initializing admin panel');
+       
+       try {
+         await initSupabase(); // Initialize Supabase first
+         console.log('Supabase initialized successfully');
+         
+         setupLoginForm(); // Setup login form handler
+         console.log('Login form setup complete');
+         
+         setupLogoutButton(); // Setup logout button handler
+         console.log('Logout button setup complete');
+         
+         setupChangePasswordButton(); // Setup change password button handler
+         console.log('Change password button setup complete');
+         
+         checkAuth(); // Check if user is already logged in
+         console.log('Auth check complete');
+         
+         setupEventListeners();
+         console.log('Event listeners setup complete');
+         
+         console.log('Admin panel initialization complete!');
+       } catch (error) {
+         console.error('Error during admin panel initialization:', error);
+       }
      });
     
          // Setup event listeners for all cards
@@ -893,47 +912,70 @@ import { supabase } from '~/lib/supabase';
     function setupLoginForm() {
       const loginForm = document.getElementById('login-form');
       if (loginForm) {
-        loginForm.addEventListener('submit', function(e) {
-          e.preventDefault();
-          
-          const usernameInput = document.getElementById('login-username');
-          const passwordInput = document.getElementById('login-password');
-          const submitBtn = document.getElementById('login-submit-btn');
-          const btnText = document.getElementById('login-btn-text');
-          const btnLoading = document.getElementById('login-btn-loading');
-          
-          if (!usernameInput || !passwordInput) return;
-          
-          const username = usernameInput.value.trim();
-          const password = passwordInput.value.trim();
-          
-          // Show loading state
-          submitBtn.disabled = true;
-          btnText.classList.add('hidden');
-          btnLoading.classList.remove('hidden');
-          
-          // Simulate login delay for better UX
-          setTimeout(() => {
-            // Simple authentication - Updated credentials
-            if (username === 'admin' && password === 'JyotirSetu2024!') {
-              localStorage.setItem('admin_email', username);
-              localStorage.setItem('admin_username', username);
-              currentUser = { email: username, username: username };
-              showAdminDashboard();
-              updateUserDisplay();
-              loadDashboardData();
-              showNotification('Login successful! Welcome to JyotirSetu Admin', 'success');
-            } else {
-              showNotification('Invalid credentials. Please check your username and password.', 'error');
-            }
-            
-            // Reset button state
-            submitBtn.disabled = false;
-            btnText.classList.remove('hidden');
-            btnLoading.classList.add('hidden');
-          }, 1500); // 1.5 second delay for better UX
-        });
+        // Remove any existing event listeners
+        loginForm.removeEventListener('submit', handleLoginSubmit);
+        // Add new event listener
+        loginForm.addEventListener('submit', handleLoginSubmit);
+        console.log('Login form event listener setup complete');
+      } else {
+        console.error('Login form not found!');
       }
+    }
+
+    // Separate login submit handler for better debugging
+    function handleLoginSubmit(e) {
+      e.preventDefault();
+      console.log('Login form submitted!');
+      
+      const usernameInput = document.getElementById('login-username');
+      const passwordInput = document.getElementById('login-password');
+      const submitBtn = document.getElementById('login-submit-btn');
+      const btnText = document.getElementById('login-btn-text');
+      const btnLoading = document.getElementById('login-btn-loading');
+      
+      console.log('Form elements found:', { usernameInput, passwordInput, submitBtn, btnText, btnLoading });
+      
+      if (!usernameInput || !passwordInput) {
+        console.error('Missing form inputs!');
+        return;
+      }
+      
+      const username = usernameInput.value.trim();
+      const password = passwordInput.value.trim();
+      
+      console.log('Login attempt:', { username, password: '***' });
+      
+      // Show loading state
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        if (btnText) btnText.classList.add('hidden');
+        if (btnLoading) btnLoading.classList.remove('hidden');
+      }
+      
+      // Simulate login delay for better UX
+      setTimeout(() => {
+        // Simple authentication - Updated credentials
+        if (username === 'admin' && password === 'JyotirSetu2024!') {
+          console.log('Login successful!');
+          localStorage.setItem('admin_email', username);
+          localStorage.setItem('admin_username', username);
+          currentUser = { email: username, username: username };
+          showAdminDashboard();
+          updateUserDisplay();
+          loadDashboardData();
+          showNotification('Login successful! Welcome to JyotirSetu Admin', 'success');
+        } else {
+          console.log('Login failed - invalid credentials');
+          showNotification('Invalid credentials. Please check your username and password.', 'error');
+        }
+        
+        // Reset button state
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          if (btnText) btnText.classList.remove('hidden');
+          if (btnLoading) btnLoading.classList.add('hidden');
+        }
+      }, 1500); // 1.5 second delay for better UX
     }
 
     // Close modal
@@ -1001,8 +1043,12 @@ import { supabase } from '~/lib/supabase';
 
      // Show change password modal
      function showChangePasswordModal() {
+       console.log('Showing change password modal');
        const modal = document.getElementById('modal-container');
-       if (!modal) return;
+       if (!modal) {
+         console.error('Modal container not found!');
+         return;
+       }
        
        modal.innerHTML = `
          <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -1038,40 +1084,67 @@ import { supabase } from '~/lib/supabase';
          </div>
        `;
 
-       // Handle change password form
+       // Wait for DOM to update, then setup form handler
+       setTimeout(() => {
+         setupChangePasswordForm();
+       }, 100);
+     }
+
+     // Setup change password form handler
+     function setupChangePasswordForm() {
        const changePasswordForm = document.getElementById('change-password-form');
        if (changePasswordForm) {
-         changePasswordForm.addEventListener('submit', function(e) {
-           e.preventDefault();
-           
-           const currentPassword = document.getElementById('current-password').value;
-           const newPassword = document.getElementById('new-password').value;
-           const confirmPassword = document.getElementById('confirm-password').value;
-           
-           // Validate current password
-           if (currentPassword !== 'JyotirSetu2024!') {
-             showNotification('Current password is incorrect', 'error');
-             return;
-           }
-           
-           // Validate new password
-           if (newPassword.length < 8) {
-             showNotification('New password must be at least 8 characters long', 'error');
-             return;
-           }
-           
-           // Validate password confirmation
-           if (newPassword !== confirmPassword) {
-             showNotification('New passwords do not match', 'error');
-             return;
-           }
-           
-           // In a real application, you would update the password in your database
-           // For now, we'll just show a success message
-           showNotification('Password updated successfully! Please note: This is a demo. In production, update your database.', 'success');
-           closeModal();
-         });
+         console.log('Setting up change password form handler');
+         // Remove any existing event listeners
+         changePasswordForm.removeEventListener('submit', handleChangePasswordSubmit);
+         // Add new event listener
+         changePasswordForm.addEventListener('submit', handleChangePasswordSubmit);
+       } else {
+         console.error('Change password form not found!');
        }
+     }
+
+     // Handle change password form submission
+     function handleChangePasswordSubmit(e) {
+       e.preventDefault();
+       console.log('Change password form submitted!');
+       
+       const currentPassword = document.getElementById('current-password').value;
+       const newPassword = document.getElementById('new-password').value;
+       const confirmPassword = document.getElementById('confirm-password').value;
+       
+       console.log('Change password attempt:', { 
+         currentPassword: currentPassword ? '***' : 'empty', 
+         newPassword: newPassword ? '***' : 'empty',
+         confirmPassword: confirmPassword ? '***' : 'empty'
+       });
+       
+       // Validate current password
+       if (currentPassword !== 'JyotirSetu2024!') {
+         console.log('Current password validation failed');
+         showNotification('Current password is incorrect', 'error');
+         return;
+       }
+       
+       // Validate new password
+       if (newPassword.length < 8) {
+         console.log('New password too short');
+         showNotification('New password must be at least 8 characters long', 'error');
+         return;
+       }
+       
+       // Validate password confirmation
+       if (newPassword !== confirmPassword) {
+         console.log('Password confirmation failed');
+         showNotification('New passwords do not match', 'error');
+         return;
+       }
+       
+       console.log('Password change successful!');
+       // In a real application, you would update the password in your database
+       // For now, we'll just show a success message
+       showNotification('Password updated successfully! Please note: This is a demo. In production, update your database.', 'success');
+       closeModal();
      }
 
      // ===== APPOINTMENT DASHBOARD FUNCTIONS =====
