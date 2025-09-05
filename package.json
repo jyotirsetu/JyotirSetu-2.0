@@ -21,8 +21,7 @@
     "check:prettier": "prettier --check .",
     "fix": "npm run fix:eslint && npm run fix:prettier",
     "fix:eslint": "eslint --fix .",
-    "fix:prettier": "prettier -w .",
-    "postinstall": "patch-package"
+    "fix:prettier": "prettier -w ."
   },
   "dependencies": {
     "@astrojs/node": "^9.4.3",
