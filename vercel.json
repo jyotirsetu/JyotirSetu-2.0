@@ -3,7 +3,8 @@
   "trailingSlash": false,
   "functions": {
     "src/pages/api/**/*.js": {
-      "runtime": "nodejs18.x"
+      "runtime": "nodejs18.x",
+      "maxDuration": 30
     }
   },
   "headers": [
@@ -16,5 +17,9 @@
         }
       ]
     }
-  ]
+  ],
+  "env": {
+    "RESEND_API_KEY": "@resend_api_key",
+    "FROM_EMAIL": "@from_email"
+  }
 }
