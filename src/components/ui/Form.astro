@@ -188,8 +188,12 @@ const { inputs, textarea, disclaimer, button = 'Contact us', description = '', a
         submitButton.disabled = true;
         
         // Hide any existing messages
-        successMessage.classList.add('hidden');
-        errorMessage.classList.add('hidden');
+        if (successMessage) {
+          successMessage.classList.add('hidden');
+        }
+        if (errorMessage) {
+          errorMessage.classList.add('hidden');
+        }
         
         fetch(form.action, {
           method: 'POST',
@@ -202,7 +206,9 @@ const { inputs, textarea, disclaimer, button = 'Contact us', description = '', a
           if (response.ok) {
             // Success
             form.reset();
-            successMessage.classList.remove('hidden');
+            if (successMessage) {
+              successMessage.classList.remove('hidden');
+            }
             form.scrollIntoView({ behavior: 'smooth' });
           } else {
             // Error
@@ -211,7 +217,9 @@ const { inputs, textarea, disclaimer, button = 'Contact us', description = '', a
         })
         .catch(error => {
           // Show error message
-          errorMessage.classList.remove('hidden');
+          if (errorMessage) {
+            errorMessage.classList.remove('hidden');
+          }
           form.scrollIntoView({ behavior: 'smooth' });
         })
         .finally(() => {
