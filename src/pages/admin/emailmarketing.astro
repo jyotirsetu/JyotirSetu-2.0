@@ -192,6 +192,13 @@ import Layout from '~/layouts/AdminLayout.astro';
               >
                 ⚡ Quick Test
               </button>
+              <button
+                id="add-test-subscribers-btn"
+                class="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md"
+                onclick="addTestSubscribers()"
+              >
+                🧪 Add Test Subscribers
+              </button>
             </div>
           </div>
 
@@ -546,6 +553,69 @@ import Layout from '~/layouts/AdminLayout.astro';
     } catch (error) {
       console.error('💥 Quick test error:', error);
       showImportStatus(`❌ Quick test failed: ${error.message}`, 'error');
+    }
+  }
+
+  // Add test subscribers for campaign testing
+  function addTestSubscribers() {
+    try {
+      const existingSubscribers = JSON.parse(localStorage.getItem('email_subscribers') || '[]');
+      
+      const testSubscribers = [
+        {
+          id: Date.now() + Math.random(),
+          name: 'Test User 1',
+          email: 'akansh.pcj@gmail.com', // Your email for testing
+          source: 'manual_add',
+          tags: ['Palmistry', 'General'],
+          serviceInterest: 'Palmistry',
+          status: 'active',
+          created_at: new Date().toISOString()
+        },
+        {
+          id: Date.now() + Math.random() + 1,
+          name: 'Test User 2',
+          email: 'test2@example.com',
+          source: 'appointment_form',
+          tags: ['Numerology', 'Career'],
+          serviceInterest: 'Numerology',
+          status: 'active',
+          created_at: new Date().toISOString()
+        },
+        {
+          id: Date.now() + Math.random() + 2,
+          name: 'Test User 3',
+          email: 'test3@example.com',
+          source: 'csv_upload',
+          tags: ['Astrology', 'General'],
+          serviceInterest: 'Astrology',
+          status: 'active',
+          created_at: new Date().toISOString()
+        }
+      ];
+
+      // Check if test subscribers already exist
+      const existingEmails = existingSubscribers.map(s => s.email);
+      const newSubscribers = testSubscribers.filter(s => !existingEmails.includes(s.email));
+
+      if (newSubscribers.length === 0) {
+        showImportStatus('ℹ️ Test subscribers already exist!', 'info');
+        return;
+      }
+
+      // Add new test subscribers
+      const updatedSubscribers = [...existingSubscribers, ...newSubscribers];
+      localStorage.setItem('email_subscribers', JSON.stringify(updatedSubscribers));
+
+      showImportStatus(`✅ Added ${newSubscribers.length} test subscribers! You can now test campaigns.`, 'success');
+      loadSubscribers();
+      updateStats();
+
+      console.log('🧪 Test subscribers added:', newSubscribers);
+
+    } catch (error) {
+      console.error('💥 Error adding test subscribers:', error);
+      showImportStatus(`❌ Failed to add test subscribers: ${error.message}`, 'error');
     }
   }
 
@@ -1985,23 +2055,30 @@ import Layout from '~/layouts/AdminLayout.astro';
       let errorCount = 0;
       const errors = [];
 
+      console.log(`📧 Starting campaign to ${targetSubscribers.length} subscribers`);
+      console.log(`📧 Target subscribers:`, targetSubscribers.map(s => ({ email: s.email, name: s.name, tags: s.tags })));
+
       // Send emails with delay to avoid rate limiting
       for (let i = 0; i < targetSubscribers.length; i++) {
         const subscriber = targetSubscribers[i];
+        
+        console.log(`📧 Sending email ${i + 1}/${targetSubscribers.length} to ${subscriber.email}`);
         
         try {
           const result = await sendRealEmail(subject, content, subscriber.email, subscriber.name);
           
           if (result.success) {
             successCount++;
-            console.log(`Email sent to ${subscriber.email}`);
+            console.log(`✅ Email sent successfully to ${subscriber.email}`);
           } else {
             errorCount++;
             errors.push(`${subscriber.email}: ${result.error}`);
+            console.error(`❌ Failed to send email to ${subscriber.email}:`, result.error);
           }
         } catch (error) {
           errorCount++;
           errors.push(`${subscriber.email}: ${error.message}`);
+          console.error(`💥 Error sending email to ${subscriber.email}:`, error);
         }
 
         // Add delay between emails (1 second) to avoid rate limiting
@@ -2011,7 +2088,7 @@ import Layout from '~/layouts/AdminLayout.astro';
 
         // Update progress
         const progress = Math.round(((i + 1) / targetSubscribers.length) * 100);
-        showImportStatus(`Sending emails... ${progress}% (${i + 1}/${targetSubscribers.length})`, 'info');
+        showImportStatus(`📧 Sending campaign... ${progress}% (${i + 1}/${targetSubscribers.length}) - ✅ ${successCount} sent, ❌ ${errorCount} failed`, 'info');
       }
 
       // Show final results
@@ -2395,6 +2472,7 @@ import Layout from '~/layouts/AdminLayout.astro';
   window.testEmailSending = testEmailSending;
   window.testResendConnection = testResendConnection;
   window.quickEmailTest = quickEmailTest;
+  window.addTestSubscribers = addTestSubscribers;
 
   // Initialize page
   document.addEventListener('DOMContentLoaded', async function() {
