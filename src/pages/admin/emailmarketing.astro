@@ -578,16 +578,16 @@ import Layout from '~/layouts/AdminLayout.astro';
   };
   
   // Global arrays with proper typing
-  let subscribers: Subscriber[] = [];
-  let campaigns: Campaign[] = [];
-  let templates: Template[] = [];
-  let selectedSubscribers = new Set<string>();
-  let selectedCampaigns = new Set<string>();
-  let selectedTemplates = new Set<string>();
-  let activeTab = 'subscribers';
-  let currentEditingSubscriber: Subscriber | null = null;
-  let currentEditingCampaign: Campaign | null = null;
-  let currentEditingTemplate: Template | null = null;
+  // let subscribers: Subscriber[] = [];
+  // let campaigns: Campaign[] = [];
+  // let templates: Template[] = [];
+  // let selectedSubscribers = new Set<string>();
+  // let selectedCampaigns = new Set<string>();
+  // let selectedTemplates = new Set<string>();
+  // let activeTab = 'subscribers';
+  // let currentEditingSubscriber: Subscriber | null = null;
+  // let currentEditingCampaign: Campaign | null = null;
+  // let currentEditingTemplate: Template | null = null;
   
   // Resend configuration (replace with your actual API key)
   const RESEND_CONFIG = {
@@ -666,7 +666,7 @@ import Layout from '~/layouts/AdminLayout.astro';
   function downloadCampaignReport() {
     try {
       const campaigns = JSON.parse(localStorage.getItem('email_campaigns') || '[]');
-      const subscribers = JSON.parse(localStorage.getItem('email_subscribers') || '[]');
+      // const subscribers = JSON.parse(localStorage.getItem('email_subscribers') || '[]');
       
       if (campaigns.length === 0) {
         showImportStatus('❌ No campaigns found to generate report', 'error');
@@ -809,17 +809,17 @@ import Layout from '~/layouts/AdminLayout.astro';
   }
 
   // Helper function to convert data to CSV
-  function convertToCSV(data) {
+  function convertToCSV(data: any[]) {
     if (!data || data.length === 0) return '';
     
     const headers = Object.keys(data[0]);
-    const csvRows = [];
+    const csvRows: string[] = [];
     
     // Add headers
     csvRows.push(headers.join(','));
     
     // Add data rows
-    data.forEach(row => {
+    data.forEach((row: any) => {
       const values = headers.map(header => {
         const value = row[header];
         // Escape commas and quotes in values
@@ -835,7 +835,7 @@ import Layout from '~/layouts/AdminLayout.astro';
   }
 
   // Helper function to download CSV
-  function downloadCSV(csvContent, filename) {
+  function downloadCSV(csvContent: string, filename: string) {
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     
@@ -851,7 +851,7 @@ import Layout from '~/layouts/AdminLayout.astro';
   }
 
   // Send real email using server-side API
-  async function sendRealEmail(subject, content, recipientEmail, recipientName = '') {
+  async function sendRealEmail(subject: string, content: string, recipientEmail: string, recipientName = '') {
     try {
       console.log('🔍 Starting email send process...');
       console.log('📧 To:', recipientEmail);
@@ -923,11 +923,11 @@ import Layout from '~/layouts/AdminLayout.astro';
       window.location.href = '/admin';
       return;
     }
-    currentUser = { email: adminEmail };
+    currentUser = { email: adminEmail } as any;
   }
 
   // Tab switching
-  function switchTab(tabName) {
+  function switchTab(tabName: string) {
     // Hide all tab contents
     document.querySelectorAll('.tab-content').forEach(content => {
       content.classList.add('hidden');
@@ -940,12 +940,17 @@ import Layout from '~/layouts/AdminLayout.astro';
     });
     
     // Show selected tab content
-    document.getElementById(`${tabName}-content`).classList.remove('hidden');
+    const tabContent = document.getElementById(`${tabName}-content`);
+    if (tabContent) {
+      tabContent.classList.remove('hidden');
+    }
     
     // Add active class to selected tab
     const activeTab = document.getElementById(`${tabName}-tab`);
-    activeTab.classList.add('active', 'border-purple-500', 'text-purple-600', 'dark:text-purple-400');
-    activeTab.classList.remove('border-transparent', 'text-gray-500', 'dark:text-gray-400');
+    if (activeTab) {
+      activeTab.classList.add('active', 'border-purple-500', 'text-purple-600', 'dark:text-purple-400');
+      activeTab.classList.remove('border-transparent', 'text-gray-500', 'dark:text-gray-400');
+    }
     
     // Load tab-specific data
     if (tabName === 'subscribers') {
@@ -979,7 +984,7 @@ import Layout from '~/layouts/AdminLayout.astro';
       }
 
       // Get all appointments with email addresses from Supabase
-      const { data: appointments, error } = await supabase
+      const { data: appointments, error } = await (supabase as any)
         .from('appointments')
         .select('*')
         .not('email', 'is', null);
@@ -1004,7 +1009,7 @@ import Layout from '~/layouts/AdminLayout.astro';
   }
 
   // Process appointments data
-  async function processAppointmentsData(appointments) {
+  async function processAppointmentsData(appointments: any[]) {
     // Get existing subscribers from localStorage
     let existingSubscribers = JSON.parse(localStorage.getItem('email_subscribers') || '[]');
     
@@ -1053,34 +1058,36 @@ import Layout from '~/layouts/AdminLayout.astro';
   }
 
   // Show import status
-  function showImportStatus(message, type = 'info') {
+  function showImportStatus(message: string, type = 'info') {
     const statusDiv = document.getElementById('import-status');
     const statusText = document.getElementById('import-status-text');
     
-    statusText.textContent = message;
-    statusDiv.classList.remove('hidden');
-    
-    // Update styling based on type
-    statusDiv.className = 'mb-4 p-4 rounded-lg';
-    if (type === 'success') {
-      statusDiv.classList.add('bg-green-50', 'dark:bg-green-900/20', 'border', 'border-green-200', 'dark:border-green-800');
-      statusText.classList.add('text-green-800', 'dark:text-green-200');
-    } else if (type === 'warning') {
-      statusDiv.classList.add('bg-yellow-50', 'dark:bg-yellow-900/20', 'border', 'border-yellow-200', 'dark:border-yellow-800');
-      statusText.classList.add('text-yellow-800', 'dark:text-yellow-200');
-    } else if (type === 'error') {
-      statusDiv.classList.add('bg-red-50', 'dark:bg-red-900/20', 'border', 'border-red-200', 'dark:border-red-800');
-      statusText.classList.add('text-red-800', 'dark:text-red-200');
-    } else {
-      statusDiv.classList.add('bg-blue-50', 'dark:bg-blue-900/20', 'border', 'border-blue-200', 'dark:border-blue-800');
-      statusText.classList.add('text-blue-800', 'dark:text-blue-200');
-    }
-    
-    // Hide after 5 seconds for success/warning/error
-    if (type !== 'info') {
-      setTimeout(() => {
-        statusDiv.classList.add('hidden');
-      }, 5000);
+    if (statusText) statusText.textContent = message;
+    if (statusDiv) {
+      statusDiv.classList.remove('hidden');
+      
+      // Update styling based on type
+      statusDiv.className = 'mb-4 p-4 rounded-lg';
+      if (type === 'success') {
+        statusDiv.classList.add('bg-green-50', 'dark:bg-green-900/20', 'border', 'border-green-200', 'dark:border-green-800');
+        if (statusText) statusText.classList.add('text-green-800', 'dark:text-green-200');
+      } else if (type === 'warning') {
+        statusDiv.classList.add('bg-yellow-50', 'dark:bg-yellow-900/20', 'border', 'border-yellow-200', 'dark:border-yellow-800');
+        if (statusText) statusText.classList.add('text-yellow-800', 'dark:text-yellow-200');
+      } else if (type === 'error') {
+        statusDiv.classList.add('bg-red-50', 'dark:bg-red-900/20', 'border', 'border-red-200', 'dark:border-red-800');
+        if (statusText) statusText.classList.add('text-red-800', 'dark:text-red-200');
+      } else {
+        statusDiv.classList.add('bg-blue-50', 'dark:bg-blue-900/20', 'border', 'border-blue-200', 'dark:border-blue-800');
+        if (statusText) statusText.classList.add('text-blue-800', 'dark:text-blue-200');
+      }
+      
+      // Hide after 5 seconds for success/warning/error
+      if (type !== 'info') {
+        setTimeout(() => {
+          statusDiv.classList.add('hidden');
+        }, 5000);
+      }
     }
   }
 
@@ -1096,8 +1103,11 @@ import Layout from '~/layouts/AdminLayout.astro';
       loadAvailableTagsForFilter();
       
       // Update subscriber count
-      document.getElementById('subscriber-count').textContent = 
-        `Showing ${subscribers.length} of ${subscribers.length} subscribers`;
+      const subscriberCountElement = document.getElementById('subscriber-count');
+      if (subscriberCountElement) {
+        subscriberCountElement.textContent = 
+          `Showing ${subscribers.length} of ${subscribers.length} subscribers`;
+      }
     } catch (error) {
       console.error('Error loading subscribers:', error);
       displaySubscribers([]);
@@ -1132,8 +1142,11 @@ import Layout from '~/layouts/AdminLayout.astro';
     }
     
     // Update count
-    document.getElementById('subscriber-count').textContent = 
-      `Showing ${filteredSubscribers.length} of ${allSubscribers.length} subscribers`;
+    const subscriberCountElement = document.getElementById('subscriber-count');
+    if (subscriberCountElement) {
+      subscriberCountElement.textContent = 
+        `Showing ${filteredSubscribers.length} of ${allSubscribers.length} subscribers`;
+    }
     
     // Display filtered results
     displaySubscribers(filteredSubscribers);
@@ -1141,17 +1154,21 @@ import Layout from '~/layouts/AdminLayout.astro';
 
   // Clear all filters
   function clearSubscriberFilters() {
-    document.getElementById('filter-source').value = '';
-    document.getElementById('filter-tag').value = '';
-    document.getElementById('filter-status').value = '';
+    const sourceFilter = document.getElementById('filter-source') as HTMLSelectElement;
+    const tagFilter = document.getElementById('filter-tag') as HTMLSelectElement;
+    const statusFilter = document.getElementById('filter-status') as HTMLSelectElement;
+    
+    if (sourceFilter) sourceFilter.value = '';
+    if (tagFilter) tagFilter.value = '';
+    if (statusFilter) statusFilter.value = '';
     loadSubscribers();
   }
 
   // Export filtered subscribers to CSV
   function exportSubscribersCSV() {
-    const sourceFilter = document.getElementById('filter-source').value;
-    const tagFilter = document.getElementById('filter-tag').value;
-    const statusFilter = document.getElementById('filter-status').value;
+    const sourceFilter = (document.getElementById('filter-source') as HTMLSelectElement)?.value || '';
+    const tagFilter = (document.getElementById('filter-tag') as HTMLSelectElement)?.value || '';
+    const statusFilter = (document.getElementById('filter-status') as HTMLSelectElement)?.value || '';
     
     const allSubscribers = JSON.parse(localStorage.getItem('email_subscribers') || '[]');
     let filteredSubscribers = allSubscribers;
@@ -1215,49 +1232,57 @@ import Layout from '~/layouts/AdminLayout.astro';
       }
     });
     
-    const tagSelect = document.getElementById('filter-tag');
-    tagSelect.innerHTML = '<option value="">All Tags</option>';
-    
-    Array.from(allTags).sort().forEach(tag => {
-      const option = document.createElement('option');
-      option.value = tag;
-      option.textContent = tag;
-      tagSelect.appendChild(option);
-    });
+    const tagSelect = document.getElementById('filter-tag') as HTMLSelectElement;
+    if (tagSelect) {
+      tagSelect.innerHTML = '<option value="">All Tags</option>';
+      
+      Array.from(allTags).sort().forEach((tag: string) => {
+        const option = document.createElement('option');
+        option.value = tag;
+        option.textContent = tag;
+        tagSelect.appendChild(option);
+      });
+    }
   }
 
   // Bulk Actions Functions
   function toggleSelectAll() {
-    const selectAllCheckbox = document.getElementById('select-all-checkbox');
-    const checkboxes = document.querySelectorAll('.subscriber-checkbox');
+    const selectAllCheckbox = document.getElementById('select-all-checkbox') as HTMLInputElement;
+    const checkboxes = document.querySelectorAll('.subscriber-checkbox') as NodeListOf<HTMLInputElement>;
     
-    checkboxes.forEach(checkbox => {
-      checkbox.checked = selectAllCheckbox.checked;
-    });
+    if (selectAllCheckbox) {
+      checkboxes.forEach(checkbox => {
+        checkbox.checked = selectAllCheckbox.checked;
+      });
+    }
     
     updateBulkActions();
   }
 
   function selectAllSubscribers() {
-    const checkboxes = document.querySelectorAll('.subscriber-checkbox');
-    const selectAllCheckbox = document.getElementById('select-all-checkbox');
+    const checkboxes = document.querySelectorAll('.subscriber-checkbox') as NodeListOf<HTMLInputElement>;
+    const selectAllCheckbox = document.getElementById('select-all-checkbox') as HTMLInputElement;
     
     checkboxes.forEach(checkbox => {
       checkbox.checked = true;
     });
-    selectAllCheckbox.checked = true;
+    if (selectAllCheckbox) {
+      selectAllCheckbox.checked = true;
+    }
     
     updateBulkActions();
   }
 
   function clearAllSelections() {
-    const checkboxes = document.querySelectorAll('.subscriber-checkbox');
-    const selectAllCheckbox = document.getElementById('select-all-checkbox');
+    const checkboxes = document.querySelectorAll('.subscriber-checkbox') as NodeListOf<HTMLInputElement>;
+    const selectAllCheckbox = document.getElementById('select-all-checkbox') as HTMLInputElement;
     
     checkboxes.forEach(checkbox => {
       checkbox.checked = false;
     });
-    selectAllCheckbox.checked = false;
+    if (selectAllCheckbox) {
+      selectAllCheckbox.checked = false;
+    }
     
     updateBulkActions();
   }
@@ -1268,10 +1293,10 @@ import Layout from '~/layouts/AdminLayout.astro';
     const selectedCount = document.getElementById('selected-count');
     
     if (checkboxes.length > 0) {
-      bulkActions.classList.remove('hidden');
-      selectedCount.textContent = `${checkboxes.length} subscriber${checkboxes.length === 1 ? '' : 's'} selected`;
+      if (bulkActions) bulkActions.classList.remove('hidden');
+      if (selectedCount) selectedCount.textContent = `${checkboxes.length} subscriber${checkboxes.length === 1 ? '' : 's'} selected`;
     } else {
-      bulkActions.classList.add('hidden');
+      if (bulkActions) bulkActions.classList.add('hidden');
     }
   }
 
@@ -1287,7 +1312,7 @@ import Layout from '~/layouts/AdminLayout.astro';
     }
     
     const subscribers = JSON.parse(localStorage.getItem('email_subscribers') || '[]');
-    const selectedIds = Array.from(checkboxes).map(cb => cb.value);
+    const selectedIds = Array.from(checkboxes).map(cb => (cb as HTMLInputElement).value);
     
     selectedIds.forEach(id => {
       const subscriber = subscribers.find(sub => sub.id == id);
@@ -1316,7 +1341,7 @@ import Layout from '~/layouts/AdminLayout.astro';
     }
     
     const subscribers = JSON.parse(localStorage.getItem('email_subscribers') || '[]');
-    const selectedIds = Array.from(checkboxes).map(cb => cb.value);
+    const selectedIds = Array.from(checkboxes).map(cb => (cb as HTMLInputElement).value);
     
     selectedIds.forEach(id => {
       const subscriber = subscribers.find(sub => sub.id == id);
@@ -1345,7 +1370,7 @@ import Layout from '~/layouts/AdminLayout.astro';
     }
     
     const subscribers = JSON.parse(localStorage.getItem('email_subscribers') || '[]');
-    const selectedIds = Array.from(checkboxes).map(cb => cb.value);
+    const selectedIds = Array.from(checkboxes).map(cb => (cb as HTMLInputElement).value);
     
     const updatedSubscribers = subscribers.filter(sub => !selectedIds.includes(sub.id.toString()));
     
@@ -1385,8 +1410,9 @@ import Layout from '~/layouts/AdminLayout.astro';
     });
 
     const modal = document.getElementById('modal-container');
-    modal.innerHTML = `
-      <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onclick="if(event.target === this) closeModal()">
+    if (modal) {
+      modal.innerHTML = `
+        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onclick="if(event.target === this) closeModal()">
         <div class="bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
           <div class="p-6">
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">👤 Subscriber Details</h3>
@@ -1459,11 +1485,13 @@ import Layout from '~/layouts/AdminLayout.astro';
         </div>
       </div>
     `;
+    }
   }
 
   // Display subscribers in table
-  function displaySubscribers(subscribers) {
+  function displaySubscribers(subscribers: any[]) {
     const tbody = document.getElementById('subscribers-table-body');
+    if (!tbody) return;
     
     if (!subscribers || subscribers.length === 0) {
       tbody.innerHTML = `
@@ -1551,10 +1579,15 @@ import Layout from '~/layouts/AdminLayout.astro';
     const subscribers = JSON.parse(localStorage.getItem('email_subscribers') || '[]');
     const campaigns = JSON.parse(localStorage.getItem('email_campaigns') || '[]');
     
-    document.getElementById('total-subscribers').textContent = subscribers.length;
-    document.getElementById('campaigns-sent').textContent = campaigns.filter(c => c.status === 'sent').length;
-    document.getElementById('open-rate').textContent = '24.5%'; // Mock data
-    document.getElementById('click-rate').textContent = '3.2%'; // Mock data
+    const totalSubscribersEl = document.getElementById('total-subscribers');
+    const campaignsSentEl = document.getElementById('campaigns-sent');
+    const openRateEl = document.getElementById('open-rate');
+    const clickRateEl = document.getElementById('click-rate');
+    
+    if (totalSubscribersEl) totalSubscribersEl.textContent = subscribers.length.toString();
+    if (campaignsSentEl) campaignsSentEl.textContent = campaigns.filter((c: any) => c.status === 'sent').length.toString();
+    if (openRateEl) openRateEl.textContent = '24.5%'; // Mock data
+    if (clickRateEl) clickRateEl.textContent = '3.2%'; // Mock data
   }
 
   // Load campaigns
@@ -1610,8 +1643,9 @@ import Layout from '~/layouts/AdminLayout.astro';
     }
 
     const modal = document.getElementById('modal-container');
-    modal.innerHTML = `
-      <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onclick="if(event.target === this) closeModal()">
+    if (modal) {
+      modal.innerHTML = `
+        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onclick="if(event.target === this) closeModal()">
         <div class="bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
           <div class="p-6">
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">📊 Campaign Details: ${campaign.subject}</h3>
@@ -1692,11 +1726,13 @@ import Layout from '~/layouts/AdminLayout.astro';
         </div>
       </div>
     `;
+    }
   }
 
   // Display campaigns
-  function displayCampaigns(campaigns) {
+  function displayCampaigns(campaigns: any[]) {
     const container = document.getElementById('campaigns-list');
+    if (!container) return;
     console.log('📧 Displaying campaigns:', campaigns, 'Container:', container);
     console.log('📧 Container exists:', !!container);
     console.log('📧 Campaigns length:', campaigns ? campaigns.length : 'null');
@@ -1813,8 +1849,10 @@ import Layout from '~/layouts/AdminLayout.astro';
   }
 
   // Display templates
-  function displayTemplates(templates) {
+  function displayTemplates(templates: any[]) {
     const container = document.getElementById('templates-grid');
+    
+    if (!container) return;
     
     if (!templates || templates.length === 0) {
       container.innerHTML = `
@@ -1918,8 +1956,9 @@ import Layout from '~/layouts/AdminLayout.astro';
   // Show CSV upload modal
   function showCSVUpload() {
     const modal = document.getElementById('modal-container');
-    modal.innerHTML = `
-      <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onclick="if(event.target === this) closeModal()">
+    if (modal) {
+      modal.innerHTML = `
+        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onclick="if(event.target === this) closeModal()">
         <div class="bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-md w-full mx-4">
           <div class="p-6">
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Upload CSV File</h3>
@@ -1946,12 +1985,13 @@ import Layout from '~/layouts/AdminLayout.astro';
         </div>
       </div>
     `;
+    }
   }
 
   // Process CSV file
   function processCSV() {
-    const fileInput = document.getElementById('csv-file');
-    const file = fileInput.files[0];
+    const fileInput = document.getElementById('csv-file') as HTMLInputElement;
+    const file = fileInput?.files?.[0];
     
     if (!file) {
       alert('Please select a CSV file');
@@ -1960,9 +2000,10 @@ import Layout from '~/layouts/AdminLayout.astro';
     
     const reader = new FileReader();
     reader.onload = function(e) {
-      const csv = e.target.result;
+      const csv = e.target?.result as string;
+      if (!csv) return;
       const lines = csv.split('\n');
-      const headers = lines[0].split(',');
+      // const headers = lines[0].split(',');
       
       let importedCount = 0;
       const existingSubscribers = JSON.parse(localStorage.getItem('email_subscribers') || '[]');
@@ -1972,7 +2013,7 @@ import Layout from '~/layouts/AdminLayout.astro';
           const values = lines[i].split(',');
           const email = values[0]?.trim();
           const name = values[1]?.trim() || '';
-          const source = values[2]?.trim() || 'csv_upload';
+          // const source = values[2]?.trim() || 'csv_upload';
           
                                 if (email && !existingSubscribers.find(sub => sub.email === email)) {
                         existingSubscribers.push({
@@ -2003,8 +2044,9 @@ import Layout from '~/layouts/AdminLayout.astro';
   // Show add subscriber modal
   function showAddSubscriber() {
     const modal = document.getElementById('modal-container');
-    modal.innerHTML = `
-      <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onclick="if(event.target === this) closeModal()">
+    if (modal) {
+      modal.innerHTML = `
+        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onclick="if(event.target === this) closeModal()">
         <div class="bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-md w-full mx-4">
           <div class="p-6">
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Add New Subscriber</h3>
@@ -2042,13 +2084,14 @@ import Layout from '~/layouts/AdminLayout.astro';
         </div>
       </div>
     `;
+    }
   }
 
   // Add new subscriber
   function addNewSubscriber() {
-    const email = document.getElementById('new-subscriber-email').value;
-    const name = document.getElementById('new-subscriber-name').value;
-    const service = document.getElementById('new-subscriber-service').value;
+    const email = (document.getElementById('new-subscriber-email') as HTMLInputElement)?.value || '';
+    const name = (document.getElementById('new-subscriber-name') as HTMLInputElement)?.value || '';
+    const service = (document.getElementById('new-subscriber-service') as HTMLInputElement)?.value || '';
     
     if (!email) {
       alert('Email is required');
@@ -2107,7 +2150,7 @@ import Layout from '~/layouts/AdminLayout.astro';
   // Get selected tags
   function getSelectedTags() {
     const checkboxes = document.querySelectorAll('.tag-checkbox:checked');
-    return Array.from(checkboxes).map(cb => cb.value);
+    return Array.from(checkboxes).map(cb => (cb as HTMLInputElement).value);
   }
 
   // Get recipient count based on selection and tags
@@ -2136,6 +2179,8 @@ import Layout from '~/layouts/AdminLayout.astro';
     const countDiv = document.getElementById('recipient-count');
     const subscribers = JSON.parse(localStorage.getItem('email_subscribers') || '[]');
     
+    if (!recipientSelect || !countDiv) return;
+    
     const selectedTags = getSelectedTags();
     const count = getRecipientCount(subscribers, recipientSelect.value, selectedTags);
     
@@ -2145,8 +2190,9 @@ import Layout from '~/layouts/AdminLayout.astro';
   // Show create campaign modal
   function showCreateCampaign() {
     const modal = document.getElementById('modal-container');
-    modal.innerHTML = `
-      <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onclick="if(event.target === this) closeModal()">
+    if (modal) {
+      modal.innerHTML = `
+        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onclick="if(event.target === this) closeModal()">
         <div class="bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
           <div class="p-6">
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Create Email Campaign</h3>
@@ -2233,13 +2279,15 @@ import Layout from '~/layouts/AdminLayout.astro';
   // Load available tags
   function loadAvailableTags() {
     const tagsContainer = document.getElementById('available-tags');
+    if (!tagsContainer) return;
+    
     const subscribers = JSON.parse(localStorage.getItem('email_subscribers') || '[]');
     
     // Get all unique tags from subscribers
     const allTags = new Set();
-    subscribers.forEach(sub => {
+    subscribers.forEach((sub: any) => {
       if (sub.tags && Array.isArray(sub.tags)) {
-        sub.tags.forEach(tag => allTags.add(tag));
+        sub.tags.forEach((tag: any) => allTags.add(tag));
       }
     });
     
@@ -2250,13 +2298,13 @@ import Layout from '~/layouts/AdminLayout.astro';
       return;
     }
     
-    allTags.forEach(tag => {
+    allTags.forEach((tag: any) => {
       const tagElement = document.createElement('div');
       tagElement.className = 'flex items-center space-x-2';
       tagElement.innerHTML = `
         <input type="checkbox" id="tag-${tag}" value="${tag}" class="tag-checkbox" onchange="updateRecipientCount()">
         <label for="tag-${tag}" class="text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
-          ${tag.replace(/_/g, ' ')}
+          ${String(tag).replace(/_/g, ' ')}
         </label>
       `;
       tagsContainer.appendChild(tagElement);
@@ -2265,10 +2313,10 @@ import Layout from '~/layouts/AdminLayout.astro';
 
   // Save campaign
   function saveCampaign() {
-    const subject = document.getElementById('campaign-subject').value;
-    const description = document.getElementById('campaign-description').value;
-    const content = document.getElementById('campaign-content').value;
-    const recipients = document.getElementById('campaign-recipients').value;
+    const subject = (document.getElementById('campaign-subject') as HTMLInputElement)?.value || '';
+    const description = (document.getElementById('campaign-description') as HTMLInputElement)?.value || '';
+    const content = (document.getElementById('campaign-content') as HTMLTextAreaElement)?.value || '';
+    const recipients = (document.getElementById('campaign-recipients') as HTMLSelectElement)?.value || '';
     
     if (!subject) {
       alert('Subject is required');
@@ -2303,10 +2351,10 @@ import Layout from '~/layouts/AdminLayout.astro';
 
   // Save and send campaign
   async function saveAndSendCampaign() {
-    const subject = document.getElementById('campaign-subject').value;
-    const description = document.getElementById('campaign-description').value;
-    const content = document.getElementById('campaign-content').value;
-    const recipients = document.getElementById('campaign-recipients').value;
+    const subject = (document.getElementById('campaign-subject') as HTMLInputElement)?.value || '';
+    const description = (document.getElementById('campaign-description') as HTMLInputElement)?.value || '';
+    const content = (document.getElementById('campaign-content') as HTMLTextAreaElement)?.value || '';
+    const recipients = (document.getElementById('campaign-recipients') as HTMLSelectElement)?.value || '';
     
     if (!subject || !content) {
       alert('Subject and content are required');
@@ -2458,8 +2506,9 @@ import Layout from '~/layouts/AdminLayout.astro';
   // Show email preview (demo)
   function showEmailPreview(subject, content, recipientCount, errorCount = 0) {
     const modal = document.getElementById('modal-container');
-    modal.innerHTML = `
-      <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onclick="if(event.target === this) closeModal()">
+    if (modal) {
+      modal.innerHTML = `
+        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onclick="if(event.target === this) closeModal()">
         <div class="bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-2xl w-full mx-4">
           <div class="p-6">
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">📧 Email Campaign Preview</h3>
@@ -2494,13 +2543,15 @@ import Layout from '~/layouts/AdminLayout.astro';
         </div>
       </div>
     `;
+    }
   }
 
   // Show create template modal
   function showCreateTemplate() {
     const modal = document.getElementById('modal-container');
-    modal.innerHTML = `
-      <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onclick="if(event.target === this) closeModal()">
+    if (modal) {
+      modal.innerHTML = `
+        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onclick="if(event.target === this) closeModal()">
         <div class="bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto">
           <div class="p-6">
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Create Email Template</h3>
@@ -2530,11 +2581,12 @@ import Layout from '~/layouts/AdminLayout.astro';
         </div>
       </div>
     `;
+    }
   }
 
   // Save template
   function saveTemplate() {
-    const name = document.getElementById('template-name').value;
+    const name = (document.getElementById('template-name') as HTMLInputElement)?.value || '';
     const description = document.getElementById('template-description').value;
     const content = document.getElementById('template-content').value;
     
@@ -2567,8 +2619,9 @@ import Layout from '~/layouts/AdminLayout.astro';
     if (!subscriber) return;
     
     const modal = document.getElementById('modal-container');
-    modal.innerHTML = `
-      <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onclick="if(event.target === this) closeModal()">
+    if (modal) {
+      modal.innerHTML = `
+        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onclick="if(event.target === this) closeModal()">
         <div class="bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-md w-full mx-4">
           <div class="p-6">
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Edit Subscriber</h3>
@@ -2601,6 +2654,7 @@ import Layout from '~/layouts/AdminLayout.astro';
         </div>
       </div>
     `;
+    }
   }
 
   // Update subscriber
@@ -2674,8 +2728,9 @@ import Layout from '~/layouts/AdminLayout.astro';
     }
     
     const modal = document.getElementById('modal-container');
-    modal.innerHTML = `
-      <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onclick="if(event.target === this) closeModal()">
+    if (modal) {
+      modal.innerHTML = `
+        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onclick="if(event.target === this) closeModal()">
         <div class="bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto">
           <div class="p-6">
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Edit Email Template</h3>
@@ -2705,6 +2760,7 @@ import Layout from '~/layouts/AdminLayout.astro';
         </div>
       </div>
     `;
+    }
   }
 
   // Update template
