@@ -489,9 +489,105 @@ import Layout from '~/layouts/AdminLayout.astro';
 <div id="modal-container"></div>
 
 <script>
+  // Type declarations for global functions
+  declare global {
+    interface Window {
+      switchTab: (tab: string) => void;
+      showAddSubscriber: () => void;
+      showCreateCampaign: () => void;
+      showCreateTemplate: () => void;
+      showCSVUpload: () => void;
+      importFromAppointments: () => void;
+      editSubscriber: (subscriber: any) => void;
+      deleteSubscriber: (id: string) => void;
+      editCampaign: (campaign: any) => void;
+      deleteCampaign: (id: string) => void;
+      editTemplate: (template: any) => void;
+      deleteTemplate: (id: string) => void;
+      closeModal: () => void;
+      processCSV: (event: Event) => void;
+      addNewSubscriber: () => void;
+      saveCampaign: () => void;
+      saveAndSendCampaign: () => void;
+      saveTemplate: () => void;
+      updateSubscriber: () => void;
+      loadTemplate: (templateId: string) => void;
+      updateRecipientCount: () => void;
+      getSelectedTags: () => string[];
+      getRecipientCount: () => number;
+      loadTemplatesIntoCampaign: () => void;
+      loadAvailableTags: () => void;
+      showEmailPreview: () => void;
+      updateTemplate: () => void;
+      sendCampaignEmails: () => void;
+      sendRealEmail: () => void;
+      initResend: () => void;
+      applySubscriberFilters: () => void;
+      clearSubscriberFilters: () => void;
+      exportSubscribersCSV: () => void;
+      toggleSelectAll: () => void;
+      selectAllSubscribers: () => void;
+      clearAllSelections: () => void;
+      updateBulkActions: () => void;
+      bulkMarkActive: () => void;
+      bulkMarkInactive: () => void;
+      bulkDelete: () => void;
+      viewCampaignDetails: (campaign: any) => void;
+      viewSubscriberDetails: (subscriber: any) => void;
+      cleanupInvalidSubscribers: () => void;
+      downloadCampaignReport: (campaign: any) => void;
+      generateAnalyticsReport: () => void;
+      downloadSubscriberReport: () => void;
+      forceReloadCampaigns: () => void;
+    }
+  }
+
   // Global variables
   let supabase = null;
   let currentUser = null;
+  
+  // Define types
+  type Subscriber = {
+    id?: string;
+    email: string;
+    name: string;
+    tags: string[];
+    status: string;
+    created_at?: string;
+    [key: string]: any;
+  };
+  
+  type Campaign = {
+    id?: string;
+    name: string;
+    subject: string;
+    content: string;
+    template_id?: string;
+    status: string;
+    created_at?: string;
+    [key: string]: any;
+  };
+  
+  type Template = {
+    id?: string;
+    name: string;
+    subject: string;
+    content: string;
+    created_at?: string;
+    [key: string]: any;
+  };
+  
+  // Global arrays with proper typing
+  let subscribers: Subscriber[] = [];
+  let campaigns: Campaign[] = [];
+  let templates: Template[] = [];
+  let selectedSubscribers = new Set<string>();
+  let selectedCampaigns = new Set<string>();
+  let selectedTemplates = new Set<string>();
+  let activeTab = 'subscribers';
+  let currentEditingSubscriber: Subscriber | null = null;
+  let currentEditingCampaign: Campaign | null = null;
+  let currentEditingTemplate: Template | null = null;
   
   // Resend configuration (replace with your actual API key)
   const RESEND_CONFIG = {
@@ -1010,9 +1106,9 @@ import Layout from '~/layouts/AdminLayout.astro';
 
   // Apply subscriber filters
   function applySubscriberFilters() {
-    const sourceFilter = document.getElementById('filter-source').value;
-    const tagFilter = document.getElementById('filter-tag').value;
-    const statusFilter = document.getElementById('filter-status').value;
+    const sourceFilter = (document.getElementById('filter-source') as HTMLSelectElement)?.value || '';
+    const tagFilter = (document.getElementById('filter-tag') as HTMLSelectElement)?.value || '';
+    const statusFilter = (document.getElementById('filter-status') as HTMLSelectElement)?.value || '';
     
     const allSubscribers = JSON.parse(localStorage.getItem('email_subscribers') || '[]');
     let filteredSubscribers = allSubscribers;
@@ -2286,6 +2382,14 @@ import Layout from '~/layouts/AdminLayout.astro';
       
       // Define types for better TypeScript support
       const errors: string[] = [];
+      
+      // Define subscriber type
+      type Subscriber = {
+        email: string;
+        name: string;
+        tags: string[];
+        [key: string]: any;
+      };
 
       console.log(`📧 Starting campaign to ${targetSubscribers.length} subscribers`);
       console.log(`📧 Target subscribers:`, targetSubscribers.map(s => ({ email: s.email, name: s.name, tags: s.tags })));
