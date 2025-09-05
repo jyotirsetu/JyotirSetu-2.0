@@ -1,8 +1,35 @@
+export const prerender = false;
+
 export async function POST({ request }) {
   try {
     console.log('📧 Email API called');
     
-    const { subject, content, recipientEmail, recipientName } = await request.json();
+    // Check if request has body
+    const contentType = request.headers.get('content-type');
+    console.log('📧 Content-Type:', contentType);
+    
+    if (!contentType || !contentType.includes('application/json')) {
+      throw new Error('Content-Type must be application/json');
+    }
+    
+    // Get request body as text first to debug
+    const bodyText = await request.text();
+    console.log('📧 Raw body:', bodyText);
+    
+    if (!bodyText || bodyText.trim() === '') {
+      throw new Error('Request body is empty');
+    }
+    
+    // Parse JSON
+    let requestData;
+    try {
+      requestData = JSON.parse(bodyText);
+    } catch (parseError) {
+      console.error('📧 JSON parse error:', parseError);
+      throw new Error('Invalid JSON in request body');
+    }
+    
+    const { subject, content, recipientEmail, recipientName } = requestData;
     console.log('📧 Request data:', { subject, content, recipientEmail, recipientName });
     
     // Resend configuration

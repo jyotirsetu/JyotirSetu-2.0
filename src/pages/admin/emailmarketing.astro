@@ -562,17 +562,21 @@ import Layout from '~/layouts/AdminLayout.astro';
       console.log('📤 Sending email via server API...');
       console.log('🌐 API URL:', apiUrl);
       
+      const requestBody = {
+        subject: subject,
+        content: content,
+        recipientEmail: recipientEmail,
+        recipientName: recipientName
+      };
+      
+      console.log('📤 Request body:', JSON.stringify(requestBody, null, 2));
+      
       const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          subject: subject,
-          content: content,
-          recipientEmail: recipientEmail,
-          recipientName: recipientName
-        })
+        body: JSON.stringify(requestBody)
       });
 
       console.log('📡 Response status:', response.status);
