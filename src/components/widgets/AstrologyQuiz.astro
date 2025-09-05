@@ -9,16 +9,16 @@
     constructor() {
       this.init();
     }
-    
+
     init() {
       this.renderQuiz();
       this.attachEventListeners();
     }
-    
+
     renderQuiz() {
       const container = document.getElementById('astrology-quiz-container');
       if (!container) return;
-      
+
       container.innerHTML = `
         <div class="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl p-6 border border-purple-200 dark:border-purple-700">
           <div class="text-center mb-6">
@@ -117,45 +117,45 @@
         </div>
       `;
     }
-    
+
     attachEventListeners() {
       const radioButtons = document.querySelectorAll('input[type="radio"]');
       const lifeConcernSelect = document.getElementById('life-concern');
       const readStarsBtn = document.getElementById('read-stars');
-      
-      radioButtons.forEach(radio => {
+
+      radioButtons.forEach((radio) => {
         radio.addEventListener('change', () => this.updateSubmitButton());
       });
-      
+
       if (lifeConcernSelect) {
         lifeConcernSelect.addEventListener('change', () => this.updateSubmitButton());
       }
-      
+
       if (readStarsBtn) {
         readStarsBtn.addEventListener('click', () => this.readStars());
       }
     }
-    
+
     updateSubmitButton() {
       const zodiacSign = document.querySelector('input[name="zodiac-sign"]:checked');
       const lifeConcern = (document.getElementById('life-concern') as HTMLInputElement)?.value;
       const submitBtn = document.getElementById('read-stars') as HTMLButtonElement;
-      
+
       if (submitBtn) {
         submitBtn.disabled = !(zodiacSign && lifeConcern);
       }
     }
-    
+
     readStars() {
       const zodiacSign = (document.querySelector('input[name="zodiac-sign"]:checked') as HTMLInputElement)?.value;
       const lifeConcern = (document.getElementById('life-concern') as HTMLInputElement)?.value;
-      
+
       if (!zodiacSign || !lifeConcern) return;
-      
+
       const insights = this.generateAstrologyInsights(zodiacSign, lifeConcern);
       this.showResult(insights, zodiacSign, lifeConcern);
     }
-    
+
     generateAstrologyInsights(zodiacSign: string, _lifeConcern: string) {
       const insights = {
         aries: {
@@ -163,30 +163,35 @@
           ruler: 'Mars',
           traits: 'Bold, energetic, pioneering, courageous',
           description: 'As a fiery Aries, you are a natural leader with boundless energy and determination.',
-          marriage: 'You seek passionate, dynamic relationships. Your partner should appreciate your independence and adventurous spirit.',
+          marriage:
+            'You seek passionate, dynamic relationships. Your partner should appreciate your independence and adventurous spirit.',
           career: 'Perfect for leadership roles, entrepreneurship, and any field requiring initiative and courage.',
           health: 'Focus on managing your high energy levels through regular exercise and stress management.',
-          spirituality: 'Your spiritual path involves discovering your unique purpose and divine mission.'
+          spirituality: 'Your spiritual path involves discovering your unique purpose and divine mission.',
         },
         taurus: {
           element: 'Earth',
           ruler: 'Venus',
           traits: 'Patient, reliable, practical, sensual',
-          description: 'As an earthy Taurus, you are grounded, patient, and have a deep appreciation for beauty and comfort.',
+          description:
+            'As an earthy Taurus, you are grounded, patient, and have a deep appreciation for beauty and comfort.',
           marriage: 'You seek stable, long-term relationships built on trust, loyalty, and shared values.',
           career: 'Ideal for finance, real estate, agriculture, and any field requiring patience and reliability.',
-          health: 'Focus on maintaining a balanced diet and regular exercise routine. You have strong physical endurance.',
-          spirituality: 'Your spiritual journey involves developing patience and finding beauty in all aspects of life.'
+          health:
+            'Focus on maintaining a balanced diet and regular exercise routine. You have strong physical endurance.',
+          spirituality:
+            'Your spiritual journey involves developing patience and finding beauty in all aspects of life.',
         },
         gemini: {
           element: 'Air',
           ruler: 'Mercury',
           traits: 'Versatile, expressive, quick-witted, curious',
-          description: 'As an airy Gemini, you are adaptable, communicative, and always seeking new knowledge and experiences.',
+          description:
+            'As an airy Gemini, you are adaptable, communicative, and always seeking new knowledge and experiences.',
           marriage: 'You need intellectual stimulation and variety in relationships. Communication is key for you.',
           career: 'Perfect for communication, teaching, sales, writing, and any field requiring versatility.',
           health: 'Focus on mental health and stress management. Regular mental stimulation is important.',
-          spirituality: 'Your spiritual path involves continuous learning and sharing knowledge with others.'
+          spirituality: 'Your spiritual path involves continuous learning and sharing knowledge with others.',
         },
         cancer: {
           element: 'Water',
@@ -196,7 +201,7 @@
           marriage: 'You create deep, emotional bonds and seek partners who appreciate your caring nature.',
           career: 'Ideal for healthcare, counseling, hospitality, and any caring profession.',
           health: 'Focus on emotional well-being and maintaining healthy boundaries in relationships.',
-          spirituality: 'Your spiritual journey involves developing emotional intelligence and intuitive abilities.'
+          spirituality: 'Your spiritual journey involves developing emotional intelligence and intuitive abilities.',
         },
         leo: {
           element: 'Fire',
@@ -206,37 +211,41 @@
           marriage: 'You seek partners who appreciate your creativity and give you the attention you deserve.',
           career: 'Perfect for entertainment, leadership, sales, and any field where you can shine and inspire.',
           health: 'Focus on maintaining your energy levels and managing stress through creative outlets.',
-          spirituality: 'Your spiritual path involves discovering your unique creative gifts and sharing them with the world.'
+          spirituality:
+            'Your spiritual path involves discovering your unique creative gifts and sharing them with the world.',
         },
         virgo: {
           element: 'Earth',
           ruler: 'Mercury',
           traits: 'Analytical, practical, perfectionist, helpful',
-          description: 'As an earthy Virgo, you are detail-oriented, practical, and have a strong desire to be of service.',
+          description:
+            'As an earthy Virgo, you are detail-oriented, practical, and have a strong desire to be of service.',
           marriage: 'You seek partners who appreciate your attention to detail and practical approach to life.',
           career: 'Ideal for healthcare, research, administration, and any field requiring precision and organization.',
           health: 'Focus on maintaining a healthy work-life balance and managing perfectionist tendencies.',
-          spirituality: 'Your spiritual journey involves developing self-acceptance and finding ways to serve others.'
+          spirituality: 'Your spiritual journey involves developing self-acceptance and finding ways to serve others.',
         },
         libra: {
           element: 'Air',
           ruler: 'Venus',
           traits: 'Diplomatic, gracious, fair-minded, social',
-          description: 'As an airy Libra, you are balanced, diplomatic, and have a natural sense of justice and harmony.',
+          description:
+            'As an airy Libra, you are balanced, diplomatic, and have a natural sense of justice and harmony.',
           marriage: 'You seek harmonious, balanced relationships and are excellent at maintaining peace.',
           career: 'Perfect for law, diplomacy, counseling, and any field requiring balance and fairness.',
           health: 'Focus on maintaining balance in all areas of life and avoiding indecision-related stress.',
-          spirituality: 'Your spiritual path involves creating harmony and balance in all aspects of life.'
+          spirituality: 'Your spiritual path involves creating harmony and balance in all aspects of life.',
         },
         scorpio: {
           element: 'Water',
           ruler: 'Pluto',
           traits: 'Passionate, determined, magnetic, mysterious',
-          description: 'As a watery Scorpio, you are intense, passionate, and have a deep understanding of human nature.',
+          description:
+            'As a watery Scorpio, you are intense, passionate, and have a deep understanding of human nature.',
           marriage: 'You seek deep, transformative relationships and are incredibly loyal to those you love.',
           career: 'Ideal for psychology, investigation, research, and any field requiring depth and insight.',
           health: 'Focus on emotional healing and maintaining healthy boundaries in intense relationships.',
-          spirituality: 'Your spiritual journey involves deep transformation and understanding the mysteries of life.'
+          spirituality: 'Your spiritual journey involves deep transformation and understanding the mysteries of life.',
         },
         sagittarius: {
           element: 'Fire',
@@ -244,62 +253,77 @@
           traits: 'Optimistic, adventurous, philosophical, honest',
           description: 'As a fiery Sagittarius, you are optimistic, adventurous, and always seeking truth and wisdom.',
           marriage: 'You seek partners who share your love for adventure and intellectual growth.',
-          career: 'Perfect for travel, teaching, philosophy, and any field offering variety and learning opportunities.',
+          career:
+            'Perfect for travel, teaching, philosophy, and any field offering variety and learning opportunities.',
           health: 'Focus on maintaining physical activity and managing your restless energy constructively.',
-          spirituality: 'Your spiritual path involves continuous learning and expanding your horizons.'
+          spirituality: 'Your spiritual path involves continuous learning and expanding your horizons.',
         },
         capricorn: {
           element: 'Earth',
           ruler: 'Saturn',
           traits: 'Ambitious, disciplined, responsible, patient',
-          description: 'As an earthy Capricorn, you are ambitious, disciplined, and have a strong sense of responsibility.',
+          description:
+            'As an earthy Capricorn, you are ambitious, disciplined, and have a strong sense of responsibility.',
           marriage: 'You seek stable, long-term relationships built on mutual respect and shared goals.',
           career: 'Ideal for business, finance, management, and any field requiring discipline and long-term planning.',
           health: 'Focus on maintaining work-life balance and managing stress through structured relaxation.',
-          spirituality: 'Your spiritual journey involves developing patience and building a strong foundation of faith.'
+          spirituality:
+            'Your spiritual journey involves developing patience and building a strong foundation of faith.',
         },
         aquarius: {
           element: 'Air',
           ruler: 'Uranus',
           traits: 'Innovative, independent, humanitarian, intellectual',
-          description: 'As an airy Aquarius, you are innovative, independent, and have a strong desire to help humanity.',
+          description:
+            'As an airy Aquarius, you are innovative, independent, and have a strong desire to help humanity.',
           marriage: 'You seek partners who respect your independence and share your humanitarian values.',
           career: 'Perfect for technology, science, social work, and any field requiring innovation and originality.',
           health: 'Focus on maintaining social connections and managing your tendency to intellectualize emotions.',
-          spirituality: 'Your spiritual path involves developing your unique perspective and helping others.'
+          spirituality: 'Your spiritual path involves developing your unique perspective and helping others.',
         },
         pisces: {
           element: 'Water',
           ruler: 'Neptune',
           traits: 'Compassionate, artistic, intuitive, dreamy',
-          description: 'As a watery Pisces, you are compassionate, artistic, and have a deep connection to the spiritual realm.',
-          marriage: 'You seek deep, spiritual connections and are incredibly empathetic to your partner\'s needs.',
+          description:
+            'As a watery Pisces, you are compassionate, artistic, and have a deep connection to the spiritual realm.',
+          marriage: "You seek deep, spiritual connections and are incredibly empathetic to your partner's needs.",
           career: 'Ideal for arts, healing, spirituality, and any field requiring compassion and creativity.',
-          health: 'Focus on maintaining boundaries and managing your tendency to absorb others\' emotions.',
-          spirituality: 'Your spiritual path is your primary focus, leading to profound spiritual wisdom and compassion.'
-        }
+          health: "Focus on maintaining boundaries and managing your tendency to absorb others' emotions.",
+          spirituality:
+            'Your spiritual path is your primary focus, leading to profound spiritual wisdom and compassion.',
+        },
       };
-      
+
       return insights[zodiacSign] || insights.aries;
     }
-    
+
     showResult(insights: Record<string, unknown>, zodiacSign: string, lifeConcern: string) {
       const resultContainer = document.getElementById('astrology-result');
       if (!resultContainer) return;
-      
+
       const zodiacSigns = {
-        aries: '♈ Aries', taurus: '♉ Taurus', gemini: '♊ Gemini', cancer: '♋ Cancer',
-        leo: '♌ Leo', virgo: '♍ Virgo', libra: '♎ Libra', scorpio: '♏ Scorpio',
-        sagittarius: '♐ Sagittarius', capricorn: '♑ Capricorn', aquarius: '♒ Aquarius', pisces: '♓ Pisces'
+        aries: '♈ Aries',
+        taurus: '♉ Taurus',
+        gemini: '♊ Gemini',
+        cancer: '♋ Cancer',
+        leo: '♌ Leo',
+        virgo: '♍ Virgo',
+        libra: '♎ Libra',
+        scorpio: '♏ Scorpio',
+        sagittarius: '♐ Sagittarius',
+        capricorn: '♑ Capricorn',
+        aquarius: '♒ Aquarius',
+        pisces: '♓ Pisces',
       };
-      
+
       const concernLabels = {
-        'marriage': '💕 Marriage & Relationships',
-        'career': '💼 Career & Professional Growth',
-        'health': '🌿 Health & Wellbeing',
-        'spirituality': '🕉️ Spiritual Development'
+        marriage: '💕 Marriage & Relationships',
+        career: '💼 Career & Professional Growth',
+        health: '🌿 Health & Wellbeing',
+        spirituality: '🕉️ Spiritual Development',
       };
-      
+
       resultContainer.innerHTML = `
         <div class="text-center">
           <div class="text-6xl mb-4">${zodiacSigns[zodiacSign]}</div>
@@ -353,11 +377,11 @@
           </div>
         </div>
       `;
-      
+
       resultContainer.classList.remove('hidden');
     }
   }
-  
+
   // Initialize quiz when DOM is ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {

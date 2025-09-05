@@ -55,15 +55,15 @@ export default [
   },
   {
     ignores: [
-      'dist', 
-      'node_modules', 
-      '.github', 
-      'types.generated.d.ts', 
+      'dist',
+      'node_modules',
+      '.github',
+      'types.generated.d.ts',
       '.astro',
       '.vercel',
       '**/.vercel/**',
       '**/dist/**',
-      '**/node_modules/**'
+      '**/node_modules/**',
     ],
   },
 ];

@@ -6,25 +6,25 @@ export const WHATSAPP_CONFIG = {
   // Get these from Facebook Developers Console
   ACCESS_TOKEN: 'YOUR_ACCESS_TOKEN_HERE', // Replace with your actual access token from Meta
   PHONE_NUMBER_ID: 'YOUR_PHONE_NUMBER_ID_HERE', // Replace with your actual phone number ID from Meta
-  
+
   // Business Information
   BUSINESS_NAME: 'JyotirSetu',
   BUSINESS_PHONE: '+919266991298',
   BUSINESS_EMAIL: 'guidance@jyotirsetu.com',
   BUSINESS_ADDRESS: 'Sector-15, Gurugram, Haryana',
-  
+
   // WhatsApp Message Settings
   MESSAGE_TEMPLATE: 'appointment_confirmation', // You can create custom templates
   LANGUAGE: 'en', // Message language
-  
+
   // API Endpoints
   WHATSAPP_API_URL: 'https://graph.facebook.com/v18.0',
-  
+
   // Rate Limiting (WhatsApp allows 1000 messages/month free)
   RATE_LIMIT: {
     messagesPerMonth: 1000,
-    messagesPerSecond: 1
-  }
+    messagesPerSecond: 1,
+  },
 };
 
 // WhatsApp Message Templates
@@ -109,7 +109,7 @@ For continued guidance, contact us:
 📧 Email: ${WHATSAPP_CONFIG.BUSINESS_EMAIL}
 
 *Om Namah Shivaya* 🙏
-*JyotirSetu - Your Spiritual Guide* ✨`
+*JyotirSetu - Your Spiritual Guide* ✨`,
 };
 
 export default WHATSAPP_CONFIG;

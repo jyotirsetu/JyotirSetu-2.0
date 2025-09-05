@@ -16,24 +16,25 @@
       this.lastScrollTop = 0;
       this.init();
     }
-    
+
     init() {
       // Create floating button
       this.createFloatingButton();
-      
+
       // Add scroll behavior
       window.addEventListener('scroll', this.handleScroll.bind(this));
-      
+
       // Show after 3 seconds
       setTimeout(() => {
         this.show();
       }, 3000);
     }
-    
+
     createFloatingButton() {
       const button = document.createElement('div');
       button.id = 'whatsapp-chat-widget';
-      button.className = 'fixed bottom-6 right-6 z-40 transform translate-y-20 opacity-0 transition-all duration-500 ease-out';
+      button.className =
+        'fixed bottom-6 right-6 z-40 transform translate-y-20 opacity-0 transition-all duration-500 ease-out';
       button.innerHTML = `
         <div class="relative group">
           <!-- Main Button -->
@@ -66,41 +67,41 @@
           ×
         </button>
       `;
-      
+
       document.body.appendChild(button);
       this.button = button;
     }
-    
+
     show() {
       if (this.isVisible || !this.button) return;
-      
+
       this.button.classList.remove('translate-y-20', 'opacity-0');
       this.button.classList.add('translate-y-0', 'opacity-100');
       this.isVisible = true;
     }
-    
+
     hide() {
       if (!this.isVisible || !this.button) return;
-      
+
       this.button.classList.add('translate-y-20', 'opacity-0');
       this.button.classList.remove('translate-y-0', 'opacity-100');
       this.isVisible = false;
     }
-    
+
     handleScroll() {
       const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-      
+
       // Hide on scroll down, show on scroll up
       if (scrollTop > this.lastScrollTop && scrollTop > 100) {
         this.hide();
       } else if (scrollTop < this.lastScrollTop) {
         this.show();
       }
-      
+
       this.lastScrollTop = scrollTop;
     }
   }
-  
+
   // Initialize WhatsApp widget when DOM is ready
   document.addEventListener('DOMContentLoaded', () => {
     new WhatsAppChatWidget();
@@ -113,7 +114,8 @@
 <style>
   /* Custom animations for WhatsApp widget */
   @keyframes pulse-green {
-    0%, 100% {
+    0%,
+    100% {
       opacity: 1;
       transform: scale(1);
     }
@@ -122,28 +124,28 @@
       transform: scale(1.1);
     }
   }
-  
+
   .animate-ping {
     animation: pulse-green 2s cubic-bezier(0, 0, 0.2, 1) infinite;
   }
-  
+
   /* Hover effects */
   #whatsapp-chat-widget:hover .animate-ping {
     animation-play-state: paused;
   }
-  
+
   /* Mobile responsiveness */
   @media (max-width: 768px) {
     #whatsapp-chat-widget {
       bottom: 4rem;
       right: 1rem;
     }
-    
+
     #whatsapp-chat-widget button {
       width: 3.5rem;
       height: 3.5rem;
     }
-    
+
     #whatsapp-chat-widget svg {
       width: 1.75rem;
       height: 1.75rem;

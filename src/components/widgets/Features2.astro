@@ -21,12 +21,12 @@ const {
 
 <WidgetWrapper id={id} isDark={isDark} containerClass={`max-w-7xl mx-auto ${classes?.container ?? ''}`} bg={bg}>
   <Headline title={title} subtitle={subtitle} tagline={tagline} classes={classes?.headline as Record<string, string>} />
-  
+
   <!-- Mobile swipe instruction -->
   <div class="md:hidden text-center mb-6">
     <p class="text-sm text-muted">← Swipe to see more services →</p>
   </div>
-  
+
   <ItemGrid2
     items={items}
     columns={columns}
@@ -41,7 +41,7 @@ const {
       ...((classes?.items as Record<string, never>) ?? {}),
     }}
   />
-  
+
   <!-- Mobile scroll indicators -->
   <div class="md:hidden mt-8 text-center">
     <div class="flex justify-center space-x-2">

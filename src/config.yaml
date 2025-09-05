@@ -11,14 +11,14 @@ metadata:
   title:
     default: JyotirSetu
     template: '%s — JyotirSetu'
-  description: "Professional astrology, palmistry & numerology consultations by Astrologer Punita Sharma."
+  description: 'Professional astrology, palmistry & numerology consultations by Astrologer Punita Sharma.'
   robots:
     index: true
     follow: true
   openGraph:
     site_name: JyotirSetu
     images:
-      - url: '~/assets/images/logo.png'   # Your logo for social sharing
+      - url: '~/assets/images/logo.png' # Your logo for social sharing
         width: 1200
         height: 628
         alt: 'JyotirSetu Logo'
@@ -28,7 +28,7 @@ metadata:
     site: null
     cardType: summary_large_image
     images:
-      - url: '~/assets/images/logo.png'   # Logo for Twitter card
+      - url: '~/assets/images/logo.png' # Logo for Twitter card
         width: 1200
         height: 628
         alt: 'JyotirSetu Logo'
@@ -44,7 +44,7 @@ apps:
 
     post:
       isEnabled: true
-      permalink: '/%slug%' 
+      permalink: '/%slug%'
       robots:
         index: true
 

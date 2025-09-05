@@ -9,16 +9,16 @@
     constructor() {
       this.init();
     }
-    
+
     init() {
       this.renderQuiz();
       this.attachEventListeners();
     }
-    
+
     renderQuiz() {
       const container = document.getElementById('numerology-quiz-container');
       if (!container) return;
-      
+
       container.innerHTML = `
         <div class="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-6 border border-blue-200 dark:border-blue-700">
           <div class="text-center mb-6">
@@ -73,64 +73,67 @@
         </div>
       `;
     }
-    
+
     attachEventListeners() {
       const birthDateInput = document.getElementById('birth-date');
       const focusAreaSelect = document.getElementById('focus-area');
       const calculateBtn = document.getElementById('calculate-number');
-      
+
       if (birthDateInput && focusAreaSelect && calculateBtn) {
         birthDateInput.addEventListener('change', () => this.updateSubmitButton());
         focusAreaSelect.addEventListener('change', () => this.updateSubmitButton());
         calculateBtn.addEventListener('click', () => this.calculateLifePath());
       }
     }
-    
+
     updateSubmitButton() {
       const birthDate = (document.getElementById('birth-date') as HTMLInputElement)?.value;
       const focusArea = (document.getElementById('focus-area') as HTMLInputElement)?.value;
       const submitBtn = document.getElementById('calculate-number') as HTMLButtonElement;
-      
+
       if (submitBtn) {
         submitBtn.disabled = !(birthDate && focusArea);
       }
     }
-    
+
     calculateLifePath() {
       const birthDate = (document.getElementById('birth-date') as HTMLInputElement)?.value;
       const focusArea = (document.getElementById('focus-area') as HTMLInputElement)?.value;
-      
+
       if (!birthDate || !focusArea) return;
-      
+
       const lifePathNumber = this.computeLifePathNumber(birthDate);
       const insights = this.getLifePathInsights(lifePathNumber, focusArea);
-      
+
       this.showResult(lifePathNumber, insights, focusArea);
     }
-    
+
     computeLifePathNumber(birthDate: string) {
       const date = new Date(birthDate);
       const day = date.getDate();
       const month = date.getMonth() + 1;
       const year = date.getFullYear();
-      
+
       // Reduce day, month, and year to single digits
       const daySum = this.reduceToSingleDigit(day);
       const monthSum = this.reduceToSingleDigit(month);
       const yearSum = this.reduceToSingleDigit(year);
-      
+
       // Sum all three and reduce to single digit
       const total = daySum + monthSum + yearSum;
       return this.reduceToSingleDigit(total);
     }
-    
+
     reduceToSingleDigit(num: number) {
       while (num > 9) {
-        num = num.toString().split('').reduce((sum: number, digit: string) => sum + parseInt(digit), 0);
+        num = num
+          .toString()
+          .split('')
+          .reduce((sum: number, digit: string) => sum + parseInt(digit), 0);
       }
       return num;
     }
-    
+
     getLifePathInsights(lifePathNumber: number, _focusArea: string) {
       const insights = {
         1: {
@@ -140,7 +143,7 @@
           money: 'Excellent at starting businesses and taking financial risks. Focus on entrepreneurship.',
           love: 'You seek partners who respect your independence and share your ambitious nature.',
           spirituality: 'Your spiritual path involves discovering your unique purpose and divine mission.',
-          career: 'Perfect for leadership roles, entrepreneurship, and pioneering new ventures.'
+          career: 'Perfect for leadership roles, entrepreneurship, and pioneering new ventures.',
         },
         2: {
           title: 'The Diplomat',
@@ -149,7 +152,7 @@
           money: 'Great at partnerships and collaborative financial ventures. Avoid impulsive decisions.',
           love: 'You thrive in committed relationships and seek deep emotional connections.',
           spirituality: 'Your spiritual journey involves developing intuition and inner wisdom.',
-          career: 'Ideal for mediation, counseling, teamwork, and diplomatic roles.'
+          career: 'Ideal for mediation, counseling, teamwork, and diplomatic roles.',
         },
         3: {
           title: 'The Communicator',
@@ -158,7 +161,7 @@
           money: 'Success comes through creative talents and positive thinking. Avoid overspending.',
           love: 'You bring joy and excitement to relationships. Seek partners who appreciate your creativity.',
           spirituality: 'Your spiritual path involves expressing your divine creativity and joy.',
-          career: 'Perfect for creative fields, communication, teaching, and entertainment.'
+          career: 'Perfect for creative fields, communication, teaching, and entertainment.',
         },
         4: {
           title: 'The Builder',
@@ -167,7 +170,7 @@
           money: 'Excellent at building wealth through steady, disciplined approaches. Avoid risky investments.',
           love: 'You seek stable, long-term relationships built on trust and mutual respect.',
           spirituality: 'Your spiritual journey involves building a strong foundation of faith and discipline.',
-          career: 'Ideal for construction, engineering, finance, and any field requiring organization.'
+          career: 'Ideal for construction, engineering, finance, and any field requiring organization.',
         },
         5: {
           title: 'The Adventurer',
@@ -176,7 +179,7 @@
           money: 'Success comes through diverse income streams and adaptability. Avoid being too scattered.',
           love: 'You need partners who give you space and share your love for adventure.',
           spirituality: 'Your spiritual path involves exploring different traditions and finding your own way.',
-          career: 'Perfect for travel, sales, marketing, and any field offering variety and freedom.'
+          career: 'Perfect for travel, sales, marketing, and any field offering variety and freedom.',
         },
         6: {
           title: 'The Nurturer',
@@ -185,7 +188,7 @@
           money: 'Success comes through helping others and creating value. Avoid being taken advantage of.',
           love: 'You are a devoted partner who creates loving, harmonious relationships.',
           spirituality: 'Your spiritual journey involves serving others and developing unconditional love.',
-          career: 'Ideal for healthcare, education, counseling, and any caring profession.'
+          career: 'Ideal for healthcare, education, counseling, and any caring profession.',
         },
         7: {
           title: 'The Seeker',
@@ -194,7 +197,7 @@
           money: 'Success comes through research and careful analysis. Avoid impulsive financial decisions.',
           love: 'You seek intellectual and spiritual connection with partners who understand your depth.',
           spirituality: 'Your spiritual path is your primary focus, leading to profound wisdom.',
-          career: 'Perfect for research, analysis, spirituality, and intellectual pursuits.'
+          career: 'Perfect for research, analysis, spirituality, and intellectual pursuits.',
         },
         8: {
           title: 'The Achiever',
@@ -203,7 +206,7 @@
           money: 'Excellent at building wealth and managing resources. Focus on ethical business practices.',
           love: 'You seek partners who share your ambition and support your goals.',
           spirituality: 'Your spiritual journey involves balancing material success with spiritual growth.',
-          career: 'Ideal for business, finance, management, and any field requiring leadership and authority.'
+          career: 'Ideal for business, finance, management, and any field requiring leadership and authority.',
         },
         9: {
           title: 'The Humanitarian',
@@ -212,24 +215,24 @@
           money: 'Success comes through helping others and creating positive change. Avoid attachment to wealth.',
           love: 'You seek deep, meaningful connections that transcend personal needs.',
           spirituality: 'Your spiritual path involves developing universal love and compassion.',
-          career: 'Perfect for humanitarian work, healing, teaching, and any field serving others.'
-        }
+          career: 'Perfect for humanitarian work, healing, teaching, and any field serving others.',
+        },
       };
-      
+
       return insights[lifePathNumber] || insights[1];
     }
-    
+
     showResult(lifePathNumber: number, insights: Record<string, unknown>, focusArea: string) {
       const resultContainer = document.getElementById('numerology-result');
       if (!resultContainer) return;
-      
+
       const focusAreaLabels = {
-        'money': '💰 Money & Financial Success',
-        'love': '💕 Love & Relationships',
-        'spirituality': '🕉️ Spirituality & Inner Growth',
-        'career': '💼 Career & Professional Life'
+        money: '💰 Money & Financial Success',
+        love: '💕 Love & Relationships',
+        spirituality: '🕉️ Spirituality & Inner Growth',
+        career: '💼 Career & Professional Life',
       };
-      
+
       resultContainer.innerHTML = `
         <div class="text-center">
           <div class="text-6xl mb-4">🔢</div>
@@ -273,11 +276,11 @@
           </div>
         </div>
       `;
-      
+
       resultContainer.classList.remove('hidden');
     }
   }
-  
+
   // Initialize quiz when DOM is ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {

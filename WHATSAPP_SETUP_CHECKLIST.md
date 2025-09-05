@@ -42,9 +42,9 @@
 - [ ] **24. Find form** `xnnbzveo`
 - [ ] **25. Go to Settings → Webhooks**
 - [ ] **26. Add new webhook**:
-    - **URL**: `https://yourdomain.com/api/whatsapp-simple`
-    - **Events**: `form.submitted`
-    - **Method**: POST
+  - **URL**: `https://yourdomain.com/api/whatsapp-simple`
+  - **Events**: `form.submitted`
+  - **Method**: POST
 
 ### **Phase 6: Test Everything (5 minutes)**
 
@@ -62,7 +62,7 @@
 ✅ **Instant user notifications** with all appointment details  
 ✅ **Beautiful message templates** with your branding  
 ✅ **Email notifications** to you (as before)  
-✅ **Mobile-optimized** experience  
+✅ **Mobile-optimized** experience
 
 ---
 
@@ -79,6 +79,7 @@
 ## 📞 **Need Help?**
 
 If you get stuck at any step:
+
 1. **Check the detailed guide** in `WHATSAPP_SETUP.md`
 2. **Review Facebook Developer documentation**
 3. **Test webhook endpoint** directly
@@ -89,6 +90,7 @@ If you get stuck at any step:
 ## 🎉 **You're Almost There!**
 
 Once you complete this checklist, your appointment form will:
+
 - 📧 **Send you email notifications**
 - 📱 **Send users WhatsApp confirmations**
 - 💰 **Cost you absolutely nothing**

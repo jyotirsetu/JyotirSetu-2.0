@@ -48,11 +48,11 @@ const { socialLinks = [], theme = 'light' } = Astro.props;
             </a>
           </div>
           <div class="mb-1">
-            <a class="inline-block font-bold text-lg text-heading dark:text-white" href={getHomePermalink()}>{SITE?.name}</a>
+            <a class="inline-block font-bold text-lg text-heading dark:text-white" href={getHomePermalink()}
+              >{SITE?.name}</a
+            >
           </div>
-                        <div class="text-xs text-muted dark:text-gray-400">
-                Clarity. Guidance. Destiny.
-              </div>
+          <div class="text-xs text-muted dark:text-gray-400">Clarity. Guidance. Destiny.</div>
         </div>
 
         <!-- Contact Information Card (Right) -->
@@ -60,25 +60,42 @@ const { socialLinks = [], theme = 'light' } = Astro.props;
           <div class="space-y-2">
             <div class="flex items-center space-x-2">
               <svg class="w-4 h-4 text-primary" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56a.977.977 0 00-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99C3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/>
+                <path
+                  d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56a.977.977 0 00-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99C3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"
+                ></path>
               </svg>
-              <a href="tel:+919266991298" class="text-sm text-muted dark:text-gray-400 hover:text-primary transition-colors">
+              <a
+                href="tel:+919266991298"
+                class="text-sm text-muted dark:text-gray-400 hover:text-primary transition-colors"
+              >
                 +91-9266991298
               </a>
             </div>
             <div class="flex items-center space-x-2">
               <svg class="w-4 h-4 text-primary" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+                <path
+                  d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"
+                ></path>
               </svg>
-              <a href="mailto:guidance@jyotirsetu.com" class="text-sm text-muted dark:text-gray-400 hover:text-primary transition-colors">
+              <a
+                href="mailto:guidance@jyotirsetu.com"
+                class="text-sm text-muted dark:text-gray-400 hover:text-primary transition-colors"
+              >
                 guidance@jyotirsetu.com
               </a>
             </div>
             <div class="flex items-center space-x-2">
               <svg class="w-4 h-4 text-primary" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                <path
+                  d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"
+                ></path>
               </svg>
-              <a href="https://maps.app.goo.gl/58ng4gS6t3NAqfo47" target="_blank" rel="noopener noreferrer" class="text-sm text-muted dark:text-gray-400 hover:text-primary transition-colors cursor-pointer">
+              <a
+                href="https://maps.app.goo.gl/58ng4gS6t3NAqfo47"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-sm text-muted dark:text-gray-400 hover:text-primary transition-colors cursor-pointer"
+              >
                 Sector-15, Gurugram, Haryana
               </a>
             </div>
@@ -93,15 +110,64 @@ const { socialLinks = [], theme = 'light' } = Astro.props;
         </div>
         <div class="footer-section-content">
           <ul class="space-y-1">
-            <li><a href="/services/kundli-analysis" class="text-xs text-muted dark:text-gray-400 hover:text-primary transition-colors">• Kundli Analysis</a></li>
-            <li><a href="/services/palmistry" class="text-xs text-muted dark:text-gray-400 hover:text-primary transition-colors">• Palmistry</a></li>
-            <li><a href="/services/numerology" class="text-xs text-muted dark:text-gray-400 hover:text-primary transition-colors">• Numerology</a></li>
-            <li><a href="/services/gemstone-consultation" class="text-xs text-muted dark:text-gray-400 hover:text-primary transition-colors">• Gemstone Consultation</a></li>
-            <li><a href="/services/spiritual-guidance" class="text-xs text-muted dark:text-gray-400 hover:text-primary transition-colors">• Spiritual Guidance</a></li>
-            <li><a href="/services/matchmaking" class="text-xs text-muted dark:text-gray-400 hover:text-primary transition-colors">• Relationship Compatibility</a></li>
-            <li><a href="/services/career-and-finance" class="text-xs text-muted dark:text-gray-400 hover:text-primary transition-colors">• Career Guidance</a></li>
-            <li><a href="/services/dosha-analysis" class="text-xs text-muted dark:text-gray-400 hover:text-primary transition-colors">• Dosha Analysis</a></li>
-            <li><a href="/services/remedies-solution" class="text-xs text-muted dark:text-gray-400 hover:text-primary transition-colors">• Remedies Solution</a></li>
+            <li>
+              <a
+                href="/services/kundli-analysis"
+                class="text-xs text-muted dark:text-gray-400 hover:text-primary transition-colors">• Kundli Analysis</a
+              >
+            </li>
+            <li>
+              <a
+                href="/services/palmistry"
+                class="text-xs text-muted dark:text-gray-400 hover:text-primary transition-colors">• Palmistry</a
+              >
+            </li>
+            <li>
+              <a
+                href="/services/numerology"
+                class="text-xs text-muted dark:text-gray-400 hover:text-primary transition-colors">• Numerology</a
+              >
+            </li>
+            <li>
+              <a
+                href="/services/gemstone-consultation"
+                class="text-xs text-muted dark:text-gray-400 hover:text-primary transition-colors"
+                >• Gemstone Consultation</a
+              >
+            </li>
+            <li>
+              <a
+                href="/services/spiritual-guidance"
+                class="text-xs text-muted dark:text-gray-400 hover:text-primary transition-colors"
+                >• Spiritual Guidance</a
+              >
+            </li>
+            <li>
+              <a
+                href="/services/matchmaking"
+                class="text-xs text-muted dark:text-gray-400 hover:text-primary transition-colors"
+                >• Relationship Compatibility</a
+              >
+            </li>
+            <li>
+              <a
+                href="/services/career-and-finance"
+                class="text-xs text-muted dark:text-gray-400 hover:text-primary transition-colors">• Career Guidance</a
+              >
+            </li>
+            <li>
+              <a
+                href="/services/dosha-analysis"
+                class="text-xs text-muted dark:text-gray-400 hover:text-primary transition-colors">• Dosha Analysis</a
+              >
+            </li>
+            <li>
+              <a
+                href="/services/remedies-solution"
+                class="text-xs text-muted dark:text-gray-400 hover:text-primary transition-colors"
+                >• Remedies Solution</a
+              >
+            </li>
             <li><a href="/#services" class="text-xs text-primary font-medium hover:underline">• View All</a></li>
           </ul>
         </div>
@@ -114,9 +180,21 @@ const { socialLinks = [], theme = 'light' } = Astro.props;
         </div>
         <div class="footer-section-content">
           <ul class="space-y-1">
-            <li><a href="/about" class="text-xs text-muted dark:text-gray-400 hover:text-primary transition-colors">• About Us</a></li>
-            <li><a href="/testimonials" class="text-xs text-muted dark:text-gray-400 hover:text-primary transition-colors">• Testimonials</a></li>
-            <li><a href="/contact" class="text-xs text-muted dark:text-gray-400 hover:text-primary transition-colors">• Contact</a></li>
+            <li>
+              <a href="/about" class="text-xs text-muted dark:text-gray-400 hover:text-primary transition-colors"
+                >• About Us</a
+              >
+            </li>
+            <li>
+              <a href="/testimonials" class="text-xs text-muted dark:text-gray-400 hover:text-primary transition-colors"
+                >• Testimonials</a
+              >
+            </li>
+            <li>
+              <a href="/contact" class="text-xs text-muted dark:text-gray-400 hover:text-primary transition-colors"
+                >• Contact</a
+              >
+            </li>
           </ul>
         </div>
       </div>
@@ -128,36 +206,45 @@ const { socialLinks = [], theme = 'light' } = Astro.props;
         </div>
         <div class="footer-section-content">
           <ul class="space-y-1">
-            <li><a href="/faq" class="text-xs text-muted dark:text-gray-400 hover:text-primary transition-colors">• FAQ</a></li>
-            <li><a href="/privacy" class="text-xs text-muted dark:text-gray-400 hover:text-primary transition-colors">• Privacy Policy</a></li>
-            <li><a href="/terms" class="text-xs text-muted dark:text-gray-400 hover:text-primary transition-colors">• Terms & Conditions</a></li>
+            <li>
+              <a href="/faq" class="text-xs text-muted dark:text-gray-400 hover:text-primary transition-colors">• FAQ</a
+              >
+            </li>
+            <li>
+              <a href="/privacy" class="text-xs text-muted dark:text-gray-400 hover:text-primary transition-colors"
+                >• Privacy Policy</a
+              >
+            </li>
+            <li>
+              <a href="/terms" class="text-xs text-muted dark:text-gray-400 hover:text-primary transition-colors"
+                >• Terms & Conditions</a
+              >
+            </li>
           </ul>
         </div>
       </div>
 
-
-
       <!-- Social Icons -->
       <div class="social-icons-section mb-4">
         <div class="flex justify-center space-x-4">
-          {socialLinks.map(({ text, href, icon, ariaLabel }) => (
-            <a
-              class="text-muted hover:text-primary dark:text-gray-400 hover:text-primary transition-colors duration-200"
-                  href={href}
-              aria-label={ariaLabel}
-            >
-              {icon && <Icon name={icon} class="w-4 h-4" />}
-              {text && <span class="sr-only">{text}</span>}
-            </a>
-          ))}
+          {
+            socialLinks.map(({ text, href, icon, ariaLabel }) => (
+              <a
+                class="text-muted hover:text-primary dark:text-gray-400 hover:text-primary transition-colors duration-200"
+                href={href}
+                aria-label={ariaLabel}
+              >
+                {icon && <Icon name={icon} class="w-4 h-4" />}
+                {text && <span class="sr-only">{text}</span>}
+              </a>
+            ))
+          }
         </div>
       </div>
 
       <!-- Copyright -->
       <div class="copyright-section text-center">
-        <div class="text-xs text-muted dark:text-gray-400">
-          © 2025 JyotirSetu. All Rights Reserved.
-        </div>
+        <div class="text-xs text-muted dark:text-gray-400">© 2025 JyotirSetu. All Rights Reserved.</div>
       </div>
     </div>
 
@@ -168,45 +255,62 @@ const { socialLinks = [], theme = 'light' } = Astro.props;
         <div class="col-span-12 lg:col-span-4">
           <div class="mb-6">
             <div class="flex items-center mb-6">
-            <img
-              src="/JyotirSetu Full Logo Transparent.png"
-              alt="JyotirSetu Logo"
+              <img
+                src="/JyotirSetu Full Logo Transparent.png"
+                alt="JyotirSetu Logo"
                 class="w-32 h-32 rounded-full object-cover shadow-lg mr-4"
-              loading="lazy"
-            />
+                loading="lazy"
+              />
               <div>
-                <a class="inline-block font-bold text-3xl text-subheading dark:text-white" href={getHomePermalink()}>{SITE?.name}</a>
-                <div class="text-sm text-muted dark:text-gray-400">
-                  Clarity. Guidance. Destiny.
-                </div>
+                <a class="inline-block font-bold text-3xl text-subheading dark:text-white" href={getHomePermalink()}
+                  >{SITE?.name}</a
+                >
+                <div class="text-sm text-muted dark:text-gray-400">Clarity. Guidance. Destiny.</div>
               </div>
             </div>
-        </div>
-        
+          </div>
+
           <!-- Contact Information -->
           <div class="contact-info-section mb-6">
-          <div class="space-y-3">
+            <div class="space-y-3">
               <div class="flex items-center space-x-3">
                 <svg class="w-5 h-5 text-primary" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56a.977.977 0 00-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99C3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/>
+                  <path
+                    d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56a.977.977 0 00-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99C3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"
+                  ></path>
                 </svg>
-                <a href="tel:+919266991298" class="text-base text-muted dark:text-gray-400 hover:text-primary transition-colors font-medium">
+                <a
+                  href="tel:+919266991298"
+                  class="text-base text-muted dark:text-gray-400 hover:text-primary transition-colors font-medium"
+                >
                   +91-9266991298
                 </a>
               </div>
               <div class="flex items-center space-x-3">
                 <svg class="w-5 h-5 text-primary" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+                  <path
+                    d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"
+                  ></path>
                 </svg>
-                <a href="mailto:guidance@jyotirsetu.com" class="text-base text-muted dark:text-gray-400 hover:text-primary transition-colors font-medium">
+                <a
+                  href="mailto:guidance@jyotirsetu.com"
+                  class="text-base text-muted dark:text-gray-400 hover:text-primary transition-colors font-medium"
+                >
                   guidance@jyotirsetu.com
                 </a>
               </div>
               <div class="flex items-center space-x-3">
                 <svg class="w-5 h-5 text-primary" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                  <path
+                    d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"
+                  ></path>
                 </svg>
-                <a href="https://maps.app.goo.gl/58ng4gS6t3NAqfo47" target="_blank" rel="noopener noreferrer" class="text-base text-muted dark:text-gray-400 font-medium hover:text-primary transition-colors cursor-pointer">
+                <a
+                  href="https://maps.app.goo.gl/58ng4gS6t3NAqfo47"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-base text-muted dark:text-gray-400 font-medium hover:text-primary transition-colors cursor-pointer"
+                >
                   40A/5, Sector-15, Part-2,<br />
                   Gurugram, Haryana
                 </a>
@@ -214,21 +318,21 @@ const { socialLinks = [], theme = 'light' } = Astro.props;
             </div>
           </div>
 
-
-
           <!-- Social Icons -->
           <div class="social-icons-section mt-24 pt-16">
             <div class="flex space-x-6">
-              {socialLinks.map(({ text, href, icon, ariaLabel }) => (
-                <a
-                  class="text-muted hover:text-primary dark:text-gray-400 hover:text-primary transition-colors duration-200"
-                      href={href}
-                      aria-label={ariaLabel}
-                    >
-                  {icon && <Icon name={icon} class="w-6 h-6" />}
-                  {text && <span class="sr-only">{text}</span>}
-                </a>
-              ))}
+              {
+                socialLinks.map(({ text, href, icon, ariaLabel }) => (
+                  <a
+                    class="text-muted hover:text-primary dark:text-gray-400 hover:text-primary transition-colors duration-200"
+                    href={href}
+                    aria-label={ariaLabel}
+                  >
+                    {icon && <Icon name={icon} class="w-6 h-6" />}
+                    {text && <span class="sr-only">{text}</span>}
+                  </a>
+                ))
+              }
             </div>
           </div>
         </div>
@@ -241,19 +345,71 @@ const { socialLinks = [], theme = 'light' } = Astro.props;
             </div>
             <div class="footer-section-content">
               <ul class="space-y-0.5">
-                <li><a href="/services/kundli-analysis" class="text-sm text-muted dark:text-gray-400 hover:text-primary transition-colors">• Kundli Analysis</a></li>
-                <li><a href="/services/palmistry" class="text-sm text-muted dark:text-gray-400 hover:text-primary transition-colors">• Palmistry</a></li>
-                <li><a href="/services/numerology" class="text-sm text-muted dark:text-gray-400 hover:text-primary transition-colors">• Numerology</a></li>
-                <li><a href="/services/gemstone-consultation" class="text-sm text-muted dark:text-gray-400 hover:text-primary transition-colors">• Gemstone Consultation</a></li>
-                <li><a href="/services/spiritual-guidance" class="text-sm text-muted dark:text-gray-400 hover:text-primary transition-colors">• Spiritual Guidance</a></li>
-                <li><a href="/services/matchmaking" class="text-sm text-muted dark:text-gray-400 hover:text-primary transition-colors">• Relationship Compatibility</a></li>
-                <li><a href="/services/career-and-finance" class="text-sm text-muted dark:text-gray-400 hover:text-primary transition-colors">• Career Guidance</a></li>
-                <li><a href="/services/dosha-analysis" class="text-sm text-muted dark:text-gray-400 hover:text-primary transition-colors">• Dosha Analysis</a></li>
-                <li><a href="/services/remedies-solution" class="text-sm text-muted dark:text-gray-400 hover:text-primary transition-colors">• Remedies Solution</a></li>
+                <li>
+                  <a
+                    href="/services/kundli-analysis"
+                    class="text-sm text-muted dark:text-gray-400 hover:text-primary transition-colors"
+                    >• Kundli Analysis</a
+                  >
+                </li>
+                <li>
+                  <a
+                    href="/services/palmistry"
+                    class="text-sm text-muted dark:text-gray-400 hover:text-primary transition-colors">• Palmistry</a
+                  >
+                </li>
+                <li>
+                  <a
+                    href="/services/numerology"
+                    class="text-sm text-muted dark:text-gray-400 hover:text-primary transition-colors">• Numerology</a
+                  >
+                </li>
+                <li>
+                  <a
+                    href="/services/gemstone-consultation"
+                    class="text-sm text-muted dark:text-gray-400 hover:text-primary transition-colors"
+                    >• Gemstone Consultation</a
+                  >
+                </li>
+                <li>
+                  <a
+                    href="/services/spiritual-guidance"
+                    class="text-sm text-muted dark:text-gray-400 hover:text-primary transition-colors"
+                    >• Spiritual Guidance</a
+                  >
+                </li>
+                <li>
+                  <a
+                    href="/services/matchmaking"
+                    class="text-sm text-muted dark:text-gray-400 hover:text-primary transition-colors"
+                    >• Relationship Compatibility</a
+                  >
+                </li>
+                <li>
+                  <a
+                    href="/services/career-and-finance"
+                    class="text-sm text-muted dark:text-gray-400 hover:text-primary transition-colors"
+                    >• Career Guidance</a
+                  >
+                </li>
+                <li>
+                  <a
+                    href="/services/dosha-analysis"
+                    class="text-sm text-muted dark:text-gray-400 hover:text-primary transition-colors"
+                    >• Dosha Analysis</a
+                  >
+                </li>
+                <li>
+                  <a
+                    href="/services/remedies-solution"
+                    class="text-sm text-muted dark:text-gray-400 hover:text-primary transition-colors"
+                    >• Remedies Solution</a
+                  >
+                </li>
                 <li><a href="/#services" class="text-sm text-primary font-medium hover:underline">• View All</a></li>
               </ul>
-        </div>
-      </div>
+            </div>
+          </div>
         </div>
 
         <!-- Company Section -->
@@ -264,9 +420,22 @@ const { socialLinks = [], theme = 'light' } = Astro.props;
             </div>
             <div class="footer-section-content">
               <ul class="space-y-2">
-                <li><a href="/about" class="text-sm text-muted dark:text-gray-400 hover:text-primary transition-colors">• About Us</a></li>
-                <li><a href="/testimonials" class="text-sm text-muted dark:text-gray-400 hover:text-primary transition-colors">• Testimonials</a></li>
-                <li><a href="/contact" class="text-sm text-muted dark:text-gray-400 hover:text-primary transition-colors">• Contact</a></li>
+                <li>
+                  <a href="/about" class="text-sm text-muted dark:text-gray-400 hover:text-primary transition-colors"
+                    >• About Us</a
+                  >
+                </li>
+                <li>
+                  <a
+                    href="/testimonials"
+                    class="text-sm text-muted dark:text-gray-400 hover:text-primary transition-colors">• Testimonials</a
+                  >
+                </li>
+                <li>
+                  <a href="/contact" class="text-sm text-muted dark:text-gray-400 hover:text-primary transition-colors"
+                    >• Contact</a
+                  >
+                </li>
               </ul>
             </div>
           </div>
@@ -274,13 +443,25 @@ const { socialLinks = [], theme = 'light' } = Astro.props;
           <div class="footer-section mt-8">
             <div class="footer-section-header">
               <h3 class="text-lg font-semibold text-heading dark:text-white mb-4">Support</h3>
-    </div>
+            </div>
             <div class="footer-section-content">
               <ul class="space-y-2">
-                <li><a href="/faq" class="text-sm text-muted dark:text-gray-400 hover:text-primary transition-colors">• FAQ</a></li>
-                <li><a href="/privacy" class="text-sm text-muted dark:text-gray-400 hover:text-primary transition-colors">• Privacy Policy</a></li>
-                <li><a href="/terms" class="text-sm text-muted dark:text-gray-400 hover:text-primary transition-colors">• Terms & Conditions</a></li>
-          </ul>
+                <li>
+                  <a href="/faq" class="text-sm text-muted dark:text-gray-400 hover:text-primary transition-colors"
+                    >• FAQ</a
+                  >
+                </li>
+                <li>
+                  <a href="/privacy" class="text-sm text-muted dark:text-gray-400 hover:text-primary transition-colors"
+                    >• Privacy Policy</a
+                  >
+                </li>
+                <li>
+                  <a href="/terms" class="text-sm text-muted dark:text-gray-400 hover:text-primary transition-colors"
+                    >• Terms & Conditions</a
+                  >
+                </li>
+              </ul>
             </div>
           </div>
         </div>
@@ -289,9 +470,7 @@ const { socialLinks = [], theme = 'light' } = Astro.props;
       <!-- Copyright -->
       <div class="copyright-section mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
         <div class="text-center">
-          <div class="text-sm text-muted dark:text-gray-400">
-            © 2025 JyotirSetu. All Rights Reserved.
-          </div>
+          <div class="text-sm text-muted dark:text-gray-400">© 2025 JyotirSetu. All Rights Reserved.</div>
         </div>
       </div>
     </div>

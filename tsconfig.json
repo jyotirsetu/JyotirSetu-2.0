@@ -4,16 +4,13 @@
     "strictNullChecks": true,
     "allowJs": true,
     "baseUrl": ".",
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
     "paths": {
       "~/*": ["src/*"]
     }
   },
   "include": [".astro/types.d.ts", "src/**/*"],
-  "exclude": [
-    "dist/", 
-    ".vercel/", 
-    "node_modules/",
-    "**/.vercel/**",
-    "**/dist/**"
-  ]
+  "exclude": ["dist/", ".vercel/", "node_modules/", "**/.vercel/**", "**/dist/**"]
 }

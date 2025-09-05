@@ -43,8 +43,8 @@
             { value: 'sep', label: 'September', gemstones: ['Sapphire', 'Lapis Lazuli'] },
             { value: 'oct', label: 'October', gemstones: ['Opal', 'Tourmaline'] },
             { value: 'nov', label: 'November', gemstones: ['Topaz', 'Citrine'] },
-            { value: 'dec', label: 'December', gemstones: ['Turquoise', 'Zircon'] }
-          ]
+            { value: 'dec', label: 'December', gemstones: ['Turquoise', 'Zircon'] },
+          ],
         },
         {
           id: 'focus-area',
@@ -54,24 +54,24 @@
             { value: 'love', label: '💕 Love & Relationships', gemstones: ['Rose Quartz', 'Pink Tourmaline'] },
             { value: 'career', label: '💼 Career & Success', gemstones: ['Citrine', 'Tiger Eye'] },
             { value: 'health', label: '🌿 Health & Vitality', gemstones: ['Jade', 'Amethyst'] },
-            { value: 'wealth', label: '💰 Wealth & Abundance', gemstones: ['Pyrite', 'Green Aventurine'] }
-          ]
-        }
+            { value: 'wealth', label: '💰 Wealth & Abundance', gemstones: ['Pyrite', 'Green Aventurine'] },
+          ],
+        },
       ];
-      
+
       this.answers = {};
       this.init();
     }
-    
+
     init() {
       this.renderQuiz();
       this.attachEventListeners();
     }
-    
+
     renderQuiz() {
       const container = document.getElementById('gemstone-quiz-container');
       if (!container) return;
-      
+
       container.innerHTML = `
         <div class="bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-xl p-6 border border-purple-200 dark:border-purple-700">
           <div class="text-center mb-6">
@@ -99,7 +99,7 @@
         </div>
       `;
     }
-    
+
     renderQuestion(question: Question, index: number) {
       if (question.type === 'select') {
         return `
@@ -113,18 +113,22 @@
               data-question="${question.id}"
             >
               <option value="">Select an option...</option>
-              ${question.options.map((opt: { value: string; label: string; gemstones: string[] }) => `
+              ${question.options
+                .map(
+                  (opt: { value: string; label: string; gemstones: string[] }) => `
                 <option value="${opt.value}" data-gemstones="${opt.gemstones.join(',')}">
                   ${opt.label}
                 </option>
-              `).join('')}
+              `
+                )
+                .join('')}
             </select>
           </div>
         `;
       }
       return '';
     }
-    
+
     attachEventListeners() {
       // Handle select changes
       this.questions.forEach((q: Question) => {
@@ -133,29 +137,29 @@
           element.addEventListener('change', (e) => this.handleAnswer(e));
         }
       });
-      
+
       // Handle submit
       const submitBtn = document.getElementById('submit-quiz');
       if (submitBtn) {
         submitBtn.addEventListener('click', () => this.showResult());
       }
     }
-    
+
     handleAnswer(event: Event) {
       const target = event.target as HTMLSelectElement;
       const questionId = target.dataset.question;
       const selectedOption = target.options[target.selectedIndex];
-      
+
       if (!questionId) return;
       if (selectedOption.value) {
         this.answers[questionId] = selectedOption.value;
       } else {
         delete this.answers[questionId];
       }
-      
+
       this.updateSubmitButton();
     }
-    
+
     updateSubmitButton() {
       const submitBtn = document.getElementById('submit-quiz');
       if (submitBtn) {
@@ -163,24 +167,24 @@
         (submitBtn as HTMLButtonElement).disabled = !allAnswered;
       }
     }
-    
+
     showResult() {
       const resultContainer = document.getElementById('quiz-result');
       if (!resultContainer) return;
-      
+
       const birthMonthValue = this.answers['birth-month'] as string;
       const focusAreaValue = this.answers['focus-area'] as string;
-      
+
       // Find the selected options to get gemstones
-      const birthMonthQuestion = this.questions.find(q => q.id === 'birth-month');
-      const focusAreaQuestion = this.questions.find(q => q.id === 'focus-area');
-      
-      const birthMonthOption = birthMonthQuestion?.options.find(opt => opt.value === birthMonthValue);
-      const focusAreaOption = focusAreaQuestion?.options.find(opt => opt.value === focusAreaValue);
-      
+      const birthMonthQuestion = this.questions.find((q) => q.id === 'birth-month');
+      const focusAreaQuestion = this.questions.find((q) => q.id === 'focus-area');
+
+      const birthMonthOption = birthMonthQuestion?.options.find((opt) => opt.value === birthMonthValue);
+      const focusAreaOption = focusAreaQuestion?.options.find((opt) => opt.value === focusAreaValue);
+
       // Generate personalized recommendation
       const recommendation = this.generateRecommendation(birthMonthValue, focusAreaValue);
-      
+
       resultContainer.innerHTML = `
         <div class="text-center">
           <div class="text-4xl mb-4">✨</div>
@@ -218,22 +222,28 @@
           </div>
         </div>
       `;
-      
+
       resultContainer.classList.remove('hidden');
     }
-    
+
     generateRecommendation(_birthMonth: string, focusArea: string) {
       const recommendations: Record<string, string> = {
-        'love': 'For love and relationships, combine your birth month gemstone with Rose Quartz for enhanced emotional healing and connection.',
-        'career': 'For career success, pair your birth month gemstone with Citrine to boost confidence, creativity, and professional growth.',
-        'health': 'For health and vitality, combine your birth month gemstone with Amethyst for physical healing and spiritual protection.',
-        'wealth': 'For wealth and abundance, pair your birth month gemstone with Green Aventurine to attract prosperity and financial opportunities.'
+        love: 'For love and relationships, combine your birth month gemstone with Rose Quartz for enhanced emotional healing and connection.',
+        career:
+          'For career success, pair your birth month gemstone with Citrine to boost confidence, creativity, and professional growth.',
+        health:
+          'For health and vitality, combine your birth month gemstone with Amethyst for physical healing and spiritual protection.',
+        wealth:
+          'For wealth and abundance, pair your birth month gemstone with Green Aventurine to attract prosperity and financial opportunities.',
       };
-      
-      return recommendations[focusArea] || 'Your personalized gemstone combination will provide optimal benefits for your specific needs.';
+
+      return (
+        recommendations[focusArea] ||
+        'Your personalized gemstone combination will provide optimal benefits for your specific needs.'
+      );
     }
   }
-  
+
   // Initialize quiz when DOM is ready
   document.addEventListener('DOMContentLoaded', () => {
     new GemstoneQuiz();

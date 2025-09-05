@@ -2,13 +2,13 @@
 // DailyTipsDisplay.astro - Displays daily astrological tips
 ---
 
-<div class="daily-tips-section bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 py-16">
+<div
+  class="daily-tips-section bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 py-16"
+>
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <!-- Section Header -->
     <div class="text-center mb-12">
-      <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-        🌟 Daily Cosmic Insights
-      </h2>
+      <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">🌟 Daily Cosmic Insights</h2>
       <p class="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
         Discover what the stars have in store for you today with our personalized astrological guidance
       </p>
@@ -45,51 +45,56 @@
     {
       id: 1,
       title: "🌟 Today's Cosmic Guidance",
-      content: "The stars align to bring clarity to your decisions. Trust your intuition and embrace new opportunities that come your way.",
-      category: "General",
+      content:
+        'The stars align to bring clarity to your decisions. Trust your intuition and embrace new opportunities that come your way.',
+      category: 'General',
       date: new Date().toISOString().split('T')[0],
-      active: true
+      active: true,
     },
     {
       id: 2,
       title: "💫 Mercury's Influence",
-      content: "Communication flows smoothly today. It's an excellent time for important conversations and making connections.",
-      category: "Communication",
+      content:
+        "Communication flows smoothly today. It's an excellent time for important conversations and making connections.",
+      category: 'Communication',
       date: new Date().toISOString().split('T')[0],
-      active: true
+      active: true,
     },
     {
       id: 3,
-      title: "🌙 Lunar Energy",
-      content: "The moon's energy supports emotional healing and introspection. Take time for self-reflection and inner peace.",
-      category: "Emotional",
+      title: '🌙 Lunar Energy',
+      content:
+        "The moon's energy supports emotional healing and introspection. Take time for self-reflection and inner peace.",
+      category: 'Emotional',
       date: new Date().toISOString().split('T')[0],
-      active: true
+      active: true,
     },
     {
       id: 4,
-      title: "☀️ Solar Power",
-      content: "The sun's energy boosts your confidence and vitality. Perfect day for taking action on your goals and ambitions.",
-      category: "Energy",
+      title: '☀️ Solar Power',
+      content:
+        "The sun's energy boosts your confidence and vitality. Perfect day for taking action on your goals and ambitions.",
+      category: 'Energy',
       date: new Date().toISOString().split('T')[0],
-      active: true
+      active: true,
     },
     {
       id: 5,
       title: "🔮 Venus's Blessing",
-      content: "Love and harmony are in the air. Focus on relationships and creative endeavors for maximum benefit.",
-      category: "Love",
+      content: 'Love and harmony are in the air. Focus on relationships and creative endeavors for maximum benefit.',
+      category: 'Love',
       date: new Date().toISOString().split('T')[0],
-      active: true
+      active: true,
     },
     {
       id: 6,
       title: "⚡ Mars's Drive",
-      content: "Your energy and determination are at their peak. Channel this powerful energy into productive activities.",
-      category: "Action",
+      content:
+        'Your energy and determination are at their peak. Channel this powerful energy into productive activities.',
+      category: 'Action',
       date: new Date().toISOString().split('T')[0],
-      active: true
-    }
+      active: true,
+    },
   ];
 
   // Initialize and display tips
@@ -102,22 +107,23 @@
   function displayTips(tips: DailyTip[]) {
     const container = document.getElementById('daily-tips-container');
     const loadingState = document.getElementById('loading-state');
-    
+
     if (!container) return;
-    
+
     // Hide loading state
     if (loadingState) {
       loadingState.style.display = 'none';
     }
-    
+
     // Clear container
     container.innerHTML = '';
-    
+
     // Display each tip
-    tips.forEach(tip => {
+    tips.forEach((tip) => {
       const tipElement = document.createElement('div');
-      tipElement.className = 'bg-white dark:bg-slate-800 rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow duration-300 border border-purple-100 dark:border-purple-800';
-      
+      tipElement.className =
+        'bg-white dark:bg-slate-800 rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow duration-300 border border-purple-100 dark:border-purple-800';
+
       tipElement.innerHTML = `
         <div class="flex items-start space-x-3">
           <div class="flex-shrink-0">
@@ -143,7 +149,7 @@
           </div>
         </div>
       `;
-      
+
       container.appendChild(tipElement);
     });
   }
@@ -151,16 +157,15 @@
   // Get category icon
   function getCategoryIcon(category: string): string {
     const icons: Record<string, string> = {
-      'General': '🌟',
-      'Communication': '💬',
-      'Emotional': '💝',
-      'Energy': '⚡',
-      'Love': '💕',
-      'Action': '🚀'
+      General: '🌟',
+      Communication: '💬',
+      Emotional: '💝',
+      Energy: '⚡',
+      Love: '💕',
+      Action: '🚀',
     };
     return icons[category] || '✨';
   }
-
 
   // Initialize when DOM is ready
   document.addEventListener('DOMContentLoaded', initTips);

@@ -2,7 +2,8 @@
 
 ## 🎉 **100% FREE WhatsApp Confirmations!**
 
-Instead of expensive SMS, we're setting up **WhatsApp confirmations** which are completely free and provide a much better user experience!
+Instead of expensive SMS, we're setting up **WhatsApp confirmations** which are
+completely free and provide a much better user experience!
 
 ## 🔄 **How It Works:**
 
@@ -14,12 +15,14 @@ Instead of expensive SMS, we're setting up **WhatsApp confirmations** which are 
 ## 🎯 **Two Options Available:**
 
 ### **Option 1: WhatsApp Business API (Recommended - FREE!)**
+
 - **Cost**: Completely FREE
 - **Setup**: Easy Facebook Business setup
 - **Features**: Rich media, templates, analytics
 - **Best for**: Professional business use
 
 ### **Option 2: Twilio WhatsApp (Free Tier Available)**
+
 - **Cost**: Free tier available, then very low cost
 - **Setup**: Simple API integration
 - **Features**: Reliable delivery, good support
@@ -30,12 +33,14 @@ Instead of expensive SMS, we're setting up **WhatsApp confirmations** which are 
 ### **Step 1: Choose Your Option**
 
 #### **Option A: WhatsApp Business API (FREE)**
+
 1. Go to [Facebook Developers](https://developers.facebook.com/)
 2. Create a new app
 3. Add WhatsApp Business product
 4. Get your access token and phone number ID
 
 #### **Option B: Twilio WhatsApp**
+
 1. Go to [Twilio](https://www.twilio.com/)
 2. Sign up for free account
 3. Get your Account SID and Auth Token
@@ -68,12 +73,12 @@ TWILIO_WHATSAPP_FROM=your_twilio_whatsapp_number
 
 ## 📱 **WhatsApp Message Preview:**
 
-```
+```text
 🔮 JyotirSetu - Appointment Confirmation
 
 Dear John Doe,
 
-Thank you for booking your astrology consultation with JyotirSetu! 
+Thank you for booking your astrology consultation with JyotirSetu!
 
 📋 Appointment Details:
 • Service: Astrology
@@ -111,16 +116,19 @@ JyotirSetu - Your Spiritual Guide ✨
 ## 💰 **Cost Breakdown:**
 
 ### **WhatsApp Business API:**
+
 - ✅ **Setup**: FREE
 - ✅ **Messages**: FREE (1000 messages/month)
 - ✅ **Additional**: Very low cost after free tier
 
 ### **Twilio WhatsApp:**
+
 - ✅ **Setup**: FREE
 - ✅ **Free Tier**: 1000 messages/month
 - ✅ **Additional**: ~₹0.50 per message
 
 ### **SMS (For Comparison):**
+
 - ❌ **Setup**: ₹500-1000
 - ❌ **Per Message**: ₹1-2 per SMS
 - ❌ **Monthly**: ₹1000+ for 100 messages
@@ -138,12 +146,14 @@ JyotirSetu - Your Spiritual Guide ✨
 ## 🧪 **Testing Your Setup:**
 
 ### **Test the Webhook:**
+
 1. Submit a test form
 2. Check Formspree webhook logs
 3. Verify WhatsApp message is sent
 4. Check user's WhatsApp
 
 ### **Test Data:**
+
 - **Name**: Test User
 - **Phone**: Your WhatsApp number (for testing)
 - **Service**: Astrology
@@ -153,14 +163,18 @@ JyotirSetu - Your Spiritual Guide ✨
 ## 🔧 **Customization Options:**
 
 ### **Modify Message Template:**
+
 Edit the `whatsappMessage` in the webhook files to customize:
+
 - Message format
 - Company branding
 - Call-to-action buttons
 - Rich media attachments
 
 ### **Add Message Templates:**
+
 WhatsApp Business API supports pre-approved message templates for:
+
 - Appointment confirmations
 - Reminders
 - Follow-ups
@@ -169,18 +183,21 @@ WhatsApp Business API supports pre-approved message templates for:
 ## 🚨 **Troubleshooting:**
 
 ### **Webhook Not Working:**
+
 1. Check Formspree webhook configuration
 2. Verify webhook URL is accessible
 3. Check server logs for errors
 4. Test webhook endpoint directly
 
 ### **WhatsApp Not Sending:**
+
 1. Verify API credentials
 2. Check phone number format
 3. Ensure WhatsApp Business is approved
 4. Check API rate limits
 
 ### **Message Format Issues:**
+
 1. Verify message length (WhatsApp limit: 4096 characters)
 2. Check special characters
 3. Test with simple text first
@@ -194,6 +211,7 @@ WhatsApp Business API supports pre-approved message templates for:
 ## 🎉 **You're All Set!**
 
 With WhatsApp confirmations, you'll have:
+
 - ✅ **FREE confirmations** (no more SMS costs!)
 - ✅ **Better user experience** (WhatsApp is preferred)
 - ✅ **Professional appearance** (business WhatsApp)
@@ -201,6 +219,7 @@ With WhatsApp confirmations, you'll have:
 - ✅ **Global reach** (works everywhere)
 
 **Next Steps:**
+
 1. Choose your WhatsApp option
 2. Set up the API credentials
 3. Configure Formspree webhook
@@ -209,6 +228,6 @@ With WhatsApp confirmations, you'll have:
 
 ---
 
-*Last Updated: January 2025*
-*Formspree Form ID: xnnbzveo*
-*WhatsApp Integration: Ready to Configure*
+_Last Updated: January 2025_
+_Formspree Form ID: xnnbzveo_
+_WhatsApp Integration: Ready to Configure_

@@ -23,11 +23,7 @@
     "**/dist/**": true,
     "**/node_modules/**": true
   },
-  "typescript.preferences.exclude": [
-    "**/.vercel/**",
-    "**/dist/**",
-    "**/node_modules/**"
-  ],
+  "typescript.preferences.exclude": ["**/.vercel/**", "**/dist/**", "**/node_modules/**"],
   "typescript.suggest.autoImports": false,
   "typescript.validate.enable": true,
   "typescript.preferences.includePackageJsonAutoImports": "off"

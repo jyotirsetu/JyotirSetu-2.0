@@ -9,16 +9,16 @@
     constructor() {
       this.init();
     }
-    
+
     init() {
       this.renderQuiz();
       this.attachEventListeners();
     }
-    
+
     renderQuiz() {
       const container = document.getElementById('palmistry-quiz-container');
       if (!container) return;
-      
+
       container.innerHTML = `
         <div class="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl p-6 border border-green-200 dark:border-green-700">
           <div class="text-center mb-6">
@@ -98,134 +98,147 @@
         </div>
       `;
     }
-    
+
     attachEventListeners() {
       const radioButtons = document.querySelectorAll('input[type="radio"]');
       const lifeConcernSelect = document.getElementById('life-concern');
       const readPalmBtn = document.getElementById('read-palm');
-      
-      radioButtons.forEach(radio => {
+
+      radioButtons.forEach((radio) => {
         radio.addEventListener('change', () => this.updateSubmitButton());
       });
-      
+
       if (lifeConcernSelect) {
         lifeConcernSelect.addEventListener('change', () => this.updateSubmitButton());
       }
-      
+
       if (readPalmBtn) {
         readPalmBtn.addEventListener('click', () => this.readPalm());
       }
     }
-    
+
     updateSubmitButton() {
       const lineType = document.querySelector('input[name="line-type"]:checked');
       const handDominance = document.querySelector('input[name="hand-dominance"]:checked');
       const lifeConcern = (document.getElementById('life-concern') as HTMLInputElement)?.value;
       const submitBtn = document.getElementById('read-palm') as HTMLButtonElement;
-      
+
       if (submitBtn) {
         submitBtn.disabled = !(lineType && handDominance && lifeConcern);
       }
     }
-    
+
     readPalm() {
       const lineType = (document.querySelector('input[name="line-type"]:checked') as HTMLInputElement)?.value;
       const handDominance = (document.querySelector('input[name="hand-dominance"]:checked') as HTMLInputElement)?.value;
       const lifeConcern = (document.getElementById('life-concern') as HTMLInputElement)?.value;
-      
+
       if (!lineType || !handDominance || !lifeConcern) return;
-      
+
       const insights = this.generatePalmistryInsights(lineType, handDominance, lifeConcern);
       this.showResult(insights, lifeConcern);
     }
-    
+
     generatePalmistryInsights(lineType: string, handDominance: string, lifeConcern: string) {
       const insights = {
         lineType: {
           straight: {
             title: 'The Logical Thinker',
-            description: 'Your straight palm lines indicate a practical, analytical mind. You approach life with logic and reason, making well-thought-out decisions.',
-            traits: 'Methodical, organized, reliable, and detail-oriented'
+            description:
+              'Your straight palm lines indicate a practical, analytical mind. You approach life with logic and reason, making well-thought-out decisions.',
+            traits: 'Methodical, organized, reliable, and detail-oriented',
           },
           curved: {
             title: 'The Creative Soul',
-            description: 'Your curved palm lines reveal a creative and intuitive nature. You trust your instincts and have a natural artistic flair.',
-            traits: 'Imaginative, intuitive, adaptable, and emotionally expressive'
-          }
+            description:
+              'Your curved palm lines reveal a creative and intuitive nature. You trust your instincts and have a natural artistic flair.',
+            traits: 'Imaginative, intuitive, adaptable, and emotionally expressive',
+          },
         },
         handDominance: {
           left: {
             title: 'The Intuitive Hand',
-            description: 'Left hand dominance suggests strong intuitive abilities and emotional intelligence. You have a natural connection to your subconscious mind.',
-            traits: 'Intuitive, empathetic, creative, and spiritually aware'
+            description:
+              'Left hand dominance suggests strong intuitive abilities and emotional intelligence. You have a natural connection to your subconscious mind.',
+            traits: 'Intuitive, empathetic, creative, and spiritually aware',
           },
           right: {
             title: 'The Action Hand',
-            description: 'Right hand dominance indicates strong willpower and action-oriented nature. You prefer to take charge and make things happen.',
-            traits: 'Determined, practical, goal-oriented, and confident'
+            description:
+              'Right hand dominance indicates strong willpower and action-oriented nature. You prefer to take charge and make things happen.',
+            traits: 'Determined, practical, goal-oriented, and confident',
           },
           both: {
             title: 'The Balanced Hand',
-            description: 'Both hands being equally strong shows excellent balance between logic and intuition. You can adapt to any situation with ease.',
-            traits: 'Balanced, adaptable, versatile, and harmonious'
-          }
+            description:
+              'Both hands being equally strong shows excellent balance between logic and intuition. You can adapt to any situation with ease.',
+            traits: 'Balanced, adaptable, versatile, and harmonious',
+          },
         },
         lifeConcern: {
           career: {
             focus: 'Career & Professional Growth',
-            insight: 'Your palm shows strong potential for professional advancement. Focus on developing your unique skills and building meaningful connections.',
-            advice: 'Consider leadership roles and continuous learning opportunities.'
+            insight:
+              'Your palm shows strong potential for professional advancement. Focus on developing your unique skills and building meaningful connections.',
+            advice: 'Consider leadership roles and continuous learning opportunities.',
           },
           love: {
             focus: 'Love & Relationships',
-            insight: 'Your palm reveals a deep capacity for love and emotional connection. You have the ability to create lasting, meaningful relationships.',
-            advice: 'Trust your heart and be open to deep emotional connections.'
+            insight:
+              'Your palm reveals a deep capacity for love and emotional connection. You have the ability to create lasting, meaningful relationships.',
+            advice: 'Trust your heart and be open to deep emotional connections.',
           },
           health: {
             focus: 'Health & Wellbeing',
-            insight: 'Your palm indicates strong vitality and resilience. You have the power to maintain excellent health through mindful living.',
-            advice: 'Focus on holistic wellness and preventive care practices.'
+            insight:
+              'Your palm indicates strong vitality and resilience. You have the power to maintain excellent health through mindful living.',
+            advice: 'Focus on holistic wellness and preventive care practices.',
           },
           wealth: {
             focus: 'Wealth & Financial Success',
-            insight: 'Your palm shows excellent potential for financial abundance. You have the ability to create and manage wealth effectively.',
-            advice: 'Focus on value creation and smart financial planning.'
+            insight:
+              'Your palm shows excellent potential for financial abundance. You have the ability to create and manage wealth effectively.',
+            advice: 'Focus on value creation and smart financial planning.',
           },
           spirituality: {
             focus: 'Spiritual Development',
-            insight: 'Your palm reveals a deep spiritual connection and intuitive wisdom. You have the potential for profound spiritual growth.',
-            advice: 'Trust your inner guidance and explore spiritual practices.'
-          }
-        }
+            insight:
+              'Your palm reveals a deep spiritual connection and intuitive wisdom. You have the potential for profound spiritual growth.',
+            advice: 'Trust your inner guidance and explore spiritual practices.',
+          },
+        },
       };
-      
+
       return {
         lineType: insights.lineType[lineType],
         handDominance: insights.handDominance[handDominance],
-        lifeConcern: insights.lifeConcern[lifeConcern]
+        lifeConcern: insights.lifeConcern[lifeConcern],
       };
     }
-    
-    showResult(insights: { 
-      lineType: {
-        title: string;
-        traits: string;
-        description: string;
-      };
-      handDominance: {
-        title: string;
-        traits: string;
-        description: string;
-      };
-      lifeConcern: {
-        focus: string;
-        insight: string;
-        advice: string;
-      };
-    }, _lifeConcern: string) {
+
+    showResult(
+      insights: {
+        lineType: {
+          title: string;
+          traits: string;
+          description: string;
+        };
+        handDominance: {
+          title: string;
+          traits: string;
+          description: string;
+        };
+        lifeConcern: {
+          focus: string;
+          insight: string;
+          advice: string;
+        };
+      },
+      _lifeConcern: string
+    ) {
       const resultContainer = document.getElementById('palmistry-result');
       if (!resultContainer) return;
-      
+
       resultContainer.innerHTML = `
         <div class="text-center">
           <div class="text-6xl mb-4">✋</div>
@@ -282,11 +295,11 @@
           </div>
         </div>
       `;
-      
+
       resultContainer.classList.remove('hidden');
     }
   }
-  
+
   // Initialize quiz when DOM is ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {

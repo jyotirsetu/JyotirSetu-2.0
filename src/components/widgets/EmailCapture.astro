@@ -2,43 +2,51 @@
 // Ultra-Simple Email Capture Component - Guaranteed to Work
 ---
 
-<div style="background: linear-gradient(135deg, #f3f4f6, #e5e7eb); padding: 2rem; border-radius: 1rem; margin: 2rem 0; text-align: center;">
-  <h3 style="font-size: 1.5rem; font-weight: bold; margin-bottom: 1rem; color: #1f2937;">🌟 Get Your Daily Astro Tip</h3>
-  <p style="color: #6b7280; margin-bottom: 2rem;">Discover cosmic insights delivered to your inbox daily! Plus, receive your FREE Dosha Balancing Guide!</p>
-  
+<div
+  style="background: linear-gradient(135deg, #f3f4f6, #e5e7eb); padding: 2rem; border-radius: 1rem; margin: 2rem 0; text-align: center;"
+>
+  <h3 style="font-size: 1.5rem; font-weight: bold; margin-bottom: 1rem; color: #1f2937;">
+    🌟 Get Your Daily Astro Tip
+  </h3>
+  <p style="color: #6b7280; margin-bottom: 2rem;">
+    Discover cosmic insights delivered to your inbox daily! Plus, receive your FREE Dosha Balancing Guide!
+  </p>
+
   <!-- Ultra-Simple Formspree Form - Exactly as Formspree expects -->
   <form action="https://formspree.io/f/xnnbgerl" method="POST" style="max-width: 500px; margin: 0 auto;">
     <div style="margin-bottom: 1rem;">
-      <input 
-        type="text" 
-        name="name" 
-        placeholder="Your Name" 
-        required 
+      <input
+        type="text"
+        name="name"
+        placeholder="Your Name"
+        required
         style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; margin-bottom: 0.5rem;"
       />
     </div>
-    
+
     <div style="margin-bottom: 1rem;">
-      <input 
-        type="email" 
-        name="email" 
-        placeholder="Your Email" 
-        required 
+      <input
+        type="email"
+        name="email"
+        placeholder="Your Email"
+        required
         style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; margin-bottom: 0.5rem;"
       />
     </div>
-    
+
     <!-- Hidden fields for tracking -->
     <input type="hidden" name="source" value="homepage_email_capture" />
     <input type="hidden" name="type" value="daily_astro_tip" />
-    
-    <button 
-      type="submit" 
+
+    <button
+      type="submit"
       style="width: 100%; background: linear-gradient(135deg, #8b5cf6, #3b82f6); color: white; padding: 0.75rem; border: none; border-radius: 0.5rem; font-weight: 500; cursor: pointer;"
     >
       Get Free Guide & Daily Tips
     </button>
-    
-    <p style="font-size: 0.75rem; color: #6b7280; margin-top: 1rem;">We respect your privacy. Unsubscribe at any time.</p>
+
+    <p style="font-size: 0.75rem; color: #6b7280; margin-top: 1rem;">
+      We respect your privacy. Unsubscribe at any time.
+    </p>
   </form>
 </div>

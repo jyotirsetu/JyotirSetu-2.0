@@ -3,19 +3,26 @@
 ---
 
 <div class="max-w-4xl mx-auto px-4 sm:px-6">
-     <form id="dynamic-appointment-form" class="space-y-6 sm:space-y-8">
-    
+  <form id="dynamic-appointment-form" class="space-y-6 sm:space-y-8">
     <!-- Common Fields Section -->
-    <div class="bg-white dark:bg-gray-800 rounded-2xl sm:rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6 shadow-sm">
+    <div
+      class="bg-white dark:bg-gray-800 rounded-2xl sm:rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6 shadow-sm"
+    >
       <h3 class="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-4 sm:mb-6 flex items-center">
-        <div class="w-8 h-8 sm:w-6 sm:h-6 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg sm:rounded mr-3 flex items-center justify-center">
+        <div
+          class="w-8 h-8 sm:w-6 sm:h-6 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg sm:rounded mr-3 flex items-center justify-center"
+        >
           <svg class="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
           </svg>
         </div>
         <span class="text-lg sm:text-xl">🌐 Common Information</span>
       </h3>
-      
+
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
         <!-- Full Name -->
         <div class="space-y-2">
@@ -48,9 +55,7 @@
             title="Please enter a valid 10-digit mobile number"
             class="w-full px-4 py-3.5 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-xl sm:rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-base transition-all duration-200"
           />
-          <div class="text-xs text-gray-500 dark:text-gray-400">
-            Enter 10-digit mobile number (e.g., 9876543210)
-          </div>
+          <div class="text-xs text-gray-500 dark:text-gray-400">Enter 10-digit mobile number (e.g., 9876543210)</div>
         </div>
 
         <!-- Email Address -->
@@ -134,16 +139,25 @@
     </div>
 
     <!-- Service Selection Section -->
-    <div class="bg-white dark:bg-gray-800 rounded-2xl sm:rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6 shadow-sm">
+    <div
+      class="bg-white dark:bg-gray-800 rounded-2xl sm:rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6 shadow-sm"
+    >
       <h3 class="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-4 sm:mb-6 flex items-center">
-        <div class="w-8 h-8 sm:w-6 sm:h-6 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg sm:rounded mr-3 flex items-center justify-center">
+        <div
+          class="w-8 h-8 sm:w-6 sm:h-6 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg sm:rounded mr-3 flex items-center justify-center"
+        >
           <svg class="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+            ></path>
           </svg>
         </div>
         <span class="text-lg sm:text-xl">🎯 Select Your Service</span>
       </h3>
-      
+
       <div class="space-y-2">
         <label for="serviceType" class="block text-sm font-semibold text-gray-700 dark:text-gray-300">
           Service Type <span class="text-red-500">*</span>
@@ -154,16 +168,16 @@
           required
           class="w-full px-4 py-3.5 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-xl sm:rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-base transition-all duration-200"
         >
-                     <option value="">Choose your service...</option>
-           <option value="astrology">🔮 Astrology</option>
-           <option value="gemstone">💎 Gemstone Consultation</option>
-           <option value="palmistry">✋ Palmistry</option>
-           <option value="numerology">🔢 Numerology</option>
-           <option value="career-finance">💼 Career & Finance</option>
-           <option value="matchmaking">💕 Matchmaking</option>
-           <option value="study-education">📚 Study / Education</option>
-           <option value="corporate">🏢 Corporate Consultation</option>
-           <option value="other">✨ Other Reason</option>
+          <option value="">Choose your service...</option>
+          <option value="astrology">🔮 Astrology</option>
+          <option value="gemstone">💎 Gemstone Consultation</option>
+          <option value="palmistry">✋ Palmistry</option>
+          <option value="numerology">🔢 Numerology</option>
+          <option value="career-finance">💼 Career & Finance</option>
+          <option value="matchmaking">💕 Matchmaking</option>
+          <option value="study-education">📚 Study / Education</option>
+          <option value="corporate">🏢 Corporate Consultation</option>
+          <option value="other">✨ Other Reason</option>
         </select>
       </div>
     </div>
@@ -174,16 +188,25 @@
     </div>
 
     <!-- Query Section -->
-    <div class="bg-white dark:bg-gray-800 rounded-2xl sm:rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6 shadow-sm">
+    <div
+      class="bg-white dark:bg-gray-800 rounded-2xl sm:rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6 shadow-sm"
+    >
       <h3 class="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-4 sm:mb-6 flex items-center">
-        <div class="w-8 h-8 sm:w-6 sm:h-6 bg-gradient-to-br from-green-500 to-green-600 rounded-lg sm:rounded mr-3 flex items-center justify-center">
+        <div
+          class="w-8 h-8 sm:w-6 sm:h-6 bg-gradient-to-br from-green-500 to-green-600 rounded-lg sm:rounded mr-3 flex items-center justify-center"
+        >
           <svg class="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+            ></path>
           </svg>
         </div>
         <span class="text-lg sm:text-xl">💬 Your Query / Notes</span>
       </h3>
-      
+
       <div class="space-y-2">
         <label for="userQuery" class="block text-sm font-semibold text-gray-700 dark:text-gray-300">
           Tell us about your concerns or questions
@@ -199,23 +222,38 @@
     </div>
 
     <!-- Disclaimer Section -->
-    <div class="bg-white dark:bg-gray-800 rounded-2xl sm:rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6 shadow-sm">
+    <div
+      class="bg-white dark:bg-gray-800 rounded-2xl sm:rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6 shadow-sm"
+    >
       <h3 class="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-4 sm:mb-6 flex items-center">
-        <div class="w-8 h-8 sm:w-6 sm:h-6 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg sm:rounded mr-3 flex items-center justify-center">
+        <div
+          class="w-8 h-8 sm:w-6 sm:h-6 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg sm:rounded mr-3 flex items-center justify-center"
+        >
           <svg class="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
           </svg>
         </div>
         <span class="text-lg sm:text-xl">📋 Terms & Privacy</span>
       </h3>
-      
+
       <!-- Combined Policy Summary -->
-      <div class="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl sm:rounded-lg p-4 mb-4 sm:mb-6">
+      <div
+        class="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl sm:rounded-lg p-4 mb-4 sm:mb-6"
+      >
         <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-          <strong>Privacy & Terms:</strong> We respect your privacy - your data is encrypted, never shared with third parties, and retained only as long as necessary for service delivery. By booking, you agree to our terms: no advance payments and guidance-based services. For full details, see our <a href="/privacy" class="underline hover:text-blue-600 dark:hover:text-blue-300">Privacy Policy</a> and <a href="/terms" class="underline hover:text-blue-600 dark:hover:text-blue-300">Terms & Conditions</a>.
+          <strong>Privacy & Terms:</strong> We respect your privacy - your data is encrypted, never shared with third parties,
+          and retained only as long as necessary for service delivery. By booking, you agree to our terms: no advance payments
+          and guidance-based services. For full details, see our <a
+            href="/privacy"
+            class="underline hover:text-blue-600 dark:hover:text-blue-300">Privacy Policy</a
+          > and <a href="/terms" class="underline hover:text-blue-600 dark:hover:text-blue-300">Terms & Conditions</a>.
         </p>
       </div>
-      
+
       <!-- Disclaimer Checkbox -->
       <div class="flex items-start space-x-3">
         <input
@@ -240,28 +278,38 @@
         🔮 Book Your Consultation
       </button>
     </div>
-        </form>
-      
-      <!-- Success Message -->
-      <div id="form-success" class="hidden mt-6 p-4 sm:p-6 bg-green-50 border border-green-200 rounded-2xl sm:rounded-lg">
-        <div class="flex items-start sm:items-center">
-          <div class="flex-shrink-0">
-            <svg class="w-6 h-6 sm:w-5 sm:h-5 text-green-600 mt-1 sm:mt-0 mr-3 sm:mr-2" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-            </svg>
-          </div>
-          <div>
-            <h4 class="text-lg font-semibold text-green-800 mb-2">🌠 Appointment Request Submitted Successfully</h4>
-            <p class="text-green-700 leading-relaxed">Thank you for trusting JyotirSetu. Your consultation request has been recorded, and we'll confirm your appointment according to your selected date and time.</p>
-          </div>
-        </div>
+  </form>
+
+  <!-- Success Message -->
+  <div id="form-success" class="hidden mt-6 p-4 sm:p-6 bg-green-50 border border-green-200 rounded-2xl sm:rounded-lg">
+    <div class="flex items-start sm:items-center">
+      <div class="flex-shrink-0">
+        <svg
+          class="w-6 h-6 sm:w-5 sm:h-5 text-green-600 mt-1 sm:mt-0 mr-3 sm:mr-2"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+            clip-rule="evenodd"></path>
+        </svg>
+      </div>
+      <div>
+        <h4 class="text-lg font-semibold text-green-800 mb-2">🌠 Appointment Request Submitted Successfully</h4>
+        <p class="text-green-700 leading-relaxed">
+          Thank you for trusting JyotirSetu. Your consultation request has been recorded, and we'll confirm your
+          appointment according to your selected date and time.
+        </p>
       </div>
     </div>
+  </div>
+</div>
 
 <script is:inline>
   // Service configurations for dynamic fields
   const serviceConfigs = {
-    'astrology': {
+    astrology: {
       fields: [
         {
           name: 'astrologyConcern',
@@ -273,38 +321,38 @@
             { value: 'career', label: 'Career' },
             { value: 'relationship', label: 'Relationship' },
             { value: 'finance', label: 'Finance' },
-            { value: 'general', label: 'General' }
-          ]
+            { value: 'general', label: 'General' },
+          ],
         },
         {
           name: 'currentProfession',
           label: 'Current Profession',
           type: 'text',
           required: true,
-          placeholder: 'e.g., Software Engineer, Business Owner'
+          placeholder: 'e.g., Software Engineer, Business Owner',
         },
         {
           name: 'dateOfBirth',
           label: 'Date of Birth',
           type: 'date',
-          required: true
+          required: true,
         },
         {
           name: 'birthTime',
           label: 'Birth Time',
           type: 'time',
-          required: true
+          required: true,
         },
         {
           name: 'birthPlace',
           label: 'Place of Birth',
           type: 'text',
           required: true,
-          placeholder: 'City, State, Country'
-        }
-      ]
+          placeholder: 'City, State, Country',
+        },
+      ],
     },
-    'gemstone': {
+    gemstone: {
       fields: [
         {
           name: 'wearingPurpose',
@@ -316,38 +364,38 @@
             { value: 'wealth', label: 'Wealth' },
             { value: 'career', label: 'Career' },
             { value: 'protection', label: 'Protection' },
-            { value: 'spirituality', label: 'Spirituality' }
-          ]
+            { value: 'spirituality', label: 'Spirituality' },
+          ],
         },
         {
           name: 'currentProfession',
           label: 'Current Profession',
           type: 'text',
           required: true,
-          placeholder: 'e.g., Software Engineer, Business Owner'
+          placeholder: 'e.g., Software Engineer, Business Owner',
         },
         {
           name: 'dateOfBirth',
           label: 'Date of Birth',
           type: 'date',
-          required: true
+          required: true,
         },
         {
           name: 'birthTime',
           label: 'Birth Time',
           type: 'time',
-          required: true
+          required: true,
         },
         {
           name: 'wearingGemstone',
           label: 'Wearing Any Gemstone Currently?',
           type: 'text',
           required: false,
-          placeholder: 'If yes, which one?'
-        }
-      ]
+          placeholder: 'If yes, which one?',
+        },
+      ],
     },
-    'palmistry': {
+    palmistry: {
       fields: [
         {
           name: 'focusArea',
@@ -359,8 +407,8 @@
             { value: 'marriage', label: 'Marriage' },
             { value: 'finance', label: 'Finance' },
             { value: 'health', label: 'Health' },
-            { value: 'general', label: 'General Prediction' }
-          ]
+            { value: 'general', label: 'General Prediction' },
+          ],
         },
         {
           name: 'handDominance',
@@ -370,16 +418,16 @@
           options: [
             { value: 'left', label: 'Left' },
             { value: 'right', label: 'Right' },
-            { value: 'both', label: 'Both' }
-          ]
+            { value: 'both', label: 'Both' },
+          ],
         },
         {
           name: 'specificConcerns',
           label: 'Specific Concerns / Questions',
           type: 'textarea',
           required: false,
-          placeholder: 'Tell us what you would like to know from palm reading.'
-        }
+          placeholder: 'Tell us what you would like to know from palm reading.',
+        },
       ],
       instruction: {
         title: '📸 Hand Image Upload Instructions',
@@ -388,19 +436,19 @@
           'Take photos in good lighting',
           'Ensure all lines are clearly visible',
           'Include both left and right palms',
-          'Upload to Google Drive or Dropbox and share the link'
+          'Upload to Google Drive or Dropbox and share the link',
         ],
-        note: 'You can share the image link in the "Message" field below or send via WhatsApp.'
-      }
+        note: 'You can share the image link in the "Message" field below or send via WhatsApp.',
+      },
     },
-    'matchmaking': {
+    matchmaking: {
       fields: [
         {
           name: 'person1Name',
           label: 'Your Full Name',
           type: 'text',
           required: true,
-          placeholder: 'Your full name as per official records'
+          placeholder: 'Your full name as per official records',
         },
         {
           name: 'person1Gender',
@@ -410,88 +458,88 @@
           options: [
             { value: 'male', label: 'Male' },
             { value: 'female', label: 'Female' },
-            { value: 'other', label: 'Other' }
-          ]
+            { value: 'other', label: 'Other' },
+          ],
         },
         {
           name: 'person1DOB',
           label: 'Your Date of Birth',
           type: 'date',
-          required: true
+          required: true,
         },
         {
           name: 'person1TOB',
           label: 'Your Time of Birth',
           type: 'time',
-          required: true
+          required: true,
         },
         {
           name: 'person1POB',
           label: 'Your Place of Birth',
           type: 'text',
           required: true,
-          placeholder: 'City, State, Country'
+          placeholder: 'City, State, Country',
         },
         {
           name: 'person2Name',
-          label: 'Partner\'s Full Name',
+          label: "Partner's Full Name",
           type: 'text',
           required: true,
-          placeholder: 'Partner\'s full name as per official records'
+          placeholder: "Partner's full name as per official records",
         },
         {
           name: 'person2Gender',
-          label: 'Partner\'s Gender',
+          label: "Partner's Gender",
           type: 'select',
           required: true,
           options: [
             { value: 'male', label: 'Male' },
             { value: 'female', label: 'Female' },
-            { value: 'other', label: 'Other' }
-          ]
+            { value: 'other', label: 'Other' },
+          ],
         },
         {
           name: 'person2DOB',
-          label: 'Partner\'s Date of Birth',
+          label: "Partner's Date of Birth",
           type: 'date',
-          required: true
+          required: true,
         },
         {
           name: 'person2TOB',
-          label: 'Partner\'s Time of Birth',
+          label: "Partner's Time of Birth",
           type: 'time',
-          required: true
+          required: true,
         },
         {
           name: 'person2POB',
-          label: 'Partner\'s Place of Birth',
+          label: "Partner's Place of Birth",
           type: 'text',
           required: true,
-          placeholder: 'City, State, Country'
-        }
-      ]
+          placeholder: 'City, State, Country',
+        },
+      ],
     },
-    'numerology': {
+    numerology: {
       fields: [
         {
           name: 'officialName',
           label: 'Full Name (as per official records)',
           type: 'text',
           required: true,
-          placeholder: 'Exact spelling is very important for numerology'
+          placeholder: 'Exact spelling is very important for numerology',
         },
         {
           name: 'commonName',
           label: 'Name You Are Commonly Known By',
           type: 'text',
           required: false,
-          placeholder: 'Nickname or different spelling (optional)'
+          placeholder: 'Nickname or different spelling (optional)',
         },
         {
           name: 'dateOfBirth',
           label: 'Date of Birth',
           type: 'date',
-          required: true
+          required: true,
         },
         {
           name: 'gender',
@@ -501,8 +549,8 @@
           options: [
             { value: 'male', label: 'Male' },
             { value: 'female', label: 'Female' },
-            { value: 'other', label: 'Other' }
-          ]
+            { value: 'other', label: 'Other' },
+          ],
         },
         {
           name: 'focusArea',
@@ -514,10 +562,10 @@
             { value: 'relationship-marriage', label: 'Relationship / Marriage' },
             { value: 'health-wellness', label: 'Health & Wellness' },
             { value: 'name-correction', label: 'Name Correction / Lucky Name' },
-            { value: 'general-guidance', label: 'General Guidance' }
-          ]
-        }
-      ]
+            { value: 'general-guidance', label: 'General Guidance' },
+          ],
+        },
+      ],
     },
     'career-finance': {
       fields: [
@@ -526,7 +574,7 @@
           label: 'Current Profession / Industry',
           type: 'text',
           required: true,
-          placeholder: 'e.g., Software Engineer, Business Owner'
+          placeholder: 'e.g., Software Engineer, Business Owner',
         },
         {
           name: 'financialConcerns',
@@ -538,10 +586,10 @@
             { value: 'job-change', label: 'Job Change' },
             { value: 'investments', label: 'Investments' },
             { value: 'debt-issues', label: 'Debt Issues' },
-            { value: 'general-guidance', label: 'General Guidance' }
-          ]
-        }
-      ]
+            { value: 'general-guidance', label: 'General Guidance' },
+          ],
+        },
+      ],
     },
     'study-education': {
       fields: [
@@ -553,19 +601,19 @@
           options: [
             { value: 'higher-studies', label: 'Higher Studies' },
             { value: 'abroad-studies', label: 'Abroad Studies' },
-            { value: 'career-guidance', label: 'Career Guidance' }
-          ]
-        }
-      ]
+            { value: 'career-guidance', label: 'Career Guidance' },
+          ],
+        },
+      ],
     },
-    'corporate': {
+    corporate: {
       fields: [
         {
           name: 'companyName',
           label: 'Company Name',
           type: 'text',
           required: true,
-          placeholder: 'Your company or organization name'
+          placeholder: 'Your company or organization name',
         },
         {
           name: 'businessType',
@@ -578,8 +626,8 @@
             { value: 'retail', label: 'Retail' },
             { value: 'manufacturing', label: 'Manufacturing' },
             { value: 'startup', label: 'Startup' },
-            { value: 'other', label: 'Other' }
-          ]
+            { value: 'other', label: 'Other' },
+          ],
         },
         {
           name: 'employeeCount',
@@ -590,8 +638,8 @@
             { value: '1-10', label: '1–10' },
             { value: '10-50', label: '10–50' },
             { value: '50-100', label: '50–100' },
-            { value: '100+', label: '100+' }
-          ]
+            { value: '100+', label: '100+' },
+          ],
         },
         {
           name: 'concernArea',
@@ -603,36 +651,36 @@
             { value: 'team-harmony', label: 'Team Harmony' },
             { value: 'leadership', label: 'Leadership' },
             { value: 'financial-stability', label: 'Financial Stability' },
-            { value: 'market-expansion', label: 'Market Expansion' }
-          ]
-        }
-      ]
+            { value: 'market-expansion', label: 'Market Expansion' },
+          ],
+        },
+      ],
     },
-    'other': {
+    other: {
       fields: [
         {
           name: 'subjectTitle',
           label: 'Subject / Title of Concern',
           type: 'text',
           required: true,
-          placeholder: 'Brief title of your concern'
+          placeholder: 'Brief title of your concern',
         },
         {
           name: 'detailedConcern',
           label: 'Detailed Concern',
           type: 'textarea',
           required: true,
-          placeholder: 'Please describe your concern in detail'
-        }
-      ]
-    }
+          placeholder: 'Please describe your concern in detail',
+        },
+      ],
+    },
   };
 
   // Function to render service-specific fields
   function renderServiceFields(serviceType) {
     const container = document.getElementById('serviceSpecificFields');
     const serviceConfig = serviceConfigs[serviceType];
-    
+
     if (!serviceConfig) {
       container.style.display = 'none';
       return;
@@ -652,7 +700,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
     `;
 
-    serviceConfig.fields.forEach(field => {
+    serviceConfig.fields.forEach((field) => {
       if (field.type === 'select') {
         fieldsHTML += `
           <div class="space-y-2">
@@ -666,7 +714,7 @@
               class="w-full px-4 py-3.5 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-xl sm:rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-base transition-all duration-200"
             >
               <option value="">Select ${field.label.toLowerCase()}...</option>
-              ${field.options.map(option => `<option value="${option.value}">${option.label}</option>`).join('')}
+              ${field.options.map((option) => `<option value="${option.value}">${option.label}</option>`).join('')}
             </select>
           </div>
         `;
@@ -724,10 +772,14 @@
           </h4>
           <p class="text-blue-700 dark:text-blue-300 mb-3 leading-relaxed">${serviceConfig.instruction.content}</p>
           <ul class="space-y-2 mb-3">
-            ${serviceConfig.instruction.methods.map(method => `<li class="text-blue-600 dark:text-blue-400 flex items-start">
+            ${serviceConfig.instruction.methods
+              .map(
+                (method) => `<li class="text-blue-600 dark:text-blue-400 flex items-start">
               <span class="mr-2 mt-1">•</span>
               <span>${method}</span>
-            </li>`).join('')}
+            </li>`
+              )
+              .join('')}
           </ul>
           <p class="text-sm text-blue-600 dark:text-blue-400 font-medium leading-relaxed">${serviceConfig.instruction.note}</p>
         </div>
@@ -736,70 +788,69 @@
 
     container.innerHTML = fieldsHTML;
     container.style.display = 'block';
-    
+
     // Smooth scroll to the new fields
     container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
-     // Event listener for service type change
-   document.getElementById('serviceType').addEventListener('change', function() {
-     const selectedService = this.value;
-     console.log('Service type changed to:', selectedService);
-     if (selectedService) {
-       renderServiceFields(selectedService);
-     } else {
-       document.getElementById('serviceSpecificFields').style.display = 'none';
-     }
-   });
+  // Event listener for service type change
+  document.getElementById('serviceType').addEventListener('change', function () {
+    const selectedService = this.value;
+    console.log('Service type changed to:', selectedService);
+    if (selectedService) {
+      renderServiceFields(selectedService);
+    } else {
+      document.getElementById('serviceSpecificFields').style.display = 'none';
+    }
+  });
 
   // Set default dates
-  document.addEventListener('DOMContentLoaded', function() {
+  document.addEventListener('DOMContentLoaded', function () {
     const today = new Date();
     const tomorrow = new Date(today);
     tomorrow.setDate(today.getDate() + 1);
-    
+
     document.getElementById('appointmentDate').value = tomorrow.toISOString().split('T')[0];
   });
 
   // Form submission handling
-  document.addEventListener('DOMContentLoaded', function() {
+  document.addEventListener('DOMContentLoaded', function () {
     console.log('DOMContentLoaded event fired');
-    
+
     const form = document.getElementById('dynamic-appointment-form');
     console.log('Form element found:', form);
-    
+
     if (form) {
-            console.log('Attaching submit event listener to form');
-      
-      form.addEventListener('submit', async function(e) {
+      console.log('Attaching submit event listener to form');
+
+      form.addEventListener('submit', async function (e) {
         e.preventDefault();
         console.log('Form submit event triggered!');
         console.log('Form data being collected...');
-        
+
         // Show loading state
         const submitBtn = this.querySelector('button[type="submit"]');
         const originalText = submitBtn.innerHTML;
         submitBtn.innerHTML = '⏳ Submitting...';
         submitBtn.disabled = true;
-        
+
         try {
-          
           // Collect form data
           const formData = new FormData(this);
-          
+
           // Validate mobile number
           const mobileNumber = formData.get('mobileNumber');
           if (!mobileNumber || mobileNumber.length !== 10 || !/^[0-9]{10}$/.test(mobileNumber)) {
             alert('Please enter a valid 10-digit mobile number');
             return;
           }
-          
+
           // Debug: Log all form data
           console.log('=== FORM SUBMISSION DEBUG ===');
           for (const [key, value] of formData.entries()) {
             console.log(`${key}: ${value}`);
           }
-          
+
           const appointmentData = {
             name: formData.get('fullName'),
             email: formData.get('emailAddress'),
@@ -811,16 +862,16 @@
             message: formData.get('userQuery'),
             status: 'pending',
             // Service-specific data
-            service_details: {}
+            service_details: {},
           };
-          
+
           // Collect service-specific fields
           const serviceType = formData.get('serviceType');
           console.log('Selected service type:', serviceType);
-          
+
           if (serviceType && serviceConfigs[serviceType]) {
             console.log('Service config found:', serviceConfigs[serviceType]);
-            serviceConfigs[serviceType].fields.forEach(field => {
+            serviceConfigs[serviceType].fields.forEach((field) => {
               const value = formData.get(field.name);
               console.log(`Field ${field.name}: ${value}`);
               if (value) {
@@ -830,9 +881,9 @@
           } else {
             console.log('No service config found for:', serviceType);
           }
-          
+
           console.log('Final appointment data:', appointmentData);
-          
+
           // Submit to Formspree
           const formspreeData = new FormData();
           formspreeData.append('name', appointmentData.name);
@@ -844,15 +895,15 @@
           formspreeData.append('consultation_method', appointmentData.consultation_method);
           formspreeData.append('message', appointmentData.message);
           formspreeData.append('service_details', JSON.stringify(appointmentData.service_details));
-          
+
           const formspreeResponse = await fetch('https://formspree.io/f/xnnbzveo', {
             method: 'POST',
             body: formspreeData,
             headers: {
-              'Accept': 'application/json'
-            }
+              Accept: 'application/json',
+            },
           });
-          
+
           if (formspreeResponse.ok) {
             console.log('Successfully sent via Formspree');
             showSuccessMessage();
@@ -864,10 +915,9 @@
           } else {
             throw new Error('Form submission failed');
           }
-          
         } catch (error) {
           console.error('Form submission error:', error);
-          
+
           // Show user-friendly error message
           let errorMessage = 'Sorry, there was an error submitting your form. ';
           if (error.message.includes('network') || error.message.includes('fetch')) {
@@ -875,7 +925,7 @@
           } else {
             errorMessage += 'Please try again or contact us directly.';
           }
-          
+
           alert(errorMessage);
         } finally {
           // Reset button state
@@ -883,136 +933,136 @@
           submitBtn.disabled = false;
         }
       });
-      
+
       console.log('Form submit event listener attached successfully');
     } else {
       console.error('Form element not found!');
     }
   });
-  
+
   // Show success message
   function showSuccessMessage() {
     const successDiv = document.createElement('div');
     successDiv.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
     successDiv.innerHTML = '✅ Appointment booked successfully! We will contact you soon.';
     document.body.appendChild(successDiv);
-    
+
     setTimeout(() => {
       successDiv.remove();
     }, 5000);
   }
-   
-   // Add click handler to submit button as backup
-   document.addEventListener('DOMContentLoaded', function() {
-     const submitBtn = document.querySelector('button[type="submit"]');
-     if (submitBtn) {
-       submitBtn.addEventListener('click', function() {
-         console.log('Submit button clicked!');
-         
-         // Manually trigger form submission
-         const form = document.getElementById('dynamic-appointment-form');
-         if (form) {
-           console.log('Manually submitting form from button click');
-           
-                       // Collect form data manually
-            const formData = new FormData(form);
-            
-            // Validate mobile number
-            const mobileNumber = formData.get('mobileNumber');
-            if (!mobileNumber || mobileNumber.length !== 10 || !/^[0-9]{10}$/.test(mobileNumber)) {
-              alert('Please enter a valid 10-digit mobile number');
-              return;
-            }
-            
-            // Debug: Log all form data
-            console.log('=== MANUAL FORM SUBMISSION DEBUG ===');
-            for (const [key, value] of formData.entries()) {
-              console.log(`${key}: ${value}`);
-            }
-           
-           const appointmentData = {
-             name: formData.get('fullName'),
-             email: formData.get('emailAddress'),
-             phone: formData.get('mobileNumber'),
-             service: formData.get('serviceType'),
-             date: formData.get('appointmentDate'),
-             time: formData.get('appointmentTime'),
-             consultation_method: formData.get('consultationMethod'),
-             message: formData.get('userQuery'),
-             status: 'pending',
-             service_details: {}
-           };
-           
-           // Collect service-specific fields
-           const serviceType = formData.get('serviceType');
-           console.log('Selected service type:', serviceType);
-           
-           if (serviceType && serviceConfigs[serviceType]) {
-             console.log('Service config found:', serviceConfigs[serviceType]);
-             serviceConfigs[serviceType].fields.forEach(field => {
-               const value = formData.get(field.name);
-               console.log(`Field ${field.name}: ${value}`);
-               if (value) {
-                 appointmentData.service_details[field.name] = value;
-               }
-             });
-           }
-           
-           console.log('Final appointment data:', appointmentData);
-           
-           // Submit to Formspree
-           
-           const formspreeData = new FormData();
-           formspreeData.append('name', appointmentData.name);
-           formspreeData.append('email', appointmentData.email);
-           formspreeData.append('phone', appointmentData.phone);
-           formspreeData.append('service', appointmentData.service);
-           formspreeData.append('date', appointmentData.date);
-           formspreeData.append('time', appointmentData.time);
-           formspreeData.append('consultation_method', appointmentData.consultation_method);
-           formspreeData.append('message', appointmentData.message);
-           formspreeData.append('service_details', JSON.stringify(appointmentData.service_details));
-           
-           fetch('https://formspree.io/f/xnnbzveo', {
-             method: 'POST',
-             body: formspreeData,
-             headers: {
-               'Accept': 'application/json'
-             }
-           })
-           .then(response => {
-             if (response.ok) {
-               console.log('Successfully sent via Formspree');
-               showSuccessMessage();
-               form.reset();
-               const serviceSpecificFields = document.getElementById('serviceSpecificFields');
-               if (serviceSpecificFields) {
-                 serviceSpecificFields.style.display = 'none';
-               }
-             } else {
-               alert('Sorry, there was an error submitting your form. Please try again or contact us directly.');
-             }
-           })
-           .catch(error => {
-             console.error('Form submission error:', error);
-             alert('Sorry, there was an error submitting your form. Please try again or contact us directly.');
-           });
-         }
-       });
-       
-       console.log('Submit button click handler attached successfully');
-     } else {
-       console.error('Submit button not found!');
-     }
-   });
 
-   // Mobile number input validation
-   document.addEventListener('DOMContentLoaded', () => {
-     const mobileInput = document.getElementById('mobileNumber');
-     if (mobileInput) {
-       mobileInput.addEventListener('input', function() {
-         this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);
-       });
-     }
-   });
+  // Add click handler to submit button as backup
+  document.addEventListener('DOMContentLoaded', function () {
+    const submitBtn = document.querySelector('button[type="submit"]');
+    if (submitBtn) {
+      submitBtn.addEventListener('click', function () {
+        console.log('Submit button clicked!');
+
+        // Manually trigger form submission
+        const form = document.getElementById('dynamic-appointment-form');
+        if (form) {
+          console.log('Manually submitting form from button click');
+
+          // Collect form data manually
+          const formData = new FormData(form);
+
+          // Validate mobile number
+          const mobileNumber = formData.get('mobileNumber');
+          if (!mobileNumber || mobileNumber.length !== 10 || !/^[0-9]{10}$/.test(mobileNumber)) {
+            alert('Please enter a valid 10-digit mobile number');
+            return;
+          }
+
+          // Debug: Log all form data
+          console.log('=== MANUAL FORM SUBMISSION DEBUG ===');
+          for (const [key, value] of formData.entries()) {
+            console.log(`${key}: ${value}`);
+          }
+
+          const appointmentData = {
+            name: formData.get('fullName'),
+            email: formData.get('emailAddress'),
+            phone: formData.get('mobileNumber'),
+            service: formData.get('serviceType'),
+            date: formData.get('appointmentDate'),
+            time: formData.get('appointmentTime'),
+            consultation_method: formData.get('consultationMethod'),
+            message: formData.get('userQuery'),
+            status: 'pending',
+            service_details: {},
+          };
+
+          // Collect service-specific fields
+          const serviceType = formData.get('serviceType');
+          console.log('Selected service type:', serviceType);
+
+          if (serviceType && serviceConfigs[serviceType]) {
+            console.log('Service config found:', serviceConfigs[serviceType]);
+            serviceConfigs[serviceType].fields.forEach((field) => {
+              const value = formData.get(field.name);
+              console.log(`Field ${field.name}: ${value}`);
+              if (value) {
+                appointmentData.service_details[field.name] = value;
+              }
+            });
+          }
+
+          console.log('Final appointment data:', appointmentData);
+
+          // Submit to Formspree
+
+          const formspreeData = new FormData();
+          formspreeData.append('name', appointmentData.name);
+          formspreeData.append('email', appointmentData.email);
+          formspreeData.append('phone', appointmentData.phone);
+          formspreeData.append('service', appointmentData.service);
+          formspreeData.append('date', appointmentData.date);
+          formspreeData.append('time', appointmentData.time);
+          formspreeData.append('consultation_method', appointmentData.consultation_method);
+          formspreeData.append('message', appointmentData.message);
+          formspreeData.append('service_details', JSON.stringify(appointmentData.service_details));
+
+          fetch('https://formspree.io/f/xnnbzveo', {
+            method: 'POST',
+            body: formspreeData,
+            headers: {
+              Accept: 'application/json',
+            },
+          })
+            .then((response) => {
+              if (response.ok) {
+                console.log('Successfully sent via Formspree');
+                showSuccessMessage();
+                form.reset();
+                const serviceSpecificFields = document.getElementById('serviceSpecificFields');
+                if (serviceSpecificFields) {
+                  serviceSpecificFields.style.display = 'none';
+                }
+              } else {
+                alert('Sorry, there was an error submitting your form. Please try again or contact us directly.');
+              }
+            })
+            .catch((error) => {
+              console.error('Form submission error:', error);
+              alert('Sorry, there was an error submitting your form. Please try again or contact us directly.');
+            });
+        }
+      });
+
+      console.log('Submit button click handler attached successfully');
+    } else {
+      console.error('Submit button not found!');
+    }
+  });
+
+  // Mobile number input validation
+  document.addEventListener('DOMContentLoaded', () => {
+    const mobileInput = document.getElementById('mobileNumber');
+    if (mobileInput) {
+      mobileInput.addEventListener('input', function () {
+        this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);
+      });
+    }
+  });
 </script>

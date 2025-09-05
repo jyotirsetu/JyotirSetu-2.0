@@ -1,7 +1,8 @@
 /* Custom CSS for JyotirSetu - Complete Mobile Optimizations */
 
 /* Global body and html optimization */
-html, body {
+html,
+body {
   width: 100%;
   overflow-x: hidden;
 }
@@ -19,11 +20,11 @@ html, body {
     scrollbar-width: none !important;
     -ms-overflow-style: none !important;
   }
-  
+
   .mobile-services-scroll::-webkit-scrollbar {
     display: none !important;
   }
-  
+
   .mobile-services-scroll > div,
   .mobile-services-scroll > a {
     flex: 0 0 260px !important;
@@ -38,13 +39,13 @@ html, body {
     aspect-ratio: 1 !important;
     padding: 1.25rem !important;
   }
-  
+
   .mobile-services-scroll > div:hover,
   .mobile-services-scroll > a:hover {
     transform: translateY(-3px) !important;
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1) !important;
   }
-  
+
   /* Make service cards more compact on mobile */
   .mobile-services-scroll > div,
   .mobile-services-scroll > a {
@@ -57,12 +58,12 @@ html, body {
     box-sizing: border-box !important;
     flex-shrink: 0 !important;
   }
-  
+
   .mobile-services-scroll > div .mb-2,
   .mobile-services-scroll > a .mb-2 {
     margin-bottom: 0.5rem !important;
   }
-  
+
   .mobile-services-scroll > div .text-xl,
   .mobile-services-scroll > a .text-xl {
     font-size: 1.5rem !important;
@@ -70,20 +71,20 @@ html, body {
     margin-bottom: 0.75rem !important;
     font-weight: 700 !important;
   }
-  
+
   .mobile-services-scroll > div .text-muted,
   .mobile-services-scroll > a .text-muted {
     font-size: 1rem !important;
     line-height: 1.5 !important;
   }
-  
+
   .mobile-services-scroll > div svg,
   .mobile-services-scroll > a svg {
     width: 1.5rem !important;
     height: 1.5rem !important;
     margin-bottom: 0.25rem !important;
   }
-  
+
   /* Ensure content fits properly in square cards */
   .mobile-services-scroll > div .relative,
   .mobile-services-scroll > a .relative {
@@ -94,25 +95,25 @@ html, body {
     justify-content: center !important;
     align-items: center !important;
   }
-  
+
   /* Handle absolute positioned elements in mobile cards */
   .mobile-services-scroll > div .absolute,
   .mobile-services-scroll > a .absolute {
     pointer-events: none !important;
   }
-  
+
   /* Scroll indicators */
   .mobile-services-scroll::before,
   .mobile-services-scroll::after {
     content: '';
     flex: 0 0 1rem;
   }
-  
+
   /* Smooth scroll behavior */
   .mobile-services-scroll {
     scroll-behavior: smooth;
   }
-  
+
   /* Active card styling */
   .mobile-services-scroll > div:focus,
   .mobile-services-scroll > a:focus {
@@ -134,11 +135,11 @@ html, body {
     scrollbar-width: none !important;
     -ms-overflow-style: none !important;
   }
-  
+
   .mobile-faqs-scroll::-webkit-scrollbar {
     display: none !important;
   }
-  
+
   .mobile-faqs-scroll > div {
     flex: 0 0 280px !important;
     scroll-snap-align: start !important;
@@ -147,12 +148,12 @@ html, body {
     margin-right: 0 !important;
     transition: all 0.3s ease !important;
   }
-  
+
   .mobile-faqs-scroll > div:hover {
     transform: translateY(-3px) !important;
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1) !important;
   }
-  
+
   /* Make FAQ cards more compact on mobile */
   .mobile-faqs-scroll > div {
     border-radius: 12px !important;
@@ -167,46 +168,46 @@ html, body {
     border: 1px solid #e5e7eb !important;
     padding: 1rem !important;
   }
-  
+
   .dark .mobile-faqs-scroll > div {
     background: #1f2937 !important;
     border-color: #374151 !important;
   }
-  
+
   .mobile-faqs-scroll > div .flex {
     width: 100% !important;
   }
-  
+
   .mobile-faqs-scroll > div .text-xl {
     font-size: 1rem !important;
     line-height: 1.3 !important;
     margin-bottom: 0.5rem !important;
   }
-  
+
   .mobile-faqs-scroll > div .text-muted {
     font-size: 0.875rem !important;
     line-height: 1.4 !important;
   }
-  
+
   .mobile-faqs-scroll > div svg {
     width: 1.25rem !important;
     height: 1.25rem !important;
     margin-right: 0.5rem !important;
     flex-shrink: 0 !important;
   }
-  
+
   /* Scroll indicators */
   .mobile-faqs-scroll::before,
   .mobile-faqs-scroll::after {
     content: '';
     flex: 0 0 1rem;
   }
-  
+
   /* Smooth scroll behavior */
   .mobile-faqs-scroll {
-  scroll-behavior: smooth;
+    scroll-behavior: smooth;
   }
-  
+
   /* Active card styling */
   .mobile-faqs-scroll > div:focus {
     outline: 2px solid #3b82f6;
@@ -227,11 +228,11 @@ html, body {
     scrollbar-width: none !important;
     -ms-overflow-style: none !important;
   }
-  
+
   .mobile-features-scroll::-webkit-scrollbar {
     display: none !important;
   }
-  
+
   .mobile-features-scroll > div {
     flex: 0 0 300px !important;
     scroll-snap-align: start !important;
@@ -240,24 +241,24 @@ html, body {
     margin-right: 0 !important;
     transition: all 0.3s ease !important;
   }
-  
+
   .mobile-features-scroll > div:hover {
     transform: translateY(-3px) !important;
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1) !important;
     background: rgba(255, 255, 255, 0.1) !important;
     border-color: rgba(59, 130, 246, 0.3) !important;
   }
-  
+
   .dark .mobile-features-scroll > div:hover {
     background: rgba(31, 41, 55, 0.9) !important;
     border-color: rgba(59, 130, 246, 0.5) !important;
   }
-  
+
   .mobile-features-scroll > div:hover svg {
     transform: scale(1.1) !important;
     filter: drop-shadow(0 4px 8px rgba(59, 130, 246, 0.4)) !important;
   }
-  
+
   /* Make feature items more compact on mobile - no card style */
   .mobile-features-scroll > div {
     display: flex !important;
@@ -274,17 +275,17 @@ html, body {
     backdrop-filter: blur(10px) !important;
     transition: all 0.3s ease !important;
   }
-  
+
   .dark .mobile-features-scroll > div {
     background: rgba(31, 41, 55, 0.8) !important;
     border-color: rgba(75, 85, 99, 0.3) !important;
   }
-  
+
   .mobile-features-scroll > div .flex {
     width: 100% !important;
     align-items: flex-start !important;
   }
-  
+
   .mobile-features-scroll > div .text-xl {
     font-size: 1.25rem !important;
     line-height: 1.3 !important;
@@ -292,21 +293,21 @@ html, body {
     font-weight: 700 !important;
     color: #1f2937 !important;
   }
-  
+
   .dark .mobile-features-scroll > div .text-xl {
     color: #f9fafb !important;
   }
-  
+
   .mobile-features-scroll > div .text-muted {
     font-size: 0.95rem !important;
     line-height: 1.5 !important;
     color: #6b7280 !important;
   }
-  
+
   .dark .mobile-features-scroll > div .text-muted {
     color: #d1d5db !important;
   }
-  
+
   .mobile-features-scroll > div svg {
     width: 2.5rem !important;
     height: 2.5rem !important;
@@ -316,19 +317,19 @@ html, body {
     filter: drop-shadow(0 2px 4px rgba(59, 130, 246, 0.2)) !important;
     transition: all 0.3s ease !important;
   }
-  
+
   /* Scroll indicators */
   .mobile-features-scroll::before,
   .mobile-features-scroll::after {
     content: '';
     flex: 0 0 1rem;
   }
-  
+
   /* Smooth scroll behavior */
   .mobile-features-scroll {
     scroll-behavior: smooth;
   }
-  
+
   /* Active item styling */
   .mobile-features-scroll > div:focus {
     outline: 2px solid #3b82f6;
@@ -349,7 +350,7 @@ html, body {
     aspect-ratio: 1 !important;
     padding: 1.125rem !important;
   }
-  
+
   /* Enhanced font sizes for small mobile */
   .mobile-services-scroll > div .text-xl,
   .mobile-services-scroll > a .text-xl {
@@ -358,25 +359,25 @@ html, body {
     margin-bottom: 0.6rem !important;
     font-weight: 700 !important;
   }
-  
+
   .mobile-services-scroll > div .text-muted,
   .mobile-services-scroll > a .text-muted {
     font-size: 0.95rem !important;
     line-height: 1.5 !important;
   }
-  
+
   .mobile-faqs-scroll > div {
     flex: 0 0 260px !important;
     min-width: 260px !important;
     max-width: 260px !important;
   }
-  
+
   .mobile-features-scroll > div {
     flex: 0 0 280px !important;
     min-width: 280px !important;
     max-width: 280px !important;
   }
-  
+
   .mobile-features-scroll > div svg {
     width: 2rem !important;
     height: 2rem !important;
@@ -425,11 +426,11 @@ html, body {
     right: 50% !important;
     transform: translateX(-50%) !important;
   }
-  
+
   .dark .mobile-footer-layout {
     background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
   }
-  
+
   /* Footer Brand Section - Mobile */
   .footer-brand-section {
     margin-bottom: 0 !important;
@@ -456,7 +457,7 @@ html, body {
     min-width: 0 !important;
     margin-bottom: 0 !important;
   }
-  
+
   .footer-brand-section img {
     width: 5rem !important;
     height: 5rem !important;
@@ -465,24 +466,24 @@ html, body {
     box-shadow: 0 8px 25px rgba(59, 130, 246, 0.15) !important;
     border: 2px solid rgba(59, 130, 246, 0.2) !important;
   }
-  
+
   .footer-brand-section a {
     font-size: 1.125rem !important;
     font-weight: 700 !important;
     color: #1e293b !important;
     text-decoration: none !important;
   }
-  
+
   .dark .footer-brand-section a {
     color: #f8fafc !important;
   }
-  
+
   .footer-brand-section .text-xs {
     font-size: 0.75rem !important;
     color: #64748b !important;
     margin-top: 0.25rem !important;
   }
-  
+
   .dark .footer-brand-section .text-xs {
     color: #94a3b8 !important;
   }
@@ -510,7 +511,7 @@ html, body {
 
   .footer-brand-section img:hover {
     transform: scale(1.05) rotate(2deg) !important;
-    filter: 
+    filter:
       drop-shadow(0 0 15px rgba(59, 130, 246, 0.6)) !important,
       drop-shadow(0 0 25px rgba(139, 92, 246, 0.4)) !important,
       drop-shadow(0 0 35px rgba(236, 72, 153, 0.3)) !important;
@@ -519,25 +520,26 @@ html, body {
 
   @keyframes logoGlow {
     0% {
-      filter: 
+      filter:
         drop-shadow(0 0 8px rgba(59, 130, 246, 0.4)) !important,
         drop-shadow(0 0 12px rgba(139, 92, 246, 0.2)) !important;
     }
     50% {
-      filter: 
+      filter:
         drop-shadow(0 0 12px rgba(59, 130, 246, 0.6)) !important,
         drop-shadow(0 0 18px rgba(139, 92, 246, 0.4)) !important,
         drop-shadow(0 0 24px rgba(236, 72, 153, 0.2)) !important;
     }
     100% {
-      filter: 
+      filter:
         drop-shadow(0 0 8px rgba(59, 130, 246, 0.4)) !important,
         drop-shadow(0 0 12px rgba(139, 92, 246, 0.2)) !important;
     }
   }
 
   @keyframes logoPulse {
-    0%, 100% {
+    0%,
+    100% {
       opacity: 0.3 !important;
       transform: scale(1) !important;
     }
@@ -579,7 +581,8 @@ html, body {
   }
 
   @keyframes containerGlow {
-    0%, 100% {
+    0%,
+    100% {
       opacity: 0.3 !important;
       transform: translate(-50%, -50%) scale(1) !important;
     }
@@ -588,7 +591,7 @@ html, body {
       transform: translate(-50%, -50%) scale(1.2) !important;
     }
   }
-  
+
   /* Contact Info Section - Mobile */
   .contact-info-section {
     margin-bottom: 1.5rem !important;
@@ -601,7 +604,7 @@ html, body {
     margin-left: 0 !important;
     margin-right: 0 !important;
   }
-  
+
   .dark .contact-info-section {
     background: rgba(30, 41, 59, 0.7) !important;
   }
@@ -616,7 +619,7 @@ html, body {
     background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%) !important;
     border-radius: 50% !important;
     color: white !important;
-    box-shadow: 
+    box-shadow:
       0 2px 8px rgba(59, 130, 246, 0.3) !important,
       0 0 0 1px rgba(255, 255, 255, 0.2) !important;
     flex-shrink: 0 !important;
@@ -625,7 +628,7 @@ html, body {
 
   .mobile-contact-icon:hover {
     transform: scale(1.1) !important;
-    box-shadow: 
+    box-shadow:
       0 4px 12px rgba(59, 130, 246, 0.4) !important,
       0 0 0 1px rgba(255, 255, 255, 0.3) !important;
   }
@@ -673,27 +676,27 @@ html, body {
   .mobile-contact-text {
     color: rgba(255, 255, 255, 0.8) !important;
   }
-  
+
   .contact-info-section .space-y-2 > div {
     margin-bottom: 0.5rem !important;
   }
-  
+
   .contact-info-section svg {
     color: #3b82f6 !important;
   }
-  
+
   .contact-info-section a,
   .contact-info-section span {
     font-size: 0.875rem !important;
     color: #475569 !important;
     font-weight: 500 !important;
   }
-  
+
   .dark .contact-info-section a,
   .dark .contact-info-section span {
     color: #cbd5e1 !important;
   }
-  
+
   /* Footer Sections - Mobile */
   .footer-section {
     margin-bottom: 1rem !important;
@@ -706,12 +709,12 @@ html, body {
     margin-left: 0 !important;
     margin-right: 0 !important;
   }
-  
+
   .dark .footer-section {
     background: rgba(30, 41, 59, 0.5) !important;
     border-left-color: #60a5fa !important;
   }
-  
+
   /* Footer Section Headers - Mobile */
   .footer-section-header h3 {
     font-size: 0.875rem !important;
@@ -721,22 +724,22 @@ html, body {
     text-transform: uppercase !important;
     letter-spacing: 0.05em !important;
   }
-  
+
   .dark .footer-section-header h3 {
     color: #f8fafc !important;
   }
-  
+
   /* Footer Section Content - Mobile */
   .footer-section-content ul {
     list-style: none !important;
     padding: 0 !important;
     margin: 0 !important;
   }
-  
+
   .footer-section-content li {
     margin-bottom: 0.25rem !important;
   }
-  
+
   .footer-section-content a {
     font-size: 0.75rem !important;
     color: #64748b !important;
@@ -745,28 +748,26 @@ html, body {
     display: block !important;
     padding: 0.125rem 0 !important;
   }
-  
+
   .dark .footer-section-content a {
     color: #94a3b8 !important;
   }
-  
+
   .footer-section-content a:hover {
     color: #3b82f6 !important;
     transform: translateX(4px) !important;
   }
-  
 
-  
   /* Social Icons Section - Mobile */
   .social-icons-section {
     margin: 1rem 0 !important;
   }
-  
+
   .social-icons-section .flex {
     justify-content: center !important;
     gap: 1rem !important;
   }
-  
+
   .social-icons-section a {
     display: flex !important;
     align-items: center !important;
@@ -778,36 +779,36 @@ html, body {
     color: #3b82f6 !important;
     transition: all 0.3s ease !important;
   }
-  
+
   .dark .social-icons-section a {
     background: rgba(96, 165, 250, 0.1) !important;
     color: #60a5fa !important;
   }
-  
+
   .social-icons-section a:hover {
     background: #3b82f6 !important;
     color: white !important;
     transform: translateY(-3px) !important;
     box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4) !important;
   }
-  
+
   /* Copyright Section - Mobile */
   .copyright-section {
     margin-top: 1.5rem !important;
     padding-top: 1rem !important;
     border-top: 1px solid rgba(59, 130, 246, 0.2) !important;
   }
-  
+
   .dark .copyright-section {
     border-top-color: rgba(96, 165, 250, 0.2) !important;
   }
-  
+
   .copyright-section .text-xs {
     font-size: 0.75rem !important;
     color: #64748b !important;
     font-weight: 500 !important;
   }
-  
+
   .dark .copyright-section .text-xs {
     color: #94a3b8 !important;
   }
@@ -819,16 +820,16 @@ html, body {
   footer {
     background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
   }
-  
+
   .dark footer {
     background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
   }
-  
+
   /* Footer Brand Section - Desktop */
   .footer-brand-section {
     margin-bottom: 2rem !important;
   }
-  
+
   .footer-brand-section img {
     width: 6rem !important;
     height: 6rem !important;
@@ -837,58 +838,58 @@ html, body {
     box-shadow: 0 8px 25px rgba(59, 130, 246, 0.15) !important;
     border: 2px solid rgba(59, 130, 246, 0.2) !important;
   }
-  
+
   .footer-brand-section a {
     font-size: 1.5rem !important;
     font-weight: 700 !important;
     color: #1e293b !important;
     text-decoration: none !important;
   }
-  
+
   .dark .footer-brand-section a {
     color: #f8fafc !important;
   }
-  
+
   .footer-brand-section .text-sm {
     font-size: 0.875rem !important;
     color: #64748b !important;
     margin-top: 0.25rem !important;
   }
-  
+
   .dark .footer-brand-section .text-sm {
     color: #94a3b8 !important;
   }
-  
+
   /* Contact Info Section - Desktop */
   .contact-info-section {
     margin-bottom: 2rem !important;
   }
-  
+
   .contact-info-section .space-y-3 > div {
     margin-bottom: 0.75rem !important;
   }
-  
+
   .contact-info-section svg {
     color: #3b82f6 !important;
   }
-  
+
   .contact-info-section a,
   .contact-info-section span {
     font-size: 1rem !important;
     color: #475569 !important;
     font-weight: 500 !important;
   }
-  
+
   .dark .contact-info-section a,
   .dark .contact-info-section span {
     color: #cbd5e1 !important;
   }
-  
+
   /* Footer Sections - Desktop */
   .footer-section {
     margin-bottom: 2rem !important;
   }
-  
+
   /* Footer Section Headers - Desktop */
   .footer-section-header h3 {
     font-size: 1.125rem !important;
@@ -898,22 +899,22 @@ html, body {
     text-transform: uppercase !important;
     letter-spacing: 0.05em !important;
   }
-  
+
   .dark .footer-section-header h3 {
     color: #f8fafc !important;
   }
-  
+
   /* Footer Section Content - Desktop */
   .footer-section-content ul {
     list-style: none !important;
     padding: 0 !important;
     margin: 0 !important;
   }
-  
+
   .footer-section-content li {
     margin-bottom: 0.5rem !important;
   }
-  
+
   .footer-section-content a {
     font-size: 0.875rem !important;
     color: #64748b !important;
@@ -922,27 +923,25 @@ html, body {
     display: block !important;
     padding: 0.25rem 0 !important;
   }
-  
+
   .dark .footer-section-content a {
     color: #94a3b8 !important;
   }
-  
+
   .footer-section-content a:hover {
     color: #3b82f6 !important;
     transform: translateX(4px) !important;
   }
-  
 
-  
   /* Social Icons Section - Desktop */
   .social-icons-section {
     margin: 1.5rem 0 !important;
   }
-  
+
   .social-icons-section .flex {
     gap: 1rem !important;
   }
-  
+
   .social-icons-section a {
     display: flex !important;
     align-items: center !important;
@@ -954,36 +953,36 @@ html, body {
     color: #3b82f6 !important;
     transition: all 0.3s ease !important;
   }
-  
+
   .dark .social-icons-section a {
     background: rgba(96, 165, 250, 0.1) !important;
     color: #60a5fa !important;
   }
-  
+
   .social-icons-section a:hover {
     background: #3b82f6 !important;
     color: white !important;
     transform: translateY(-3px) !important;
     box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4) !important;
   }
-  
+
   /* Copyright Section - Desktop */
   .copyright-section {
     margin-top: 2rem !important;
     padding-top: 1.5rem !important;
     border-top: 1px solid rgba(59, 130, 246, 0.2) !important;
   }
-  
+
   .dark .copyright-section {
     border-top-color: rgba(96, 165, 250, 0.2) !important;
   }
-  
+
   .copyright-section .text-sm {
     font-size: 0.875rem !important;
     color: #64748b !important;
     font-weight: 500 !important;
   }
-  
+
   .dark .copyright-section .text-sm {
     color: #94a3b8 !important;
   }
@@ -996,7 +995,7 @@ html, body {
     flex-wrap: wrap !important;
     gap: 2rem !important;
   }
-  
+
   footer .footer-link-section {
     flex: 1 !important;
     min-width: 0 !important;
@@ -1010,17 +1009,17 @@ html, body {
     padding: 0.75rem !important;
     margin-bottom: 0.5rem !important;
   }
-  
+
   .bg-gray-50.dark\:bg-gray-800\/50 p {
     font-size: 0.8rem !important;
     line-height: 1.4 !important;
   }
-  
+
   /* Disclaimer Checkbox */
   .flex.items-start.space-x-3 {
     margin-top: 0.5rem !important;
   }
-  
+
   .flex.items-start.space-x-3 label {
     font-size: 0.85rem !important;
     line-height: 1.3 !important;
@@ -1039,26 +1038,26 @@ html, body {
     max-width: 400px !important;
     position: relative !important;
   }
-  
+
   /* Stat Items */
   .stat-item {
     text-align: center !important;
     padding: 1rem 0.5rem !important;
     position: relative !important;
   }
-  
+
   /* Spread the last two stats in bottom row (left and right) */
-  .stat-item[data-stat-index="3"] {
+  .stat-item[data-stat-index='3'] {
     grid-column: 1 / 2 !important;
   }
-  
-  .stat-item[data-stat-index="4"] {
+
+  .stat-item[data-stat-index='4'] {
     grid-column: 3 / 4 !important;
   }
-  
+
   /* Vertical separators */
-  .stat-item[data-stat-index="0"]::after,
-  .stat-item[data-stat-index="1"]::after {
+  .stat-item[data-stat-index='0']::after,
+  .stat-item[data-stat-index='1']::after {
     content: '' !important;
     position: absolute !important;
     right: 0 !important;
@@ -1068,18 +1067,16 @@ html, body {
     height: 60% !important;
     background: #e5e7eb !important;
   }
-  
-  .dark .stat-item[data-stat-index="0"]::after,
-  .dark .stat-item[data-stat-index="1"]::after {
+
+  .dark .stat-item[data-stat-index='0']::after,
+  .dark .stat-item[data-stat-index='1']::after {
     background: #374151 !important;
   }
-  
 
-  
   /* Horizontal separator for bottom row */
-  .stat-item[data-stat-index="0"]::before,
-  .stat-item[data-stat-index="1"]::before,
-  .stat-item[data-stat-index="2"]::before {
+  .stat-item[data-stat-index='0']::before,
+  .stat-item[data-stat-index='1']::before,
+  .stat-item[data-stat-index='2']::before {
     content: '' !important;
     position: absolute !important;
     bottom: 0 !important;
@@ -1089,13 +1086,13 @@ html, body {
     height: 1px !important;
     background: #e5e7eb !important;
   }
-  
-  .dark .stat-item[data-stat-index="0"]::before,
-  .dark .stat-item[data-stat-index="1"]::before,
-  .dark .stat-item[data-stat-index="2"]::before {
+
+  .dark .stat-item[data-stat-index='0']::before,
+  .dark .stat-item[data-stat-index='1']::before,
+  .dark .stat-item[data-stat-index='2']::before {
     background: #374151 !important;
   }
-  
+
   /* Stat Amount (Numbers) */
   .stat-amount {
     font-size: 1.8rem !important;
@@ -1104,11 +1101,11 @@ html, body {
     margin-bottom: 0.5rem !important;
     line-height: 1.2 !important;
   }
-  
+
   .dark .stat-amount {
     color: white !important;
   }
-  
+
   /* Stat Title */
   .stat-title {
     font-size: 0.75rem !important;
@@ -1118,11 +1115,11 @@ html, body {
     color: #6b7280 !important;
     line-height: 1.3 !important;
   }
-  
+
   .dark .stat-title {
     color: #d1d5db !important;
   }
-  
+
   /* Stat Icon */
   .stat-icon {
     display: flex !important;
@@ -1130,11 +1127,11 @@ html, body {
     margin-bottom: 0.5rem !important;
     color: #3b82f6 !important;
   }
-  
+
   .dark .stat-icon {
     color: white !important;
   }
-  
+
   .stat-icon .w-10.h-10 {
     width: 1.5rem !important;
     height: 1.5rem !important;
@@ -1149,33 +1146,33 @@ html, body {
     justify-content: center !important;
     margin: -1rem !important;
   }
-  
+
   .stat-item {
     padding: 1rem !important;
     text-align: center !important;
     min-width: 220px !important;
     border-right: 1px solid #e5e7eb !important;
   }
-  
+
   .stat-item:last-child {
     border-right: none !important;
   }
-  
+
   .dark .stat-item {
     border-color: #374151 !important;
   }
-  
+
   .stat-amount {
     font-size: 2.6rem !important;
     font-weight: bold !important;
     color: #3b82f6 !important;
     margin-bottom: 0.5rem !important;
   }
-  
+
   .dark .stat-amount {
     color: white !important;
   }
-  
+
   .stat-title {
     font-size: 0.875rem !important;
     font-weight: 500 !important;
@@ -1183,18 +1180,18 @@ html, body {
     letter-spacing: 0.05em !important;
     color: #6b7280 !important;
   }
-  
+
   .dark .stat-title {
     color: #d1d5db !important;
   }
-  
+
   .stat-icon {
     display: flex !important;
     justify-content: center !important;
     margin-bottom: 1rem !important;
     color: #3b82f6 !important;
   }
-  
+
   .dark .stat-icon {
     color: white !important;
   }
