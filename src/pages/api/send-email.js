@@ -1,10 +1,16 @@
 export async function POST({ request }) {
   try {
+    console.log('📧 Email API called');
+    
     const { subject, content, recipientEmail, recipientName } = await request.json();
+    console.log('📧 Request data:', { subject, content, recipientEmail, recipientName });
     
     // Resend configuration
     const RESEND_API_KEY = 're_J7Tenr58_5Y9VdfKMnfKrLwzRh59j7nnR';
     const FROM_EMAIL = 'insights@jyotirsetu.com';
+    
+    console.log('📧 API Key configured:', RESEND_API_KEY.length > 20);
+    console.log('📧 From Email:', FROM_EMAIL);
     
     // Validate required fields
     if (!subject || !content || !recipientEmail) {
@@ -47,6 +53,9 @@ export async function POST({ request }) {
     };
     
     // Send email via Resend API
+    console.log('📧 Sending to Resend API...');
+    console.log('📧 Email data:', JSON.stringify(emailData, null, 2));
+    
     const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
@@ -56,7 +65,9 @@ export async function POST({ request }) {
       body: JSON.stringify(emailData)
     });
     
+    console.log('📧 Resend response status:', response.status);
     const result = await response.json();
+    console.log('📧 Resend response:', result);
     
     if (response.ok) {
       return new Response(JSON.stringify({
@@ -79,10 +90,19 @@ export async function POST({ request }) {
     }
     
   } catch (error) {
-    console.error('Email API error:', error);
+    console.error('💥 Email API error:', error);
+    console.error('💥 Error stack:', error.stack);
+    console.error('💥 Error name:', error.name);
+    console.error('💥 Error message:', error.message);
+    
     return new Response(JSON.stringify({
       success: false,
-      error: error.message || 'Internal server error'
+      error: error.message || 'Internal server error',
+      details: {
+        name: error.name,
+        message: error.message,
+        stack: error.stack
+      }
     }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }

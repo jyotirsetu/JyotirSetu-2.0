@@ -584,7 +584,12 @@ import Layout from '~/layouts/AdminLayout.astro';
         return { success: true, emailId: result.emailId };
       } else {
         console.error('❌ Email sending failed:', result);
-        return { success: false, error: result.error || 'Failed to send email' };
+        console.error('❌ Error details:', result.details);
+        return { 
+          success: false, 
+          error: result.error || 'Failed to send email',
+          details: result.details
+        };
       }
 
     } catch (error) {
