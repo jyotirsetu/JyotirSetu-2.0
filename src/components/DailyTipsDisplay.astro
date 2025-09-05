@@ -51,11 +51,11 @@
   }
 
   // Initialize Supabase client
-  let supabase: any;
+  let supabase: unknown;
   
   async function initSupabase() {
     try {
-      // @ts-ignore
+      // @ts-expect-error - Supabase client is loaded dynamically
       supabase = window.supabase.createClient(
         'https://czbypbrrxxjcjdfjxczv.supabase.co',
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN6YnlwYnJyeHhqY2pkZmp4Y3p2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY5MjU2NDcsImV4cCI6MjA3MjUwMTY0N30.SQ-eabMNo5RBy8N0MHWDmlxVH7Tmh-EGykI0Qt5wDjg'

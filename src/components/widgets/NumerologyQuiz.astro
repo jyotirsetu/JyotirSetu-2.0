@@ -219,7 +219,7 @@
       return insights[lifePathNumber] || insights[1];
     }
     
-    showResult(lifePathNumber: number, insights: any, focusArea: string) {
+    showResult(lifePathNumber: number, insights: Record<string, unknown>, focusArea: string) {
       const resultContainer = document.getElementById('numerology-result');
       if (!resultContainer) return;
       

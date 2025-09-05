@@ -17,10 +17,10 @@ interface Props {
   interval?: number;
 }
 
-const { slides, autoPlay = true, interval = 5000 } = Astro.props;
+const { slides } = Astro.props;
 
 // Use the props in the component
-const slideshowConfig = { autoPlay, interval };
+// const slideshowConfig = { autoPlay, interval };
 ---
 
 <section class="relative md:-mt-[76px] not-prose overflow-hidden">

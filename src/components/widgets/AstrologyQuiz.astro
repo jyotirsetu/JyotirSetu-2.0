@@ -283,7 +283,7 @@
       return insights[zodiacSign] || insights.aries;
     }
     
-    showResult(insights: any, zodiacSign: string, lifeConcern: string) {
+    showResult(insights: Record<string, unknown>, zodiacSign: string, lifeConcern: string) {
       const resultContainer = document.getElementById('astrology-result');
       if (!resultContainer) return;
       

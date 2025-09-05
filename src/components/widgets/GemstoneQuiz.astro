@@ -17,7 +17,7 @@
   }
 
   interface Answers {
-    [key: string]: any;
+    [key: string]: string | number | boolean;
   }
 
   // Gemstone Quiz Logic
@@ -113,7 +113,7 @@
               data-question="${question.id}"
             >
               <option value="">Select an option...</option>
-              ${question.options.map((opt: any) => `
+              ${question.options.map((opt: { value: string; label: string; gemstones: string[] }) => `
                 <option value="${opt.value}" data-gemstones="${opt.gemstones.join(',')}">
                   ${opt.label}
                 </option>
@@ -147,12 +147,8 @@
       const selectedOption = target.options[target.selectedIndex];
       
       if (!questionId) return;
-      
       if (selectedOption.value) {
-        this.answers[questionId] = {
-          value: selectedOption.value,
-          gemstones: selectedOption.dataset.gemstones ? selectedOption.dataset.gemstones.split(',') : []
-        };
+        this.answers[questionId] = selectedOption.value;
       } else {
         delete this.answers[questionId];
       }
@@ -219,7 +215,7 @@
       resultContainer.classList.remove('hidden');
     }
     
-    generateRecommendation(_birthMonth: any, focusArea: any) {
+    generateRecommendation(_birthMonth: string, focusArea: string) {
       const recommendations = {
         'love': 'For love and relationships, combine your birth month gemstone with Rose Quartz for enhanced emotional healing and connection.',
         'career': 'For career success, pair your birth month gemstone with Citrine to boost confidence, creativity, and professional growth.',

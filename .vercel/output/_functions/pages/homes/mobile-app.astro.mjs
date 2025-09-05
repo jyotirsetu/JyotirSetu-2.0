@@ -1,13 +1,13 @@
 import { d as createAstro, c as createComponent, r as renderComponent, a as renderTemplate, F as Fragment, m as maybeRenderHead } from '../../chunks/astro/server__1NYpXS4.mjs';
 import 'kleur/colors';
-import { $ as $$PageLayout, a as $$Header, b as $$Button } from '../../chunks/PageLayout_cVV0aLge.mjs';
-import { $ as $$Hero2 } from '../../chunks/Hero2_CGwwzDTN.mjs';
-import { $ as $$CallToAction } from '../../chunks/CallToAction_DvBOUtvQ.mjs';
-import { $ as $$Features3 } from '../../chunks/Features3_B8yKpt-K.mjs';
-import { $ as $$Content } from '../../chunks/Content_CGv8lu8w.mjs';
-import { $ as $$Testimonials } from '../../chunks/Testimonials_BhJblAGn.mjs';
-import { $ as $$FAQs } from '../../chunks/FAQs_CGBuhCj3.mjs';
-import { $ as $$Stats } from '../../chunks/Stats_CzNMZDed.mjs';
+import { $ as $$PageLayout, a as $$Header, b as $$Button } from '../../chunks/PageLayout_BS-CRfBK.mjs';
+import { $ as $$Hero2 } from '../../chunks/Hero2_BA4krDK8.mjs';
+import { $ as $$CallToAction } from '../../chunks/CallToAction_BzkFYit3.mjs';
+import { $ as $$Features3 } from '../../chunks/Features3_CUcDdtjy.mjs';
+import { $ as $$Content } from '../../chunks/Content_C_HdlqUw.mjs';
+import { $ as $$Testimonials } from '../../chunks/Testimonials_Dj7N8nXf.mjs';
+import { $ as $$FAQs } from '../../chunks/FAQs_QED3PyBU.mjs';
+import { $ as $$Stats } from '../../chunks/Stats_BbhzSYyN.mjs';
 import { $ as $$Image } from '../../chunks/Logo_DE5rhJaf.mjs';
 export { renderers } from '../../renderers.mjs';
 

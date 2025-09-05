@@ -206,7 +206,7 @@
       };
     }
     
-    showResult(insights: any, _lifeConcern: string) {
+    showResult(insights: Record<string, unknown>, _lifeConcern: string) {
       const resultContainer = document.getElementById('palmistry-result');
       if (!resultContainer) return;
       
