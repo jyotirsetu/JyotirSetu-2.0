@@ -206,7 +206,23 @@
       };
     }
     
-    showResult(insights: Record<string, unknown>, _lifeConcern: string) {
+    showResult(insights: { 
+      lineType: {
+        title: string;
+        traits: string;
+        description: string;
+      };
+      handDominance: {
+        title: string;
+        traits: string;
+        description: string;
+      };
+      lifeConcern: {
+        focus: string;
+        insight: string;
+        advice: string;
+      };
+    }, _lifeConcern: string) {
       const resultContainer = document.getElementById('palmistry-result');
       if (!resultContainer) return;
       

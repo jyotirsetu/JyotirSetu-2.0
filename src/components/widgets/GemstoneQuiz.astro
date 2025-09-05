@@ -168,11 +168,18 @@
       const resultContainer = document.getElementById('quiz-result');
       if (!resultContainer) return;
       
-      const birthMonth = this.answers['birth-month'];
-      const focusArea = this.answers['focus-area'];
+      const birthMonthValue = this.answers['birth-month'] as string;
+      const focusAreaValue = this.answers['focus-area'] as string;
+      
+      // Find the selected options to get gemstones
+      const birthMonthQuestion = this.questions.find(q => q.id === 'birth-month');
+      const focusAreaQuestion = this.questions.find(q => q.id === 'focus-area');
+      
+      const birthMonthOption = birthMonthQuestion?.options.find(opt => opt.value === birthMonthValue);
+      const focusAreaOption = focusAreaQuestion?.options.find(opt => opt.value === focusAreaValue);
       
       // Generate personalized recommendation
-      const recommendation = this.generateRecommendation(birthMonth, focusArea);
+      const recommendation = this.generateRecommendation(birthMonthValue, focusAreaValue);
       
       resultContainer.innerHTML = `
         <div class="text-center">
@@ -182,11 +189,11 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <div class="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg">
               <h5 class="font-semibold text-purple-800 dark:text-purple-200 mb-2">Birth Month Gemstone</h5>
-              <p class="text-purple-700 dark:text-purple-300">${birthMonth.gemstones.join(' or ')}</p>
+              <p class="text-purple-700 dark:text-purple-300">${birthMonthOption?.gemstones.join(' or ') || 'Your birth month gemstone'}</p>
             </div>
             <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
               <h5 class="font-semibold text-blue-800 dark:text-blue-200 mb-2">Focus Area Gemstone</h5>
-              <p class="text-blue-700 dark:text-blue-300">${focusArea.gemstones.join(' or ')}</p>
+              <p class="text-blue-700 dark:text-blue-300">${focusAreaOption?.gemstones.join(' or ') || 'Your focus area gemstone'}</p>
             </div>
           </div>
           
@@ -216,14 +223,14 @@
     }
     
     generateRecommendation(_birthMonth: string, focusArea: string) {
-      const recommendations = {
+      const recommendations: Record<string, string> = {
         'love': 'For love and relationships, combine your birth month gemstone with Rose Quartz for enhanced emotional healing and connection.',
         'career': 'For career success, pair your birth month gemstone with Citrine to boost confidence, creativity, and professional growth.',
         'health': 'For health and vitality, combine your birth month gemstone with Amethyst for physical healing and spiritual protection.',
         'wealth': 'For wealth and abundance, pair your birth month gemstone with Green Aventurine to attract prosperity and financial opportunities.'
       };
       
-      return recommendations[focusArea.value] || 'Your personalized gemstone combination will provide optimal benefits for your specific needs.';
+      return recommendations[focusArea] || 'Your personalized gemstone combination will provide optimal benefits for your specific needs.';
     }
   }
   
