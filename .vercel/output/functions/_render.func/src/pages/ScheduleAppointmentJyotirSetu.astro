@@ -5,7 +5,7 @@ import Hero from '~/components/widgets/Hero.astro';
 
 // Generate upcoming week dates
 const today = new Date();
-const upcomingDates = [];
+const upcomingDates: { label: string; value: string; }[] = [];
 for (let i = 0; i < 7; i++) {
   const date = new Date(today);
   date.setDate(today.getDate() + i);
