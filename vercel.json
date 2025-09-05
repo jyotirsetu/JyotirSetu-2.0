@@ -19,9 +19,5 @@
         }
       ]
     }
-  ],
-  "env": {
-    "RESEND_API_KEY": "@resend_api_key",
-    "FROM_EMAIL": "@from_email"
-  }
+  ]
 }
