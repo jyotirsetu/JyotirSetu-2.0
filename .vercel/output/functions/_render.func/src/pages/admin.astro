@@ -306,7 +306,7 @@ import Layout from '~/layouts/AdminLayout.astro';
 
      <script>
      // Load Supabase from CDN
-           let supabase = null; // Initialize as null, will be set in initSupabase()
+           let supabase: any = null; // Initialize as null, will be set in initSupabase()
      
      // Make functions globally accessible for onclick attributes
      declare global {

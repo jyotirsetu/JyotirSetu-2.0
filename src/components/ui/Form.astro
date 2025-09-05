@@ -173,7 +173,7 @@ const { inputs, textarea, disclaimer, button = 'Contact us', description = '', a
       form.addEventListener('submit', function(e) {
         e.preventDefault();
         
-        const formData = new FormData(form);
+        const formData = new FormData(form as HTMLFormElement);
         const submitButton = form.querySelector('button[type="submit"]');
         const originalText = submitButton.textContent;
         
