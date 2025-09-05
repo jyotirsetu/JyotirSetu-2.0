@@ -6,8 +6,14 @@
 <script>
   // WhatsApp Chat Widget
   class WhatsAppChatWidget {
+    isVisible: boolean = false;
+    button: HTMLElement | null = null;
+    lastScrollTop: number = 0;
+
     constructor() {
       this.isVisible = false;
+      this.button = null;
+      this.lastScrollTop = 0;
       this.init();
     }
     
@@ -66,7 +72,7 @@
     }
     
     show() {
-      if (this.isVisible) return;
+      if (this.isVisible || !this.button) return;
       
       this.button.classList.remove('translate-y-20', 'opacity-0');
       this.button.classList.add('translate-y-0', 'opacity-100');
@@ -74,7 +80,7 @@
     }
     
     hide() {
-      if (!this.isVisible) return;
+      if (!this.isVisible || !this.button) return;
       
       this.button.classList.add('translate-y-20', 'opacity-0');
       this.button.classList.remove('translate-y-0', 'opacity-100');

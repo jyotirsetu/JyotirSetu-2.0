@@ -286,8 +286,16 @@ type Appointment = {
   [key: string]: any;
 };
 
+// Extend Window interface for global properties
+declare global {
+  interface Window {
+    supabase: any;
+    supabaseClient: any;
+  }
+}
+
 // Load Supabase from CDN
-let supabase;
+let supabase: any;
 let appointments: Appointment[] = [];
 let selectedAppointments = new Set<string>();
 

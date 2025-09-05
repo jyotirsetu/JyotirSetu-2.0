@@ -172,9 +172,29 @@ import Layout from '~/layouts/PageLayout.astro';
 </div>
 
 <script>
+// Type definitions
+type Tip = {
+  id: number;
+  title: string;
+  content: string;
+  category: string;
+  date: string;
+  active: boolean;
+};
+
+// Extend Window interface for global properties
+declare global {
+  interface Window {
+    supabase: any;
+    supabaseClient: any;
+    goBackToAdminDashboard: () => void;
+    refreshTips: () => void;
+  }
+}
+
 // Load Supabase from CDN
-let supabase;
-let tips = [];
+let supabase: any;
+let tips: Tip[] = [];
 
 // Make functions globally accessible
 window.goBackToAdminDashboard = goBackToAdminDashboard;
@@ -257,7 +277,7 @@ async function loadTipsFromSupabase() {
 }
 
 // Display tips
-function displayTips(tips) {
+function displayTips(tips: Tip[]) {
   const container = document.getElementById('existing-tips');
   if (!container) return;
   
@@ -313,26 +333,30 @@ function updateStats() {
   const activeTips = tips.filter(tip => tip.active).length;
   const categories = new Set(tips.map(tip => tip.category)).size;
   
-  document.getElementById('total-tips-count').textContent = totalTips;
-  document.getElementById('active-tips-count').textContent = activeTips;
-  document.getElementById('categories-count').textContent = categories;
+  const totalTipsEl = document.getElementById('total-tips-count');
+  const activeTipsEl = document.getElementById('active-tips-count');
+  const categoriesEl = document.getElementById('categories-count');
+  
+  if (totalTipsEl) totalTipsEl.textContent = totalTips.toString();
+  if (activeTipsEl) activeTipsEl.textContent = activeTips.toString();
+  if (categoriesEl) categoriesEl.textContent = categories.toString();
 }
 
 // Handle tip form submission
-async function handleTipSubmit(e) {
+async function handleTipSubmit(e: Event) {
   e.preventDefault();
   console.log('Tip form submitted!');
   
-  const titleInput = document.getElementById('tip-title');
-  const categoryInput = document.getElementById('tip-category');
-  const contentInput = document.getElementById('tip-content');
+  const titleInput = document.getElementById('tip-title') as HTMLInputElement;
+  const categoryInput = document.getElementById('tip-category') as HTMLInputElement;
+  const contentInput = document.getElementById('tip-content') as HTMLTextAreaElement;
   
   if (!titleInput || !categoryInput || !contentInput) {
     console.log('Missing inputs, returning');
     return;
   }
   
-  const newTip = {
+  const newTip: Tip = {
     id: Date.now(),
     title: titleInput.value,
     content: contentInput.value,
@@ -387,9 +411,9 @@ async function handleTipSubmit(e) {
 
 // Clear tip form
 function clearTipForm() {
-  const titleInput = document.getElementById('tip-title');
-  const categoryInput = document.getElementById('tip-category');
-  const contentInput = document.getElementById('tip-content');
+  const titleInput = document.getElementById('tip-title') as HTMLInputElement;
+  const categoryInput = document.getElementById('tip-category') as HTMLInputElement;
+  const contentInput = document.getElementById('tip-content') as HTMLTextAreaElement;
   
   if (titleInput) titleInput.value = '';
   if (categoryInput) categoryInput.value = '';
@@ -397,12 +421,12 @@ function clearTipForm() {
 }
 
 // Edit tip
-function editTip(id) {
+function editTip(id: number) {
   showNotification('Edit functionality coming soon!', 'info');
 }
 
 // Delete tip
-async function deleteTip(id) {
+async function deleteTip(id: number) {
   if (confirm('Are you sure you want to delete this tip?')) {
     try {
       console.log('Deleting tip from Supabase:', id);
@@ -443,7 +467,7 @@ function refreshTips() {
 }
 
 // Show notification
-function showNotification(message, type) {
+function showNotification(message: string, type: string) {
   const notification = document.createElement('div');
   notification.className = `fixed top-4 right-4 px-6 py-3 rounded-lg text-white font-medium z-[999999] ${
     type === 'success' ? 'bg-green-500' : 

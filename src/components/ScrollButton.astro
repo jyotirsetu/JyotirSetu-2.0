@@ -22,6 +22,12 @@
 
 <script>
   class ScrollButton {
+    button: HTMLElement | null = null;
+    upIcon: HTMLElement | null = null;
+    downIcon: HTMLElement | null = null;
+    isVisible: boolean = false;
+    isAtBottom: boolean = false;
+
     constructor() {
       this.button = document.getElementById('scrollButton');
       this.upIcon = document.getElementById('upIcon');
@@ -46,9 +52,11 @@
       });
       
       // Button click event
-      this.button.addEventListener('click', () => {
-        this.scrollToTarget();
-      });
+      if (this.button) {
+        this.button.addEventListener('click', () => {
+          this.scrollToTarget();
+        });
+      }
     }
     
     checkScrollPosition() {
@@ -71,15 +79,15 @@
       // Update button appearance
       if (this.isAtBottom) {
         this.showUpIcon();
-        this.button.title = 'Go to Top';
+        if (this.button) this.button.title = 'Go to Top';
       } else {
         this.showDownIcon();
-        this.button.title = 'Go to Bottom';
+        if (this.button) this.button.title = 'Go to Bottom';
       }
     }
     
     showButton() {
-      if (!this.isVisible) {
+      if (!this.isVisible && this.button) {
         this.button.classList.remove('opacity-0', 'pointer-events-none');
         this.button.classList.add('opacity-100');
         this.isVisible = true;
@@ -87,7 +95,7 @@
     }
     
     hideButton() {
-      if (this.isVisible) {
+      if (this.isVisible && this.button) {
         this.button.classList.add('opacity-0', 'pointer-events-none');
         this.button.classList.remove('opacity-100');
         this.isVisible = false;
@@ -95,13 +103,17 @@
     }
     
     showUpIcon() {
-      this.upIcon.classList.remove('hidden');
-      this.downIcon.classList.add('hidden');
+      if (this.upIcon && this.downIcon) {
+        this.upIcon.classList.remove('hidden');
+        this.downIcon.classList.add('hidden');
+      }
     }
     
     showDownIcon() {
-      this.downIcon.classList.remove('hidden');
-      this.upIcon.classList.add('hidden');
+      if (this.downIcon && this.upIcon) {
+        this.downIcon.classList.remove('hidden');
+        this.upIcon.classList.add('hidden');
+      }
     }
     
     scrollToTarget() {
