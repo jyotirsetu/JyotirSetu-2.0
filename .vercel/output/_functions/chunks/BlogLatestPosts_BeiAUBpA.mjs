@@ -2,9 +2,9 @@ import { d as createAstro, c as createComponent, r as renderComponent, a as rend
 import 'kleur/colors';
 import { $ as $$Grid } from './Grid_BMKvvj8G.mjs';
 import { b as getBlogPermalink } from './permalinks_D-LnMJ_P.mjs';
-import { f as findLatestPosts } from './blog_BNi3yBXk.mjs';
+import { f as findLatestPosts } from './blog_DpsLy9H5.mjs';
 import { $ as $$WidgetWrapper } from './WidgetWrapper_D3qsqbz_.mjs';
-import { b as $$Button } from './PageLayout_Ba0vUiqJ.mjs';
+import { b as $$Button } from './PageLayout_zwWBQsq-.mjs';
 
 const $$Astro = createAstro("https://jyotirsetu.com");
 const $$BlogLatestPosts = createComponent(async ($$result, $$props, $$slots) => {

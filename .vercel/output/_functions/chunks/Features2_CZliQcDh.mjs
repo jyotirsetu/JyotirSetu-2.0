@@ -2,7 +2,7 @@ import { d as createAstro, c as createComponent, m as maybeRenderHead, b as addA
 import 'kleur/colors';
 import { $ as $$WidgetWrapper } from './WidgetWrapper_D3qsqbz_.mjs';
 import { $ as $$Headline } from './Headline_BGObqHO6.mjs';
-import { c as $$Icon, b as $$Button } from './PageLayout_Ba0vUiqJ.mjs';
+import { c as $$Icon, b as $$Button } from './PageLayout_zwWBQsq-.mjs';
 import { twMerge } from 'tailwind-merge';
 
 const $$Astro$1 = createAstro("https://jyotirsetu.com");

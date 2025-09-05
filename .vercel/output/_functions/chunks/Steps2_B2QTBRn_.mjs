@@ -1,6 +1,6 @@
 import { d as createAstro, c as createComponent, r as renderComponent, a as renderTemplate, m as maybeRenderHead, b as addAttribute, F as Fragment, u as unescapeHTML } from './astro/server__1NYpXS4.mjs';
 import 'kleur/colors';
-import { b as $$Button, c as $$Icon } from './PageLayout_Ba0vUiqJ.mjs';
+import { b as $$Button, c as $$Icon } from './PageLayout_zwWBQsq-.mjs';
 import { $ as $$WidgetWrapper } from './WidgetWrapper_D3qsqbz_.mjs';
 import { $ as $$Headline } from './Headline_BGObqHO6.mjs';
 

@@ -1,7 +1,7 @@
 import { c as createComponent, r as renderComponent, a as renderTemplate, m as maybeRenderHead } from '../chunks/astro/server__1NYpXS4.mjs';
 import 'kleur/colors';
-import { $ as $$PageLayout } from '../chunks/PageLayout_Ba0vUiqJ.mjs';
-import { $ as $$Hero } from '../chunks/Hero_D-WTfCG-.mjs';
+import { $ as $$PageLayout } from '../chunks/PageLayout_zwWBQsq-.mjs';
+import { $ as $$Hero } from '../chunks/Hero_CkaCJC74.mjs';
 export { renderers } from '../renderers.mjs';
 
 const $$ThankYou = createComponent(($$result, $$props, $$slots) => {

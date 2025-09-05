@@ -1,11 +1,11 @@
 import { d as createAstro, c as createComponent, r as renderComponent, a as renderTemplate, F as Fragment, m as maybeRenderHead } from '../chunks/astro/server__1NYpXS4.mjs';
 import 'kleur/colors';
-import { $ as $$CallToAction } from '../chunks/CallToAction_BuAFA3-E.mjs';
-import { $ as $$Content } from '../chunks/Content_QZGr4F8L.mjs';
-import { $ as $$Features2 } from '../chunks/Features2_Ch2_6bQP.mjs';
-import { $ as $$Hero } from '../chunks/Hero_D-WTfCG-.mjs';
-import { $ as $$Testimonials } from '../chunks/Testimonials_CIZbi3b_.mjs';
-import { $ as $$PageLayout } from '../chunks/PageLayout_Ba0vUiqJ.mjs';
+import { $ as $$CallToAction } from '../chunks/CallToAction_D8VSWjcx.mjs';
+import { $ as $$Content } from '../chunks/Content_GE5ZhBUR.mjs';
+import { $ as $$Features2 } from '../chunks/Features2_CZliQcDh.mjs';
+import { $ as $$Hero } from '../chunks/Hero_CkaCJC74.mjs';
+import { $ as $$Testimonials } from '../chunks/Testimonials_Ci9aAgxx.mjs';
+import { $ as $$PageLayout } from '../chunks/PageLayout_zwWBQsq-.mjs';
 export { renderers } from '../renderers.mjs';
 
 const $$Astro = createAstro("https://jyotirsetu.com");

@@ -1,6 +1,6 @@
 import { d as createAstro, c as createComponent, r as renderComponent, a as renderTemplate, m as maybeRenderHead, f as renderSlot } from './astro/server__1NYpXS4.mjs';
 import 'kleur/colors';
-import { $ as $$PageLayout } from './PageLayout_Ba0vUiqJ.mjs';
+import { $ as $$PageLayout } from './PageLayout_zwWBQsq-.mjs';
 
 const $$Astro = createAstro("https://jyotirsetu.com");
 const $$MarkdownLayout = createComponent(($$result, $$props, $$slots) => {

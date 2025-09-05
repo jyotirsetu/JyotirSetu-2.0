@@ -476,12 +476,9 @@ const metadata = {
 
   <script>
     // FAQ Toggle Function - Global scope
-    window.toggleFAQ = function(button) {
-      console.log('FAQ toggle clicked!');
+    const toggleFAQ = function(button) {
       const content = button.nextElementSibling;
       const icon = button.querySelector('span:last-child');
-      
-      console.log('Content element:', content);
       console.log('Icon element:', icon);
       
       if (content && content.classList.contains('hidden')) {

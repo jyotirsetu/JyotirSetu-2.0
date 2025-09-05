@@ -3,8 +3,8 @@ import 'kleur/colors';
 import { $ as $$Headline } from './Headline_BGObqHO6.mjs';
 import { $ as $$WidgetWrapper } from './WidgetWrapper_D3qsqbz_.mjs';
 import { $ as $$Image } from './Logo_DE5rhJaf.mjs';
-import { b as $$Button } from './PageLayout_Ba0vUiqJ.mjs';
-import { $ as $$ItemGrid } from './ItemGrid_SsA2RIYE.mjs';
+import { b as $$Button } from './PageLayout_zwWBQsq-.mjs';
+import { $ as $$ItemGrid } from './ItemGrid_D-rdFyA1.mjs';
 
 const $$Astro = createAstro("https://jyotirsetu.com");
 const $$Content = createComponent(async ($$result, $$props, $$slots) => {

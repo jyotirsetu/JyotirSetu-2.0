@@ -1,13 +1,13 @@
 import { c as createComponent, r as renderComponent, a as renderTemplate, F as Fragment, m as maybeRenderHead } from '../../chunks/astro/server__1NYpXS4.mjs';
 import 'kleur/colors';
-import { $ as $$PageLayout, a as $$Header } from '../../chunks/PageLayout_Ba0vUiqJ.mjs';
-import { $ as $$Hero } from '../../chunks/Hero_D-WTfCG-.mjs';
-import { $ as $$Content } from '../../chunks/Content_QZGr4F8L.mjs';
-import { $ as $$CallToAction } from '../../chunks/CallToAction_BuAFA3-E.mjs';
-import { $ as $$Features3 } from '../../chunks/Features3_BwHrlUEg.mjs';
-import { $ as $$Testimonials } from '../../chunks/Testimonials_CIZbi3b_.mjs';
-import { $ as $$Steps } from '../../chunks/Steps_DaGJWGM3.mjs';
-import { $ as $$BlogLatestPosts } from '../../chunks/BlogLatestPosts_hHi8GfXW.mjs';
+import { $ as $$PageLayout, a as $$Header } from '../../chunks/PageLayout_zwWBQsq-.mjs';
+import { $ as $$Hero } from '../../chunks/Hero_CkaCJC74.mjs';
+import { $ as $$Content } from '../../chunks/Content_GE5ZhBUR.mjs';
+import { $ as $$CallToAction } from '../../chunks/CallToAction_D8VSWjcx.mjs';
+import { $ as $$Features3 } from '../../chunks/Features3_DXyntOj7.mjs';
+import { $ as $$Testimonials } from '../../chunks/Testimonials_Ci9aAgxx.mjs';
+import { $ as $$Steps } from '../../chunks/Steps_v3ORq_n4.mjs';
+import { $ as $$BlogLatestPosts } from '../../chunks/BlogLatestPosts_BeiAUBpA.mjs';
 import { a as getPermalink } from '../../chunks/permalinks_D-LnMJ_P.mjs';
 export { renderers } from '../../renderers.mjs';
 

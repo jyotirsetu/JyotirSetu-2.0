@@ -1,8 +1,8 @@
 import { d as createAstro, c as createComponent, a as renderTemplate, b as addAttribute, m as maybeRenderHead, r as renderComponent, e as renderScript, F as Fragment } from '../chunks/astro/server__1NYpXS4.mjs';
 import 'kleur/colors';
-import { $ as $$PageLayout } from '../chunks/PageLayout_Ba0vUiqJ.mjs';
+import { $ as $$PageLayout } from '../chunks/PageLayout_zwWBQsq-.mjs';
 import 'clsx';
-import { $ as $$Hero } from '../chunks/Hero_D-WTfCG-.mjs';
+import { $ as $$Hero } from '../chunks/Hero_CkaCJC74.mjs';
 export { renderers } from '../renderers.mjs';
 
 var __freeze = Object.freeze;
@@ -1705,12 +1705,13 @@ const $$ScheduleAppointmentJyotirSetu = createComponent(($$result, $$props, $$sl
       day: "numeric",
       year: "numeric"
     });
-    upcomingDates.push({
+    const dates = upcomingDates;
+    dates.push({
       label: `${dayName}, ${dateStr}`,
       value: date.toISOString().split("T")[0]
     });
   }
-  return renderTemplate`${renderComponent($$result, "Layout", $$PageLayout, { "title": "Book Appointment - JyotirSetu" }, { "default": ($$result2) => renderTemplate`  ${renderComponent($$result2, "Hero", $$Hero, { "title": "Book Your Astrology Consultation", "subtitle": "Connect with the stars and discover your destiny. Schedule a personalized consultation with JyotirSetu's expert astrologer Punita Sharma.", "actions": [
+  return renderTemplate`${renderComponent($$result, "Layout", $$PageLayout, {}, { "default": ($$result2) => renderTemplate`  ${renderComponent($$result2, "Hero", $$Hero, { "title": "Book Your Astrology Consultation", "subtitle": "Connect with the stars and discover your destiny. Schedule a personalized consultation with JyotirSetu's expert astrologer Punita Sharma.", "actions": [
     {
       variant: "primary",
       text: "Book Now",

@@ -1,7 +1,7 @@
 import { d as createAstro, c as createComponent, m as maybeRenderHead, b as addAttribute, r as renderComponent, a as renderTemplate, u as unescapeHTML, F as Fragment } from './astro/server__1NYpXS4.mjs';
 import 'kleur/colors';
 import { $ as $$WidgetWrapper } from './WidgetWrapper_D3qsqbz_.mjs';
-import { c as $$Icon } from './PageLayout_Ba0vUiqJ.mjs';
+import { c as $$Icon } from './PageLayout_zwWBQsq-.mjs';
 import { twMerge } from 'tailwind-merge';
 import { $ as $$Headline } from './Headline_BGObqHO6.mjs';
 import { $ as $$Image } from './Logo_DE5rhJaf.mjs';
