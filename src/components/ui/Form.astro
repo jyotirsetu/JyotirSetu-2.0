@@ -174,7 +174,13 @@ const { inputs, textarea, disclaimer, button = 'Contact us', description = '', a
         e.preventDefault();
         
         const formData = new FormData(form as HTMLFormElement);
-        const submitButton = form.querySelector('button[type="submit"]');
+        const submitButton = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+        
+        if (!submitButton) {
+          console.error('Submit button not found');
+          return;
+        }
+        
         const originalText = submitButton.textContent;
         
         // Show loading state
@@ -210,8 +216,10 @@ const { inputs, textarea, disclaimer, button = 'Contact us', description = '', a
         })
         .finally(() => {
           // Reset button
-          submitButton.textContent = originalText;
-          submitButton.disabled = false;
+          if (submitButton) {
+            submitButton.textContent = originalText;
+            submitButton.disabled = false;
+          }
         });
       });
     }
