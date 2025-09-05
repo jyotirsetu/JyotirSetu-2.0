@@ -15,14 +15,15 @@ for (let i = 0; i < 7; i++) {
     day: 'numeric',
     year: 'numeric'
   });
-  upcomingDates.push({
+  const dates: { label: string; value: string; }[] = upcomingDates;
+  dates.push({
     label: `${dayName}, ${dateStr}`,
     value: date.toISOString().split('T')[0]
   });
 }
 ---
 
-<Layout title="Book Appointment - JyotirSetu">
+<Layout>
   <!-- Hero Section -->
   <Hero
     title="Book Your Astrology Consultation"
@@ -128,13 +129,23 @@ for (let i = 0; i < 7; i++) {
   <!-- Load Supabase for form submission -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
+    // Extend Window interface for Supabase
+    declare global {
+      interface Window {
+        supabase: {
+          createClient: (url: string, key: string) => unknown;
+        };
+        supabaseClient: unknown;
+      }
+    }
+
     // Wait for Supabase to load and then initialize
     document.addEventListener('DOMContentLoaded', function() {
       console.log('Page loaded, initializing Supabase...');
       
       // Function to initialize Supabase
       function initializeSupabase() {
-        if (typeof window.supabase !== 'undefined') {
+        if (typeof window !== 'undefined' && typeof window.supabase !== 'undefined') {
           try {
             window.supabaseClient = window.supabase.createClient(
               'https://czbypbrrxxjcjdfjxczv.supabase.co',
