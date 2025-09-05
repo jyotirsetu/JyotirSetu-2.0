@@ -1,0 +1,195 @@
+{
+	"version": 3,
+	"routes": [
+		{
+			"src": "^/(.*)/$",
+			"headers": {
+				"Location": "/$1"
+			},
+			"status": 308
+		},
+		{
+			"handle": "filesystem"
+		},
+		{
+			"src": "^/_astro/(.*)$",
+			"headers": {
+				"cache-control": "public, max-age=31536000, immutable"
+			},
+			"continue": true
+		},
+		{
+			"src": "^/_server-islands/([^/]+?)$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/_image$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/404$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/about$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/admin/appointmentdashboard$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/admin/dailytips$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/admin$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/send-email$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/test$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/contact$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/homes/mobile-app$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/homes/personal$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/homes/saas$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/homes/startup$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/landing/click-through$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/landing/lead-generation$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/landing/pre-launch$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/landing/product$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/landing/sales$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/landing/subscription$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/pricing$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/privacy$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/resources$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/rss\\.xml/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/ScheduleAppointmentJyotirSetu$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/services/career-finance$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/services/corporate-consultation$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/services/dosha-analysis$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/services/gemstone-consultation$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/services/kundli-analysis$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/services/matchmaking$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/services/numerology$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/services/palmistry$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/services/remedial-solutions$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/services/spiritual-guidance$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/services/study-education$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/services$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/success-stories$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/terms$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/testimonials$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/thank-you$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/.*$",
+			"dest": "_render",
+			"status": 404
+		}
+	]
+}
