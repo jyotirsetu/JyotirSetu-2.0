@@ -558,9 +558,11 @@ import Layout from '~/layouts/AdminLayout.astro';
       console.log('📮 From Email:', RESEND_CONFIG.fromEmail);
 
       // Send email via our server-side API
+      const apiUrl = `${window.location.origin}/api/send-email`;
       console.log('📤 Sending email via server API...');
+      console.log('🌐 API URL:', apiUrl);
       
-      const response = await fetch('/api/send-email', {
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
