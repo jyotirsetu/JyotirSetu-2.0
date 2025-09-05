@@ -51,14 +51,22 @@
   }
 
   // Initialize Supabase client
-  let supabase: any;
+  interface SupabaseClient {
+    from: (table: string) => {
+      select: (columns: string) => {
+        eq: (column: string, value: boolean) => Promise<{ data: DailyTip[] | null; error: unknown }>;
+      };
+    };
+  }
+  
+  let supabase: SupabaseClient;
   
   async function initSupabase() {
     try {
       supabase = window.supabase.createClient(
         'https://czbypbrrxxjcjdfjxczv.supabase.co',
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN6YnlwYnJyeHhqY2pkZmp4Y3p2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY5MjU2NDcsImV4cCI6MjA3MjUwMTY0N30.SQ-eabMNo5RBy8N0MHWDmlxVH7Tmh-EGykI0Qt5wDjg'
-      );
+      ) as SupabaseClient;
       console.log('DailyTipsDisplay: Supabase initialized successfully');
       await loadDailyTips();
     } catch (error) {
@@ -76,8 +84,9 @@
         .from('daily_tips')
         .select('*')
         .eq('active', true)
-        .order('created_at', { ascending: false })
-        .limit(6); // Show latest 6 tips
+        .then(query => query.data?.sort((a, b) => 
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        )?.slice(0, 6) || []); // Show latest 6 tips
       
       if (error) {
         console.error('DailyTipsDisplay: Supabase error:', error);

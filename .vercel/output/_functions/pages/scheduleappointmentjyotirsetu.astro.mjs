@@ -846,7 +846,7 @@ I agree to the terms and conditions and privacy policy of JyotirSetu.
 
    // Mobile number input validation
    document.addEventListener('DOMContentLoaded', () => {
-     const mobileInput = document.getElementById('mobileNumber') as HTMLInputElement;
+     const mobileInput = document.getElementById('mobileNumber');
      if (mobileInput) {
        mobileInput.addEventListener('input', function() {
          this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);
@@ -1686,7 +1686,7 @@ I agree to the terms and conditions and privacy policy of JyotirSetu.
 
    // Mobile number input validation
    document.addEventListener('DOMContentLoaded', () => {
-     const mobileInput = document.getElementById('mobileNumber') as HTMLInputElement;
+     const mobileInput = document.getElementById('mobileNumber');
      if (mobileInput) {
        mobileInput.addEventListener('input', function() {
          this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);
