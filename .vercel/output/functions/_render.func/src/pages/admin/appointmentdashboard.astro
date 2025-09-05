@@ -274,10 +274,22 @@ import Layout from '~/layouts/PageLayout.astro';
 </div>
 
 <script>
+// Type definitions for better TypeScript support
+type Appointment = {
+  id: string;
+  name: string;
+  phone: string;
+  email?: string;
+  service_details?: any;
+  status: string;
+  created_at?: string;
+  [key: string]: any;
+};
+
 // Load Supabase from CDN
 let supabase;
-let appointments = [];
-let selectedAppointments = new Set();
+let appointments: Appointment[] = [];
+let selectedAppointments = new Set<string>();
 
 // Load Supabase from CDN if not available
 function loadSupabaseFromCDN() {
@@ -727,7 +739,7 @@ function sendWhatsAppMessage(appointmentId: string) {
 }
 
 // Generate WhatsApp message
-function generateWhatsAppMessage(appointment: any, status: string): string {
+function generateWhatsAppMessage(appointment: Appointment, status: string): string {
   const baseMessage = `Hello ${appointment.name || 'there'},`;
   
   // Get service details
@@ -1313,7 +1325,7 @@ async function sendBulkWhatsAppMessages(message) {
 }
 
 // Send single WhatsApp message
-function sendSingleWhatsAppMessage(appointment: any, message: string): Promise<void> {
+function sendSingleWhatsAppMessage(appointment: Appointment, message: string): Promise<void> {
   return new Promise((resolve, reject) => {
     if (!appointment || !appointment.phone) {
       reject(new Error('No phone number found'));
