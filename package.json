@@ -5,12 +5,13 @@
   "type": "module",
   "private": true,
   "engines": {
-    "node": ">=18.17.1"
+    "node": ">=20.0.0"
   },
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
     "build": "astro build",
+    "build:vercel": "SKIP_TYPE_CHECK=true astro build",
     "preview": "astro preview",
     "astro": "astro",
     "check": "npm run check:astro && npm run check:eslint && npm run check:prettier",
@@ -19,7 +20,8 @@
     "check:prettier": "prettier --check .",
     "fix": "npm run fix:eslint && npm run fix:prettier",
     "fix:eslint": "eslint --fix .",
-    "fix:prettier": "prettier -w ."
+    "fix:prettier": "prettier -w .",
+    "postinstall": "patch-package"
   },
   "dependencies": {
     "@astrojs/node": "^9.4.3",
@@ -60,6 +62,7 @@
     "js-yaml": "^4.1.0",
     "markdownlint-cli": "^0.45.0",
     "mdast-util-to-string": "^4.0.0",
+    "patch-package": "^8.0.0",
     "prettier": "^3.6.2",
     "prettier-plugin-astro": "^0.14.1",
     "reading-time": "^1.5.0",

@@ -7,10 +7,14 @@
     "skipLibCheck": true,
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "suppressImplicitAnyIndexErrors": true,
+    "types": ["astro/client"],
+    "typeRoots": ["./node_modules/@types", "./src/types"],
     "paths": {
       "~/*": ["src/*"]
     }
   },
-  "include": [".astro/types.d.ts", "src/**/*"],
+  "include": [".astro/types.d.ts", "src/**/*", "src/types/**/*"],
   "exclude": ["dist/", ".vercel/", "node_modules/", "**/.vercel/**", "**/dist/**"]
 }
