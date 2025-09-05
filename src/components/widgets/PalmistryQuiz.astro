@@ -120,8 +120,8 @@
     updateSubmitButton() {
       const lineType = document.querySelector('input[name="line-type"]:checked');
       const handDominance = document.querySelector('input[name="hand-dominance"]:checked');
-      const lifeConcern = document.getElementById('life-concern')?.value;
-      const submitBtn = document.getElementById('read-palm');
+      const lifeConcern = (document.getElementById('life-concern') as HTMLInputElement)?.value;
+      const submitBtn = document.getElementById('read-palm') as HTMLButtonElement;
       
       if (submitBtn) {
         submitBtn.disabled = !(lineType && handDominance && lifeConcern);
@@ -129,9 +129,9 @@
     }
     
     readPalm() {
-      const lineType = document.querySelector('input[name="line-type"]:checked')?.value;
-      const handDominance = document.querySelector('input[name="hand-dominance"]:checked')?.value;
-      const lifeConcern = document.getElementById('life-concern')?.value;
+      const lineType = (document.querySelector('input[name="line-type"]:checked') as HTMLInputElement)?.value;
+      const handDominance = (document.querySelector('input[name="hand-dominance"]:checked') as HTMLInputElement)?.value;
+      const lifeConcern = (document.getElementById('life-concern') as HTMLInputElement)?.value;
       
       if (!lineType || !handDominance || !lifeConcern) return;
       
@@ -139,7 +139,7 @@
       this.showResult(insights, lifeConcern);
     }
     
-    generatePalmistryInsights(lineType, handDominance, lifeConcern) {
+    generatePalmistryInsights(lineType: string, handDominance: string, lifeConcern: string) {
       const insights = {
         lineType: {
           straight: {
@@ -206,7 +206,7 @@
       };
     }
     
-    showResult(insights, lifeConcern) {
+    showResult(insights: any, lifeConcern: string) {
       const resultContainer = document.getElementById('palmistry-result');
       if (!resultContainer) return;
       

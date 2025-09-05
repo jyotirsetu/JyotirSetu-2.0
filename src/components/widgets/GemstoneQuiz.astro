@@ -4,8 +4,27 @@
 ---
 
 <script>
+  // Type definitions
+  interface Question {
+    id: string;
+    question: string;
+    type: string;
+    options: Array<{
+      value: string;
+      label: string;
+      gemstones: string[];
+    }>;
+  }
+
+  interface Answers {
+    [key: string]: any;
+  }
+
   // Gemstone Quiz Logic
   class GemstoneQuiz {
+    questions: Question[];
+    answers: Answers;
+
     constructor() {
       this.questions = [
         {
@@ -61,7 +80,7 @@
           </div>
           
           <div id="quiz-questions" class="space-y-6">
-            ${this.questions.map((q, index) => this.renderQuestion(q, index)).join('')}
+            ${this.questions.map((q: Question, index: number) => this.renderQuestion(q, index)).join('')}
           </div>
           
           <div class="text-center mt-6">
@@ -81,7 +100,7 @@
       `;
     }
     
-    renderQuestion(question, index) {
+    renderQuestion(question: Question, index: number) {
       if (question.type === 'select') {
         return `
           <div class="question-block">
@@ -94,7 +113,7 @@
               data-question="${question.id}"
             >
               <option value="">Select an option...</option>
-              ${question.options.map(opt => `
+              ${question.options.map((opt: any) => `
                 <option value="${opt.value}" data-gemstones="${opt.gemstones.join(',')}">
                   ${opt.label}
                 </option>
@@ -108,7 +127,7 @@
     
     attachEventListeners() {
       // Handle select changes
-      this.questions.forEach(q => {
+      this.questions.forEach((q: Question) => {
         const element = document.getElementById(q.id);
         if (element) {
           element.addEventListener('change', (e) => this.handleAnswer(e));
@@ -122,9 +141,12 @@
       }
     }
     
-    handleAnswer(event) {
-      const questionId = event.target.dataset.question;
-      const selectedOption = event.target.options[event.target.selectedIndex];
+    handleAnswer(event: Event) {
+      const target = event.target as HTMLSelectElement;
+      const questionId = target.dataset.question;
+      const selectedOption = target.options[target.selectedIndex];
+      
+      if (!questionId) return;
       
       if (selectedOption.value) {
         this.answers[questionId] = {
@@ -141,8 +163,8 @@
     updateSubmitButton() {
       const submitBtn = document.getElementById('submit-quiz');
       if (submitBtn) {
-        const allAnswered = this.questions.every(q => this.answers[q.id]);
-        submitBtn.disabled = !allAnswered;
+        const allAnswered = this.questions.every((q: Question) => this.answers[q.id]);
+        (submitBtn as HTMLButtonElement).disabled = !allAnswered;
       }
     }
     
@@ -197,7 +219,7 @@
       resultContainer.classList.remove('hidden');
     }
     
-    generateRecommendation(birthMonth, focusArea) {
+    generateRecommendation(birthMonth: any, focusArea: any) {
       const recommendations = {
         'love': 'For love and relationships, combine your birth month gemstone with Rose Quartz for enhanced emotional healing and connection.',
         'career': 'For career success, pair your birth month gemstone with Citrine to boost confidence, creativity, and professional growth.',

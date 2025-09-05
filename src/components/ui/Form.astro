@@ -205,7 +205,7 @@ const { inputs, textarea, disclaimer, button = 'Contact us', description = '', a
         .then(response => {
           if (response.ok) {
             // Success
-            form.reset();
+            (form as HTMLFormElement).reset();
             if (successMessage) {
               successMessage.classList.remove('hidden');
             }

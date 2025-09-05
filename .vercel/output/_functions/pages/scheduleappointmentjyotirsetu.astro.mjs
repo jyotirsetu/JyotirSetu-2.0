@@ -1705,8 +1705,7 @@ const $$ScheduleAppointmentJyotirSetu = createComponent(($$result, $$props, $$sl
       day: "numeric",
       year: "numeric"
     });
-    const dates = upcomingDates;
-    dates.push({
+    upcomingDates.push({
       label: `${dayName}, ${dateStr}`,
       value: date.toISOString().split("T")[0]
     });

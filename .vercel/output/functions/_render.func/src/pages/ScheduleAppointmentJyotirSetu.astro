@@ -15,8 +15,7 @@ for (let i = 0; i < 7; i++) {
     day: 'numeric',
     year: 'numeric'
   });
-  const dates: { label: string; value: string; }[] = upcomingDates;
-  dates.push({
+  upcomingDates.push({
     label: `${dayName}, ${dateStr}`,
     value: date.toISOString().split('T')[0]
   });

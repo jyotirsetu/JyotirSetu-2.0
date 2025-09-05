@@ -87,9 +87,9 @@
     }
     
     updateSubmitButton() {
-      const birthDate = document.getElementById('birth-date')?.value;
-      const focusArea = document.getElementById('focus-area')?.value;
-      const submitBtn = document.getElementById('calculate-number');
+      const birthDate = (document.getElementById('birth-date') as HTMLInputElement)?.value;
+      const focusArea = (document.getElementById('focus-area') as HTMLInputElement)?.value;
+      const submitBtn = document.getElementById('calculate-number') as HTMLButtonElement;
       
       if (submitBtn) {
         submitBtn.disabled = !(birthDate && focusArea);
@@ -97,8 +97,8 @@
     }
     
     calculateLifePath() {
-      const birthDate = document.getElementById('birth-date')?.value;
-      const focusArea = document.getElementById('focus-area')?.value;
+      const birthDate = (document.getElementById('birth-date') as HTMLInputElement)?.value;
+      const focusArea = (document.getElementById('focus-area') as HTMLInputElement)?.value;
       
       if (!birthDate || !focusArea) return;
       
@@ -108,7 +108,7 @@
       this.showResult(lifePathNumber, insights, focusArea);
     }
     
-    computeLifePathNumber(birthDate) {
+    computeLifePathNumber(birthDate: string) {
       const date = new Date(birthDate);
       const day = date.getDate();
       const month = date.getMonth() + 1;
@@ -124,14 +124,14 @@
       return this.reduceToSingleDigit(total);
     }
     
-    reduceToSingleDigit(num) {
+    reduceToSingleDigit(num: number) {
       while (num > 9) {
-        num = num.toString().split('').reduce((sum, digit) => sum + parseInt(digit), 0);
+        num = num.toString().split('').reduce((sum: number, digit: string) => sum + parseInt(digit), 0);
       }
       return num;
     }
     
-    getLifePathInsights(lifePathNumber, focusArea) {
+    getLifePathInsights(lifePathNumber: number, focusArea: string) {
       const insights = {
         1: {
           title: 'The Pioneer',
@@ -219,7 +219,7 @@
       return insights[lifePathNumber] || insights[1];
     }
     
-    showResult(lifePathNumber, insights, focusArea) {
+    showResult(lifePathNumber: number, insights: any, focusArea: string) {
       const resultContainer = document.getElementById('numerology-result');
       if (!resultContainer) return;
       

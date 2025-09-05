@@ -40,8 +40,18 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
+  // Type definitions
+  interface DailyTip {
+    id: number;
+    title: string;
+    content: string;
+    category: string;
+    date: string;
+    active: boolean;
+  }
+
   // Initialize Supabase client
-  let supabase;
+  let supabase: any;
   
   async function initSupabase() {
     try {
@@ -90,11 +100,11 @@
   }
 
   // Display tips in the grid
-  function displayTips(tips) {
+  function displayTips(tips: DailyTip[]) {
     const container = document.getElementById('daily-tips-container');
     if (!container) return;
     
-    container.innerHTML = tips.map(tip => `
+    container.innerHTML = tips.map((tip: DailyTip) => `
       <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border border-purple-200 dark:border-purple-700 overflow-hidden group">
         <!-- Tip Header -->
         <div class="bg-gradient-to-r from-purple-500 to-blue-500 px-6 py-4">
@@ -130,24 +140,30 @@
     const container = document.getElementById('daily-tips-container');
     if (!container) return;
     
-    const fallbackTips = [
+    const fallbackTips: DailyTip[] = [
       {
+        id: 1,
         title: "Moon in Aries",
         content: "Today's energy is perfect for new beginnings and taking bold actions. Trust your intuition and embrace change.",
         category: "Zodiac",
-        date: new Date().toISOString().split('T')[0]
+        date: new Date().toISOString().split('T')[0],
+        active: true
       },
       {
+        id: 2,
         title: "Mercury Retrograde",
         content: "Communication may be challenging. Double-check all messages and contracts. Patience is your ally.",
         category: "Planets",
-        date: new Date().toISOString().split('T')[0]
+        date: new Date().toISOString().split('T')[0],
+        active: true
       },
       {
+        id: 3,
         title: "Spiritual Awakening",
         content: "The universe is calling you to explore deeper spiritual practices. Meditation and reflection will bring clarity.",
         category: "Spiritual",
-        date: new Date().toISOString().split('T')[0]
+        date: new Date().toISOString().split('T')[0],
+        active: true
       }
     ];
     
@@ -164,7 +180,7 @@
   }
 
   // Format date for display
-  function formatDate(dateString) {
+  function formatDate(dateString: string) {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { 
       month: 'short', 

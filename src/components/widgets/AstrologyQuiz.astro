@@ -138,8 +138,8 @@
     
     updateSubmitButton() {
       const zodiacSign = document.querySelector('input[name="zodiac-sign"]:checked');
-      const lifeConcern = document.getElementById('life-concern')?.value;
-      const submitBtn = document.getElementById('read-stars');
+      const lifeConcern = (document.getElementById('life-concern') as HTMLInputElement)?.value;
+      const submitBtn = document.getElementById('read-stars') as HTMLButtonElement;
       
       if (submitBtn) {
         submitBtn.disabled = !(zodiacSign && lifeConcern);
@@ -147,8 +147,8 @@
     }
     
     readStars() {
-      const zodiacSign = document.querySelector('input[name="zodiac-sign"]:checked')?.value;
-      const lifeConcern = document.getElementById('life-concern')?.value;
+      const zodiacSign = (document.querySelector('input[name="zodiac-sign"]:checked') as HTMLInputElement)?.value;
+      const lifeConcern = (document.getElementById('life-concern') as HTMLInputElement)?.value;
       
       if (!zodiacSign || !lifeConcern) return;
       
@@ -156,7 +156,7 @@
       this.showResult(insights, zodiacSign, lifeConcern);
     }
     
-    generateAstrologyInsights(zodiacSign, lifeConcern) {
+    generateAstrologyInsights(zodiacSign: string, lifeConcern: string) {
       const insights = {
         aries: {
           element: 'Fire',
@@ -283,7 +283,7 @@
       return insights[zodiacSign] || insights.aries;
     }
     
-    showResult(insights, zodiacSign, lifeConcern) {
+    showResult(insights: any, zodiacSign: string, lifeConcern: string) {
       const resultContainer = document.getElementById('astrology-result');
       if (!resultContainer) return;
       
