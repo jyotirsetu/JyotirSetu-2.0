@@ -776,12 +776,18 @@ import Layout from '~/layouts/AdminLayout.astro';
       
       console.log('📤 Request body:', JSON.stringify(requestBody, null, 2));
       
+      // Ensure the request body is properly formatted
+      const requestBodyString = JSON.stringify(requestBody);
+      console.log('📤 Request body string:', requestBodyString);
+      console.log('📤 Request body length:', requestBodyString.length);
+      
       const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
         },
-        body: JSON.stringify(requestBody)
+        body: requestBodyString
       });
 
       console.log('📡 Response status:', response.status);

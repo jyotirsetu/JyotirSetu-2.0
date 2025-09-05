@@ -3,30 +3,62 @@ export const prerender = false;
 export async function POST({ request }) {
   try {
     console.log('📧 Email API called');
+    console.log('📧 Request method:', request.method);
+    console.log('📧 Request URL:', request.url);
     
     // Check if request has body
     const contentType = request.headers.get('content-type');
     console.log('📧 Content-Type:', contentType);
     
+    // Get all headers for debugging
+    const headers = {};
+    for (const [key, value] of request.headers.entries()) {
+      headers[key] = value;
+    }
+    console.log('📧 All headers:', headers);
+    
     if (!contentType || !contentType.includes('application/json')) {
-      throw new Error('Content-Type must be application/json');
+      console.log('📧 Invalid content type, returning error');
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Content-Type must be application/json'
+      }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
     
     // Get request body as text first to debug
     const bodyText = await request.text();
+    console.log('📧 Raw body length:', bodyText.length);
     console.log('📧 Raw body:', bodyText);
     
     if (!bodyText || bodyText.trim() === '') {
-      throw new Error('Request body is empty');
+      console.log('📧 Empty body, returning error');
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Request body is empty'
+      }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
     
     // Parse JSON
     let requestData;
     try {
       requestData = JSON.parse(bodyText);
+      console.log('📧 Parsed data:', requestData);
     } catch (parseError) {
       console.error('📧 JSON parse error:', parseError);
-      throw new Error('Invalid JSON in request body');
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Invalid JSON in request body',
+        details: parseError.message
+      }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
     
     const { subject, content, recipientEmail, recipientName } = requestData;
