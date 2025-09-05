@@ -1,0 +1,133 @@
+class r{constructor(){this.init()}init(){this.renderQuiz(),this.attachEventListeners()}renderQuiz(){const e=document.getElementById("palmistry-quiz-container");e&&(e.innerHTML=`
+        <div class="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl p-6 border border-green-200 dark:border-green-700">
+          <div class="text-center mb-6">
+            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">✋ Discover Your Palm Reading</h3>
+            <p class="text-gray-600 dark:text-gray-300">Answer a few questions about your hands to reveal fascinating palmistry insights</p>
+          </div>
+          
+          <div class="space-y-6">
+            <div class="question-block">
+              <label class="block text-lg font-semibold text-gray-900 dark:text-white mb-3">
+                1. Are your palm lines straight or curved?
+              </label>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <label class="flex items-center p-3 border border-gray-300 dark:border-slate-600 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700">
+                  <input type="radio" name="line-type" value="straight" class="mr-3" required>
+                  <span class="text-gray-700 dark:text-gray-300">📏 Straight Lines</span>
+                </label>
+                <label class="flex items-center p-3 border border-gray-300 dark:border-slate-600 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700">
+                  <input type="radio" name="line-type" value="curved" class="mr-3" required>
+                  <span class="text-gray-700 dark:text-gray-300">🔄 Curved Lines</span>
+                </label>
+              </div>
+            </div>
+            
+            <div class="question-block">
+              <label class="block text-lg font-semibold text-gray-900 dark:text-white mb-3">
+                2. Which hand is dominant?
+              </label>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <label class="flex items-center p-3 border border-gray-300 dark:border-slate-600 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700">
+                  <input type="radio" name="hand-dominance" value="left" class="mr-3" required>
+                  <span class="text-gray-700 dark:text-gray-300">👈 Left Hand</span>
+                </label>
+                <label class="flex items-center p-3 border border-gray-300 dark:border-slate-600 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700">
+                  <input type="radio" name="hand-dominance" value="right" class="mr-3" required>
+                  <span class="text-gray-700 dark:text-gray-300">👉 Right Hand</span>
+                </label>
+                <label class="flex items-center p-3 border border-gray-300 dark:border-slate-600 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700">
+                  <input type="radio" name="hand-dominance" value="both" class="mr-3" required>
+                  <span class="text-gray-700 dark:text-gray-300">🤝 Both Hands</span>
+                </label>
+              </div>
+            </div>
+            
+            <div class="question-block">
+              <label class="block text-lg font-semibold text-gray-900 dark:text-white mb-3">
+                3. What's your main life concern?
+              </label>
+              <select 
+                id="life-concern" 
+                class="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-slate-700 dark:text-white"
+                required
+              >
+                <option value="">Select your concern...</option>
+                <option value="career">💼 Career & Professional Growth</option>
+                <option value="love">💕 Love & Relationships</option>
+                <option value="health">🌿 Health & Wellbeing</option>
+                <option value="wealth">💰 Wealth & Financial Success</option>
+                <option value="spirituality">🕉️ Spiritual Development</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="text-center mt-6">
+            <button 
+              id="read-palm" 
+              class="bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-8 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled
+            >
+              ✋ Read My Palm
+            </button>
+          </div>
+          
+          <div id="palmistry-result" class="hidden mt-6 p-6 bg-white dark:bg-slate-800 rounded-lg border border-green-200 dark:border-slate-700">
+            <!-- Result will be populated here -->
+          </div>
+        </div>
+      `)}attachEventListeners(){const e=document.querySelectorAll('input[type="radio"]'),a=document.getElementById("life-concern"),t=document.getElementById("read-palm");e.forEach(n=>{n.addEventListener("change",()=>this.updateSubmitButton())}),a&&a.addEventListener("change",()=>this.updateSubmitButton()),t&&t.addEventListener("click",()=>this.readPalm())}updateSubmitButton(){const e=document.querySelector('input[name="line-type"]:checked'),a=document.querySelector('input[name="hand-dominance"]:checked'),t=document.getElementById("life-concern")?.value,n=document.getElementById("read-palm");n&&(n.disabled=!(e&&a&&t))}readPalm(){const e=document.querySelector('input[name="line-type"]:checked')?.value,a=document.querySelector('input[name="hand-dominance"]:checked')?.value,t=document.getElementById("life-concern")?.value;if(!e||!a||!t)return;const n=this.generatePalmistryInsights(e,a,t);this.showResult(n,t)}generatePalmistryInsights(e,a,t){const n={lineType:{straight:{title:"The Logical Thinker",description:"Your straight palm lines indicate a practical, analytical mind. You approach life with logic and reason, making well-thought-out decisions.",traits:"Methodical, organized, reliable, and detail-oriented"},curved:{title:"The Creative Soul",description:"Your curved palm lines reveal a creative and intuitive nature. You trust your instincts and have a natural artistic flair.",traits:"Imaginative, intuitive, adaptable, and emotionally expressive"}},handDominance:{left:{title:"The Intuitive Hand",description:"Left hand dominance suggests strong intuitive abilities and emotional intelligence. You have a natural connection to your subconscious mind.",traits:"Intuitive, empathetic, creative, and spiritually aware"},right:{title:"The Action Hand",description:"Right hand dominance indicates strong willpower and action-oriented nature. You prefer to take charge and make things happen.",traits:"Determined, practical, goal-oriented, and confident"},both:{title:"The Balanced Hand",description:"Both hands being equally strong shows excellent balance between logic and intuition. You can adapt to any situation with ease.",traits:"Balanced, adaptable, versatile, and harmonious"}},lifeConcern:{career:{focus:"Career & Professional Growth",insight:"Your palm shows strong potential for professional advancement. Focus on developing your unique skills and building meaningful connections.",advice:"Consider leadership roles and continuous learning opportunities."},love:{focus:"Love & Relationships",insight:"Your palm reveals a deep capacity for love and emotional connection. You have the ability to create lasting, meaningful relationships.",advice:"Trust your heart and be open to deep emotional connections."},health:{focus:"Health & Wellbeing",insight:"Your palm indicates strong vitality and resilience. You have the power to maintain excellent health through mindful living.",advice:"Focus on holistic wellness and preventive care practices."},wealth:{focus:"Wealth & Financial Success",insight:"Your palm shows excellent potential for financial abundance. You have the ability to create and manage wealth effectively.",advice:"Focus on value creation and smart financial planning."},spirituality:{focus:"Spiritual Development",insight:"Your palm reveals a deep spiritual connection and intuitive wisdom. You have the potential for profound spiritual growth.",advice:"Trust your inner guidance and explore spiritual practices."}}};return{lineType:n.lineType[e],handDominance:n.handDominance[a],lifeConcern:n.lifeConcern[t]}}showResult(e,a){const t=document.getElementById("palmistry-result");t&&(t.innerHTML=`
+        <div class="text-center">
+          <div class="text-6xl mb-4">✋</div>
+          <h4 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">Your Palm Reading Reveals...</h4>
+          
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div class="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
+              <h6 class="font-semibold text-green-800 dark:text-green-200 mb-2">Line Pattern</h6>
+              <p class="text-green-700 dark:text-green-300 text-sm font-medium">${e.lineType.title}</p>
+              <p class="text-green-600 dark:text-green-400 text-xs mt-1">${e.lineType.traits}</p>
+            </div>
+            
+            <div class="bg-emerald-50 dark:bg-emerald-900/20 p-4 rounded-lg">
+              <h6 class="font-semibold text-emerald-800 dark:text-emerald-200 mb-2">Hand Dominance</h6>
+              <p class="text-emerald-700 dark:text-emerald-300 text-sm font-medium">${e.handDominance.title}</p>
+              <p class="text-emerald-600 dark:text-emerald-400 text-xs mt-1">${e.handDominance.traits}</p>
+            </div>
+            
+            <div class="bg-teal-50 dark:bg-teal-900/20 p-4 rounded-lg">
+              <h6 class="font-semibold text-teal-800 dark:text-teal-200 mb-2">Life Focus</h6>
+              <p class="text-teal-700 dark:text-teal-300 text-sm font-medium">${e.lifeConcern.focus}</p>
+            </div>
+          </div>
+          
+          <div class="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 p-4 rounded-lg mb-6">
+            <h6 class="font-semibold text-green-800 dark:text-green-200 mb-2">💡 Line Pattern Insight</h6>
+            <p class="text-green-700 dark:text-green-300 text-sm">${e.lineType.description}</p>
+          </div>
+          
+          <div class="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 p-4 rounded-lg mb-6">
+            <h6 class="font-semibold text-emerald-800 dark:text-emerald-200 mb-2">🌟 Hand Dominance Insight</h6>
+            <p class="text-emerald-700 dark:text-emerald-300 text-sm">${e.handDominance.description}</p>
+          </div>
+          
+          <div class="bg-gradient-to-r from-teal-50 to-blue-50 dark:from-teal-900/20 dark:to-blue-900/20 p-4 rounded-lg mb-6">
+            <h6 class="font-semibold text-teal-800 dark:text-teal-200 mb-2">🎯 ${e.lifeConcern.focus}</h6>
+            <p class="text-teal-700 dark:text-teal-300 text-sm">${e.lifeConcern.insight}</p>
+            <p class="text-teal-600 dark:text-teal-400 text-sm mt-2"><strong>Advice:</strong> ${e.lifeConcern.advice}</p>
+          </div>
+          
+          <div class="space-y-3">
+            <button 
+              onclick="window.location.href='/ScheduleAppointmentJyotirSetu'"
+              class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200"
+            >
+              ✋ Book Palmistry Reading
+            </button>
+            <button 
+              onclick="this.closest('#palmistry-result').classList.add('hidden')"
+              class="w-full bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium py-3 px-6 rounded-lg transition-colors duration-200"
+            >
+              Read Again
+            </button>
+          </div>
+        </div>
+      `,t.classList.remove("hidden"))}}document.readyState==="loading"?document.addEventListener("DOMContentLoaded",()=>{new r}):new r;

@@ -1,0 +1,508 @@
+---
+import Layout from '~/layouts/PageLayout.astro';
+---
+
+<Layout metadata={{
+  title: "Daily Tips Manager - JyotirSetu Admin",
+  description: "Manage daily astrology tips and cosmic insights"
+}}>
+
+<!-- Load Supabase from CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<div class="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-purple-900 dark:to-gray-900">
+  
+  <!-- Admin Header -->
+  <header class="bg-white dark:bg-slate-800 shadow-lg border-b border-purple-200 dark:border-purple-700">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center py-6">
+        <div class="flex items-center space-x-4">
+          <button onclick="goBackToAdminDashboard()" class="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 bg-transparent border-none cursor-pointer">
+            ← Back to Admin Dashboard
+          </button>
+          <div class="flex-shrink-0">
+            <h1 class="text-2xl font-bold text-purple-600 dark:text-purple-400">
+              ✨ Daily Tips Manager
+            </h1>
+          </div>
+        </div>
+        <div class="flex items-center space-x-4">
+          <span class="text-sm text-gray-600 dark:text-gray-400" id="admin-email">
+            Welcome, Admin
+          </span>
+          <button
+            id="logout-btn"
+            class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200"
+          >
+            Logout
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    
+    <!-- Quick Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-purple-200 dark:border-purple-700">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div class="w-8 h-8 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center">
+              <span class="text-purple-600 dark:text-purple-400 text-xl">✨</span>
+            </div>
+          </div>
+          <div class="ml-4">
+            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Tips</p>
+            <p class="text-2xl font-bold text-gray-900 dark:text-white" id="total-tips-count">0</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-purple-200 dark:border-purple-700">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div class="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center">
+              <span class="text-green-600 dark:text-green-400 text-xl">📅</span>
+            </div>
+          </div>
+          <div class="ml-4">
+            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Active Tips</p>
+            <p class="text-2xl font-bold text-gray-900 dark:text-white" id="active-tips-count">0</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-purple-200 dark:border-purple-700">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div class="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
+              <span class="text-blue-600 dark:text-blue-400 text-xl">📝</span>
+            </div>
+          </div>
+          <div class="ml-4">
+            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Categories</p>
+            <p class="text-2xl font-bold text-gray-900 dark:text-white" id="categories-count">0</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Create New Tip Section -->
+    <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-8 mb-8 border border-purple-200 dark:border-purple-700">
+      <div class="text-center mb-6">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Create New Daily Tip</h2>
+        <p class="text-gray-600 dark:text-gray-400">Share cosmic insights with your audience</p>
+      </div>
+      
+      <form id="tip-form" class="space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tip Title</label>
+            <input 
+              type="text" 
+              id="tip-title" 
+              required 
+              class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-slate-700 dark:text-white transition-colors"
+              placeholder="e.g., Moon in Aries Energy"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Category</label>
+            <select 
+              id="tip-category" 
+              required 
+              class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-slate-700 dark:text-white transition-colors"
+            >
+              <option value="">Select Category</option>
+              <option value="Zodiac">Zodiac Signs</option>
+              <option value="Planets">Planetary Influences</option>
+              <option value="Moon">Moon Phases</option>
+              <option value="Gemstones">Gemstone Guidance</option>
+              <option value="Numerology">Numerology</option>
+              <option value="Palmistry">Palmistry</option>
+              <option value="General">General Astrology</option>
+            </select>
+          </div>
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tip Content</label>
+          <textarea 
+            id="tip-content" 
+            required 
+            rows="4"
+            class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-slate-700 dark:text-white transition-colors"
+            placeholder="Share your cosmic insight here..."
+          ></textarea>
+        </div>
+        
+        <div class="flex justify-center">
+          <button 
+            type="submit" 
+            class="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white py-3 px-8 rounded-lg font-medium transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+          >
+            ✨ Create Daily Tip
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Existing Tips Section -->
+    <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-8 border border-purple-200 dark:border-purple-700">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Existing Daily Tips</h2>
+        <button 
+          onclick="refreshTips()"
+          class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200"
+        >
+          🔄 Refresh
+        </button>
+      </div>
+      
+      <div id="existing-tips" class="space-y-4">
+        <div class="text-center text-gray-500 dark:text-gray-400 py-8">
+          <span class="text-4xl">✨</span>
+          <p class="mt-2">Loading daily tips...</p>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+// Load Supabase from CDN
+let supabase;
+let tips = [];
+
+// Make functions globally accessible
+window.goBackToAdminDashboard = goBackToAdminDashboard;
+window.refreshTips = refreshTips;
+
+// Initialize Supabase client
+function initSupabase() {
+  try {
+    // @ts-ignore
+    supabase = window.supabase.createClient(
+      'https://czbypbrrxxjcjdfjxczv.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN6YnlwYnJyeHhqY2pkZmp4Y3p2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY5MjU2NDcsImV4cCI6MjA3MjUwMTY0N30.SQ-eabMNo5RBy8N0MHWDmlxVH7Tmh-EGykI0Qt5wDjg'
+    );
+    console.log('Supabase initialized successfully');
+    return true;
+  } catch (error) {
+    console.error('Error creating Supabase client:', error);
+    return false;
+  }
+}
+
+// Go back to admin dashboard
+function goBackToAdminDashboard() {
+  console.log('Going back to admin dashboard...');
+  const adminEmail = localStorage.getItem('admin_email');
+  if (adminEmail) {
+    console.log('User is authenticated, navigating to admin dashboard');
+    window.location.href = '/admin';
+  } else {
+    console.log('User not authenticated, staying on current page');
+    alert('Session expired. Please login again.');
+  }
+}
+
+// Load tips from Supabase
+async function loadTipsFromSupabase() {
+  try {
+    console.log('Loading tips from Supabase...');
+    
+    const { data: supabaseTips, error } = await supabase
+      .from('daily_tips')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (error) {
+      console.error('Supabase error:', error);
+      if (tips.length === 0) {
+        tips = [
+          {
+            id: 1,
+            title: "Moon in Aries",
+            content: "Today's energy is perfect for new beginnings and taking bold actions.",
+            category: "Zodiac",
+            date: new Date().toISOString().split('T')[0],
+            active: true
+          },
+          {
+            id: 2,
+            title: "Mercury Retrograde",
+            content: "Communication may be challenging. Double-check all messages and contracts.",
+            category: "Planets",
+            date: new Date(Date.now() - 86400000).toISOString().split('T')[0],
+            active: true
+          }
+        ];
+      }
+    } else {
+      console.log('Tips loaded from Supabase:', supabaseTips);
+      tips = supabaseTips || [];
+    }
+    
+    console.log('Displaying tips from array:', tips);
+    displayTips(tips);
+    updateStats();
+    
+  } catch (error) {
+    console.error('Error loading tips:', error);
+    showNotification('Error loading tips', 'error');
+  }
+}
+
+// Display tips
+function displayTips(tips) {
+  const container = document.getElementById('existing-tips');
+  if (!container) return;
+  
+  if (!tips || tips.length === 0) {
+    container.innerHTML = `
+      <div class="text-center text-gray-500 dark:text-gray-400 py-8">
+        <span class="text-4xl">✨</span>
+        <p class="mt-2">No tips created yet</p>
+        <p class="text-sm mt-1">Create your first daily tip above!</p>
+      </div>
+    `;
+    return;
+  }
+  
+  container.innerHTML = tips.map(tip => `
+    <div class="bg-gray-50 dark:bg-slate-700 rounded-lg p-6 border border-gray-200 dark:border-gray-600">
+      <div class="flex justify-between items-start mb-4">
+        <div class="flex-1">
+          <h4 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">${tip.title}</h4>
+          <p class="text-gray-600 dark:text-gray-400 mb-3">${tip.content}</p>
+          <div class="flex items-center space-x-3">
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+              ${tip.category}
+            </span>
+            <span class="text-sm text-gray-500 dark:text-gray-400">${tip.date}</span>
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${tip.active ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'}">
+              ${tip.active ? 'Active' : 'Inactive'}
+            </span>
+          </div>
+        </div>
+        <div class="flex space-x-2 ml-4">
+          <button
+            onclick="editTip(${tip.id})"
+            class="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium px-3 py-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900"
+          >
+            ✏️ Edit
+          </button>
+          <button
+            onclick="deleteTip(${tip.id})"
+            class="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 text-sm font-medium px-3 py-1 rounded hover:bg-red-50 dark:hover:bg-red-900"
+          >
+            🗑️ Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// Update statistics
+function updateStats() {
+  const totalTips = tips.length;
+  const activeTips = tips.filter(tip => tip.active).length;
+  const categories = new Set(tips.map(tip => tip.category)).size;
+  
+  document.getElementById('total-tips-count').textContent = totalTips;
+  document.getElementById('active-tips-count').textContent = activeTips;
+  document.getElementById('categories-count').textContent = categories;
+}
+
+// Handle tip form submission
+async function handleTipSubmit(e) {
+  e.preventDefault();
+  console.log('Tip form submitted!');
+  
+  const titleInput = document.getElementById('tip-title');
+  const categoryInput = document.getElementById('tip-category');
+  const contentInput = document.getElementById('tip-content');
+  
+  if (!titleInput || !categoryInput || !contentInput) {
+    console.log('Missing inputs, returning');
+    return;
+  }
+  
+  const newTip = {
+    id: Date.now(),
+    title: titleInput.value,
+    content: contentInput.value,
+    category: categoryInput.value,
+    date: new Date().toISOString().split('T')[0],
+    active: true
+  };
+  
+  console.log('New tip object:', newTip);
+  
+  try {
+    console.log('Creating new tip:', newTip);
+    
+    // Save tip to Supabase
+    const { data: savedTip, error } = await supabase
+      .from('daily_tips')
+      .insert([{
+        title: newTip.title,
+        content: newTip.content,
+        category: newTip.category,
+        date: newTip.date,
+        active: newTip.active
+      }])
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Supabase insert error:', error);
+      showNotification('Error saving tip to database: ' + error.message, 'error');
+      return;
+    }
+    
+    console.log('Tip saved to Supabase:', savedTip);
+    
+    // Add the new tip to our tips array
+    tips.unshift(savedTip);
+    console.log('Tip added to array, total tips:', tips.length);
+    
+    showNotification('Tip created and saved successfully!', 'success');
+    
+    // Reload tips to show the new one
+    await loadTipsFromSupabase();
+    
+    // Clear form
+    clearTipForm();
+    
+  } catch (error) {
+    console.error('Error creating tip:', error);
+    showNotification('Error creating tip', 'error');
+  }
+}
+
+// Clear tip form
+function clearTipForm() {
+  const titleInput = document.getElementById('tip-title');
+  const categoryInput = document.getElementById('tip-category');
+  const contentInput = document.getElementById('tip-content');
+  
+  if (titleInput) titleInput.value = '';
+  if (categoryInput) categoryInput.value = '';
+  if (contentInput) contentInput.value = '';
+}
+
+// Edit tip
+function editTip(id) {
+  showNotification('Edit functionality coming soon!', 'info');
+}
+
+// Delete tip
+async function deleteTip(id) {
+  if (confirm('Are you sure you want to delete this tip?')) {
+    try {
+      console.log('Deleting tip from Supabase:', id);
+      
+      // Delete from Supabase database
+      const { error } = await supabase
+        .from('daily_tips')
+        .delete()
+        .eq('id', id);
+      
+      if (error) {
+        console.error('Supabase delete error:', error);
+        showNotification('Error deleting tip from database: ' + error.message, 'error');
+        return;
+      }
+      
+      console.log('Tip deleted from Supabase successfully');
+      
+      // Remove tip from local array
+      tips = tips.filter(tip => tip.id !== id);
+      console.log('Tip deleted from local array, remaining tips:', tips.length);
+      
+      showNotification('Tip deleted successfully!', 'success');
+      
+      // Reload tips to reflect the deletion
+      await loadTipsFromSupabase();
+    } catch (error) {
+      console.error('Error deleting tip:', error);
+      showNotification('Error deleting tip', 'error');
+    }
+  }
+}
+
+// Refresh tips
+function refreshTips() {
+  loadTipsFromSupabase();
+  showNotification('Tips refreshed!', 'info');
+}
+
+// Show notification
+function showNotification(message, type) {
+  const notification = document.createElement('div');
+  notification.className = `fixed top-4 right-4 px-6 py-3 rounded-lg text-white font-medium z-[999999] ${
+    type === 'success' ? 'bg-green-500' : 
+    type === 'error' ? 'bg-red-500' : 
+    type === 'info' ? 'bg-blue-500' : 'bg-gray-500'
+  }`;
+  notification.textContent = message;
+  
+  document.body.appendChild(notification);
+  
+  setTimeout(() => {
+    notification.remove();
+  }, 3000);
+}
+
+// Initialize page
+document.addEventListener('DOMContentLoaded', async function() {
+  console.log('Daily Tips Manager - DOM Content Loaded');
+  
+  try {
+    // Initialize Supabase
+    const supabaseReady = initSupabase();
+    if (!supabaseReady) {
+      console.error('Supabase initialization failed');
+      return;
+    }
+    
+    // Update admin email display
+    const adminEmail = localStorage.getItem('admin_email');
+    const adminEmailSpan = document.getElementById('admin-email');
+    if (adminEmailSpan && adminEmail) {
+      adminEmailSpan.textContent = `Welcome, ${adminEmail}`;
+    }
+    
+    // Setup form handler
+    const tipForm = document.getElementById('tip-form');
+    if (tipForm) {
+      tipForm.addEventListener('submit', handleTipSubmit);
+    }
+    
+    // Setup logout button
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', function() {
+        localStorage.removeItem('admin_email');
+        localStorage.removeItem('admin_username');
+        window.location.href = '/admin';
+      });
+    }
+    
+    // Load tips
+    await loadTipsFromSupabase();
+    
+    console.log('Daily Tips Manager initialized successfully');
+    
+  } catch (error) {
+    console.error('Error initializing Daily Tips Manager:', error);
+    showNotification('Error initializing page', 'error');
+  }
+});
+</script>
+</Layout>

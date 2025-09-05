@@ -1,0 +1,709 @@
+---
+import Layout from '~/layouts/PageLayout.astro';
+
+import Hero from '~/components/widgets/Hero.astro';
+import DailyAstroTip from '~/components/widgets/DailyAstroTip.astro';
+import DailyTipsDisplay from '~/components/DailyTipsDisplay.astro';
+import Note from '~/components/widgets/Note.astro';
+import Features from '~/components/widgets/Features.astro';
+import Features2 from '~/components/widgets/Features2.astro';
+import Steps from '~/components/widgets/Steps.astro';
+import Content from '~/components/widgets/Content.astro';
+
+import FAQs from '~/components/widgets/FAQs.astro';
+import Stats from '~/components/widgets/Stats.astro';
+import CallToAction from '~/components/widgets/CallToAction.astro';
+import EmailCapture from '~/components/widgets/EmailCapture.astro';
+
+const metadata = {
+  title: 'JyotirSetu',
+  ignoreTitleTemplate: true,
+};
+---
+
+<Layout metadata={metadata}>
+  <!-- Hero Widget ******************* -->
+
+  <Hero
+    actions={[
+      {
+        variant: 'primary',
+        text: 'Book your Appointment',
+        href: '/ScheduleAppointmentJyotirSetu',
+        icon: 'tabler:calendar',
+      },
+      { text: 'Learn more', href: '#features' },
+    ]}
+    image={{ src: '~/assets/images/2hero-image.png', alt: 'JyotirSetu Hero Image' }}
+  >
+    <div slot="title">
+      JyotirSetu<span class="hidden xl:inline"></span>
+      <span class="text-accent dark:text-white"> Astrology</span>
+    </div>
+
+    <div slot="subtitle">
+      <span class="font-semibold">At JyotirSetu,</span> we offer expert guidance in Vedic Astrology, Palmistry, and Numerology — helping you gain deeper clarity, direction, and peace of mind in life's journey.
+    </div>
+  </Hero>
+
+  <!-- Daily Astro Tip Widget ******************* -->
+  <DailyAstroTip />
+
+  <!-- Daily Tips Display Widget ******************* -->
+  <DailyTipsDisplay />
+
+  <!-- Note Widget ******************* -->
+
+  <Note title="✨ Bridge to Cosmic Clarity ✨" description="Guiding your journey through Vedic Astrology, Palmistry & Numerology" />
+
+  <!-- Features Widget *************** -->
+
+  <Features
+    id="features"
+    tagline="Why Choose"
+    title="JyotirSetu ?"
+    subtitle="Trusted advisory in Astrology, Palmistry, and Numerology — offering structured, reliable, and insightful consultations tailored to your life’s unique journey."
+    items={[
+      {
+        title: 'Personalized Consultations',
+        description:
+          'Every session is unique, based on your individual birth chart, palmistry lines, and numerological profile.',
+        icon: 'tabler:sparkles',
+      },
+      {
+        title: 'Holistic Guidance',
+        description:
+          'We combine Astrology, Palmistry, and Numerology for a 360° view of your life’s journey.',
+        icon: 'flat-color-icons:gallery',
+      },
+      {
+        title: 'Authentic Vedic Knowledge',
+        description:
+          'Rooted in over 25+ years of experience, ensuring genuine and reliable insights.',
+        icon: 'flat-color-icons:approval',
+      },
+      {
+        title: 'Clarity & Peace of Mind',
+        description:
+          'Our consultations focus on removing confusion and guiding you with confidence.',
+        icon: 'flat-color-icons:document',
+      },
+      {
+        title: 'Trust & Transparency',
+        description:
+          "No fear-based predictions — only clear, compassionate, and solution-oriented advice.",
+        icon: 'flat-color-icons:advertising',
+      },
+      {
+        title: 'Convenient & Accessible',
+        description:
+          'Book appointments easily online, with flexible options for in-person or virtual sessions.',
+        icon: 'flat-color-icons:currency-exchange',
+      },
+    ]}
+  />
+  <Content
+    id="meet-our-expert"
+    isReversed
+    tagline=" "
+    title="Meet Our Expert"
+    items={[
+      {
+        title: '',
+        description:
+          'Certified Astrologer – Bharatiya Vidya Bhavan',
+          icon: 'tabler:certificate',
+      },
+      {
+        title: '',
+        description:
+          'Diploma in Palmistry – Indian Council of Astrological Sciences (ICAS)',
+          icon: 'tabler:certificate',
+      },
+      {
+        title: '',
+        description:
+          'Certified Numerologist – All India Federation of Astrologers\' Societies (AIFAS)',
+          icon: 'tabler:numbers',
+      },
+      {
+        title: '',
+        description:
+          'Life Member – Astrological Research Project, Kolkata',
+          icon: 'tabler:certificate',
+      },
+      {
+        title: '✨ Trusted by clients across India and abroad for accurate, insightful, and result-oriented guidance.',
+        description:
+          '',
+          icon: 'tabler:users',
+      },
+    ]}
+    
+    image={{
+      src: 'https://images.unsplash.com/photo-1704927768403-eea484c47783?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTd8fEFzdHJvbG9nZXIlMjBwZXJzb258ZW58MHwxfDB8fHwy',
+      alt: 'Colorful Image',
+    }}
+  >
+    <div slot="content">
+      <h3 class="text-2xl font-bold tracking-tight dark:text-white sm:text-3xl mb-2">🌟Our Astrologer – Punita Sharma</h3>
+      With over 25 years of expertise in Astrology, Palmistry & Numerology, Punita Sharma (M.A. Sanskrit) has guided thousands of clients with accurate predictions and practical remedies. Her deep knowledge, compassionate approach, and professional ethics make her one of the most trusted names in the field.
+    </div>
+
+    <div slot="bg">
+      <div class="absolute inset-0 bg-blue-50 dark:bg-transparent"></div>
+    </div>
+  </Content>
+
+  <!-- Features2 Widget ************** -->
+
+  <Features2
+    id="services"
+    title="🔮 Our Most Trusted Astrology Services"
+    subtitle="Guiding you through life's journey with clarity and cosmic wisdom."
+    tagline="Our Services"
+    items={[
+      {
+        title: 'Kundli Analysis',
+        description: "📜 Unlock the secrets of your birth chart to understand your true path and purpose.",
+        icon: 'flat-color-icons:template',
+        href: '/services/kundli-analysis',
+      },
+      {
+        title: 'Palmistry',
+        description:
+          "✋ Discover your destiny written in the lines of your hands.",
+        icon: 'flat-color-icons:gallery',
+        href: '/services/palmistry',
+      },
+      {
+        title: 'Matchmaking (Kundli Milan)',
+        description:
+          '❤️ Ensure a harmonious and compatible relationship with astrological insights.',
+        icon: 'flat-color-icons:approval',
+        href: '/services/matchmaking',
+      },
+      {
+        title: 'Numerology',
+        description:
+          "🔢 Decode the hidden meaning of numbers influencing your life.",
+        icon: 'flat-color-icons:document',
+        href: '/services/numerology',
+      },
+      {
+        title: 'Gemstone Consultation',
+        description:
+          '💎 Find the right gemstone to balance energies and attract positivity.',
+        icon: 'flat-color-icons:advertising',
+        href: '/services/gemstone-consultation',
+      },
+      {
+        title: 'Career & Finance Guidance',
+        description: '💼 Navigate your professional and financial journey with astrology.',
+        icon: 'flat-color-icons:currency-exchange',
+        href: '/services/career-finance',
+      },
+      {
+        title: 'Spiritual Guidance',
+        description: '🌌 Connect with your higher self through cosmic wisdom and meditation.',
+        icon: 'flat-color-icons:voice-presentation',
+        href: '/services/spiritual-guidance',
+      },
+      {
+        title: 'Remedial Solutions',
+        description:
+          '🔮 Simple yet powerful remedies for peace, prosperity, and well-being.',
+        icon: 'flat-color-icons:business-contact',
+        href: '/services/remedial-solutions',
+      },
+      {
+        title: 'Dosha Analysis & Remedies',
+        description: "🌑 Identify Mangal Dosha, Kaal Sarp Dosha, Pitru Dosha and more, with effective astrological solutions.",
+        icon: 'flat-color-icons:database',
+        href: '/services/dosha-analysis',
+      },
+    ]}
+  >
+    <div slot="bg">
+      <div class="absolute inset-0 bg-blue-50 dark:bg-transparent"></div>
+    </div>
+  </Features2>
+
+  <!-- Content Widget **************** -->
+
+  <Content
+    isReversed
+    tagline="Ancient Wisdom, Modern Solutions"
+    title="JyotirSetu’s Blueprint: Ancient Wisdom for Modern Living"
+    items={[
+      {
+        title: '🌙 Rooted in Vedic Astrology',
+        description:
+          'Authentic insights drawn from ancient scriptures, ensuring accuracy and trust.',
+      },
+      {
+        title: '✋ Palmistry with Precision',
+        description:
+          'Revealing hidden patterns of destiny through detailed hand analysis.',
+      },
+      {
+        title: '🔢 Numerology for Life Balance',
+        description:
+          'Decoding the power of numbers to bring harmony in personal and professional life.',
+      },
+    ]}
+    image={{
+      src: 'https://nypost.com/wp-content/uploads/sites/2/2022/03/vedic-astrology-1.jpg?quality=75&strip=all&w=1024',
+      alt: 'Colorful Image',
+    }}
+  >
+    <div slot="content">
+      <h3 class="text-2xl font-bold tracking-tight dark:text-white sm:text-3xl mb-2">Building on modern foundations</h3>
+      Gain a competitive advantage by incorporating industry leading practices
+    </div>
+
+    <div slot="bg">
+      <div class="absolute inset-0 bg-blue-50 dark:bg-transparent"></div>
+    </div>
+  </Content>
+
+  <!-- Content Widget **************** -->
+
+  <Content
+    isAfterContent
+    items={[
+      {
+        title: '⭐ Personalized Consultations',
+        description: `Tailored sessions that resonate with your unique birth chart and life circumstances.`,
+      },
+      {
+        title: '🕉 Holistic Approach',
+        description:
+          'Combining astrology, palmistry, and numerology for a complete understanding.',
+      },
+      {
+        title: '🌍 Global Reach',
+        description:
+          "Available online and offline — making expert guidance accessible anywhere.",
+      },
+      {
+        title: '🔮 Practical Remedies',
+        description:
+          'Simple, effective, and result-driven solutions for harmony and growth.',
+      },
+    ]}
+    image={{
+      src: 'https://media.istockphoto.com/id/1125303928/photo/magic-figures-destiny-in-hands.webp?a=1&b=1&s=612x612&w=0&k=20&c=Fhd8QMhqBmj45x1ieB6KgltMArci9rkxKyGQ8ZuPxJA=',
+      alt: 'Blueprint Image',
+    }}
+  >
+    <div slot="content">Ensure your guidance truly empowers you.</div>
+
+    <div slot="bg">
+      <div class="absolute inset-0 bg-blue-50 dark:bg-transparent"></div>
+    </div>
+  </Content>
+
+  <!-- Content Widget **************** -->
+
+  <Content
+    isReversed
+    isAfterContent
+    items={[
+      {
+        title: '🌟 Deeper Clarity in Life',
+        description:
+          'Understand your purpose, strengths, and opportunities.',
+      },
+      {
+        title: '💫 Guidance for Growth',
+        description:
+          'Practical direction for relationships, career, health, and finance.',
+      },
+      {
+        title: '🔔 Continuous Support',
+        description:
+          'Stay aligned with cosmic changes through ongoing guidance and sessions.',
+      },
+      {
+        title: '🤝 Trusted Expertise',
+        description: `25+ Years of experience and hundreds of satisfied clients across India and abroad.`,
+      },
+    ]}
+    image={{
+      src: 'https://images.unsplash.com/photo-1615829676042-f8f0a12315b1?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MjB8fGdsb3dpbmclMjBwYXRoJTIwYXN0cm9sb2d5fGVufDB8MnwwfHx8Mg%3D%3D',
+      alt: 'Astronauts Image',
+    }}
+  >
+    <div slot="content">Designed to Transform Your Journey.</div>
+
+    <div slot="bg">
+      <div class="absolute inset-0 bg-blue-50 dark:bg-transparent"></div>
+    </div>
+  </Content>
+
+  <!-- Steps Widget ****************** -->
+
+  <Steps
+    id="path-to-clarity"
+    title="Your Path to Clarity with JyotirSetu"
+    items={[
+      {
+        title: 'Step 1: <span class="font-medium">Book Your Consultation</span>',
+        description:
+          "Select the service that resonates with you — whether Vedic Astrology, Palmistry, or Numerology. Scheduling is simple and tailored to your convenience.",
+        icon: 'tabler:calendar-check',
+      },
+      {
+        title: 'Step 2: <span class="font-medium">Share Your Details</span>',
+        description:
+          "Provide the necessary information like birth date, time, and place (for astrology) or a palm image (for palmistry). Accuracy here ensures deep, personalized insights.",
+        icon: 'tabler:id',
+      },
+      {
+        title: 'Step 3: <span class="font-medium">Receive Expert Guidance</span>',
+        description:
+          'Our experienced astrologers and consultants prepare a detailed reading, offering practical solutions and spiritual clarity that align with your life\'s journey.',
+        icon: 'tabler:stars',
+      },
+      {
+        title: 'Transform with Clarity!',
+        description:
+          'Walk away with peace of mind, clear direction, and remedies that help you overcome challenges and unlock your true potential.',
+        icon: 'tabler:sun',
+      },
+    ]}
+    image={{
+      src: 'https://media.istockphoto.com/id/2192271334/photo/woman-watching-virtual-meditation-class-at-home.webp?a=1&b=1&s=612x612&w=0&k=20&c=ekYc2FRzpWiAZYDzUnPz9AY-rNum66FE4lJeXeIN-WA=',
+      alt: 'Steps image',
+    }}
+  />
+  
+  <!-- Book Appointment Button for Your Path to Clarity Section -->
+  <section class="px-4 py-16 mx-auto max-w-7xl lg:py-20">
+    <div class="text-center">
+      <div class="flex justify-center mb-8">
+        <a
+          href="/ScheduleAppointmentJyotirSetu"
+          class="inline-flex items-center justify-center w-full px-8 py-4 text-base font-medium text-white transition duration-500 ease-in-out transform bg-blue-600 border border-transparent rounded-md shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:w-auto"
+        >
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+          </svg>
+          Book Your Appointment
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Retention Loop - Email Capture Section -->
+  <section class="py-16 bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl font-bold text-heading mb-4">🌟 Stay Connected with Cosmic Wisdom</h2>
+        <p class="text-lg text-muted">Get weekly insights, remedies, and cosmic guidance delivered to your inbox</p>
+      </div>
+      
+      <EmailCapture />
+    </div>
+  </section>
+
+  <!-- FAQs Widget ******************* -->
+
+  <FAQs
+    id="faqs"
+    title="Frequently Asked Questions"
+    subtitle="Dive into the following questions to gain insights into the powerful features that AstroWind offers and how it can elevate your web development journey."
+    tagline="FAQs"
+    classes={{ container: 'max-w-6xl' }}
+    items={[
+      {
+        title: 'What information do I need to provide for a precise Kundli reading?',
+        description:
+          "To ensure accuracy, please share your exact date, time, and place of birth. Even small discrepancies can affect the birth chart’s interpretation and timing of insights.",
+      },
+      {
+        title: 'How does Jyotish (Vedic astrology) differ from Western astrology?',
+        description:
+          'Jyotish is based on the sidereal zodiac, focusing on the moon sign and nakshatras, rather than the sun sign. Its core lies in timing via dashas and planetary periods, believed to offer deeper, culturally anchored insights.',
+      },
+      {
+        title: 'What types of readings and services do you offer?',
+        description:
+          "We provide Kundli Analysis, Dosha Identification & Remedies, Matchmaking (Kundli Milan), Gemstone Consultation, Numerology, Career & Finance Insights, Palmistry, Spiritual Guidance, and more.",
+      },
+      {
+        title: "Why consult JyotirSetu for your astrology needs?",
+        description:
+          "Our experienced astrologers offer personalized guidance using chart-specific insights, practical remedies, and spiritual counseling—helping you make informed decisions rather than vague predictions.",
+      },
+      {
+        title: 'Can astrology predict the future with certainty?',
+        description:
+          "Astrology highlights patterns and potential timings—yes—but doesn’t override free will. It’s a guiding tool, not a deterministic script.",
+      },
+      {
+        title: 'What is a Dosha, and how can you help?',
+        description:
+          "Doshas—like Mangal, Kaal Sarp, and Pitru Dosha—are imbalances in your planetary configuration. JyotirSetu analyzes these and offers tailored, practical remedies aligned with Vedic tradition.",
+      },
+      {
+        title: 'How do gemstones work in astrology?',
+        description:
+          "Gemstones act as vibrational amplifiers to strengthen planetary energies. We suggest precise gems after chart analysis to enhance balance and well-being.",
+      },
+      {
+        title: 'How can astrology support my career and financial decisions?',
+        description:
+          "By examining relevant houses and planetary placements, we provide clarity on strengths, timing, and optimal paths—helping you navigate professional and financial transitions with confidence.",
+      },
+      {
+        title: 'I don’t know my exact birth time. Can I still get insights?',
+        description:
+          "Partial readings are possible, but accuracy improves exponentially with a precise birth time. Astrologers may use rectification techniques to estimate your correct chart when needed.",
+      },
+      {
+        title: 'What benefits do I gain from a consultation with JyotirSetu?',
+        description:
+          "You’ll receive clarity, greater self-awareness, timing guidance, and actionable solutions—helping you align with your life’s purpose and cosmic rhythm.",
+      },
+      {
+        title: 'How secure and private are your consultations and data?',
+        description:
+          "We uphold full confidentiality. Discussions are private, and personal details remain encrypted and are accessible only to your astrologer.",
+      },
+      {
+        title: 'How do I book, and what is the process?',
+        description:
+          "Booking is simple: choose your consultation type, fill in your birth details, schedule your slot, and you’ll receive confirmation with all required instructions.",
+      },
+      {
+        title: 'Are the remedies and guidance you offer safe and practical?',
+        description:
+          "Yes—our suggested remedies are grounded in classical texts and designed to be practical, easy to follow, and safe for daily use.",
+      },
+    ]}
+  />
+
+  <!-- Stats Widget ****************** -->
+
+  <Stats
+    stats={[
+      { title: 'Kundlis Analyzed', amount: '12000+' },
+      { title: 'Doshas Identified & Resolved', amount: '4500+' },
+      { title: 'Gemstone Consultations', amount: '3000+' },
+      { title: 'Years of Expertise', amount: '25+' },
+      { title: 'Trusted Visitors', amount: '95487', id: 'trusted-visitors' },
+    ]}
+  />
+
+  <script>
+    // Function to update trusted visitors count
+    function updateTrustedVisitors() {
+      // Get current count from localStorage or start with 95487
+      const storedCount = localStorage.getItem('trustedVisitorsCount');
+      let currentCount = storedCount ? parseInt(storedCount) : 95487;
+      
+      // Increment the count
+      currentCount++;
+      
+      // Save to localStorage
+      localStorage.setItem('trustedVisitorsCount', String(currentCount));
+      
+      // Update the display
+      const trustedVisitorsElement = document.querySelector('[data-stat-id="trusted-visitors"] .stat-amount');
+      if (trustedVisitorsElement) {
+        trustedVisitorsElement.textContent = currentCount.toLocaleString();
+      }
+    }
+
+    // Mobile scroll enhancement for services
+    function initServicesScroll() {
+      const scrollContainer = document.querySelector('.mobile-services-scroll');
+      const scrollIndicators = document.querySelectorAll('.mobile-services-scroll + div .w-2');
+      
+      if (scrollContainer && scrollIndicators.length > 0) {
+        const container = scrollContainer as HTMLElement;
+        // Update scroll indicators based on scroll position
+        container.addEventListener('scroll', function() {
+          const scrollLeft = container.scrollLeft;
+          const maxScroll = container.scrollWidth - container.clientWidth;
+          const scrollPercentage = scrollLeft / maxScroll;
+          
+          // Update indicator colors based on scroll position
+          scrollIndicators.forEach((indicator, index) => {
+            const threshold = index / (scrollIndicators.length - 1);
+            if (scrollPercentage >= threshold) {
+              indicator.classList.remove('bg-gray-300');
+              indicator.classList.add('bg-blue-400');
+            } else {
+              indicator.classList.remove('bg-blue-400');
+              indicator.classList.add('bg-gray-300');
+            }
+          });
+        });
+        
+        // Add touch/swipe support for better mobile experience
+        let isScrolling = false;
+        let startX = 0;
+        let scrollLeft = 0;
+        
+        container.addEventListener('touchstart', function(e) {
+          isScrolling = true;
+          const touchEvent = e as TouchEvent;
+          startX = touchEvent.touches[0].pageX - container.offsetLeft;
+          scrollLeft = container.scrollLeft;
+        });
+        
+        container.addEventListener('touchmove', function(e) {
+          if (!isScrolling) return;
+          e.preventDefault();
+          const touchEvent = e as TouchEvent;
+          const x = touchEvent.touches[0].pageX - container.offsetLeft;
+          const walk = (x - startX) * 2;
+          container.scrollLeft = scrollLeft - walk;
+        });
+        
+        container.addEventListener('touchend', function() {
+          isScrolling = false;
+        });
+      }
+    }
+
+    // Mobile scroll enhancement for FAQs
+    function initFaqsScroll() {
+      const scrollContainer = document.querySelector('.mobile-faqs-scroll');
+      const scrollIndicators = document.querySelectorAll('.mobile-faqs-scroll + div .w-2');
+      
+      if (scrollContainer && scrollIndicators.length > 0) {
+        const container = scrollContainer as HTMLElement;
+        // Update scroll indicators based on scroll position
+        container.addEventListener('scroll', function() {
+          const scrollLeft = container.scrollLeft;
+          const maxScroll = container.scrollWidth - container.clientWidth;
+          const scrollPercentage = scrollLeft / maxScroll;
+          
+          // Update indicator colors based on scroll position
+          scrollIndicators.forEach((indicator, index) => {
+            const threshold = index / (scrollIndicators.length - 1);
+            if (scrollPercentage >= threshold) {
+              indicator.classList.remove('bg-gray-300');
+              indicator.classList.add('bg-blue-400');
+            } else {
+              indicator.classList.remove('bg-blue-400');
+              indicator.classList.add('bg-gray-300');
+            }
+          });
+        });
+        
+        // Add touch/swipe support for better mobile experience
+        let isScrolling = false;
+        let startX = 0;
+        let scrollLeft = 0;
+        
+        container.addEventListener('touchstart', function(e) {
+          isScrolling = true;
+          const touchEvent = e as TouchEvent;
+          startX = touchEvent.touches[0].pageX - container.offsetLeft;
+          scrollLeft = container.scrollLeft;
+        });
+        
+        container.addEventListener('touchmove', function(e) {
+          if (!isScrolling) return;
+          e.preventDefault();
+          const touchEvent = e as TouchEvent;
+          const x = touchEvent.touches[0].pageX - container.offsetLeft;
+          const walk = (x - startX) * 2;
+          container.scrollLeft = scrollLeft - walk;
+        });
+        
+        container.addEventListener('touchend', function() {
+          isScrolling = false;
+        });
+      }
+    }
+
+    // Mobile scroll enhancement for Features (Why Choose section)
+    function initFeaturesScroll() {
+      const scrollContainer = document.querySelector('.mobile-features-scroll');
+      const scrollIndicators = document.querySelectorAll('.mobile-features-scroll + div .w-2');
+      
+      if (scrollContainer && scrollIndicators.length > 0) {
+        const container = scrollContainer as HTMLElement;
+        // Update scroll indicators based on scroll position
+        container.addEventListener('scroll', function() {
+          const scrollLeft = container.scrollLeft;
+          const maxScroll = container.scrollWidth - container.clientWidth;
+          const scrollPercentage = scrollLeft / maxScroll;
+          
+          // Update indicator colors based on scroll position
+          scrollIndicators.forEach((indicator, index) => {
+            const threshold = index / (scrollIndicators.length - 1);
+            if (scrollPercentage >= threshold) {
+              indicator.classList.remove('bg-gray-300');
+              indicator.classList.add('bg-blue-400');
+            } else {
+              indicator.classList.remove('bg-blue-400');
+              indicator.classList.add('bg-gray-300');
+            }
+          });
+        });
+        
+        // Add touch/swipe support for better mobile experience
+        let isScrolling = false;
+        let startX = 0;
+        let scrollLeft = 0;
+        
+        container.addEventListener('touchstart', function(e) {
+          isScrolling = true;
+          const touchEvent = e as TouchEvent;
+          startX = touchEvent.touches[0].pageX - container.offsetLeft;
+          scrollLeft = container.scrollLeft;
+        });
+        
+        container.addEventListener('touchmove', function(e) {
+          if (!isScrolling) return;
+          e.preventDefault();
+          const touchEvent = e as TouchEvent;
+          const x = touchEvent.touches[0].pageX - container.offsetLeft;
+          const walk = (x - startX) * 2;
+          container.scrollLeft = scrollLeft - walk;
+        });
+        
+        container.addEventListener('touchend', function() {
+          isScrolling = false;
+        });
+      }
+    }
+
+    // Update count when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+      updateTrustedVisitors();
+      initServicesScroll();
+      initFaqsScroll();
+      initFeaturesScroll();
+    });
+  </script>
+
+  <!-- CallToAction Widget *********** -->
+
+  <CallToAction
+    actions={[
+      {
+        variant: 'primary',
+        text: 'Book your Appointment',
+        href: '/ScheduleAppointmentJyotirSetu',
+        icon: 'tabler:calendar',
+      },
+    ]}
+  >
+    <div slot="title">
+      About JyotirSetu<br class="block sm:hidden" /><span class="sm:whitespace-nowrap"></span>
+    </div>
+
+    <div slot="subtitle">
+      JyotirSetu – Bridging Cosmic Light with Modern Guidance. Authentic Vedic Astrology consultations to illuminate your path.<br class="hidden md:inline" />Don't
+      waste more time! 
+    </div>
+  </CallToAction>
+</Layout>

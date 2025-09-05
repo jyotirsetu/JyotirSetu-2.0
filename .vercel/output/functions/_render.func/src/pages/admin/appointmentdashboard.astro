@@ -1,0 +1,1424 @@
+---
+import Layout from '~/layouts/PageLayout.astro';
+---
+
+<Layout metadata={{
+  title: "Appointment Dashboard - JyotirSetu Admin",
+  description: "Manage all consultation bookings and appointments"
+}}>
+
+<!-- Load Supabase from CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<div class="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-purple-900 dark:to-gray-900">
+  <!-- Admin Header -->
+  <header class="bg-white dark:bg-slate-800 shadow-lg border-b border-purple-200 dark:border-purple-700">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center py-6">
+        <div class="flex items-center space-x-4">
+          <button onclick="goBackToAdminDashboard()" class="flex items-center space-x-2 bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 hover:bg-purple-200 dark:hover:bg-purple-800 px-4 py-2 rounded-lg font-medium transition-colors duration-200 border border-purple-200 dark:border-purple-700">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+            </svg>
+            <span>Back to Admin Dashboard</span>
+          </button>
+          <div class="flex-shrink-0">
+            <h1 class="text-2xl font-bold text-purple-600 dark:text-purple-400">
+              📅 Appointment Management Dashboard
+            </h1>
+          </div>
+        </div>
+        <div class="flex items-center space-x-4">
+          <span class="text-sm text-gray-600 dark:text-gray-400" id="admin-email">
+            Welcome, Admin
+          </span>
+          <button
+            id="logout-btn"
+            class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200"
+          >
+            Logout
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Quick Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-purple-200 dark:border-purple-700">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div class="w-8 h-8 bg-yellow-100 dark:bg-yellow-900 rounded-lg flex items-center justify-center">
+              <span class="text-yellow-600 dark:text-yellow-400 text-xl">⏳</span>
+            </div>
+          </div>
+          <div class="ml-4">
+            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Pending</p>
+            <p class="text-2xl font-bold text-gray-900 dark:text-white" id="pending-count">0</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-purple-200 dark:border-purple-700">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div class="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center">
+              <span class="text-green-600 dark:text-green-400 text-xl">✅</span>
+            </div>
+          </div>
+          <div class="ml-4">
+            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Confirmed</p>
+            <p class="text-2xl font-bold text-gray-900 dark:text-white" id="confirmed-count">0</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-purple-200 dark:border-purple-700">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div class="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
+              <span class="text-blue-600 dark:text-blue-400 text-xl">🎯</span>
+            </div>
+          </div>
+          <div class="ml-4">
+            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Completed</p>
+            <p class="text-2xl font-bold text-gray-900 dark:text-white" id="completed-count">0</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-purple-200 dark:border-purple-700">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <div class="w-8 h-8 bg-red-100 dark:bg-red-900 rounded-lg flex items-center justify-center">
+              <span class="text-red-600 dark:text-red-400 text-xl">❌</span>
+            </div>
+          </div>
+          <div class="ml-4">
+            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Cancelled</p>
+            <p class="text-2xl font-bold text-gray-900 dark:text-white" id="cancelled-count">0</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Bar -->
+    <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-purple-200 dark:border-purple-700 mb-8">
+      <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+        <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
+          <button
+            id="export-csv-btn"
+            class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-2"
+          >
+            <span>📊</span>
+            <span>Export to CSV</span>
+          </button>
+          <button
+            id="bulk-whatsapp-btn"
+            class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-2"
+          >
+            <span>📱</span>
+            <span>Bulk WhatsApp</span>
+          </button>
+          <button
+            id="refresh-btn"
+            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-2"
+          >
+            <span>🔄</span>
+            <span>Refresh Data</span>
+          </button>
+        </div>
+        <div class="flex items-center space-x-2">
+          <span class="text-sm text-gray-600 dark:text-gray-400">Selected:</span>
+          <span id="selected-count" class="bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 px-2 py-1 rounded-full text-sm font-medium">0</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filters and Search -->
+    <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-purple-200 dark:border-purple-700 mb-8">
+      <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status</label>
+          <select id="status-filter" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-slate-700 dark:text-white">
+            <option value="">All Statuses</option>
+            <option value="pending">Pending</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="cancelled">Cancelled</option>
+            <option value="completed">Completed</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Service</label>
+          <select id="service-filter" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-slate-700 dark:text-white">
+            <option value="">All Services</option>
+            <option value="astrology">🔮 Astrology</option>
+            <option value="gemstone">💎 Gemstone</option>
+            <option value="palmistry">✋ Palmistry</option>
+            <option value="numerology">🔢 Numerology</option>
+            <option value="career-finance">💼 Career & Finance</option>
+            <option value="matchmaking">💕 Matchmaking</option>
+            <option value="study-education">📚 Study/Education</option>
+            <option value="corporate">🏢 Corporate</option>
+            <option value="other">✨ Other</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Date From</label>
+          <input type="date" id="date-from-filter" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-slate-700 dark:text-white">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Date To</label>
+          <input type="date" id="date-to-filter" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-slate-700 dark:text-white">
+        </div>
+        <div class="flex items-end">
+          <button id="apply-filters-btn" class="w-full bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200">
+            Apply Filters
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Appointments Table -->
+    <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-purple-200 dark:border-purple-700 overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-600">
+          <thead class="bg-gray-50 dark:bg-gray-700">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                <input type="checkbox" id="select-all-checkbox" class="rounded border-gray-300 text-purple-600 focus:ring-purple-500">
+              </th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Client</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Service & Details</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Date & Time</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="appointments-tbody" class="bg-white dark:bg-slate-800 divide-y divide-gray-200 dark:divide-gray-600">
+            <tr>
+              <td colspan="6" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                <div class="inline-flex items-center space-x-2">
+                  <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
+                  <span>Loading appointments...</span>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- WhatsApp Message Modal -->
+<div id="whatsapp-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[99999]">
+  <div class="bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+    <!-- Header -->
+    <div class="flex justify-between items-center p-6 border-b border-purple-200 dark:border-purple-700">
+      <div>
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-white">📱 Send WhatsApp Message</h2>
+        <p class="text-gray-600 dark:text-gray-400">Send message to selected clients</p>
+      </div>
+      <button
+        id="close-whatsapp-modal-btn"
+        class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-2xl font-bold"
+      >
+        ×
+      </button>
+    </div>
+    
+    <!-- Content -->
+    <div class="p-6 space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Message Template</label>
+        <select id="message-template-select" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-slate-700 dark:text-white">
+          <option value="">Select template</option>
+          <option value="confirmed">✅ Appointment Confirmed</option>
+          <option value="cancelled">❌ Appointment Cancelled</option>
+          <option value="completed">🎯 Consultation Completed</option>
+          <option value="reminder">⏰ Appointment Reminder</option>
+          <option value="custom">✏️ Custom Message</option>
+        </select>
+      </div>
+      
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Message Content</label>
+        <textarea
+          id="whatsapp-message-content"
+          rows="4"
+          class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-slate-700 dark:text-white"
+          placeholder="Enter your message..."
+        ></textarea>
+      </div>
+      
+      <div class="flex items-center space-x-4">
+        <button
+          id="send-whatsapp-btn"
+          class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-2"
+        >
+          <span>📱</span>
+          <span>Send WhatsApp Messages</span>
+        </button>
+        <button
+          id="preview-message-btn"
+          class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200"
+        >
+          Preview
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Load Supabase from CDN
+let supabase;
+let appointments = [];
+let selectedAppointments = new Set();
+
+// Load Supabase from CDN if not available
+function loadSupabaseFromCDN() {
+  return new Promise((resolve, reject) => {
+    if (typeof window.supabase !== 'undefined') {
+      resolve();
+      return;
+    }
+    
+    console.log('Loading Supabase from CDN...');
+    const script = document.createElement('script');
+    script.src = 'https://unpkg.com/@supabase/supabase-js@2';
+    script.onload = () => {
+      console.log('Supabase CDN script loaded successfully');
+      resolve();
+    };
+    script.onerror = () => {
+      console.error('Failed to load Supabase from CDN');
+      reject(new Error('Failed to load Supabase library'));
+    };
+    document.head.appendChild(script);
+  });
+}
+
+// Initialize Supabase client
+function initSupabase() {
+  try {
+    // Check if Supabase library is available
+    if (typeof window.supabase === 'undefined') {
+      console.log('Supabase library not loaded yet');
+      return false;
+    }
+    
+    // @ts-ignore
+    supabase = window.supabase.createClient(
+      'https://czbypbrrxxjcjdfjxczv.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN6YnlwYnJyeHhqY2pkZmp4Y3p2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY5MjU2NDcsImV4cCI6MjA3MjUwMTY0N30.SQ-eabMNo5RBy8N0MHWDmlxVH7Tmh-EGykI0Qt5wDjg'
+    );
+    console.log('Supabase initialized successfully');
+    return true;
+  } catch (error) {
+    console.error('Error creating Supabase client:', error);
+    return false;
+  }
+}
+
+// Initialize Supabase with retry and CDN fallback
+async function initSupabaseWithRetry() {
+  let attempts = 0;
+  const maxAttempts = 20; // Increased attempts
+  
+  // First try to load from CDN if not available
+  try {
+    await loadSupabaseFromCDN();
+  } catch (error) {
+    console.warn('CDN loading failed, continuing with existing library...');
+  }
+  
+  while (attempts < maxAttempts) {
+    if (typeof window.supabase !== 'undefined') {
+      const success = initSupabase();
+      if (success) return true;
+    }
+    
+    console.log(`Supabase not ready, attempt ${attempts + 1}/${maxAttempts}`);
+    await new Promise(resolve => setTimeout(resolve, 500)); // Increased delay
+    attempts++;
+  }
+  
+  console.error('Failed to initialize Supabase after multiple attempts');
+  return false;
+}
+
+// Check authentication on page load
+document.addEventListener('DOMContentLoaded', async function() {
+  console.log('Appointment Dashboard - DOM Content Loaded');
+  console.log('Current URL:', window.location.href);
+  console.log('Current pathname:', window.location.pathname);
+  
+  // Show loading state immediately
+  const tbody = document.getElementById('appointments-tbody');
+  if (tbody) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+          <div class="inline-flex items-center space-x-2">
+            <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
+            <span>Initializing dashboard...</span>
+          </div>
+        </td>
+      </tr>
+    `;
+  }
+  
+  // Authentication is handled by the main admin page
+  // No need to show authentication messages here
+  
+  try {
+    console.log('Starting Supabase initialization...');
+    
+    // Wait for Supabase to be ready
+    const supabaseReady = await initSupabaseWithRetry();
+    if (!supabaseReady) {
+      console.error('Supabase initialization failed');
+      if (tbody) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" class="px-6 py-12 text-center text-red-500 dark:text-red-400">
+              <div class="space-y-2">
+                <div class="text-lg font-semibold">⚠️ Database Connection Failed</div>
+                <div class="text-sm">Unable to connect to database. Please check your connection and refresh.</div>
+                <button onclick="window.location.reload()" class="mt-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
+                  🔄 Refresh Page
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }
+      return;
+    }
+    
+    console.log('Supabase ready, proceeding with dashboard initialization');
+    
+    // Authentication is handled by the main admin page
+    // No need to check authentication here since user can only reach this page
+    // by clicking the "Appointment Dashboard" button from the authenticated admin page
+    console.log('Skipping authentication check - handled by main admin page');
+    
+    // Update admin email display from localStorage
+    const adminEmail = localStorage.getItem('admin_email');
+    const adminEmailSpan = document.getElementById('admin-email');
+    if (adminEmailSpan && adminEmail) {
+      adminEmailSpan.textContent = `Welcome, ${adminEmail}`;
+    }
+    
+    // Load appointments
+    await loadAppointments();
+    
+    console.log('Appointments loaded, setting up event listeners...');
+    
+    // Setup event listeners
+    setupEventListeners();
+    
+    console.log('Dashboard initialized successfully');
+    
+  } catch (error) {
+    console.error('Error initializing dashboard:', error);
+    if (tbody) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="6" class="px-6 py-12 text-center text-red-500 dark:text-red-400">
+            <div class="space-y-2">
+              <div class="text-lg font-semibold">❌ Dashboard Error</div>
+              <div class="text-sm">${error.message || 'Unknown error occurred during initialization'}</div>
+              <button onclick="window.location.reload()" class="mt-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
+                🔄 Refresh Page
+              </button>
+            </div>
+          </td>
+        </tr>
+      `;
+    }
+  }
+});
+
+// Authentication is handled by the main admin page
+// This function is no longer needed since users can only reach this page
+// by navigating from the authenticated admin dashboard
+
+// Load appointments from Supabase
+async function loadAppointments() {
+  try {
+    console.log('Loading appointments...');
+    
+    if (!supabase) {
+      console.error('Supabase client not initialized');
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from('appointments')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error loading appointments:', error);
+      return;
+    }
+
+    appointments = data || [];
+    console.log('Appointments loaded:', appointments);
+    
+    updateStats();
+    renderAppointments();
+    
+  } catch (error) {
+    console.error('Error in loadAppointments:', error);
+  }
+}
+
+// Update statistics
+function updateStats() {
+  const pendingCount = appointments.filter(apt => apt.status === 'pending').length;
+  const confirmedCount = appointments.filter(apt => apt.status === 'confirmed').length;
+  const completedCount = appointments.filter(apt => apt.status === 'completed').length;
+  const cancelledCount = appointments.filter(apt => apt.status === 'cancelled').length;
+
+  document.getElementById('pending-count').textContent = pendingCount;
+  document.getElementById('confirmed-count').textContent = confirmedCount;
+  document.getElementById('completed-count').textContent = completedCount;
+  document.getElementById('cancelled-count').textContent = cancelledCount;
+}
+
+// Render appointments in the table
+function renderAppointments() {
+  const tbody = document.getElementById('appointments-tbody');
+  if (!tbody) return;
+
+  if (appointments.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="5" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+          No appointments found
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  console.log('Rendering appointments:', appointments.length);
+  
+  tbody.innerHTML = appointments.map(appointment => {
+    // Parse service details if it's a string
+    let serviceDetails = {};
+    if (typeof appointment.service_details === 'string') {
+      try {
+        serviceDetails = JSON.parse(appointment.service_details);
+      } catch (e) {
+        serviceDetails = {};
+      }
+    } else if (appointment.service_details) {
+      serviceDetails = appointment.service_details;
+    }
+
+    // Format service details for comprehensive display
+    const serviceDetailsHTML = Object.entries(serviceDetails).map(([key, value]) => {
+      if (value) {
+        const formattedKey = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+        return `<div class="text-xs text-gray-600 dark:text-gray-400"><span class="font-medium">${formattedKey}:</span> ${value}</div>`;
+      }
+      return '';
+    }).filter(html => html).join('');
+
+    console.log('Rendering appointment:', appointment.id, 'with service details:', serviceDetails);
+
+    return `
+      <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+        <td class="px-6 py-4 whitespace-nowrap">
+          <input type="checkbox" class="appointment-checkbox rounded border-gray-300 text-purple-600 focus:ring-purple-500" 
+                 value="${appointment.id}" onchange="toggleAppointmentSelection(${appointment.id})">
+        </td>
+        <td class="px-6 py-4">
+          <div class="space-y-2">
+            <div class="text-sm font-semibold text-gray-900 dark:text-white">${appointment.name || 'N/A'}</div>
+            <div class="text-sm text-gray-600 dark:text-gray-400">
+              <span class="font-medium">📱 Phone:</span> ${appointment.phone || 'N/A'}
+            </div>
+            <div class="text-sm text-gray-600 dark:text-gray-400">
+              <span class="font-medium">📧 Email:</span> ${appointment.email || 'N/A'}
+            </div>
+            <div class="text-sm text-gray-600 dark:text-gray-400">
+              <span class="font-medium">💬 Message:</span> ${appointment.message || 'No message'}
+            </div>
+          </div>
+        </td>
+        <td class="px-6 py-4">
+          <div class="space-y-2">
+            <div class="text-sm font-semibold text-purple-600 dark:text-purple-400">
+              🔮 ${appointment.service || 'N/A'}
+            </div>
+            <div class="text-sm text-gray-600 dark:text-gray-400">
+              <span class="font-medium">📅 Date:</span> ${appointment.date || appointment.preferred_date || 'N/A'}
+            </div>
+            <div class="text-sm text-gray-600 dark:text-gray-400">
+              <span class="font-medium">⏰ Time:</span> ${appointment.time || appointment.preferred_time || 'N/A'}
+            </div>
+            <div class="text-sm text-gray-600 dark:text-gray-400">
+              <span class="font-medium">📞 Method:</span> ${appointment.consultation_method || 'N/A'}
+            </div>
+            ${serviceDetailsHTML ? `
+              <div class="mt-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border-l-4 border-purple-500">
+                <div class="text-xs font-semibold text-purple-600 dark:text-purple-400 mb-2 uppercase tracking-wide">
+                  Service-Specific Details
+                </div>
+                ${serviceDetailsHTML}
+              </div>
+            ` : ''}
+          </div>
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap">
+          <span class="inline-flex px-3 py-1 text-sm font-semibold rounded-full ${getStatusBadgeClass(appointment.status)}">
+            ${getStatusDisplay(appointment.status)}
+          </span>
+          <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            ${appointment.created_at ? new Date(appointment.created_at).toLocaleDateString() : 'N/A'}
+          </div>
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+          <div class="flex flex-col space-y-3 min-w-[200px]">
+            <select class="status-select w-full px-3 py-2 text-sm font-medium border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-slate-700 dark:text-white bg-white transition-colors duration-200 ${getStatusColor(appointment.status)}" 
+                    onchange="updateAppointmentStatus(${appointment.id}, this.value)">
+              <option value="pending" ${appointment.status === 'pending' ? 'selected' : ''}>⏳ Pending</option>
+              <option value="confirmed" ${appointment.status === 'confirmed' ? 'selected' : ''}>✅ Confirmed</option>
+              <option value="completed" ${appointment.status === 'completed' ? 'selected' : ''}>🎯 Completed</option>
+              <option value="cancelled" ${appointment.status === 'cancelled' ? 'selected' : ''}>❌ Cancelled</option>
+            </select>
+            <button onclick="sendWhatsAppMessage(${appointment.id})" 
+                    class="flex items-center justify-center space-x-2 w-full bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 shadow-sm hover:shadow-md">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.488"/>
+              </svg>
+              <span>Send WhatsApp</span>
+            </button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+  
+  console.log('Appointments rendered successfully');
+}
+
+// Get status badge class
+function getStatusBadgeClass(status) {
+  switch (status) {
+    case 'pending': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
+    case 'confirmed': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+    case 'completed': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
+    case 'cancelled': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
+    default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
+  }
+}
+
+// Get status display text
+function getStatusDisplay(status) {
+  switch (status) {
+    case 'pending': return '⏳ Pending';
+    case 'confirmed': return '✅ Confirmed';
+    case 'completed': return '🎯 Completed';
+    case 'cancelled': return '❌ Cancelled';
+    default: return status;
+  }
+}
+
+// Update appointment status
+async function updateAppointmentStatus(appointmentId, newStatus) {
+  try {
+    if (!supabase) {
+      console.error('Supabase client not initialized');
+      return;
+    }
+
+    const { error } = await supabase
+      .from('appointments')
+      .update({ status: newStatus })
+      .eq('id', appointmentId);
+
+    if (error) {
+      console.error('Error updating status:', error);
+      alert('Failed to update status');
+      return;
+    }
+
+    // Update local data
+    const appointment = appointments.find(apt => apt.id === appointmentId);
+    if (appointment) {
+      appointment.status = newStatus;
+    }
+
+    updateStats();
+    renderAppointments();
+    
+    console.log(`Appointment ${appointmentId} status updated to ${newStatus}`);
+    
+  } catch (error) {
+    console.error('Error in updateAppointmentStatus:', error);
+    alert('Failed to update status');
+  }
+}
+
+// Toggle appointment selection
+function toggleAppointmentSelection(appointmentId) {
+  if (selectedAppointments.has(appointmentId)) {
+    selectedAppointments.delete(appointmentId);
+  } else {
+    selectedAppointments.add(appointmentId);
+  }
+  
+  const selectedCount = document.getElementById('selected-count');
+  if (selectedCount) {
+    selectedCount.textContent = selectedAppointments.size;
+  }
+}
+
+// Select all appointments
+function selectAllAppointments() {
+  const selectAllCheckbox = document.getElementById('select-all-checkbox');
+  const appointmentCheckboxes = document.querySelectorAll('.appointment-checkbox');
+  
+  if (selectAllCheckbox.checked) {
+    appointmentCheckboxes.forEach(checkbox => {
+      checkbox.checked = true;
+      selectedAppointments.add(parseInt(checkbox.value));
+    });
+  } else {
+    appointmentCheckboxes.forEach(checkbox => {
+      checkbox.checked = false;
+    });
+    selectedAppointments.clear();
+  }
+  
+  const selectedCount = document.getElementById('selected-count');
+  if (selectedCount) {
+    selectedCount.textContent = selectedAppointments.size;
+  }
+}
+
+// Send WhatsApp message
+function sendWhatsAppMessage(appointmentId) {
+  const appointment = appointments.find(apt => apt.id === appointmentId);
+  if (!appointment) return;
+
+  // Show WhatsApp modal
+  const modal = document.getElementById('whatsapp-modal');
+  modal.classList.remove('hidden');
+  
+  // Pre-fill message based on status
+  const messageTemplate = document.getElementById('message-template-select');
+  const messageContent = document.getElementById('whatsapp-message-content');
+  
+  messageTemplate.value = appointment.status || 'pending';
+  messageContent.value = generateWhatsAppMessage(appointment, appointment.status || 'pending');
+  
+  // Store the current appointment ID for sending
+  window.currentWhatsAppAppointmentId = appointmentId;
+}
+
+// Generate WhatsApp message
+function generateWhatsAppMessage(appointment, status) {
+  const baseMessage = `Hello ${appointment.name || 'there'},`;
+  
+  // Get service details
+  let serviceDetails = {};
+  if (appointment.service_details) {
+    if (typeof appointment.service_details === 'string') {
+      try {
+        serviceDetails = JSON.parse(appointment.service_details);
+      } catch (e) {
+        serviceDetails = {};
+      }
+    } else {
+      serviceDetails = appointment.service_details;
+    }
+  }
+  
+  // Format service details
+  const serviceDetailsText = Object.entries(serviceDetails)
+    .map(([key, value]) => `${key}: ${value}`)
+    .join('\n');
+  
+  const appointmentDate = appointment.date || appointment.preferred_date;
+  const appointmentTime = appointment.time || appointment.preferred_time;
+  
+  switch (status) {
+    case 'confirmed':
+      return `${baseMessage}\n\nYour appointment for ${appointment.service} has been confirmed!\n\n📅 Date: ${appointmentDate}\n⏰ Time: ${appointmentTime}\n\n${serviceDetailsText ? `\nService Details:\n${serviceDetailsText}\n` : ''}Please arrive 10 minutes before your scheduled time.\n\nIf you need to reschedule, please contact us at least 24 hours in advance.\n\nThank you for choosing JyotirSetu! 🙏`;
+    
+    case 'cancelled':
+      return `${baseMessage}\n\nYour appointment for ${appointment.service} scheduled for ${appointmentDate} at ${appointmentTime} has been cancelled.\n\n${serviceDetailsText ? `\nService Details:\n${serviceDetailsText}\n` : ''}Please contact us to reschedule or if you have any questions.\n\nWe apologize for any inconvenience caused.`;
+    
+    case 'completed':
+      return `${baseMessage}\n\nThank you for your consultation with JyotirSetu!\n\n${serviceDetailsText ? `\nService Details:\n${serviceDetailsText}\n` : ''}We hope your session was helpful and insightful.\n\nPlease feel free to reach out if you have any follow-up questions or need further assistance.\n\nBest regards,\nJyotirSetu Team 🙏`;
+    
+    case 'reminder':
+      return `${baseMessage}\n\nThis is a friendly reminder about your upcoming appointment:\n\n🔮 Service: ${appointment.service}\n📅 Date: ${appointmentDate}\n⏰ Time: ${appointmentTime}\n\n${serviceDetailsText ? `\nService Details:\n${serviceDetailsText}\n` : ''}Please arrive 10 minutes before your scheduled time.\n\nIf you need to reschedule, please contact us as soon as possible.\n\nWe look forward to seeing you! 🙏`;
+    
+    default:
+      return `${baseMessage}\n\nThank you for booking your consultation with JyotirSetu!\n\n${serviceDetailsText ? `\nService Details:\n${serviceDetailsText}\n` : ''}We will review your request and get back to you shortly with confirmation details.\n\nIf you have any urgent questions, please don't hesitate to contact us.\n\nBest regards,\nJyotirSetu Team 🙏`;
+  }
+}
+
+// Send WhatsApp message to specific appointment
+function sendWhatsAppToAppointment(appointmentId, message) {
+  const appointment = appointments.find(apt => apt.id === appointmentId);
+  if (!appointment || !appointment.phone) {
+    alert('No phone number found for this appointment');
+    return;
+  }
+  
+  // Clean phone number and add +91 prefix for WhatsApp
+  let phoneNumber = appointment.phone.replace(/\D/g, '');
+  
+  // If number is 10 digits, add +91 prefix
+  if (phoneNumber.length === 10) {
+    phoneNumber = '91' + phoneNumber;
+  } else if (phoneNumber.length === 12 && phoneNumber.startsWith('91')) {
+    // Already has 91 prefix
+    phoneNumber = phoneNumber;
+  } else if (phoneNumber.length === 11 && phoneNumber.startsWith('91')) {
+    // Already has 91 prefix
+    phoneNumber = phoneNumber;
+  } else if (phoneNumber.length < 10) {
+    alert('Invalid phone number format. Please ensure it has 10 digits.');
+    return;
+  }
+  
+  const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+  window.open(whatsappUrl, '_blank');
+}
+
+// Export to CSV
+function exportToCSV() {
+  if (appointments.length === 0) {
+    alert('No appointments to export');
+    return;
+  }
+
+  // Predefined service-specific columns for better analysis
+  const serviceSpecificColumns = {
+    // Astrology fields
+    'astrologyConcern': 'Astrology Concern',
+    'currentProfession': 'Current Profession',
+    'dateOfBirth': 'Date of Birth',
+    'birthTime': 'Birth Time',
+    'birthPlace': 'Place of Birth',
+    
+    // Gemstone fields
+    'wearingPurpose': 'Wearing Purpose',
+    'wearingGemstone': 'Currently Wearing Gemstone',
+    
+    // Palmistry fields
+    'palmistryFocusArea': 'Palmistry Focus Area',
+    'handDominance': 'Hand Dominance',
+    'specificConcerns': 'Specific Concerns',
+    
+    // Matchmaking fields
+    'person1Name': 'Person 1 Name',
+    'person1Gender': 'Person 1 Gender',
+    'person1DOB': 'Person 1 DOB',
+    'person1TOB': 'Person 1 TOB',
+    'person1POB': 'Person 1 POB',
+    'person2Name': 'Person 2 Name',
+    'person2Gender': 'Person 2 Gender',
+    'person2DOB': 'Person 2 DOB',
+    'person2TOB': 'Person 2 TOB',
+    'person2POB': 'Person 2 POB',
+    
+    // Numerology fields
+    'officialName': 'Official Name',
+    'commonName': 'Common Name',
+    'gender': 'Gender',
+    'numerologyFocusArea': 'Numerology Focus Area',
+    
+    // Career & Finance fields
+    'financialConcerns': 'Financial Concerns',
+    
+    // Study/Education fields
+    'futureGoal': 'Future Goal',
+    
+    // Corporate fields
+    'companyName': 'Company Name',
+    'businessType': 'Business Type',
+    'employeeCount': 'Employee Count',
+    'concernArea': 'Concern Area',
+    
+    // Other fields
+    'subjectTitle': 'Subject Title',
+    'detailedConcern': 'Detailed Concern'
+  };
+
+  // Create headers array
+  const headers = [
+    'Name', 'Phone', 'Email', 'Service', 'Date', 'Time', 'Consultation Method', 
+    'Message', 'Status', 'Created At'
+  ];
+  
+  // Add all predefined service-specific field headers
+  Object.values(serviceSpecificColumns).forEach(header => {
+    if (!headers.includes(header)) {
+      headers.push(header);
+    }
+  });
+
+  // Create CSV content
+  const csvContent = [
+    headers.join(','),
+    ...appointments.map(apt => {
+      // Parse service details
+      let serviceDetails = {};
+      if (apt.service_details) {
+        if (typeof apt.service_details === 'string') {
+          try {
+            serviceDetails = JSON.parse(apt.service_details);
+          } catch (e) {
+            serviceDetails = {};
+          }
+        } else {
+          serviceDetails = apt.service_details;
+        }
+      }
+
+      // Field mapping for backward compatibility
+      const fieldMapping = {
+        'focusArea': 'palmistryFocusArea', // Map old focusArea to new palmistryFocusArea
+        'numerologyFocusArea': 'numerologyFocusArea' // Keep new field name
+      };
+
+      // Base appointment data
+      const baseData = [
+        `"${apt.name || ''}"`,
+        `"${apt.phone || ''}"`,
+        `"${apt.email || ''}"`,
+        `"${apt.service || ''}"`,
+        `"${apt.date || apt.preferred_date || ''}"`,
+        `"${apt.time || apt.preferred_time || ''}"`,
+        `"${apt.consultation_method || ''}"`,
+        `"${apt.message || ''}"`,
+        `"${apt.status || ''}"`,
+        `"${apt.created_at || ''}"`
+      ];
+
+      // Add service-specific field values in predefined order
+      const serviceFieldValues = Object.keys(serviceSpecificColumns).map(fieldKey => {
+        // Check if we need to map from old field name
+        let value = '';
+        if (fieldKey === 'palmistryFocusArea' && serviceDetails['focusArea']) {
+          value = serviceDetails['focusArea'];
+        } else if (fieldKey === 'numerologyFocusArea' && serviceDetails['focusArea']) {
+          value = serviceDetails['focusArea'];
+        } else {
+          value = serviceDetails[fieldKey] || '';
+        }
+        return `"${value}"`;
+      });
+
+      return [...baseData, ...serviceFieldValues].join(',');
+    })
+  ].join('\n');
+
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  link.setAttribute('href', url);
+  link.setAttribute('download', `appointments_${new Date().toISOString().split('T')[0]}.csv`);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+// Setup event listeners
+function setupEventListeners() {
+  console.log('Setting up event listeners...');
+  
+  // Select all checkbox
+  const selectAllCheckbox = document.getElementById('select-all-checkbox');
+  if (selectAllCheckbox) {
+    selectAllCheckbox.addEventListener('change', selectAllAppointments);
+    console.log('Select all checkbox event listener added');
+  }
+
+  // Export CSV button
+  const exportCsvBtn = document.getElementById('export-csv-btn');
+  if (exportCsvBtn) {
+    exportCsvBtn.addEventListener('click', exportToCSV);
+    console.log('Export CSV button event listener added');
+  }
+
+  // Bulk WhatsApp button
+  const bulkWhatsAppBtn = document.getElementById('bulk-whatsapp-btn');
+  if (bulkWhatsAppBtn) {
+    bulkWhatsAppBtn.addEventListener('click', () => {
+      if (selectedAppointments.size === 0) {
+        alert('Please select at least one appointment to send WhatsApp messages');
+        return;
+      }
+      
+      // Show WhatsApp modal
+      document.getElementById('whatsapp-modal').classList.remove('hidden');
+      
+      // Update modal content for bulk messaging
+      updateBulkWhatsAppModal();
+      
+      // Pre-fill message with template if appointments are selected
+      const messageContent = document.getElementById('whatsapp-message-content');
+      if (messageContent) {
+        messageContent.value = `Hello! This is JyotirSetu. We have an update regarding your appointment.`;
+      }
+      
+      // Show instructions for bulk messaging
+      const instructionsDiv = document.createElement('div');
+      instructionsDiv.className = 'bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4';
+      instructionsDiv.innerHTML = `
+        <div class="flex items-start space-x-3">
+          <div class="flex-shrink-0">
+            <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+          <div class="text-sm text-blue-800 dark:text-blue-200">
+            <h4 class="font-medium mb-1">📱 Bulk WhatsApp Instructions</h4>
+            <ul class="list-disc list-inside space-y-1">
+              <li>Each appointment will open in a separate WhatsApp tab</li>
+              <li>Please allow popups for this website</li>
+              <li>Send the message manually in each WhatsApp tab</li>
+              <li>Keep this dashboard open during the process</li>
+            </ul>
+          </div>
+        </div>
+      `;
+      
+      // Insert instructions at the top of modal content
+      const modalContent = document.querySelector('#whatsapp-modal .p-6');
+      if (modalContent) {
+        const existingInstructions = modalContent.querySelector('.bg-blue-50');
+        if (existingInstructions) {
+          existingInstructions.remove();
+        }
+        modalContent.insertBefore(instructionsDiv, modalContent.firstChild);
+      }
+    });
+    console.log('Bulk WhatsApp button event listener added');
+  }
+
+  // Refresh button
+  const refreshBtn = document.getElementById('refresh-btn');
+  if (refreshBtn) {
+    refreshBtn.addEventListener('click', loadAppointments);
+    console.log('Refresh button event listener added');
+  }
+
+  // WhatsApp modal close button
+  const closeWhatsAppModalBtn = document.getElementById('close-whatsapp-modal-btn');
+  if (closeWhatsAppModalBtn) {
+    closeWhatsAppModalBtn.addEventListener('click', () => {
+      document.getElementById('whatsapp-modal').classList.add('hidden');
+    });
+    console.log('WhatsApp modal close button event listener added');
+  }
+
+  // Send WhatsApp button
+  const sendWhatsAppBtn = document.getElementById('send-whatsapp-btn');
+  if (sendWhatsAppBtn) {
+    sendWhatsAppBtn.addEventListener('click', () => {
+      const selectedIds = Array.from(selectedAppointments);
+      if (selectedIds.length === 0) {
+        alert('Please select at least one appointment');
+        return;
+      }
+      
+      // Get message content
+      const messageContent = document.getElementById('whatsapp-message-content');
+      const message = messageContent.value.trim();
+      
+      if (!message) {
+        alert('Please enter a message to send');
+        return;
+      }
+      
+      // Use the new bulk WhatsApp function
+      sendBulkWhatsAppMessages(message);
+    });
+    console.log('Send WhatsApp button event listener added');
+  }
+
+  // Preview message button
+  const previewMessageBtn = document.getElementById('preview-message-btn');
+  if (previewMessageBtn) {
+    previewMessageBtn.addEventListener('click', () => {
+      const messageContent = document.getElementById('whatsapp-message-content');
+      const message = messageContent.value.trim();
+      
+      if (!message) {
+        alert('Please enter a message to preview');
+        return;
+      }
+      
+      // Show preview in a new window
+      const previewWindow = window.open('', '_blank', 'width=400,height=600');
+      previewWindow.document.write(`
+        <html>
+          <head>
+            <title>WhatsApp Message Preview</title>
+            <style>
+              body { font-family: Arial, sans-serif; padding: 20px; background: #f0f0f0; }
+              .preview { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+              .header { background: #25D366; color: white; padding: 10px; border-radius: 5px; margin-bottom: 20px; }
+              .message { white-space: pre-wrap; line-height: 1.5; }
+            </style>
+          </head>
+          <body>
+            <div class="preview">
+              <div class="header">📱 WhatsApp Message Preview</div>
+              <div class="message">${message}</div>
+            </div>
+          </body>
+        </html>
+      `);
+    });
+    console.log('Preview message button event listener added');
+  }
+
+  // Message template change
+  const messageTemplateSelect = document.getElementById('message-template-select');
+  if (messageTemplateSelect) {
+    messageTemplateSelect.addEventListener('change', function() {
+      const selectedTemplate = this.value;
+      if (selectedTemplate && window.currentWhatsAppAppointmentId) {
+        const appointment = appointments.find(apt => apt.id === window.currentWhatsAppAppointmentId);
+        if (appointment) {
+          const messageContent = document.getElementById('whatsapp-message-content');
+          messageContent.value = generateWhatsAppMessage(appointment, selectedTemplate);
+        }
+      }
+    });
+    console.log('Message template select event listener added');
+  }
+
+  // Logout button
+  const logoutBtn = document.getElementById('logout-btn');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+      localStorage.removeItem('admin_email');
+      window.location.href = '/admin';
+    });
+    console.log('Logout button event listener added');
+  }
+
+  // Apply filters button
+  const applyFiltersBtn = document.getElementById('apply-filters-btn');
+  if (applyFiltersBtn) {
+    applyFiltersBtn.addEventListener('click', applyFilters);
+    console.log('Apply filters button event listener added');
+  }
+
+  console.log('All event listeners set up successfully');
+}
+
+// Apply filters
+function applyFilters() {
+  const statusFilter = document.getElementById('status-filter').value;
+  const serviceFilter = document.getElementById('service-filter').value;
+  const dateFromFilter = document.getElementById('date-from-filter').value;
+  const dateToFilter = document.getElementById('date-to-filter').value;
+
+  let filteredAppointments = [...appointments];
+
+  if (statusFilter) {
+    filteredAppointments = filteredAppointments.filter(apt => apt.status === statusFilter);
+  }
+
+  if (serviceFilter) {
+    filteredAppointments = filteredAppointments.filter(apt => apt.service === serviceFilter);
+  }
+
+  if (dateFromFilter) {
+    filteredAppointments = filteredAppointments.filter(apt => apt.date >= dateFromFilter);
+  }
+
+  if (dateToFilter) {
+    filteredAppointments = filteredAppointments.filter(apt => apt.date <= dateToFilter);
+  }
+
+  // Render filtered appointments
+  const tbody = document.getElementById('appointments-tbody');
+  if (!tbody) return;
+
+  if (filteredAppointments.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+          No appointments match the selected filters
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  // Re-render with filtered data
+  const originalAppointments = appointments;
+  appointments = filteredAppointments;
+  renderAppointments();
+  appointments = originalAppointments; // Restore original data
+}
+
+// Update bulk WhatsApp modal content
+function updateBulkWhatsAppModal() {
+  const selectedIds = Array.from(selectedAppointments);
+  const selectedAppointmentsList = selectedIds.map(id => appointments.find(apt => apt.id === id)).filter(Boolean);
+  
+  // Update modal title and description
+  const modalTitle = document.querySelector('#whatsapp-modal h2');
+  const modalDescription = document.querySelector('#whatsapp-modal p');
+  
+  if (modalTitle) modalTitle.textContent = `📱 Send WhatsApp Messages (${selectedAppointmentsList.length} selected)`;
+  if (modalDescription) modalDescription.textContent = `Send message to ${selectedAppointmentsList.length} selected clients`;
+  
+  // Show selected appointments list
+  const appointmentsList = document.getElementById('selected-appointments-list');
+  if (appointmentsList) {
+    appointmentsList.classList.remove('hidden');
+    appointmentsList.innerHTML = `
+      <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-4">
+        <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Selected Appointments:</h3>
+        <div class="space-y-2 max-h-32 overflow-y-auto">
+          ${selectedAppointmentsList.map(apt => `
+            <div class="flex items-center justify-between text-sm">
+              <div>
+                <span class="font-medium">${apt.name}</span>
+                <span class="text-gray-500"> - ${apt.phone}</span>
+                <span class="text-gray-400"> (${apt.service})</span>
+              </div>
+              <span class="text-xs px-2 py-1 rounded-full ${getStatusBadgeClass(apt.status)}">
+                ${getStatusDisplay(apt.status)}
+              </span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+}
+
+// Send bulk WhatsApp messages with progress tracking
+async function sendBulkWhatsAppMessages(message) {
+  const selectedIds = Array.from(selectedAppointments);
+  const selectedAppointmentsList = selectedIds.map(id => appointments.find(apt => apt.id === id)).filter(Boolean);
+  
+  if (selectedAppointmentsList.length === 0) {
+    alert('No appointments selected');
+    return;
+  }
+  
+  // Update send button to show progress
+  const sendBtn = document.getElementById('send-whatsapp-btn');
+  if (!sendBtn) return;
+  
+  const originalText = sendBtn.innerHTML;
+  sendBtn.innerHTML = '⏳ Sending...';
+  sendBtn.disabled = true;
+  
+  let successCount = 0;
+  let failedCount = 0;
+  const results = [];
+  
+  // Show user instructions
+  alert(`Starting to send WhatsApp messages to ${selectedAppointmentsList.length} appointments.\n\nIMPORTANT: Please allow popups for this site and keep the tab open.\n\nEach message will open in a new WhatsApp tab. Please send the message manually in each tab.`);
+  
+  // Send messages one by one with delays
+  for (let i = 0; i < selectedAppointmentsList.length; i++) {
+    const appointment = selectedAppointmentsList[i];
+    if (!appointment) continue;
+    
+    try {
+      // Update progress
+      sendBtn.innerHTML = `⏳ Sending ${i + 1}/${selectedAppointmentsList.length}...`;
+      
+      // Send WhatsApp message
+      await sendSingleWhatsAppMessage(appointment, message);
+      successCount++;
+      results.push({ appointment, status: 'success' });
+      
+      // Show success for this appointment
+      console.log(`✅ Successfully opened WhatsApp for ${appointment.name}`);
+      
+      // Add delay between messages to avoid overwhelming WhatsApp
+      if (i < selectedAppointmentsList.length - 1) {
+        sendBtn.innerHTML = `⏳ Waiting 2 seconds before next message...`;
+        await new Promise(resolve => setTimeout(resolve, 2000)); // Increased delay to 2 seconds
+      }
+      
+    } catch (error) {
+      failedCount++;
+      results.push({ appointment, status: 'failed', error: error.message });
+      console.error(`❌ Failed to send to ${appointment.name}:`, error);
+      
+      // Show error for this appointment but continue with others
+      alert(`Failed to open WhatsApp for ${appointment.name} (${appointment.phone}).\n\nError: ${error.message}\n\nContinuing with remaining appointments...`);
+      
+      // Wait a bit before continuing
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+  }
+  
+  // Show final results
+  showBulkWhatsAppResults(results, successCount, failedCount);
+  
+  // Reset button
+  sendBtn.innerHTML = originalText;
+  sendBtn.disabled = false;
+  
+  // Clear selection and close modal
+  selectedAppointments.clear();
+  const selectedCount = document.getElementById('selected-count');
+  if (selectedCount) {
+    selectedCount.textContent = '0';
+  }
+  
+  // Uncheck all checkboxes
+  const appointmentCheckboxes = document.querySelectorAll('.appointment-checkbox');
+  appointmentCheckboxes.forEach(checkbox => {
+    if (checkbox instanceof HTMLInputElement) {
+      checkbox.checked = false;
+    }
+  });
+  
+  const selectAllCheckbox = document.getElementById('select-all-checkbox');
+  if (selectAllCheckbox instanceof HTMLInputElement) {
+    selectAllCheckbox.checked = false;
+  }
+  
+  // Close modal
+  document.getElementById('whatsapp-modal').classList.add('hidden');
+}
+
+// Send single WhatsApp message
+function sendSingleWhatsAppMessage(appointment, message) {
+  return new Promise((resolve, reject) => {
+    if (!appointment || !appointment.phone) {
+      reject(new Error('No phone number found'));
+      return;
+    }
+    
+    // Clean phone number and add +91 prefix for WhatsApp
+    let phoneNumber = appointment.phone.replace(/\D/g, '');
+    
+    // If number is 10 digits, add +91 prefix
+    if (phoneNumber.length === 10) {
+      phoneNumber = '91' + phoneNumber;
+    } else if (phoneNumber.length === 12 && phoneNumber.startsWith('91')) {
+      // Already has 91 prefix
+      phoneNumber = phoneNumber;
+    } else if (phoneNumber.length === 11 && phoneNumber.startsWith('91')) {
+      // Already has 91 prefix
+      phoneNumber = phoneNumber;
+    } else if (phoneNumber.length < 10) {
+      reject(new Error('Invalid phone number format'));
+      return;
+    }
+    
+    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+    
+    try {
+      // Try to open WhatsApp in new window
+      const whatsappWindow = window.open(whatsappUrl, '_blank', 'width=600,height=700,scrollbars=yes,resizable=yes');
+      
+      if (whatsappWindow && !whatsappWindow.closed) {
+        // Successfully opened window
+        console.log(`WhatsApp opened for ${appointment.name} (${phoneNumber})`);
+        
+        // Wait a bit for WhatsApp to load, then resolve
+        setTimeout(() => {
+          resolve();
+        }, 1000); // Increased delay to 1 second
+      } else {
+        // Popup blocked or failed to open
+        console.warn(`Popup blocked for ${appointment.name}, trying alternative method`);
+        
+        // Alternative: Try to open in same window (less ideal but more reliable)
+        try {
+          window.location.href = whatsappUrl;
+          // Wait a bit then resolve
+          setTimeout(() => {
+            resolve();
+          }, 2000);
+        } catch (fallbackError) {
+          reject(new Error(`Failed to open WhatsApp: Popup blocked and fallback failed`));
+        }
+      }
+    } catch (error) {
+      reject(new Error(`Failed to open WhatsApp: ${error.message}`));
+    }
+  });
+}
+
+// Show bulk WhatsApp results
+function showBulkWhatsAppResults(results, successCount, failedCount) {
+  let message = `WhatsApp messages sent successfully!\n\n`;
+  message += `✅ Successfully sent: ${successCount}\n`;
+  
+  if (failedCount > 0) {
+    message += `❌ Failed to send: ${failedCount}\n\n`;
+    message += `Failed appointments:\n`;
+    results.filter(r => r.status === 'failed').forEach(result => {
+      message += `• ${result.appointment.name} (${result.appointment.phone}): ${result.error}\n`;
+    });
+  }
+  
+  alert(message);
+}
+
+console.log('Appointment Dashboard loaded - basic structure ready');
+
+// Get status color class for styling
+function getStatusColor(status) {
+  switch(status) {
+    case 'pending':
+      return 'text-yellow-700 bg-yellow-50 border-yellow-200 dark:text-yellow-300 dark:bg-yellow-900/20 dark:border-yellow-700';
+    case 'confirmed':
+      return 'text-blue-700 bg-blue-50 border-blue-200 dark:text-blue-300 dark:bg-blue-900/20 dark:border-blue-700';
+    case 'completed':
+      return 'text-green-700 bg-green-50 border-green-200 dark:text-green-300 dark:bg-green-900/20 dark:border-green-700';
+    case 'cancelled':
+      return 'text-red-700 bg-red-50 border-red-200 dark:text-red-300 dark:bg-red-900/20 dark:border-red-700';
+    default:
+      return 'text-gray-700 bg-gray-50 border-gray-200 dark:text-gray-300 dark:bg-gray-900/20 dark:border-gray-700';
+  }
+}
+
+// Make functions globally accessible for onclick handlers
+window.sendWhatsAppMessage = sendWhatsAppMessage;
+window.toggleAppointmentSelection = toggleAppointmentSelection;
+window.updateAppointmentStatus = updateAppointmentStatus;
+window.getStatusColor = getStatusColor;
+
+// Function to go back to admin dashboard while preserving authentication
+function goBackToAdminDashboard() {
+  console.log('Going back to admin dashboard...');
+  // Check if user is still authenticated
+  const adminEmail = localStorage.getItem('admin_email');
+  if (adminEmail) {
+    console.log('User is authenticated, navigating to admin dashboard');
+    window.location.href = '/admin';
+  } else {
+    console.log('User not authenticated, staying on current page');
+    alert('Session expired. Please login again.');
+  }
+}
+
+window.goBackToAdminDashboard = goBackToAdminDashboard;
+</script>
+</Layout>
+

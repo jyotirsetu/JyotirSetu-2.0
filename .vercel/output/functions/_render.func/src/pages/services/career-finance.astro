@@ -1,0 +1,389 @@
+---
+import Layout from '~/layouts/PageLayout.astro';
+import Hero from '~/components/widgets/Hero.astro';
+import CallToAction from '~/components/widgets/CallToAction.astro';
+import ServicePageEnhancer from '~/components/widgets/ServicePageEnhancer.astro';
+
+const metadata = {
+  title: 'Career & Finance Guidance - JyotirSetu',
+  description: 'Professional career and financial guidance through Vedic Astrology. Get insights into your career path, business opportunities, and financial prosperity.',
+};
+---
+
+<Layout metadata={metadata}>
+  <!-- Hero Section -->
+  <Hero
+    title="💼 Career & Finance Guidance Through Vedic Astrology"
+    subtitle="Unlock your professional potential and financial success with expert astrological guidance. Navigate career transitions and wealth opportunities."
+    actions={[
+      {
+        variant: 'primary',
+        text: 'Book Career Consultation',
+        href: '/ScheduleAppointmentJyotirSetu',
+        icon: 'tabler:calendar',
+      },
+      { text: 'Learn More', href: '#what-is-career-guidance' },
+    ]}
+    image={{ src: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Y2FyZWVyJTIwc3VjY2Vzc3xlbnwwfHwwfHx8Mg%3D%3D', alt: 'Career Success' }}
+  >
+    <div slot="title">
+      💼 <span class="text-accent dark:text-white">Career & Finance</span> Guidance Through Vedic Astrology
+    </div>
+  </Hero>
+
+  <!-- What is Career Guidance Section -->
+  <section id="what-is-career-guidance" class="py-16 bg-page">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl font-bold text-heading mb-4">What is Career & Finance Guidance?</h2>
+        <p class="text-lg text-muted">Ancient Vedic wisdom for modern professional success and financial prosperity</p>
+      </div>
+      
+      <div class="grid lg:grid-cols-2 gap-12 items-center">
+        <div>
+          <h3 class="text-2xl font-bold text-heading mb-6">🎯 Professional Success Through Astrology</h3>
+          <p class="text-muted mb-6">
+            Career & Finance Guidance uses Vedic Astrology to analyze your birth chart and identify the most suitable career paths, business opportunities, and financial strategies for your unique planetary configuration.
+          </p>
+          
+          <div class="space-y-4">
+            <div class="flex items-start space-x-4">
+              <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                <span class="text-white font-bold text-sm">1</span>
+              </div>
+              <div>
+                <h4 class="font-semibold text-heading mb-2">Career Path Analysis</h4>
+                <p class="text-muted">Identify the most suitable professions and industries based on your planetary positions.</p>
+              </div>
+            </div>
+            
+            <div class="flex items-start space-x-4">
+              <div class="w-8 h-8 bg-secondary rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                <span class="text-white font-bold text-sm">2</span>
+              </div>
+              <div>
+                <h4 class="font-semibold text-heading mb-2">Financial Prosperity</h4>
+                <p class="text-muted">Understand wealth patterns and optimal timing for financial decisions and investments.</p>
+              </div>
+            </div>
+            
+            <div class="flex items-start space-x-4">
+              <div class="w-8 h-8 bg-accent rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                <span class="text-white font-bold text-sm">3</span>
+              </div>
+              <div>
+                <h4 class="font-semibold text-heading mb-2">Timing & Opportunities</h4>
+                <p class="text-muted">Know the best periods for career changes, business ventures, and financial investments.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="rounded-lg shadow-[0_4px_30px_rgba(0,0,0,0.1)] backdrop-blur border border-[#ffffff29] bg-white dark:bg-slate-900 p-8">
+          <h4 class="text-xl font-bold text-heading mb-6 text-center">📊 Career Houses Analysis</h4>
+          <div class="space-y-4">
+            <div class="flex justify-between items-center p-3 rounded-lg bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20">
+              <span class="font-semibold">10th House (Career)</span>
+              <span class="text-green-600 font-bold">✓ Strong</span>
+            </div>
+            <div class="flex justify-between items-center p-3 rounded-lg bg-gradient-to-r from-secondary/10 to-secondary/5 border border-secondary/20">
+              <span class="font-semibold">2nd House (Wealth)</span>
+              <span class="text-green-600 font-bold">✓ Prosperous</span>
+            </div>
+            <div class="flex justify-between items-center p-3 rounded-lg bg-gradient-to-r from-accent/10 to-accent/5 border border-accent/20">
+              <span class="font-semibold">6th House (Service)</span>
+              <span class="text-green-600 font-bold">✓ Excellent</span>
+            </div>
+            <div class="flex justify-between items-center p-3 rounded-lg bg-gradient-to-r from-green-500/10 to-green-500/5 border border-green-500/20">
+              <span class="font-semibold">11th House (Gains)</span>
+              <span class="text-green-600 font-bold">✓ Favorable</span>
+            </div>
+            <div class="flex justify-between items-center p-3 rounded-lg bg-gradient-to-r from-purple-500/10 to-purple-500/5 border border-purple-500/20">
+              <span class="font-semibold">5th House (Business)</span>
+              <span class="text-green-600 font-bold">✓ Promising</span>
+            </div>
+            <div class="flex justify-between items-center p-4 bg-primary rounded-lg text-white">
+              <span class="font-bold">Overall Career Score</span>
+              <span class="font-bold text-xl">85/100</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Career Analysis Areas -->
+  <section class="py-16 bg-light">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl font-bold text-heading mb-4">🔍 Career Analysis Areas</h2>
+        <p class="text-lg text-muted">Comprehensive analysis of your professional potential</p>
+      </div>
+      
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <!-- Career Path -->
+        <div class="rounded-lg shadow-[0_4px_30px_rgba(0,0,0,0.1)] backdrop-blur border border-[#ffffff29] bg-white dark:bg-slate-900 p-6 border-t-4 border-primary">
+          <div class="text-center mb-4">
+            <div class="w-12 h-12 bg-primary rounded-full flex items-center justify-center mx-auto mb-3">
+              <span class="text-white font-bold">🎯</span>
+            </div>
+            <h3 class="font-bold text-heading">Career Path</h3>
+            <p class="text-sm text-muted">(10th House)</p>
+          </div>
+          <p class="text-muted text-sm">Analysis of your natural talents, skills, and the most suitable career paths based on planetary positions.</p>
+        </div>
+
+        <!-- Wealth & Finance -->
+        <div class="rounded-lg shadow-[0_4px_30px_rgba(0,0,0,0.1)] backdrop-blur border border-[#ffffff29] bg-white dark:bg-slate-900 p-6 border-t-4 border-secondary">
+          <div class="text-center mb-4">
+            <div class="w-12 h-12 bg-secondary rounded-full flex items-center justify-center mx-auto mb-3">
+              <span class="text-white font-bold">💰</span>
+            </div>
+            <h3 class="font-bold text-heading">Wealth & Finance</h3>
+            <p class="text-sm text-muted">(2nd House)</p>
+          </div>
+          <p class="text-muted text-sm">Understanding your wealth patterns, earning potential, and financial stability throughout life.</p>
+        </div>
+
+        <!-- Business Ventures -->
+        <div class="rounded-lg shadow-[0_4px_30px_rgba(0,0,0,0.1)] backdrop-blur border border-[#ffffff29] bg-white dark:bg-slate-900 p-6 border-t-4 border-accent">
+          <div class="text-center mb-4">
+            <div class="w-12 h-12 bg-accent rounded-full flex items-center justify-center mx-auto mb-3">
+              <span class="text-white font-bold">🏢</span>
+            </div>
+            <h3 class="font-bold text-heading">Business Ventures</h3>
+            <p class="text-sm text-muted">(5th House)</p>
+          </div>
+          <p class="text-muted text-sm">Analysis of business opportunities, entrepreneurship potential, and investment prospects.</p>
+        </div>
+
+        <!-- Service & Employment -->
+        <div class="rounded-lg shadow-[0_4px_30px_rgba(0,0,0,0.1)] backdrop-blur border border-[#ffffff29] bg-white dark:bg-slate-900 p-6 border-t-4 border-green-500">
+          <div class="text-center mb-4">
+            <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-3">
+              <span class="text-white font-bold">👔</span>
+            </div>
+            <h3 class="font-bold text-heading">Service & Employment</h3>
+            <p class="text-sm text-muted">(6th House)</p>
+          </div>
+          <p class="text-muted text-sm">Understanding job opportunities, work environment preferences, and professional relationships.</p>
+        </div>
+
+        <!-- Gains & Profits -->
+        <div class="rounded-lg shadow-[0_4px_30px_rgba(0,0,0,0.1)] backdrop-blur border border-[#ffffff29] bg-white dark:bg-slate-900 p-6 border-t-4 border-purple-500">
+          <div class="text-center mb-4">
+            <div class="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-3">
+              <span class="text-white font-bold">📈</span>
+            </div>
+            <h3 class="font-bold text-heading">Gains & Profits</h3>
+            <p class="text-sm text-muted">(11th House)</p>
+          </div>
+          <p class="text-muted text-sm">Analysis of income sources, profit opportunities, and financial growth potential.</p>
+        </div>
+
+        <!-- Skills & Education -->
+        <div class="rounded-lg shadow-[0_4px_30px_rgba(0,0,0,0.1)] backdrop-blur border border-[#ffffff29] bg-white dark:bg-slate-900 p-6 border-t-4 border-red-500">
+          <div class="text-center mb-4">
+            <div class="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-3">
+              <span class="text-white font-bold">🎓</span>
+            </div>
+            <h3 class="font-bold text-heading">Skills & Education</h3>
+            <p class="text-sm text-muted">(4th House)</p>
+          </div>
+          <p class="text-muted text-sm">Understanding educational requirements, skill development, and knowledge acquisition for career success.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Financial Guidance -->
+  <section class="py-16 bg-page">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl font-bold text-heading mb-4">💰 Financial Guidance & Wealth Analysis</h2>
+        <p class="text-lg text-muted">Understanding your financial destiny and wealth creation opportunities</p>
+      </div>
+      
+      <div class="grid lg:grid-cols-2 gap-12 items-center">
+        <div>
+          <h3 class="text-2xl font-bold text-heading mb-6">💎 Wealth Through Planetary Analysis</h3>
+          <p class="text-muted mb-6">
+            Financial guidance analyzes the 2nd, 5th, 9th, and 11th houses along with Jupiter, Venus, and other wealth-related planets to provide insights into your financial destiny.
+          </p>
+          
+          <div class="space-y-4">
+            <div class="rounded-lg shadow-[0_4px_30px_rgba(0,0,0,0.1)] backdrop-blur border border-[#ffffff29] bg-white dark:bg-slate-900 p-4">
+              <h4 class="font-semibold text-heading mb-2">💳 Income Sources:</h4>
+              <p class="text-muted text-sm">Identify multiple income streams, investment opportunities, and wealth creation methods.</p>
+            </div>
+            
+            <div class="rounded-lg shadow-[0_4px_30px_rgba(0,0,0,0.1)] backdrop-blur border border-[#ffffff29] bg-white dark:bg-slate-900 p-4">
+              <h4 class="font-semibold text-heading mb-2">📅 Financial Timing:</h4>
+              <p class="text-muted text-sm">Know the best periods for investments, business ventures, and financial decisions.</p>
+            </div>
+            
+            <div class="rounded-lg shadow-[0_4px_30px_rgba(0,0,0,0.1)] backdrop-blur border border-[#ffffff29] bg-white dark:bg-slate-900 p-4">
+              <h4 class="font-semibold text-heading mb-2">🛡️ Risk Management:</h4>
+              <p class="text-muted text-sm">Understand financial challenges and learn how to protect and grow your wealth.</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="rounded-lg shadow-[0_4px_30px_rgba(0,0,0,0.1)] backdrop-blur border border-[#ffffff29] bg-white dark:bg-slate-900 p-8">
+          <h4 class="text-xl font-bold text-heading mb-6 text-center">📊 Wealth Analysis Chart</h4>
+          <div class="space-y-4">
+            <div class="flex justify-between items-center p-3 rounded-lg border-l-4 border-green-500 bg-gradient-to-r from-green-500/10 to-green-500/5 border border-green-500/20">
+              <span class="font-semibold">Jupiter (Wealth Planet)</span>
+              <span class="text-green-600 font-bold">✓ Strong</span>
+            </div>
+            <div class="flex justify-between items-center p-3 rounded-lg border-l-4 border-pink-500 bg-gradient-to-r from-pink-500/10 to-pink-500/5 border border-pink-500/20">
+              <span class="font-semibold">Venus (Luxury & Comfort)</span>
+              <span class="text-green-600 font-bold">✓ Favorable</span>
+            </div>
+            <div class="flex justify-between items-center p-3 rounded-lg border-l-4 border-yellow-500 bg-gradient-to-r from-yellow-500/10 to-yellow-500/5 border border-yellow-500/20">
+              <span class="font-semibold">Mercury (Business & Trade)</span>
+              <span class="text-green-600 font-bold">✓ Excellent</span>
+            </div>
+            <div class="flex justify-between items-center p-3 rounded-lg border-l-4 border-blue-500 bg-gradient-to-r from-blue-500/10 to-blue-500/5 border border-blue-500/20">
+              <span class="font-semibold">Saturn (Long-term Wealth)</span>
+              <span class="text-green-600 font-bold">✓ Stable</span>
+            </div>
+            <div class="flex justify-between items-center p-4 bg-primary rounded-lg text-white">
+              <span class="font-bold">Wealth Potential Score</span>
+              <span class="font-bold text-xl">90/100</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Benefits of Career Guidance -->
+  <section class="py-16 bg-light">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl font-bold text-heading mb-4">💫 Benefits of Career & Finance Guidance</h2>
+        <p class="text-lg text-muted">Why astrological career guidance is crucial for professional success</p>
+      </div>
+      
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div class="rounded-lg shadow-[0_4px_30px_rgba(0,0,0,0.1)] backdrop-blur border border-[#ffffff29] bg-white dark:bg-slate-900 p-6">
+          <div class="w-12 h-12 bg-primary rounded-lg flex items-center justify-center mb-4">
+            <span class="text-white text-xl">🎯</span>
+          </div>
+          <h3 class="text-xl font-bold text-heading mb-4">Right Career Choice</h3>
+          <p class="text-muted">Choose the most suitable career path based on your natural talents and planetary strengths.</p>
+        </div>
+        
+        <div class="rounded-lg shadow-[0_4px_30px_rgba(0,0,0,0.1)] backdrop-blur border border-[#ffffff29] bg-white dark:bg-slate-900 p-6">
+          <div class="w-12 h-12 bg-secondary rounded-lg flex items-center justify-center mb-4">
+            <span class="text-white text-xl">📈</span>
+          </div>
+          <h3 class="text-xl font-bold text-heading mb-4">Financial Growth</h3>
+          <p class="text-muted">Understand wealth patterns and optimize your financial decisions for maximum growth.</p>
+        </div>
+        
+        <div class="rounded-lg shadow-[0_4px_30px_rgba(0,0,0,0.1)] backdrop-blur border border-[#ffffff29] bg-white dark:bg-slate-900 p-6">
+          <div class="w-12 h-12 bg-accent rounded-lg flex items-center justify-center mb-4">
+            <span class="text-white text-xl">⏰</span>
+          </div>
+          <h3 class="text-xl font-bold text-heading mb-4">Perfect Timing</h3>
+          <p class="text-muted">Know the best periods for career changes, promotions, and business ventures.</p>
+        </div>
+        
+        <div class="rounded-lg shadow-[0_4px_30px_rgba(0,0,0,0.1)] backdrop-blur border border-[#ffffff29] bg-white dark:bg-slate-900 p-6">
+          <div class="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center mb-4">
+            <span class="text-white text-xl">💼</span>
+          </div>
+          <h3 class="text-xl font-bold text-heading mb-4">Business Success</h3>
+          <p class="text-muted">Get insights into entrepreneurship opportunities and business strategies.</p>
+        </div>
+        
+        <div class="rounded-lg shadow-[0_4px_30px_rgba(0,0,0,0.1)] backdrop-blur border border-[#ffffff29] bg-white dark:bg-slate-900 p-6">
+          <div class="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center mb-4">
+            <span class="text-white text-xl">🛡️</span>
+          </div>
+          <h3 class="text-xl font-bold text-heading mb-4">Risk Management</h3>
+          <p class="text-muted">Identify potential challenges and learn how to overcome career obstacles.</p>
+        </div>
+        
+        <div class="rounded-lg shadow-[0_4px_30px_rgba(0,0,0,0.1)] backdrop-blur border border-[#ffffff29] bg-white dark:bg-slate-900 p-6">
+          <div class="w-12 h-12 bg-red-500 rounded-lg flex items-center justify-center mb-4">
+            <span class="text-white text-xl">🚀</span>
+          </div>
+          <h3 class="text-xl font-bold text-heading mb-4">Career Advancement</h3>
+          <p class="text-muted">Strategize your professional growth and achieve your career goals effectively.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Process Section -->
+  <section class="py-16 bg-page">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl font-bold text-heading mb-4">📋 Our Career Guidance Process</h2>
+        <p class="text-lg text-muted">Simple steps to get your professional guidance</p>
+      </div>
+      
+      <div class="grid md:grid-cols-4 gap-8">
+        <div class="text-center">
+          <div class="w-20 h-20 bg-primary rounded-full flex items-center justify-center mx-auto mb-6">
+            <span class="text-3xl font-bold text-white">1</span>
+          </div>
+          <h3 class="text-xl font-bold text-heading mb-4">Birth Chart Analysis</h3>
+          <p class="text-muted">Detailed analysis of your birth chart focusing on career and wealth-related houses and planets.</p>
+        </div>
+        
+        <div class="text-center">
+          <div class="w-20 h-20 bg-secondary rounded-full flex items-center justify-center mx-auto mb-6">
+            <span class="text-3xl font-bold text-white">2</span>
+          </div>
+          <h3 class="text-xl font-bold text-heading mb-4">Career Assessment</h3>
+          <p class="text-muted">Comprehensive evaluation of your skills, talents, and most suitable career paths.</p>
+        </div>
+        
+        <div class="text-center">
+          <div class="w-20 h-20 bg-accent rounded-full flex items-center justify-center mx-auto mb-6">
+            <span class="text-3xl font-bold text-white">3</span>
+          </div>
+          <h3 class="text-xl font-bold text-heading mb-4">Financial Analysis</h3>
+          <p class="text-muted">Analysis of wealth patterns, investment opportunities, and financial timing.</p>
+        </div>
+        
+        <div class="text-center">
+          <div class="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
+            <span class="text-3xl font-bold text-white">4</span>
+          </div>
+          <h3 class="text-xl font-bold text-heading mb-4">Detailed Report</h3>
+          <p class="text-muted">Complete career and financial guidance report with actionable recommendations.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Enhanced Service Page Elements -->
+  <ServicePageEnhancer />
+
+  <!-- CTA Section -->
+  <CallToAction
+    actions={[
+      {
+        variant: 'primary',
+        text: 'Book Career Consultation',
+        href: '/ScheduleAppointmentJyotirSetu',
+        icon: 'tabler:calendar',
+      },
+    ]}
+  >
+    <div slot="title">
+      Ready to Unlock Your <span class="text-accent dark:text-white">Professional Potential</span>?
+    </div>
+
+    <div slot="subtitle">
+      Book your Career & Finance Guidance consultation today and take control of your professional destiny. 
+      <br class="hidden md:inline" />
+      Let Vedic Astrology guide you to career success and financial prosperity.
+    </div>
+  </CallToAction>
+</Layout>
