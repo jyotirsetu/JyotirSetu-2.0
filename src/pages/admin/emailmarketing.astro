@@ -199,6 +199,13 @@ import Layout from '~/layouts/AdminLayout.astro';
               >
                 🧪 Add Test Subscribers
               </button>
+              <button
+                id="cleanup-subscribers-btn"
+                class="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md"
+                onclick="cleanupInvalidSubscribers()"
+              >
+                🧹 Clean Invalid Emails
+              </button>
             </div>
           </div>
 
@@ -616,6 +623,41 @@ import Layout from '~/layouts/AdminLayout.astro';
     } catch (error) {
       console.error('💥 Error adding test subscribers:', error);
       showImportStatus(`❌ Failed to add test subscribers: ${error.message}`, 'error');
+    }
+  }
+
+  // Clean up invalid subscribers
+  function cleanupInvalidSubscribers() {
+    try {
+      const subscribers = JSON.parse(localStorage.getItem('email_subscribers') || '[]');
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      
+      const validSubscribers = subscribers.filter(sub => {
+        return sub.email && emailRegex.test(sub.email);
+      });
+      
+      const invalidCount = subscribers.length - validSubscribers.length;
+      
+      if (invalidCount === 0) {
+        showImportStatus('✅ All subscribers have valid email addresses!', 'success');
+        return;
+      }
+      
+      localStorage.setItem('email_subscribers', JSON.stringify(validSubscribers));
+      
+      showImportStatus(`🧹 Cleaned up ${invalidCount} invalid subscribers! Remaining: ${validSubscribers.length}`, 'success');
+      loadSubscribers();
+      updateStats();
+      
+      console.log('🧹 Cleanup completed:', {
+        original: subscribers.length,
+        valid: validSubscribers.length,
+        removed: invalidCount
+      });
+
+    } catch (error) {
+      console.error('💥 Error cleaning up subscribers:', error);
+      showImportStatus(`❌ Failed to cleanup subscribers: ${error.message}`, 'error');
     }
   }
 
@@ -1740,6 +1782,13 @@ import Layout from '~/layouts/AdminLayout.astro';
       return;
     }
     
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      alert('Please enter a valid email address');
+      return;
+    }
+    
     const existingSubscribers = JSON.parse(localStorage.getItem('email_subscribers') || '[]');
     
     if (existingSubscribers.find(sub => sub.email === email)) {
@@ -2061,6 +2110,15 @@ import Layout from '~/layouts/AdminLayout.astro';
       // Send emails with delay to avoid rate limiting
       for (let i = 0; i < targetSubscribers.length; i++) {
         const subscriber = targetSubscribers[i];
+        
+        // Validate email address
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!subscriber.email || !emailRegex.test(subscriber.email)) {
+          errorCount++;
+          errors.push(`${subscriber.email || 'Invalid email'}: Invalid email format`);
+          console.error(`❌ Invalid email format: ${subscriber.email}`);
+          continue;
+        }
         
         console.log(`📧 Sending email ${i + 1}/${targetSubscribers.length} to ${subscriber.email}`);
         
@@ -2473,6 +2531,7 @@ import Layout from '~/layouts/AdminLayout.astro';
   window.testResendConnection = testResendConnection;
   window.quickEmailTest = quickEmailTest;
   window.addTestSubscribers = addTestSubscribers;
+  window.cleanupInvalidSubscribers = cleanupInvalidSubscribers;
 
   // Initialize page
   document.addEventListener('DOMContentLoaded', async function() {
