@@ -2,7 +2,7 @@ import { d as createAstro, c as createComponent, r as renderComponent, a as rend
 import 'kleur/colors';
 import { $ as $$WidgetWrapper } from './WidgetWrapper_D3qsqbz_.mjs';
 import { $ as $$Headline } from './Headline_BGObqHO6.mjs';
-import { c as $$Icon } from './PageLayout_DOxrouzY.mjs';
+import { c as $$Icon } from './PageLayout_Ba0vUiqJ.mjs';
 
 const $$Astro = createAstro("https://jyotirsetu.com");
 const $$Stats = createComponent(async ($$result, $$props, $$slots) => {

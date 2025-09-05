@@ -1,7 +1,7 @@
 import { d as createAstro, c as createComponent, r as renderComponent, a as renderTemplate, m as maybeRenderHead, F as Fragment, u as unescapeHTML } from './astro/server__1NYpXS4.mjs';
 import 'kleur/colors';
 import { $ as $$Headline } from './Headline_BGObqHO6.mjs';
-import { $ as $$ItemGrid } from './ItemGrid_WE4SB4d5.mjs';
+import { $ as $$ItemGrid } from './ItemGrid_SsA2RIYE.mjs';
 import { $ as $$WidgetWrapper } from './WidgetWrapper_D3qsqbz_.mjs';
 import { $ as $$Image } from './Logo_DE5rhJaf.mjs';
 

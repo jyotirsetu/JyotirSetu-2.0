@@ -35,18 +35,6 @@
 			"dest": "_render"
 		},
 		{
-			"src": "^/admin/appointmentdashboard$",
-			"dest": "_render"
-		},
-		{
-			"src": "^/admin/dailytips$",
-			"dest": "_render"
-		},
-		{
-			"src": "^/admin$",
-			"dest": "_render"
-		},
-		{
 			"src": "^/api/send-email$",
 			"dest": "_render"
 		},

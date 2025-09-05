@@ -1,8 +1,8 @@
 import { d as createAstro, c as createComponent, a as renderTemplate, b as addAttribute, m as maybeRenderHead, r as renderComponent, e as renderScript, F as Fragment } from '../chunks/astro/server__1NYpXS4.mjs';
 import 'kleur/colors';
-import { $ as $$PageLayout } from '../chunks/PageLayout_DOxrouzY.mjs';
+import { $ as $$PageLayout } from '../chunks/PageLayout_Ba0vUiqJ.mjs';
 import 'clsx';
-import { $ as $$Hero } from '../chunks/Hero_C3KDcd_U.mjs';
+import { $ as $$Hero } from '../chunks/Hero_D-WTfCG-.mjs';
 export { renderers } from '../renderers.mjs';
 
 var __freeze = Object.freeze;

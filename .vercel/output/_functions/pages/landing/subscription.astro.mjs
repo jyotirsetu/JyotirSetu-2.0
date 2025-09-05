@@ -1,8 +1,8 @@
 import { c as createComponent, r as renderComponent, a as renderTemplate } from '../../chunks/astro/server__1NYpXS4.mjs';
 import 'kleur/colors';
-import { $ as $$LandingLayout } from '../../chunks/LandingLayout_BndsmeCO.mjs';
-import { $ as $$Hero2 } from '../../chunks/Hero2_nI716-jQ.mjs';
-import { $ as $$CallToAction } from '../../chunks/CallToAction_CFc8aS-w.mjs';
+import { $ as $$LandingLayout } from '../../chunks/LandingLayout_BtSLaMKR.mjs';
+import { $ as $$Hero2 } from '../../chunks/Hero2_BpgdZU_8.mjs';
+import { $ as $$CallToAction } from '../../chunks/CallToAction_BuAFA3-E.mjs';
 export { renderers } from '../../renderers.mjs';
 
 const $$Subscription = createComponent(($$result, $$props, $$slots) => {

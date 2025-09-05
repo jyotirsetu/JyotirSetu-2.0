@@ -1,7 +1,7 @@
 import { d as createAstro, c as createComponent, r as renderComponent, a as renderTemplate, e as renderScript, m as maybeRenderHead } from '../chunks/astro/server__1NYpXS4.mjs';
 import 'kleur/colors';
-import { $ as $$PageLayout } from '../chunks/PageLayout_DOxrouzY.mjs';
-import { $ as $$Hero } from '../chunks/Hero_C3KDcd_U.mjs';
+import { $ as $$PageLayout } from '../chunks/PageLayout_Ba0vUiqJ.mjs';
+import { $ as $$Hero } from '../chunks/Hero_D-WTfCG-.mjs';
 export { renderers } from '../renderers.mjs';
 
 const $$Astro = createAstro("https://jyotirsetu.com");

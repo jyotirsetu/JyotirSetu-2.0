@@ -1,6 +1,6 @@
 import { c as createComponent, b as addAttribute, a as renderTemplate, B as defineScriptVars, d as createAstro, r as renderComponent, F as Fragment, u as unescapeHTML, s as spreadAttributes, e as renderScript, C as renderHead, f as renderSlot } from './astro/server__1NYpXS4.mjs';
 import 'kleur/colors';
-/* empty css                         */
+/* empty css                                 */
 import { c as getAsset, U as UI, d as getCanonical, I as I18N, S as SITE, M as METADATA } from './permalinks_D-LnMJ_P.mjs';
 import 'clsx';
 import { c as createSvgComponent, a as adaptOpenGraphImages } from './images_aTjQ4cVG.mjs';
