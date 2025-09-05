@@ -1,6 +1,5 @@
 # Ignore build artifacts that are handled by Vercel
 dist/
-.vercel/output/
 
 # Ignore development files
 node_modules/
