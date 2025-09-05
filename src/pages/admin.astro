@@ -313,6 +313,19 @@ import Layout from '~/layouts/AdminLayout.astro';
        interface Window {
          testLogin: typeof testLogin;
          handleLoginSubmit: typeof handleLoginSubmit;
+         togglePasswordVisibility: typeof togglePasswordVisibility;
+         closeModal: typeof closeModal;
+         getStoredPassword: typeof getStoredPassword;
+         updateStoredPassword: typeof updateStoredPassword;
+         validateCurrentPassword: typeof validateCurrentPassword;
+         validateNewPassword: typeof validateNewPassword;
+         validatePasswordMatch: typeof validatePasswordMatch;
+         checkAllValidations: typeof checkAllValidations;
+         loadTipsFromSupabase: typeof loadTipsFromSupabase;
+         handleTipSubmit: typeof handleTipSubmit;
+         clearTipForm: typeof clearTipForm;
+         editTip: typeof editTip;
+         deleteTip: typeof deleteTip;
        }
      }
      
@@ -675,14 +688,18 @@ import Layout from '~/layouts/AdminLayout.astro';
 
     // Show login page
     function showLoginPage() {
-      document.getElementById('login-page').classList.remove('hidden');
-      document.getElementById('admin-dashboard').classList.add('hidden');
+      const loginPage = document.getElementById('login-page');
+      const adminDashboard = document.getElementById('admin-dashboard');
+      if (loginPage) loginPage.classList.remove('hidden');
+      if (adminDashboard) adminDashboard.classList.add('hidden');
     }
 
     // Show admin dashboard
     function showAdminDashboard() {
-      document.getElementById('login-page').classList.add('hidden');
-      document.getElementById('admin-dashboard').classList.remove('hidden');
+      const loginPage = document.getElementById('login-page');
+      const adminDashboard = document.getElementById('admin-dashboard');
+      if (loginPage) loginPage.classList.add('hidden');
+      if (adminDashboard) adminDashboard.classList.remove('hidden');
     }
 
     // Load dashboard data
@@ -728,7 +745,8 @@ import Layout from '~/layouts/AdminLayout.astro';
         if (tipsError) {
           console.error('Error loading tips count:', tipsError);
         } else {
-          document.getElementById('tips-count').textContent = tipsData?.length || 0;
+          const tipsCountElement = document.getElementById('tips-count');
+          if (tipsCountElement) tipsCountElement.textContent = (tipsData?.length || 0).toString();
         }
 
         // Load appointments count
@@ -739,12 +757,15 @@ import Layout from '~/layouts/AdminLayout.astro';
         if (appointmentsError) {
           console.error('Error loading appointments count:', appointmentsError);
         } else {
-          document.getElementById('appointments-count').textContent = appointmentsData?.length || 0;
+          const appointmentsCountElement = document.getElementById('appointments-count');
+          if (appointmentsCountElement) appointmentsCountElement.textContent = (appointmentsData?.length || 0).toString();
         }
 
         // Set default counts for features not yet implemented
-        document.getElementById('horoscopes-count').textContent = '0';
-        document.getElementById('blog-count').textContent = '0';
+        const horoscopesCountElement = document.getElementById('horoscopes-count');
+        const blogCountElement = document.getElementById('blog-count');
+        if (horoscopesCountElement) horoscopesCountElement.textContent = '0';
+        if (blogCountElement) blogCountElement.textContent = '0';
 
         console.log('Dashboard counts loaded successfully');
       } catch (error) {
@@ -755,10 +776,15 @@ import Layout from '~/layouts/AdminLayout.astro';
 
     // Set default counts when database is not available
     function setDefaultCounts() {
-      document.getElementById('tips-count').textContent = '0';
-      document.getElementById('horoscopes-count').textContent = '0';
-      document.getElementById('appointments-count').textContent = '0';
-      document.getElementById('blog-count').textContent = '0';
+      const tipsCountElement = document.getElementById('tips-count');
+      const horoscopesCountElement = document.getElementById('horoscopes-count');
+      const appointmentsCountElement = document.getElementById('appointments-count');
+      const blogCountElement = document.getElementById('blog-count');
+      
+      if (tipsCountElement) tipsCountElement.textContent = '0';
+      if (horoscopesCountElement) horoscopesCountElement.textContent = '0';
+      if (appointmentsCountElement) appointmentsCountElement.textContent = '0';
+      if (blogCountElement) blogCountElement.textContent = '0';
     }
 
     // Load recent activity from Supabase
@@ -853,9 +879,9 @@ import Layout from '~/layouts/AdminLayout.astro';
     }
 
     // Helper function to get time ago
-    function getTimeAgo(date) {
+    function getTimeAgo(date: Date) {
       const now = new Date();
-      const diffInSeconds = Math.floor((now - date) / 1000);
+      const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
       
       if (diffInSeconds < 60) return 'Just now';
       if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`;
@@ -868,9 +894,27 @@ import Layout from '~/layouts/AdminLayout.astro';
     
     // displayTips function moved to dedicated /admin/dailytips page
     
-    // handleTipSubmit function moved to dedicated /admin/dailytips page
+    // Stub functions for compatibility (functions moved to dedicated /admin/dailytips page)
+    async function loadTipsFromSupabase() {
+      console.log('loadTipsFromSupabase: Function moved to dedicated /admin/dailytips page');
+    }
     
-    // clearTipForm, editTip, and deleteTip functions moved to dedicated /admin/dailytips page
+    function handleTipSubmit(event: Event) {
+      console.log('handleTipSubmit: Function moved to dedicated /admin/dailytips page');
+      event.preventDefault();
+    }
+    
+    function clearTipForm() {
+      console.log('clearTipForm: Function moved to dedicated /admin/dailytips page');
+    }
+    
+    function editTip(tipId: number) {
+      console.log('editTip: Function moved to dedicated /admin/dailytips page');
+    }
+    
+    function deleteTip(tipId: number) {
+      console.log('deleteTip: Function moved to dedicated /admin/dailytips page');
+    }
 
     // Handle login form submission - Simplified and more robust
     function setupLoginForm() {
@@ -931,8 +975,8 @@ import Layout from '~/layouts/AdminLayout.astro';
         return;
       }
       
-      const username = usernameInput.value.trim();
-      const password = passwordInput.value.trim();
+      const username = (usernameInput as HTMLInputElement)?.value?.trim() || '';
+      const password = (passwordInput as HTMLInputElement)?.value?.trim() || '';
       
       console.log('Login attempt:', { username, passwordLength: password.length });
       
@@ -944,7 +988,7 @@ import Layout from '~/layouts/AdminLayout.astro';
       
       // Show loading state
       if (submitBtn) {
-        submitBtn.disabled = true;
+        (submitBtn as HTMLButtonElement).disabled = true;
         if (btnText) btnText.classList.add('hidden');
         if (btnLoading) btnLoading.classList.remove('hidden');
       }
@@ -974,7 +1018,7 @@ import Layout from '~/layouts/AdminLayout.astro';
       
       // Reset button state
       if (submitBtn) {
-        submitBtn.disabled = false;
+        (submitBtn as HTMLButtonElement).disabled = false;
         if (btnText) btnText.classList.remove('hidden');
         if (btnLoading) btnLoading.classList.add('hidden');
       }
@@ -992,8 +1036,8 @@ import Layout from '~/layouts/AdminLayout.astro';
       
       if (usernameInput && passwordInput) {
         const storedPassword = getStoredPassword();
-        usernameInput.value = 'admin';
-        passwordInput.value = storedPassword;
+        (usernameInput as HTMLInputElement).value = 'admin';
+        (passwordInput as HTMLInputElement).value = storedPassword;
         console.log('✅ Form auto-filled with correct credentials');
         console.log('Using stored password:', storedPassword);
         
@@ -1023,14 +1067,14 @@ import Layout from '~/layouts/AdminLayout.astro';
       const toggle = document.getElementById(toggleId);
       
       if (input && toggle) {
-        if (input.type === 'password') {
-          input.type = 'text';
+        if ((input as HTMLInputElement).type === 'password') {
+          (input as HTMLInputElement).type = 'text';
           // Change to eye-slash icon (hidden)
           toggle.innerHTML = `
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"></path>
           `;
         } else {
-          input.type = 'password';
+          (input as HTMLInputElement).type = 'password';
           // Change to eye icon (visible)
           toggle.innerHTML = `
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
@@ -1365,9 +1409,9 @@ import Layout from '~/layouts/AdminLayout.astro';
        e.preventDefault();
        console.log('Change password form submitted!');
        
-       const currentPassword = document.getElementById('current-password').value;
-       const newPassword = document.getElementById('new-password').value;
-       const confirmPassword = document.getElementById('confirm-password').value;
+             const currentPassword = (document.getElementById('current-password') as HTMLInputElement)?.value || '';
+      const newPassword = (document.getElementById('new-password') as HTMLInputElement)?.value || '';
+      const confirmPassword = (document.getElementById('confirm-password') as HTMLInputElement)?.value || '';
        
        console.log('Change password attempt:', { 
          currentPassword: currentPassword ? '***' : 'empty', 

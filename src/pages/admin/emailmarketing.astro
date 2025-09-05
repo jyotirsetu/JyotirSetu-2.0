@@ -489,6 +489,8 @@ import Layout from '~/layouts/AdminLayout.astro';
 <div id="modal-container"></div>
 
 <script>
+  // Type declarations for data structures (defined later in the file)
+
   // Type declarations for global functions
   declare global {
     interface Window {
@@ -498,11 +500,11 @@ import Layout from '~/layouts/AdminLayout.astro';
       showCreateTemplate: () => void;
       showCSVUpload: () => void;
       importFromAppointments: () => void;
-      editSubscriber: (subscriber: any) => void;
+      editSubscriber: (subscriber: Subscriber) => void;
       deleteSubscriber: (id: string) => void;
-      editCampaign: (campaign: any) => void;
+      editCampaign: (campaign: Campaign) => void;
       deleteCampaign: (id: string) => void;
-      editTemplate: (template: any) => void;
+      editTemplate: (template: Template) => void;
       deleteTemplate: (id: string) => void;
       closeModal: () => void;
       processCSV: (event: Event) => void;
@@ -510,17 +512,17 @@ import Layout from '~/layouts/AdminLayout.astro';
       saveCampaign: () => void;
       saveAndSendCampaign: () => void;
       saveTemplate: () => void;
-      updateSubscriber: () => void;
+      updateSubscriber: (id: string) => void;
       loadTemplate: (templateId: string) => void;
       updateRecipientCount: () => void;
       getSelectedTags: () => string[];
-      getRecipientCount: () => number;
+      getRecipientCount: (subscribers: Subscriber[], recipientType: string, selectedTags: string[]) => number;
       loadTemplatesIntoCampaign: () => void;
       loadAvailableTags: () => void;
-      showEmailPreview: () => void;
-      updateTemplate: () => void;
-      sendCampaignEmails: (subject: any, content: any, subscribers: any, recipients: any, selectedTags: any) => Promise<void>;
-      sendRealEmail: (subject: any, content: any, recipientEmail: any, recipientName?: string) => Promise<any>;
+      showEmailPreview: (subject: string, content: string, recipientCount: number, errorCount?: number) => void;
+      updateTemplate: (id: string) => void;
+      sendCampaignEmails: (subject: string, content: string, subscribers: Subscriber[], recipients: string[], selectedTags: string[]) => Promise<void>;
+      sendRealEmail: (subject: string, content: string, recipientEmail: string, recipientName?: string) => Promise<{ success: boolean; error?: string }>;
       initResend: () => void;
       applySubscriberFilters: () => void;
       clearSubscriberFilters: () => void;
@@ -532,10 +534,10 @@ import Layout from '~/layouts/AdminLayout.astro';
       bulkMarkActive: () => void;
       bulkMarkInactive: () => void;
       bulkDelete: () => void;
-      viewCampaignDetails: (campaign: any) => void;
-      viewSubscriberDetails: (subscriber: any) => void;
+      viewCampaignDetails: (campaign: Campaign) => void;
+      viewSubscriberDetails: (subscriber: Subscriber) => void;
       cleanupInvalidSubscribers: () => void;
-      downloadCampaignReport: (campaign: any) => void;
+      downloadCampaignReport: (campaign: Campaign) => void;
       generateAnalyticsReport: () => void;
       downloadSubscriberReport: () => void;
       forceReloadCampaigns: () => void;
@@ -544,7 +546,6 @@ import Layout from '~/layouts/AdminLayout.astro';
 
   // Global variables
   let supabase = null;
-  let currentUser = null;
   
   // Define types
   type Subscriber = {
@@ -554,7 +555,7 @@ import Layout from '~/layouts/AdminLayout.astro';
     tags: string[];
     status: string;
     created_at?: string;
-    [key: string]: any;
+    source?: string;
   };
   
   type Campaign = {
@@ -565,7 +566,11 @@ import Layout from '~/layouts/AdminLayout.astro';
     template_id?: string;
     status: string;
     created_at?: string;
-    [key: string]: any;
+    recipientCount?: number;
+    sentCount?: number;
+    openRate?: number;
+    clickRate?: number;
+    sentAt?: string;
   };
   
   type Template = {
@@ -574,20 +579,20 @@ import Layout from '~/layouts/AdminLayout.astro';
     subject: string;
     content: string;
     created_at?: string;
-    [key: string]: any;
+    description?: string;
   };
   
   // Global arrays with proper typing
-  // let subscribers: Subscriber[] = [];
-  // let campaigns: Campaign[] = [];
-  // let templates: Template[] = [];
-  // let selectedSubscribers = new Set<string>();
-  // let selectedCampaigns = new Set<string>();
-  // let selectedTemplates = new Set<string>();
-  // let activeTab = 'subscribers';
-  // let currentEditingSubscriber: Subscriber | null = null;
-  // let currentEditingCampaign: Campaign | null = null;
-  // let currentEditingTemplate: Template | null = null;
+  let subscribers: Subscriber[] = [];
+  let campaigns: Campaign[] = [];
+  let templates: Template[] = [];
+  let selectedSubscribers = new Set<string>();
+  let selectedCampaigns = new Set<string>();
+  let selectedTemplates = new Set<string>();
+  let activeTab = 'subscribers';
+  let currentEditingSubscriber: Subscriber | null = null;
+  let currentEditingCampaign: Campaign | null = null;
+  let currentEditingTemplate: Template | null = null;
   
   // Resend configuration (replace with your actual API key)
   const RESEND_CONFIG = {
@@ -598,8 +603,7 @@ import Layout from '~/layouts/AdminLayout.astro';
   // Initialize Supabase
   async function initSupabase() {
     try {
-      // @ts-ignore
-      supabase = window.supabase.createClient(
+      supabase = (window as any).supabase.createClient(
         'https://czbypbrrxxjcjdfjxczv.supabase.co',
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN6YnlwYnJyeHhqY2pkZmp4Y3p2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY5MjU2NDcsImV4cCI6MjA3MjUwMTY0N30.SQ-eabMNo5RBy8N0MHWDmlxVH7Tmh-EGykI0Qt5wDjg'
       );
@@ -923,7 +927,7 @@ import Layout from '~/layouts/AdminLayout.astro';
       window.location.href = '/admin';
       return;
     }
-    currentUser = { email: adminEmail } as any;
+    // Admin is authenticated
   }
 
   // Tab switching
@@ -1616,9 +1620,9 @@ import Layout from '~/layouts/AdminLayout.astro';
   }
 
   // View campaign details
-  function viewCampaignDetails(campaignId) {
+  function viewCampaignDetails(campaignId: any) {
     const campaigns = JSON.parse(localStorage.getItem('email_campaigns') || '[]');
-    const campaign = campaigns.find(c => c.id === campaignId);
+    const campaign = campaigns.find((c: any) => c.id === campaignId);
     
     if (!campaign) {
       alert('Campaign not found');
@@ -1627,18 +1631,18 @@ import Layout from '~/layouts/AdminLayout.astro';
 
     // Get subscribers to show recipient details
     const subscribers = JSON.parse(localStorage.getItem('email_subscribers') || '[]');
-    let recipients = [];
+    let recipients: any[] = [];
     
     if (campaign.recipientType === 'all') {
       recipients = subscribers;
     } else {
-      recipients = subscribers.filter(sub => sub.source === campaign.recipientType);
+      recipients = subscribers.filter((sub: any) => sub.source === campaign.recipientType);
     }
     
     if (campaign.selectedTags && campaign.selectedTags.length > 0) {
-      recipients = recipients.filter(sub => {
+      recipients = recipients.filter((sub: any) => {
         if (!sub.tags || !Array.isArray(sub.tags)) return false;
-        return campaign.selectedTags.some(tag => sub.tags.includes(tag));
+        return campaign.selectedTags.some((tag: any) => sub.tags.includes(tag));
       });
     }
 
@@ -2032,7 +2036,7 @@ import Layout from '~/layouts/AdminLayout.astro';
       }
       
       localStorage.setItem('email_subscribers', JSON.stringify(existingSubscribers));
-      closeModal();
+      window.closeModal();
       showImportStatus(`Successfully imported ${importedCount} subscribers from CSV!`, 'success');
       loadSubscribers();
       updateStats();
@@ -2126,7 +2130,7 @@ import Layout from '~/layouts/AdminLayout.astro';
     });
     
     localStorage.setItem('email_subscribers', JSON.stringify(existingSubscribers));
-    closeModal();
+    window.closeModal();
     showImportStatus('Subscriber added successfully!', 'success');
     loadSubscribers();
     updateStats();
@@ -2586,9 +2590,18 @@ import Layout from '~/layouts/AdminLayout.astro';
 
   // Save template
   function saveTemplate() {
-    const name = (document.getElementById('template-name') as HTMLInputElement)?.value || '';
-    const description = document.getElementById('template-description').value;
-    const content = document.getElementById('template-content').value;
+    const nameInput = document.getElementById('template-name') as HTMLInputElement;
+    const descriptionTextarea = document.getElementById('template-description') as HTMLTextAreaElement;
+    const contentTextarea = document.getElementById('template-content') as HTMLTextAreaElement;
+    
+    if (!nameInput || !descriptionTextarea || !contentTextarea) {
+      alert('Template form elements not found');
+      return;
+    }
+    
+    const name = nameInput.value;
+    const description = descriptionTextarea.value;
+    const content = contentTextarea.value;
     
     if (!name) {
       alert('Template name is required');
@@ -2612,9 +2625,9 @@ import Layout from '~/layouts/AdminLayout.astro';
   }
 
   // Edit subscriber
-  function editSubscriber(id) {
+  function editSubscriber(id: any) {
     const subscribers = JSON.parse(localStorage.getItem('email_subscribers') || '[]');
-    const subscriber = subscribers.find(sub => sub.id === id);
+    const subscriber = subscribers.find((sub: any) => sub.id === id);
     
     if (!subscriber) return;
     
@@ -2658,10 +2671,19 @@ import Layout from '~/layouts/AdminLayout.astro';
   }
 
   // Update subscriber
-  function updateSubscriber(id) {
-    const email = document.getElementById('edit-subscriber-email').value;
-    const name = document.getElementById('edit-subscriber-name').value;
-    const status = document.getElementById('edit-subscriber-status').value;
+  function updateSubscriber(id: any) {
+    const emailInput = document.getElementById('edit-subscriber-email') as HTMLInputElement;
+    const nameInput = document.getElementById('edit-subscriber-name') as HTMLInputElement;
+    const statusSelect = document.getElementById('edit-subscriber-status') as HTMLSelectElement;
+    
+    if (!emailInput || !nameInput || !statusSelect) {
+      alert('Subscriber form elements not found');
+      return;
+    }
+    
+    const email = emailInput.value;
+    const name = nameInput.value;
+    const status = statusSelect.value;
     
     if (!email) {
       alert('Email is required');
@@ -2669,7 +2691,7 @@ import Layout from '~/layouts/AdminLayout.astro';
     }
     
     const subscribers = JSON.parse(localStorage.getItem('email_subscribers') || '[]');
-    const subscriberIndex = subscribers.findIndex(sub => sub.id === id);
+    const subscriberIndex = subscribers.findIndex((sub: any) => sub.id === id);
     
     if (subscriberIndex !== -1) {
       subscribers[subscriberIndex] = {
@@ -2687,10 +2709,10 @@ import Layout from '~/layouts/AdminLayout.astro';
   }
 
   // Delete subscriber
-  function deleteSubscriber(id) {
+  function deleteSubscriber(id: any) {
     if (confirm('Are you sure you want to delete this subscriber?')) {
       const subscribers = JSON.parse(localStorage.getItem('email_subscribers') || '[]');
-      const filteredSubscribers = subscribers.filter(sub => sub.id !== id);
+      const filteredSubscribers = subscribers.filter((sub: any) => sub.id !== id);
       
       localStorage.setItem('email_subscribers', JSON.stringify(filteredSubscribers));
       showImportStatus('Subscriber deleted successfully!', 'success');
@@ -2700,15 +2722,15 @@ import Layout from '~/layouts/AdminLayout.astro';
   }
 
   // Edit campaign
-  function editCampaign(id) {
+  function editCampaign(id: any) {
     alert(`Edit campaign ${id} - Feature coming soon!`);
   }
 
   // Delete campaign
-  function deleteCampaign(id) {
+  function deleteCampaign(id: any) {
     if (confirm('Are you sure you want to delete this campaign?')) {
       const campaigns = JSON.parse(localStorage.getItem('email_campaigns') || '[]');
-      const filteredCampaigns = campaigns.filter(campaign => campaign.id !== id);
+      const filteredCampaigns = campaigns.filter((campaign: any) => campaign.id !== id);
       
       localStorage.setItem('email_campaigns', JSON.stringify(filteredCampaigns));
       showImportStatus('Campaign deleted successfully!', 'success');
@@ -2718,9 +2740,9 @@ import Layout from '~/layouts/AdminLayout.astro';
   }
 
   // Edit template
-  function editTemplate(id) {
+  function editTemplate(id: any) {
     const templates = JSON.parse(localStorage.getItem('email_templates') || '[]');
-    const template = templates.find(t => t.id === id);
+    const template = templates.find((t: any) => t.id === id);
     
     if (!template) {
       alert('Template not found');
@@ -2764,10 +2786,15 @@ import Layout from '~/layouts/AdminLayout.astro';
   }
 
   // Update template
-  function updateTemplate(id) {
-    const nameInput = document.getElementById('edit-template-name');
-    const descriptionTextarea = document.getElementById('edit-template-description');
-    const contentTextarea = document.getElementById('edit-template-content');
+  function updateTemplate(id: any) {
+    const nameInput = document.getElementById('edit-template-name') as HTMLInputElement;
+    const descriptionTextarea = document.getElementById('edit-template-description') as HTMLTextAreaElement;
+    const contentTextarea = document.getElementById('edit-template-content') as HTMLTextAreaElement;
+
+    if (!nameInput || !descriptionTextarea || !contentTextarea) {
+      alert('Template form elements not found');
+      return;
+    }
 
     const name = nameInput.value;
     const description = descriptionTextarea.value;
@@ -2779,7 +2806,7 @@ import Layout from '~/layouts/AdminLayout.astro';
     }
     
     const templates = JSON.parse(localStorage.getItem('email_templates') || '[]');
-    const templateIndex = templates.findIndex(t => t.id === id);
+    const templateIndex = templates.findIndex((t: any) => t.id === id);
     
     if (templateIndex !== -1) {
       templates[templateIndex] = {
@@ -2799,10 +2826,10 @@ import Layout from '~/layouts/AdminLayout.astro';
   }
 
   // Delete template
-  function deleteTemplate(id) {
+  function deleteTemplate(id: any) {
     if (confirm('Are you sure you want to delete this template?')) {
       const templates = JSON.parse(localStorage.getItem('email_templates') || '[]');
-      const filteredTemplates = templates.filter(template => template.id !== id);
+      const filteredTemplates = templates.filter((template: any) => template.id !== id);
       
       localStorage.setItem('email_templates', JSON.stringify(filteredTemplates));
       showImportStatus('Template deleted successfully!', 'success');
@@ -2812,7 +2839,10 @@ import Layout from '~/layouts/AdminLayout.astro';
 
   // Close modal
   function closeModal() {
-    document.getElementById('modal-container').innerHTML = '';
+    const modalContainer = document.getElementById('modal-container');
+    if (modalContainer) {
+      modalContainer.innerHTML = '';
+    }
   }
 
   // Add escape key functionality to modals
