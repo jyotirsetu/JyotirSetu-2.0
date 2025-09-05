@@ -1465,7 +1465,25 @@ import Layout from '~/layouts/AdminLayout.astro';
   function loadCampaigns() {
     const campaigns = JSON.parse(localStorage.getItem('email_campaigns') || '[]');
     console.log('📧 Loading campaigns:', campaigns);
+    console.log('📧 Campaigns count:', campaigns.length);
+    console.log('📧 Campaigns data:', JSON.stringify(campaigns, null, 2));
     displayCampaigns(campaigns);
+  }
+
+  // Force reload campaigns (for debugging)
+  function forceReloadCampaigns() {
+    console.log('📧 Force reloading campaigns...');
+    const campaigns = JSON.parse(localStorage.getItem('email_campaigns') || '[]');
+    console.log('📧 Found campaigns in localStorage:', campaigns);
+    console.log('📧 Campaigns count:', campaigns.length);
+    
+    // Switch to campaigns tab first
+    switchTab('campaigns');
+    
+    // Then load campaigns
+    setTimeout(() => {
+      loadCampaigns();
+    }, 100);
   }
 
   // View campaign details
@@ -1584,6 +1602,13 @@ import Layout from '~/layouts/AdminLayout.astro';
   function displayCampaigns(campaigns) {
     const container = document.getElementById('campaigns-list');
     console.log('📧 Displaying campaigns:', campaigns, 'Container:', container);
+    console.log('📧 Container exists:', !!container);
+    console.log('📧 Campaigns length:', campaigns ? campaigns.length : 'null');
+    
+    if (!container) {
+      console.error('📧 Campaigns container not found!');
+      return;
+    }
     
     if (!campaigns || campaigns.length === 0) {
       container.innerHTML = `
@@ -2218,6 +2243,8 @@ import Layout from '~/layouts/AdminLayout.astro';
     });
     
     localStorage.setItem('email_campaigns', JSON.stringify(campaigns));
+    console.log('📧 Campaign saved to localStorage:', campaigns);
+    console.log('📧 Total campaigns now:', campaigns.length);
     closeModal();
     
     // Send real emails if Resend is configured
@@ -2231,8 +2258,10 @@ import Layout from '~/layouts/AdminLayout.astro';
       }, 1000);
     }
     
+    console.log('📧 Calling loadCampaigns() after campaign creation...');
     loadCampaigns();
     updateStats();
+    console.log('📧 Campaign creation completed');
   }
 
   // Send campaign emails to multiple recipients
@@ -2683,6 +2712,7 @@ import Layout from '~/layouts/AdminLayout.astro';
   window.downloadCampaignReport = downloadCampaignReport;
   window.generateAnalyticsReport = generateAnalyticsReport;
   window.downloadSubscriberReport = downloadSubscriberReport;
+  window.forceReloadCampaigns = forceReloadCampaigns;
 
   // Initialize page
   document.addEventListener('DOMContentLoaded', async function() {
