@@ -1546,7 +1546,7 @@ import Layout from '~/layouts/AdminLayout.astro';
               <div class="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
                 <h4 class="font-semibold text-gray-900 dark:text-white mb-3">🎯 Targeting</h4>
                 <div class="space-y-2 text-sm">
-                  <div><strong>Recipient Type:</strong> ${campaign.recipientType === 'all' ? 'All Subscribers' : campaign.recipientType.replace('_', ' ')}</div>
+                  <div><strong>Recipient Type:</strong> ${campaign.recipientType === 'all' ? 'All Subscribers' : (campaign.recipientType || 'All').replace('_', ' ')}</div>
                   ${campaign.selectedTags && campaign.selectedTags.length > 0 ? 
                     `<div><strong>Tags:</strong> ${campaign.selectedTags.join(', ')}</div>` : 
                     '<div><strong>Tags:</strong> All tags</div>'
@@ -1665,7 +1665,7 @@ import Layout from '~/layouts/AdminLayout.astro';
             <div class="text-xs text-gray-500 dark:text-gray-400">Recipients</div>
           </div>
           <div class="bg-gray-50 dark:bg-slate-700 rounded-xl p-3 text-center">
-            <div class="text-xl font-bold text-gray-900 dark:text-white">${campaign.recipientType === 'all' ? 'All' : campaign.recipientType.replace('_', ' ')}</div>
+            <div class="text-xl font-bold text-gray-900 dark:text-white">${campaign.recipientType === 'all' ? 'All' : (campaign.recipientType || 'All').replace('_', ' ')}</div>
             <div class="text-xs text-gray-500 dark:text-gray-400">Target</div>
           </div>
         </div>
