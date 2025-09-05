@@ -214,7 +214,7 @@ import Layout from '~/layouts/PageLayout.astro';
 </div>
 
 <!-- WhatsApp Message Modal -->
-<div id="whatsapp-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[99999]">
+<div id="whatsapp-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-[99999]" style="display: none;">
   <div class="bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
     <!-- Header -->
     <div class="flex justify-between items-center p-6 border-b border-purple-200 dark:border-purple-700">
@@ -275,33 +275,51 @@ import Layout from '~/layouts/PageLayout.astro';
 
 <script>
 // Type definitions for better TypeScript support
+interface ServiceDetails {
+  [key: string]: string | number | boolean | undefined;
+}
+
 type Appointment = {
   id: string;
   name: string;
   phone: string;
   email?: string;
-  service_details?: any;
+  service_details?: ServiceDetails | string;
   status: string;
   created_at?: string;
-  [key: string]: any;
+  service?: string;
+  date?: string;
+  time?: string;
+  preferred_date?: string;
+  preferred_time?: string;
+  consultation_method?: string;
+  message?: string;
+  [key: string]: string | number | boolean | ServiceDetails | undefined;
 };
 
 // Extend Window interface for global properties
 declare global {
   interface Window {
-    supabase: any;
-    supabaseClient: any;
+    supabase: {
+      createClient: (url: string, key: string) => unknown;
+    };
+    supabaseClient: unknown;
+    sendWhatsAppMessage: (appointmentId: string) => void;
+    toggleAppointmentSelection: (appointmentId: string) => void;
+    updateAppointmentStatus: (appointmentId: string, newStatus: string) => void;
+    getStatusColor: (status: string) => string;
+    currentWhatsAppAppointmentId?: string;
   }
 }
 
 // Load Supabase from CDN
-let supabase: any;
+let supabase: unknown;
 let appointments: Appointment[] = [];
-let selectedAppointments = new Set<string>();
+const selectedAppointments = new Set<string>();
 
 // Load Supabase from CDN if not available
 function loadSupabaseFromCDN() {
-  return new Promise((resolve, reject) => {
+  return new Promise<void>((resolve, reject) => {
     if (typeof window.supabase !== 'undefined') {
       resolve();
       return;
@@ -331,7 +349,6 @@ function initSupabase() {
       return false;
     }
     
-    // @ts-ignore
     supabase = window.supabase.createClient(
       'https://czbypbrrxxjcjdfjxczv.supabase.co',
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN6YnlwYnJyeHhqY2pkZmp4Y3p2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY5MjU2NDcsImV4cCI6MjA3MjUwMTY0N30.SQ-eabMNo5RBy8N0MHWDmlxVH7Tmh-EGykI0Qt5wDjg'
@@ -352,7 +369,7 @@ async function initSupabaseWithRetry() {
   // First try to load from CDN if not available
   try {
     await loadSupabaseFromCDN();
-  } catch (error) {
+  } catch {
     console.warn('CDN loading failed, continuing with existing library...');
   }
   
@@ -506,10 +523,15 @@ function updateStats() {
   const completedCount = appointments.filter(apt => apt.status === 'completed').length;
   const cancelledCount = appointments.filter(apt => apt.status === 'cancelled').length;
 
-  document.getElementById('pending-count').textContent = pendingCount;
-  document.getElementById('confirmed-count').textContent = confirmedCount;
-  document.getElementById('completed-count').textContent = completedCount;
-  document.getElementById('cancelled-count').textContent = cancelledCount;
+  const pendingCountEl = document.getElementById('pending-count');
+  const confirmedCountEl = document.getElementById('confirmed-count');
+  const completedCountEl = document.getElementById('completed-count');
+  const cancelledCountEl = document.getElementById('cancelled-count');
+  
+  if (pendingCountEl) pendingCountEl.textContent = pendingCount.toString();
+  if (confirmedCountEl) confirmedCountEl.textContent = confirmedCount.toString();
+  if (completedCountEl) completedCountEl.textContent = completedCount.toString();
+  if (cancelledCountEl) cancelledCountEl.textContent = cancelledCount.toString();
 }
 
 // Render appointments in the table
@@ -536,7 +558,7 @@ function renderAppointments() {
     if (typeof appointment.service_details === 'string') {
       try {
         serviceDetails = JSON.parse(appointment.service_details);
-      } catch (e) {
+      } catch {
         serviceDetails = {};
       }
     } else if (appointment.service_details) {
@@ -699,30 +721,32 @@ function toggleAppointmentSelection(appointmentId: string) {
   
   const selectedCount = document.getElementById('selected-count');
   if (selectedCount) {
-    selectedCount.textContent = selectedAppointments.size;
+    selectedCount.textContent = selectedAppointments.size.toString();
   }
 }
 
 // Select all appointments
 function selectAllAppointments() {
-  const selectAllCheckbox = document.getElementById('select-all-checkbox');
+  const selectAllCheckbox = document.getElementById('select-all-checkbox') as HTMLInputElement;
   const appointmentCheckboxes = document.querySelectorAll('.appointment-checkbox');
   
-  if (selectAllCheckbox.checked) {
+  if (selectAllCheckbox && selectAllCheckbox.checked) {
     appointmentCheckboxes.forEach(checkbox => {
-      checkbox.checked = true;
-      selectedAppointments.add(parseInt(checkbox.value));
+      const input = checkbox as HTMLInputElement;
+      input.checked = true;
+      selectedAppointments.add(input.value);
     });
   } else {
     appointmentCheckboxes.forEach(checkbox => {
-      checkbox.checked = false;
+      const input = checkbox as HTMLInputElement;
+      input.checked = false;
     });
     selectedAppointments.clear();
   }
   
   const selectedCount = document.getElementById('selected-count');
   if (selectedCount) {
-    selectedCount.textContent = selectedAppointments.size;
+    selectedCount.textContent = selectedAppointments.size.toString();
   }
 }
 
@@ -733,14 +757,20 @@ function sendWhatsAppMessage(appointmentId: string) {
 
   // Show WhatsApp modal
   const modal = document.getElementById('whatsapp-modal');
-  modal.classList.remove('hidden');
+  if (modal) {
+    modal.style.display = 'flex';
+  }
   
   // Pre-fill message based on status
-  const messageTemplate = document.getElementById('message-template-select');
-  const messageContent = document.getElementById('whatsapp-message-content');
+  const messageTemplate = document.getElementById('message-template-select') as HTMLSelectElement;
+  const messageContent = document.getElementById('whatsapp-message-content') as HTMLTextAreaElement;
   
-  messageTemplate.value = appointment.status || 'pending';
-  messageContent.value = generateWhatsAppMessage(appointment, appointment.status || 'pending');
+  if (messageTemplate) {
+    messageTemplate.value = appointment.status || 'pending';
+  }
+  if (messageContent) {
+    messageContent.value = generateWhatsAppMessage(appointment, appointment.status || 'pending');
+  }
   
   // Store the current appointment ID for sending
   window.currentWhatsAppAppointmentId = appointmentId;
@@ -756,7 +786,7 @@ function generateWhatsAppMessage(appointment: Appointment, status: string): stri
     if (typeof appointment.service_details === 'string') {
       try {
         serviceDetails = JSON.parse(appointment.service_details);
-      } catch (e) {
+      } catch {
         serviceDetails = {};
       }
     } else {
@@ -790,34 +820,6 @@ function generateWhatsAppMessage(appointment: Appointment, status: string): stri
   }
 }
 
-// Send WhatsApp message to specific appointment
-function sendWhatsAppToAppointment(appointmentId: string, message: string) {
-  const appointment = appointments.find(apt => apt.id === appointmentId);
-  if (!appointment || !appointment.phone) {
-    alert('No phone number found for this appointment');
-    return;
-  }
-  
-  // Clean phone number and add +91 prefix for WhatsApp
-  let phoneNumber = appointment.phone.replace(/\D/g, '');
-  
-  // If number is 10 digits, add +91 prefix
-  if (phoneNumber.length === 10) {
-    phoneNumber = '91' + phoneNumber;
-  } else if (phoneNumber.length === 12 && phoneNumber.startsWith('91')) {
-    // Already has 91 prefix
-    phoneNumber = phoneNumber;
-  } else if (phoneNumber.length === 11 && phoneNumber.startsWith('91')) {
-    // Already has 91 prefix
-    phoneNumber = phoneNumber;
-  } else if (phoneNumber.length < 10) {
-    alert('Invalid phone number format. Please ensure it has 10 digits.');
-    return;
-  }
-  
-  const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
-  window.open(whatsappUrl, '_blank');
-}
 
 // Export to CSV
 function exportToCSV() {
@@ -902,7 +904,7 @@ function exportToCSV() {
         if (typeof apt.service_details === 'string') {
           try {
             serviceDetails = JSON.parse(apt.service_details);
-          } catch (e) {
+          } catch {
             serviceDetails = {};
           }
         } else {
@@ -910,11 +912,6 @@ function exportToCSV() {
         }
       }
 
-      // Field mapping for backward compatibility
-      const fieldMapping = {
-        'focusArea': 'palmistryFocusArea', // Map old focusArea to new palmistryFocusArea
-        'numerologyFocusArea': 'numerologyFocusArea' // Keep new field name
-      };
 
       // Base appointment data
       const baseData = [
@@ -987,13 +984,16 @@ function setupEventListeners() {
       }
       
       // Show WhatsApp modal
-      document.getElementById('whatsapp-modal').classList.remove('hidden');
+      const modal = document.getElementById('whatsapp-modal');
+      if (modal) {
+        modal.style.display = 'flex';
+      }
       
       // Update modal content for bulk messaging
       updateBulkWhatsAppModal();
       
       // Pre-fill message with template if appointments are selected
-      const messageContent = document.getElementById('whatsapp-message-content');
+      const messageContent = document.getElementById('whatsapp-message-content') as HTMLTextAreaElement;
       if (messageContent) {
         messageContent.value = `Hello! This is JyotirSetu. We have an update regarding your appointment.`;
       }
@@ -1044,7 +1044,10 @@ function setupEventListeners() {
   const closeWhatsAppModalBtn = document.getElementById('close-whatsapp-modal-btn');
   if (closeWhatsAppModalBtn) {
     closeWhatsAppModalBtn.addEventListener('click', () => {
-      document.getElementById('whatsapp-modal').classList.add('hidden');
+      const modal = document.getElementById('whatsapp-modal');
+      if (modal) {
+        modal.style.display = 'none';
+      }
     });
     console.log('WhatsApp modal close button event listener added');
   }
@@ -1060,8 +1063,8 @@ function setupEventListeners() {
       }
       
       // Get message content
-      const messageContent = document.getElementById('whatsapp-message-content');
-      const message = messageContent.value.trim();
+      const messageContent = document.getElementById('whatsapp-message-content') as HTMLTextAreaElement;
+      const message = messageContent ? messageContent.value.trim() : '';
       
       if (!message) {
         alert('Please enter a message to send');
@@ -1078,8 +1081,8 @@ function setupEventListeners() {
   const previewMessageBtn = document.getElementById('preview-message-btn');
   if (previewMessageBtn) {
     previewMessageBtn.addEventListener('click', () => {
-      const messageContent = document.getElementById('whatsapp-message-content');
-      const message = messageContent.value.trim();
+      const messageContent = document.getElementById('whatsapp-message-content') as HTMLTextAreaElement;
+      const message = messageContent ? messageContent.value.trim() : '';
       
       if (!message) {
         alert('Please enter a message to preview');
@@ -1088,7 +1091,8 @@ function setupEventListeners() {
       
       // Show preview in a new window
       const previewWindow = window.open('', '_blank', 'width=400,height=600');
-      previewWindow.document.write(`
+      if (previewWindow) {
+        previewWindow.document.write(`
         <html>
           <head>
             <title>WhatsApp Message Preview</title>
@@ -1106,21 +1110,24 @@ function setupEventListeners() {
             </div>
           </body>
         </html>
-      `);
+        `);
+      }
     });
     console.log('Preview message button event listener added');
   }
 
   // Message template change
-  const messageTemplateSelect = document.getElementById('message-template-select');
+  const messageTemplateSelect = document.getElementById('message-template-select') as HTMLSelectElement;
   if (messageTemplateSelect) {
     messageTemplateSelect.addEventListener('change', function() {
       const selectedTemplate = this.value;
       if (selectedTemplate && window.currentWhatsAppAppointmentId) {
         const appointment = appointments.find(apt => apt.id === window.currentWhatsAppAppointmentId);
         if (appointment) {
-          const messageContent = document.getElementById('whatsapp-message-content');
-          messageContent.value = generateWhatsAppMessage(appointment, selectedTemplate);
+          const messageContent = document.getElementById('whatsapp-message-content') as HTMLTextAreaElement;
+          if (messageContent) {
+            messageContent.value = generateWhatsAppMessage(appointment, selectedTemplate);
+          }
         }
       }
     });
@@ -1149,10 +1156,15 @@ function setupEventListeners() {
 
 // Apply filters
 function applyFilters() {
-  const statusFilter = document.getElementById('status-filter').value;
-  const serviceFilter = document.getElementById('service-filter').value;
-  const dateFromFilter = document.getElementById('date-from-filter').value;
-  const dateToFilter = document.getElementById('date-to-filter').value;
+  const statusFilterEl = document.getElementById('status-filter') as HTMLSelectElement;
+  const serviceFilterEl = document.getElementById('service-filter') as HTMLSelectElement;
+  const dateFromFilterEl = document.getElementById('date-from-filter') as HTMLInputElement;
+  const dateToFilterEl = document.getElementById('date-to-filter') as HTMLInputElement;
+  
+  const statusFilter = statusFilterEl ? statusFilterEl.value : '';
+  const serviceFilter = serviceFilterEl ? serviceFilterEl.value : '';
+  const dateFromFilter = dateFromFilterEl ? dateFromFilterEl.value : '';
+  const dateToFilter = dateToFilterEl ? dateToFilterEl.value : '';
 
   let filteredAppointments = [...appointments];
 
@@ -1165,11 +1177,11 @@ function applyFilters() {
   }
 
   if (dateFromFilter) {
-    filteredAppointments = filteredAppointments.filter(apt => apt.date >= dateFromFilter);
+    filteredAppointments = filteredAppointments.filter(apt => apt.date && apt.date >= dateFromFilter);
   }
 
   if (dateToFilter) {
-    filteredAppointments = filteredAppointments.filter(apt => apt.date <= dateToFilter);
+    filteredAppointments = filteredAppointments.filter(apt => apt.date && apt.date <= dateToFilter);
   }
 
   // Render filtered appointments
@@ -1197,7 +1209,7 @@ function applyFilters() {
 // Update bulk WhatsApp modal content
 function updateBulkWhatsAppModal() {
   const selectedIds = Array.from(selectedAppointments);
-  const selectedAppointmentsList = selectedIds.map(id => appointments.find(apt => apt.id === id)).filter(Boolean);
+  const selectedAppointmentsList = selectedIds.map(id => appointments.find(apt => apt.id === id)).filter((apt): apt is Appointment => apt !== undefined);
   
   // Update modal title and description
   const modalTitle = document.querySelector('#whatsapp-modal h2');
@@ -1233,9 +1245,9 @@ function updateBulkWhatsAppModal() {
 }
 
 // Send bulk WhatsApp messages with progress tracking
-async function sendBulkWhatsAppMessages(message) {
+async function sendBulkWhatsAppMessages(message: string) {
   const selectedIds = Array.from(selectedAppointments);
-  const selectedAppointmentsList = selectedIds.map(id => appointments.find(apt => apt.id === id)).filter(Boolean);
+  const selectedAppointmentsList = selectedIds.map(id => appointments.find(apt => apt.id === id)).filter((apt): apt is Appointment => apt !== undefined);
   
   if (selectedAppointmentsList.length === 0) {
     alert('No appointments selected');
@@ -1243,7 +1255,7 @@ async function sendBulkWhatsAppMessages(message) {
   }
   
   // Update send button to show progress
-  const sendBtn = document.getElementById('send-whatsapp-btn');
+  const sendBtn = document.getElementById('send-whatsapp-btn') as HTMLButtonElement;
   if (!sendBtn) return;
   
   const originalText = sendBtn.innerHTML;
@@ -1255,7 +1267,7 @@ async function sendBulkWhatsAppMessages(message) {
   
   // Define types for better TypeScript support
   type AppointmentResult = {
-    appointment: { name: string; phone: string; [key: string]: any };
+    appointment: Appointment;
     status: string;
     error?: string;
   };
@@ -1329,7 +1341,10 @@ async function sendBulkWhatsAppMessages(message) {
   }
   
   // Close modal
-  document.getElementById('whatsapp-modal').classList.add('hidden');
+  const modal = document.getElementById('whatsapp-modal');
+  if (modal) {
+    modal.style.display = 'none';
+  }
 }
 
 // Send single WhatsApp message
@@ -1347,11 +1362,9 @@ function sendSingleWhatsAppMessage(appointment: Appointment, message: string): P
     if (phoneNumber.length === 10) {
       phoneNumber = '91' + phoneNumber;
     } else if (phoneNumber.length === 12 && phoneNumber.startsWith('91')) {
-      // Already has 91 prefix
-      phoneNumber = phoneNumber;
+      // Already has 91 prefix - keep as is
     } else if (phoneNumber.length === 11 && phoneNumber.startsWith('91')) {
-      // Already has 91 prefix
-      phoneNumber = phoneNumber;
+      // Already has 91 prefix - keep as is
     } else if (phoneNumber.length < 10) {
       reject(new Error('Invalid phone number format'));
       return;
@@ -1382,7 +1395,7 @@ function sendSingleWhatsAppMessage(appointment: Appointment, message: string): P
           setTimeout(() => {
             resolve();
           }, 2000);
-        } catch (fallbackError) {
+        } catch {
           reject(new Error(`Failed to open WhatsApp: Popup blocked and fallback failed`));
         }
       }
@@ -1393,7 +1406,7 @@ function sendSingleWhatsAppMessage(appointment: Appointment, message: string): P
 }
 
 // Show bulk WhatsApp results
-function showBulkWhatsAppResults(results: AppointmentResult[], successCount: number, failedCount: number) {
+function showBulkWhatsAppResults(results: Array<{appointment: Appointment; status: string; error?: string}>, successCount: number, failedCount: number) {
   let message = `WhatsApp messages sent successfully!\n\n`;
   message += `✅ Successfully sent: ${successCount}\n`;
   
