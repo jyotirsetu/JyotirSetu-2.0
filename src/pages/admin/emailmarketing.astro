@@ -312,23 +312,36 @@ import Layout from '~/layouts/AdminLayout.astro';
 
         <!-- Campaigns Tab -->
         <div id="campaigns-content" class="tab-content hidden">
-          <div class="flex justify-between items-center mb-6">
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Email Campaigns</h3>
+          <!-- Campaign Header -->
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+            <div>
+              <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">📧 Email Campaigns</h3>
+              <p class="text-gray-600 dark:text-gray-400">Create and manage your email marketing campaigns</p>
+            </div>
             <button
               id="create-campaign-btn"
-              class="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md"
+              class="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center gap-2"
               onclick="showCreateCampaign()"
             >
-              ➕ Create Campaign
+              <span class="text-lg">➕</span>
+              Create Campaign
             </button>
           </div>
 
-          <!-- Campaigns List -->
-          <div id="campaigns-list" class="space-y-4">
-            <div class="text-center py-12 text-gray-500 dark:text-gray-400">
-              <span class="text-4xl mb-4 block">📧</span>
-              <p class="text-lg font-medium mb-2">No campaigns yet</p>
-              <p class="text-sm">Create your first email campaign to get started</p>
+          <!-- Campaigns Grid -->
+          <div id="campaigns-list" class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+            <div class="text-center py-16 text-gray-500 dark:text-gray-400 col-span-full">
+              <div class="bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-2xl p-12 border-2 border-dashed border-purple-200 dark:border-purple-800">
+                <span class="text-6xl mb-6 block">📧</span>
+                <h4 class="text-xl font-semibold mb-3 text-gray-700 dark:text-gray-300">No campaigns yet</h4>
+                <p class="text-gray-500 dark:text-gray-400 mb-6">Create your first email campaign to start engaging with your subscribers</p>
+                <button
+                  onclick="showCreateCampaign()"
+                  class="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                >
+                  Create Your First Campaign
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -358,12 +371,39 @@ import Layout from '~/layouts/AdminLayout.astro';
 
         <!-- Analytics Tab -->
         <div id="analytics-content" class="tab-content hidden">
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-6">Email Marketing Analytics</h3>
+          <!-- Analytics Header -->
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+            <div>
+              <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">📊 Analytics & Reports</h3>
+              <p class="text-gray-600 dark:text-gray-400">Track performance and download detailed reports</p>
+            </div>
+            <div class="flex gap-3">
+              <button
+                onclick="downloadCampaignReport()"
+                class="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center gap-2"
+              >
+                <span class="text-lg">📥</span>
+                Download Report
+              </button>
+              <button
+                onclick="generateAnalyticsReport()"
+                class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center gap-2"
+              >
+                <span class="text-lg">📊</span>
+                Generate Report
+              </button>
+            </div>
+          </div>
           
           <!-- Analytics Charts -->
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <div class="bg-white dark:bg-slate-800 rounded-lg shadow p-6">
-              <h4 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Campaign Performance</h4>
+            <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 p-6">
+              <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 bg-gradient-to-br from-green-100 to-blue-100 dark:from-green-900 dark:to-blue-900 rounded-xl flex items-center justify-center">
+                  <span class="text-green-600 dark:text-green-400 text-lg">📊</span>
+                </div>
+                <h4 class="text-lg font-bold text-gray-900 dark:text-white">Campaign Performance</h4>
+              </div>
               <div class="h-64 flex items-center justify-center text-gray-500 dark:text-gray-400">
                 <div class="text-center">
                   <span class="text-4xl mb-2 block">📊</span>
@@ -372,13 +412,81 @@ import Layout from '~/layouts/AdminLayout.astro';
               </div>
             </div>
             
-            <div class="bg-white dark:bg-slate-800 rounded-lg shadow p-6">
-              <h4 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Subscriber Growth</h4>
+            <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 p-6">
+              <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900 dark:to-pink-900 rounded-xl flex items-center justify-center">
+                  <span class="text-purple-600 dark:text-purple-400 text-lg">📈</span>
+                </div>
+                <h4 class="text-lg font-bold text-gray-900 dark:text-white">Subscriber Growth</h4>
+              </div>
               <div class="h-64 flex items-center justify-center text-gray-500 dark:text-gray-400">
                 <div class="text-center">
                   <span class="text-4xl mb-2 block">📈</span>
                   <p>No data available yet</p>
                 </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Reports Section -->
+          <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 p-6">
+            <div class="flex items-center gap-3 mb-6">
+              <div class="w-10 h-10 bg-gradient-to-br from-orange-100 to-red-100 dark:from-orange-900 dark:to-red-900 rounded-xl flex items-center justify-center">
+                <span class="text-orange-600 dark:text-orange-400 text-lg">📋</span>
+              </div>
+              <h4 class="text-lg font-bold text-gray-900 dark:text-white">Campaign Reports</h4>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <!-- Campaign Summary Report -->
+              <div class="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-4 border border-blue-200 dark:border-blue-800">
+                <div class="flex items-center gap-3 mb-3">
+                  <div class="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
+                    <span class="text-blue-600 dark:text-blue-400 text-sm">📊</span>
+                  </div>
+                  <h5 class="font-semibold text-gray-900 dark:text-white text-sm">Campaign Summary</h5>
+                </div>
+                <p class="text-xs text-gray-600 dark:text-gray-400 mb-3">Complete overview of all campaigns</p>
+                <button
+                  onclick="downloadCampaignSummary()"
+                  class="w-full bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-xs font-medium transition-colors duration-200"
+                >
+                  Download CSV
+                </button>
+              </div>
+
+              <!-- Performance Report -->
+              <div class="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl p-4 border border-green-200 dark:border-green-800">
+                <div class="flex items-center gap-3 mb-3">
+                  <div class="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center">
+                    <span class="text-green-600 dark:text-green-400 text-sm">📈</span>
+                  </div>
+                  <h5 class="font-semibold text-gray-900 dark:text-white text-sm">Performance Report</h5>
+                </div>
+                <p class="text-xs text-gray-600 dark:text-gray-400 mb-3">Open rates, click rates, and engagement</p>
+                <button
+                  onclick="downloadPerformanceReport()"
+                  class="w-full bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg text-xs font-medium transition-colors duration-200"
+                >
+                  Download CSV
+                </button>
+              </div>
+
+              <!-- Subscriber Report -->
+              <div class="bg-gradient-to-br from-purple-50 to-violet-50 dark:from-purple-900/20 dark:to-violet-900/20 rounded-xl p-4 border border-purple-200 dark:border-purple-800">
+                <div class="flex items-center gap-3 mb-3">
+                  <div class="w-8 h-8 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center">
+                    <span class="text-purple-600 dark:text-purple-400 text-sm">👥</span>
+                  </div>
+                  <h5 class="font-semibold text-gray-900 dark:text-white text-sm">Subscriber Report</h5>
+                </div>
+                <p class="text-xs text-gray-600 dark:text-gray-400 mb-3">Detailed subscriber analytics</p>
+                <button
+                  onclick="downloadSubscriberReport()"
+                  class="w-full bg-purple-500 hover:bg-purple-600 text-white px-3 py-2 rounded-lg text-xs font-medium transition-colors duration-200"
+                >
+                  Download CSV
+                </button>
               </div>
             </div>
           </div>
@@ -466,6 +574,259 @@ import Layout from '~/layouts/AdminLayout.astro';
     } catch (error) {
       console.error('💥 Error cleaning up subscribers:', error);
       showImportStatus(`❌ Failed to cleanup subscribers: ${error.message}`, 'error');
+    }
+  }
+
+  // Download comprehensive campaign report
+  function downloadCampaignReport() {
+    try {
+      const campaigns = JSON.parse(localStorage.getItem('email_campaigns') || '[]');
+      const subscribers = JSON.parse(localStorage.getItem('email_subscribers') || '[]');
+      
+      if (campaigns.length === 0) {
+        showImportStatus('❌ No campaigns found to generate report', 'error');
+        return;
+      }
+
+      // Generate comprehensive report data
+      const reportData = campaigns.map(campaign => {
+        const openRate = campaign.recipients > 0 ? Math.round((campaign.opens || 0) / campaign.recipients * 100) : 0;
+        const clickRate = campaign.recipients > 0 ? Math.round((campaign.clicks || 0) / campaign.recipients * 100) : 0;
+        
+        return {
+          'Campaign ID': campaign.id,
+          'Subject': campaign.subject,
+          'Description': campaign.description || '',
+          'Status': campaign.status,
+          'Recipients': campaign.recipients,
+          'Recipient Type': campaign.recipientType,
+          'Selected Tags': campaign.selectedTags ? campaign.selectedTags.join(', ') : '',
+          'Created Date': new Date(campaign.created_at).toLocaleString(),
+          'Sent Date': campaign.sent_at ? new Date(campaign.sent_at).toLocaleString() : '',
+          'Opens': campaign.opens || 0,
+          'Clicks': campaign.clicks || 0,
+          'Open Rate (%)': openRate,
+          'Click Rate (%)': clickRate
+        };
+      });
+
+      // Convert to CSV
+      const csvContent = convertToCSV(reportData);
+      downloadCSV(csvContent, `campaign-report-${new Date().toISOString().split('T')[0]}.csv`);
+      
+      showImportStatus('✅ Campaign report downloaded successfully!', 'success');
+      
+    } catch (error) {
+      console.error('💥 Error generating campaign report:', error);
+      showImportStatus(`❌ Failed to generate report: ${error.message}`, 'error');
+    }
+  }
+
+  // Generate analytics report
+  function generateAnalyticsReport() {
+    try {
+      const campaigns = JSON.parse(localStorage.getItem('email_campaigns') || '[]');
+      const subscribers = JSON.parse(localStorage.getItem('email_subscribers') || '[]');
+      
+      // Calculate analytics
+      const totalCampaigns = campaigns.length;
+      const sentCampaigns = campaigns.filter(c => c.status === 'sent').length;
+      const totalRecipients = campaigns.reduce((sum, c) => sum + (c.recipients || 0), 0);
+      const totalOpens = campaigns.reduce((sum, c) => sum + (c.opens || 0), 0);
+      const totalClicks = campaigns.reduce((sum, c) => sum + (c.clicks || 0), 0);
+      const avgOpenRate = totalRecipients > 0 ? Math.round((totalOpens / totalRecipients) * 100) : 0;
+      const avgClickRate = totalRecipients > 0 ? Math.round((totalClicks / totalRecipients) * 100) : 0;
+      
+      const analyticsData = [
+        {
+          'Metric': 'Total Campaigns',
+          'Value': totalCampaigns,
+          'Description': 'Total number of campaigns created'
+        },
+        {
+          'Metric': 'Sent Campaigns',
+          'Value': sentCampaigns,
+          'Description': 'Number of campaigns actually sent'
+        },
+        {
+          'Metric': 'Total Subscribers',
+          'Value': subscribers.length,
+          'Description': 'Total number of email subscribers'
+        },
+        {
+          'Metric': 'Total Recipients',
+          'Value': totalRecipients,
+          'Description': 'Total emails sent across all campaigns'
+        },
+        {
+          'Metric': 'Total Opens',
+          'Value': totalOpens,
+          'Description': 'Total email opens across all campaigns'
+        },
+        {
+          'Metric': 'Total Clicks',
+          'Value': totalClicks,
+          'Description': 'Total link clicks across all campaigns'
+        },
+        {
+          'Metric': 'Average Open Rate (%)',
+          'Value': avgOpenRate,
+          'Description': 'Average open rate across all campaigns'
+        },
+        {
+          'Metric': 'Average Click Rate (%)',
+          'Value': avgClickRate,
+          'Description': 'Average click rate across all campaigns'
+        }
+      ];
+
+      const csvContent = convertToCSV(analyticsData);
+      downloadCSV(csvContent, `analytics-report-${new Date().toISOString().split('T')[0]}.csv`);
+      
+      showImportStatus('✅ Analytics report generated successfully!', 'success');
+      
+    } catch (error) {
+      console.error('💥 Error generating analytics report:', error);
+      showImportStatus(`❌ Failed to generate analytics report: ${error.message}`, 'error');
+    }
+  }
+
+  // Download campaign summary
+  function downloadCampaignSummary() {
+    try {
+      const campaigns = JSON.parse(localStorage.getItem('email_campaigns') || '[]');
+      
+      if (campaigns.length === 0) {
+        showImportStatus('❌ No campaigns found', 'error');
+        return;
+      }
+
+      const summaryData = campaigns.map(campaign => ({
+        'Subject': campaign.subject,
+        'Status': campaign.status,
+        'Recipients': campaign.recipients,
+        'Created': new Date(campaign.created_at).toLocaleDateString(),
+        'Sent': campaign.sent_at ? new Date(campaign.sent_at).toLocaleDateString() : 'Not sent'
+      }));
+
+      const csvContent = convertToCSV(summaryData);
+      downloadCSV(csvContent, `campaign-summary-${new Date().toISOString().split('T')[0]}.csv`);
+      
+      showImportStatus('✅ Campaign summary downloaded!', 'success');
+      
+    } catch (error) {
+      console.error('💥 Error downloading campaign summary:', error);
+      showImportStatus(`❌ Failed to download summary: ${error.message}`, 'error');
+    }
+  }
+
+  // Download performance report
+  function downloadPerformanceReport() {
+    try {
+      const campaigns = JSON.parse(localStorage.getItem('email_campaigns') || '[]');
+      const sentCampaigns = campaigns.filter(c => c.status === 'sent');
+      
+      if (sentCampaigns.length === 0) {
+        showImportStatus('❌ No sent campaigns found', 'error');
+        return;
+      }
+
+      const performanceData = sentCampaigns.map(campaign => {
+        const openRate = campaign.recipients > 0 ? Math.round((campaign.opens || 0) / campaign.recipients * 100) : 0;
+        const clickRate = campaign.recipients > 0 ? Math.round((campaign.clicks || 0) / campaign.recipients * 100) : 0;
+        
+        return {
+          'Campaign': campaign.subject,
+          'Recipients': campaign.recipients,
+          'Opens': campaign.opens || 0,
+          'Clicks': campaign.clicks || 0,
+          'Open Rate (%)': openRate,
+          'Click Rate (%)': clickRate,
+          'Sent Date': new Date(campaign.sent_at).toLocaleDateString()
+        };
+      });
+
+      const csvContent = convertToCSV(performanceData);
+      downloadCSV(csvContent, `performance-report-${new Date().toISOString().split('T')[0]}.csv`);
+      
+      showImportStatus('✅ Performance report downloaded!', 'success');
+      
+    } catch (error) {
+      console.error('💥 Error downloading performance report:', error);
+      showImportStatus(`❌ Failed to download performance report: ${error.message}`, 'error');
+    }
+  }
+
+  // Download subscriber report
+  function downloadSubscriberReport() {
+    try {
+      const subscribers = JSON.parse(localStorage.getItem('email_subscribers') || '[]');
+      
+      if (subscribers.length === 0) {
+        showImportStatus('❌ No subscribers found', 'error');
+        return;
+      }
+
+      const subscriberData = subscribers.map(subscriber => ({
+        'Name': subscriber.name || '',
+        'Email': subscriber.email,
+        'Source': subscriber.source,
+        'Service Interest': subscriber.serviceInterest || '',
+        'Tags': subscriber.tags ? subscriber.tags.join(', ') : '',
+        'Status': subscriber.status,
+        'Created Date': new Date(subscriber.created_at).toLocaleDateString()
+      }));
+
+      const csvContent = convertToCSV(subscriberData);
+      downloadCSV(csvContent, `subscriber-report-${new Date().toISOString().split('T')[0]}.csv`);
+      
+      showImportStatus('✅ Subscriber report downloaded!', 'success');
+      
+    } catch (error) {
+      console.error('💥 Error downloading subscriber report:', error);
+      showImportStatus(`❌ Failed to download subscriber report: ${error.message}`, 'error');
+    }
+  }
+
+  // Helper function to convert data to CSV
+  function convertToCSV(data) {
+    if (!data || data.length === 0) return '';
+    
+    const headers = Object.keys(data[0]);
+    const csvRows = [];
+    
+    // Add headers
+    csvRows.push(headers.join(','));
+    
+    // Add data rows
+    data.forEach(row => {
+      const values = headers.map(header => {
+        const value = row[header];
+        // Escape commas and quotes in values
+        if (typeof value === 'string' && (value.includes(',') || value.includes('"'))) {
+          return `"${value.replace(/"/g, '""')}"`;
+        }
+        return value;
+      });
+      csvRows.push(values.join(','));
+    });
+    
+    return csvRows.join('\n');
+  }
+
+  // Helper function to download CSV
+  function downloadCSV(csvContent, filename) {
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    
+    if (link.download !== undefined) {
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', filename);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }
   }
 
@@ -1294,48 +1655,99 @@ import Layout from '~/layouts/AdminLayout.astro';
     
     if (!campaigns || campaigns.length === 0) {
       container.innerHTML = `
-        <div class="text-center py-12 text-gray-500 dark:text-gray-400">
-          <span class="text-4xl mb-4 block">📧</span>
-          <p class="text-lg font-medium mb-2">No campaigns yet</p>
-          <p class="text-sm">Create your first email campaign to get started</p>
+        <div class="text-center py-16 text-gray-500 dark:text-gray-400 col-span-full">
+          <div class="bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-2xl p-12 border-2 border-dashed border-purple-200 dark:border-purple-800">
+            <span class="text-6xl mb-6 block">📧</span>
+            <h4 class="text-xl font-semibold mb-3 text-gray-700 dark:text-gray-300">No campaigns yet</h4>
+            <p class="text-gray-500 dark:text-gray-400 mb-6">Create your first email campaign to start engaging with your subscribers</p>
+            <button
+              onclick="showCreateCampaign()"
+              class="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+            >
+              Create Your First Campaign
+            </button>
+          </div>
         </div>
       `;
       return;
     }
 
     container.innerHTML = campaigns.map(campaign => `
-      <div class="bg-white dark:bg-slate-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
+      <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+        <!-- Campaign Header -->
         <div class="flex justify-between items-start mb-4">
-          <div>
-            <h4 class="text-lg font-semibold text-gray-900 dark:text-white">${campaign.subject}</h4>
-            <p class="text-sm text-gray-500 dark:text-gray-400">Created: ${new Date(campaign.created_at).toLocaleDateString()}</p>
+          <div class="flex-1">
+            <div class="flex items-center gap-3 mb-2">
+              <div class="w-10 h-10 bg-gradient-to-br from-purple-100 to-blue-100 dark:from-purple-900 dark:to-blue-900 rounded-xl flex items-center justify-center">
+                <span class="text-purple-600 dark:text-purple-400 text-lg">📧</span>
+              </div>
+              <div>
+                <h4 class="text-lg font-bold text-gray-900 dark:text-white line-clamp-2">${campaign.subject}</h4>
+                <p class="text-sm text-gray-500 dark:text-gray-400">${new Date(campaign.created_at).toLocaleDateString()}</p>
+              </div>
+            </div>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">${campaign.description || 'No description provided'}</p>
           </div>
-          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-            campaign.status === 'sent' 
-              ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
-              : campaign.status === 'draft'
-              ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-              : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
-          }">
-            ${campaign.status === 'sent' ? '✅ Sent' : campaign.status === 'draft' ? '📝 Draft' : '⏳ Scheduled'}
-          </span>
+          <div class="flex flex-col gap-2">
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
+              campaign.status === 'sent' 
+                ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
+                : campaign.status === 'draft'
+                ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+            }">
+              ${campaign.status === 'sent' ? '✅ Sent' : campaign.status === 'draft' ? '📝 Draft' : '⏳ Scheduled'}
+            </span>
+          </div>
         </div>
-        <p class="text-gray-600 dark:text-gray-400 mb-4">${campaign.description}</p>
-        <div class="flex justify-between items-center">
-          <div class="text-sm text-gray-500 dark:text-gray-400">
-            Recipients: ${campaign.recipients} | Opens: ${campaign.opens || 0} | Clicks: ${campaign.clicks || 0}
+        
+        <!-- Campaign Stats -->
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <div class="bg-gray-50 dark:bg-slate-700 rounded-xl p-3 text-center">
+            <div class="text-xl font-bold text-gray-900 dark:text-white">${campaign.recipients}</div>
+            <div class="text-xs text-gray-500 dark:text-gray-400">Recipients</div>
           </div>
-          <div class="flex space-x-2">
-            <button onclick="viewCampaignDetails(${campaign.id})" class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 text-sm">
-              👁️ View Details
-            </button>
-            <button onclick="editCampaign(${campaign.id})" class="text-purple-600 hover:text-purple-900 dark:text-purple-400 dark:hover:text-purple-300 text-sm">
-              ✏️ Edit
-            </button>
-            <button onclick="deleteCampaign(${campaign.id})" class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 text-sm">
-              🗑️ Delete
-            </button>
+          <div class="bg-gray-50 dark:bg-slate-700 rounded-xl p-3 text-center">
+            <div class="text-xl font-bold text-gray-900 dark:text-white">${campaign.recipientType === 'all' ? 'All' : campaign.recipientType.replace('_', ' ')}</div>
+            <div class="text-xs text-gray-500 dark:text-gray-400">Target</div>
           </div>
+        </div>
+        
+        ${campaign.status === 'sent' ? `
+          <!-- Performance Metrics -->
+          <div class="border-t border-gray-200 dark:border-gray-700 pt-4 mb-4">
+            <div class="grid grid-cols-3 gap-3 text-center">
+              <div class="bg-green-50 dark:bg-green-900/20 rounded-lg p-3">
+                <div class="text-lg font-bold text-green-600">${campaign.opens || 0}</div>
+                <div class="text-xs text-green-600 dark:text-green-400">Opens</div>
+              </div>
+              <div class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3">
+                <div class="text-lg font-bold text-blue-600">${campaign.clicks || 0}</div>
+                <div class="text-xs text-blue-600 dark:text-blue-400">Clicks</div>
+              </div>
+              <div class="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-3">
+                <div class="text-lg font-bold text-purple-600">${Math.round((campaign.opens || 0) / campaign.recipients * 100)}%</div>
+                <div class="text-xs text-purple-600 dark:text-purple-400">Open Rate</div>
+              </div>
+            </div>
+          </div>
+        ` : ''}
+        
+        <!-- Action Buttons -->
+        <div class="flex gap-2">
+          <button 
+            onclick="viewCampaignDetails(${campaign.id})" 
+            class="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md flex items-center justify-center gap-2"
+          >
+            <span>👁️</span>
+            View Details
+          </button>
+          <button 
+            onclick="deleteCampaign(${campaign.id})" 
+            class="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md"
+          >
+            🗑️
+          </button>
         </div>
       </div>
     `).join('');
@@ -2336,6 +2748,11 @@ import Layout from '~/layouts/AdminLayout.astro';
   window.viewCampaignDetails = viewCampaignDetails;
   window.viewSubscriberDetails = viewSubscriberDetails;
   window.cleanupInvalidSubscribers = cleanupInvalidSubscribers;
+  window.downloadCampaignReport = downloadCampaignReport;
+  window.generateAnalyticsReport = generateAnalyticsReport;
+  window.downloadCampaignSummary = downloadCampaignSummary;
+  window.downloadPerformanceReport = downloadPerformanceReport;
+  window.downloadSubscriberReport = downloadSubscriberReport;
 
   // Initialize page
   document.addEventListener('DOMContentLoaded', async function() {
