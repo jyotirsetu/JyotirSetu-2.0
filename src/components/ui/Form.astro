@@ -195,7 +195,7 @@ const { inputs, textarea, disclaimer, button = 'Contact us', description = '', a
           errorMessage.classList.add('hidden');
         }
         
-        fetch(form.action, {
+        fetch((form as HTMLFormElement).action, {
           method: 'POST',
           body: formData,
           headers: {
@@ -215,7 +215,7 @@ const { inputs, textarea, disclaimer, button = 'Contact us', description = '', a
             throw new Error('Form submission failed');
           }
         })
-        .catch(error => {
+        .catch(() => {
           // Show error message
           if (errorMessage) {
             errorMessage.classList.remove('hidden');

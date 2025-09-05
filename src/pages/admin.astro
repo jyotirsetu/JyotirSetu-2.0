@@ -577,7 +577,7 @@ import Layout from '~/layouts/AdminLayout.astro';
         initializePasswordSystem(); // Initialize password system first
         console.log('Password system initialized');
         
-        await initSupabase(); // Initialize Supabase first
+        initSupabase(); // Initialize Supabase first
         console.log('Supabase initialized successfully');
         
         setupLoginForm(); // Setup login form handler
@@ -778,14 +778,14 @@ import Layout from '~/layouts/AdminLayout.astro';
         }
 
         // Load recent appointments
-        const { data: recentAppointments, error: appointmentsError } = await supabase
+        const { data: recentAppointments } = await supabase
           .from('appointments')
           .select('id, name, service_type, created_at')
           .order('created_at', { ascending: false })
           .limit(5);
 
         // Load recent daily tips
-        const { data: recentTips, error: tipsError } = await supabase
+        const { data: recentTips } = await supabase
           .from('daily_tips')
           .select('id, title, created_at')
           .order('created_at', { ascending: false })
