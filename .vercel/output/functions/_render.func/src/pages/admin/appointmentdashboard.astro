@@ -612,7 +612,7 @@ function renderAppointments() {
 }
 
 // Get status badge class
-function getStatusBadgeClass(status) {
+function getStatusBadgeClass(status: string): string {
   switch (status) {
     case 'pending': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
     case 'confirmed': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
@@ -623,7 +623,7 @@ function getStatusBadgeClass(status) {
 }
 
 // Get status display text
-function getStatusDisplay(status) {
+function getStatusDisplay(status: string): string {
   switch (status) {
     case 'pending': return '⏳ Pending';
     case 'confirmed': return '✅ Confirmed';
@@ -634,7 +634,7 @@ function getStatusDisplay(status) {
 }
 
 // Update appointment status
-async function updateAppointmentStatus(appointmentId, newStatus) {
+async function updateAppointmentStatus(appointmentId: string, newStatus: string) {
   try {
     if (!supabase) {
       console.error('Supabase client not initialized');
@@ -670,7 +670,7 @@ async function updateAppointmentStatus(appointmentId, newStatus) {
 }
 
 // Toggle appointment selection
-function toggleAppointmentSelection(appointmentId) {
+function toggleAppointmentSelection(appointmentId: string) {
   if (selectedAppointments.has(appointmentId)) {
     selectedAppointments.delete(appointmentId);
   } else {
@@ -707,7 +707,7 @@ function selectAllAppointments() {
 }
 
 // Send WhatsApp message
-function sendWhatsAppMessage(appointmentId) {
+function sendWhatsAppMessage(appointmentId: string) {
   const appointment = appointments.find(apt => apt.id === appointmentId);
   if (!appointment) return;
 
@@ -727,7 +727,7 @@ function sendWhatsAppMessage(appointmentId) {
 }
 
 // Generate WhatsApp message
-function generateWhatsAppMessage(appointment, status) {
+function generateWhatsAppMessage(appointment: any, status: string): string {
   const baseMessage = `Hello ${appointment.name || 'there'},`;
   
   // Get service details
@@ -771,7 +771,7 @@ function generateWhatsAppMessage(appointment, status) {
 }
 
 // Send WhatsApp message to specific appointment
-function sendWhatsAppToAppointment(appointmentId, message) {
+function sendWhatsAppToAppointment(appointmentId: string, message: string) {
   const appointment = appointments.find(apt => apt.id === appointmentId);
   if (!appointment || !appointment.phone) {
     alert('No phone number found for this appointment');
@@ -1232,7 +1232,15 @@ async function sendBulkWhatsAppMessages(message) {
   
   let successCount = 0;
   let failedCount = 0;
-  const results = [];
+  
+  // Define types for better TypeScript support
+  type AppointmentResult = {
+    appointment: { name: string; phone: string; [key: string]: any };
+    status: string;
+    error?: string;
+  };
+  
+  const results: AppointmentResult[] = [];
   
   // Show user instructions
   alert(`Starting to send WhatsApp messages to ${selectedAppointmentsList.length} appointments.\n\nIMPORTANT: Please allow popups for this site and keep the tab open.\n\nEach message will open in a new WhatsApp tab. Please send the message manually in each tab.`);
@@ -1305,7 +1313,7 @@ async function sendBulkWhatsAppMessages(message) {
 }
 
 // Send single WhatsApp message
-function sendSingleWhatsAppMessage(appointment, message) {
+function sendSingleWhatsAppMessage(appointment: any, message: string): Promise<void> {
   return new Promise((resolve, reject) => {
     if (!appointment || !appointment.phone) {
       reject(new Error('No phone number found'));
@@ -1365,7 +1373,7 @@ function sendSingleWhatsAppMessage(appointment, message) {
 }
 
 // Show bulk WhatsApp results
-function showBulkWhatsAppResults(results, successCount, failedCount) {
+function showBulkWhatsAppResults(results: AppointmentResult[], successCount: number, failedCount: number) {
   let message = `WhatsApp messages sent successfully!\n\n`;
   message += `✅ Successfully sent: ${successCount}\n`;
   
@@ -1383,7 +1391,7 @@ function showBulkWhatsAppResults(results, successCount, failedCount) {
 console.log('Appointment Dashboard loaded - basic structure ready');
 
 // Get status color class for styling
-function getStatusColor(status) {
+function getStatusColor(status: string): string {
   switch(status) {
     case 'pending':
       return 'text-yellow-700 bg-yellow-50 border-yellow-200 dark:text-yellow-300 dark:bg-yellow-900/20 dark:border-yellow-700';

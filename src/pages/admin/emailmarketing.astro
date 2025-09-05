@@ -2283,7 +2283,9 @@ import Layout from '~/layouts/AdminLayout.astro';
 
       let successCount = 0;
       let errorCount = 0;
-      const errors = [];
+      
+      // Define types for better TypeScript support
+      const errors: string[] = [];
 
       console.log(`📧 Starting campaign to ${targetSubscribers.length} subscribers`);
       console.log(`📧 Target subscribers:`, targetSubscribers.map(s => ({ email: s.email, name: s.name, tags: s.tags })));
