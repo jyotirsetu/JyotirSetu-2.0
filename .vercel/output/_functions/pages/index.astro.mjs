@@ -1,15 +1,15 @@
 import { d as createAstro, c as createComponent, e as renderScript, m as maybeRenderHead, a as renderTemplate, r as renderComponent, u as unescapeHTML, F as Fragment } from '../chunks/astro/server__1NYpXS4.mjs';
 import 'kleur/colors';
-import { c as $$Icon, $ as $$PageLayout } from '../chunks/PageLayout_BS-CRfBK.mjs';
-import { $ as $$Hero } from '../chunks/Hero_rgOHnRuB.mjs';
+import { c as $$Icon, $ as $$PageLayout } from '../chunks/PageLayout_Csp_TKXi.mjs';
+import { $ as $$Hero } from '../chunks/Hero_D3KHvnMr.mjs';
 import 'clsx';
-import { $ as $$Features } from '../chunks/Features_BRiFLvpq.mjs';
-import { $ as $$Features2 } from '../chunks/Features2_B_y-klrn.mjs';
-import { $ as $$Steps } from '../chunks/Steps_CuUoNuAz.mjs';
-import { $ as $$Content } from '../chunks/Content_C_HdlqUw.mjs';
-import { $ as $$FAQs } from '../chunks/FAQs_QED3PyBU.mjs';
-import { $ as $$Stats } from '../chunks/Stats_BbhzSYyN.mjs';
-import { $ as $$CallToAction } from '../chunks/CallToAction_BzkFYit3.mjs';
+import { $ as $$Features } from '../chunks/Features_C0OaI_0y.mjs';
+import { $ as $$Features2 } from '../chunks/Features2_CcAMWEi1.mjs';
+import { $ as $$Steps } from '../chunks/Steps_B9hPcXHK.mjs';
+import { $ as $$Content } from '../chunks/Content_MDUchm0g.mjs';
+import { $ as $$FAQs } from '../chunks/FAQs_DVbRvvZ-.mjs';
+import { $ as $$Stats } from '../chunks/Stats_Jk7mhzfq.mjs';
+import { $ as $$CallToAction } from '../chunks/CallToAction_CYipvZ0Y.mjs';
 export { renderers } from '../renderers.mjs';
 
 const $$Astro$3 = createAstro("https://jyotirsetu.com");
@@ -38,14 +38,6 @@ Book Consultation
 Learn More
 </a> </div> </div> </div> </div> </section>`;
 }, "C:/Users/Akansh/Downloads/JyotirSetu-2.0-main/JyotirSetu-2.0-main/src/components/widgets/DailyAstroTip.astro", void 0);
-
-const $$DailyTipsDisplay = createComponent(async ($$result, $$props, $$slots) => {
-  return renderTemplate`${maybeRenderHead()}<div class="daily-tips-section bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 py-16"> <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"> <!-- Section Header --> <div class="text-center mb-12"> <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-✨ Daily Cosmic Insights
-</h2> <p class="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-Discover today's spiritual guidance and cosmic wisdom to illuminate your path
-</p> </div> <!-- Tips Container --> <div id="daily-tips-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"> <!-- Loading State --> <div class="col-span-full text-center py-12"> <div class="inline-flex items-center space-x-2"> <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div> <span class="text-gray-600 dark:text-gray-400">Loading cosmic insights...</span> </div> </div> </div> <!-- No Tips State (hidden by default) --> <div id="no-tips-state" class="hidden text-center py-12"> <div class="text-gray-500 dark:text-gray-400"> <span class="text-6xl block mb-4">🌟</span> <p class="text-lg">No cosmic insights available yet</p> <p class="text-sm mt-2">Check back soon for daily wisdom</p> </div> </div> </div> </div> <!-- Supabase Client Script --> ${renderScript($$result, "C:/Users/Akansh/Downloads/JyotirSetu-2.0-main/JyotirSetu-2.0-main/src/components/DailyTipsDisplay.astro?astro&type=script&index=0&lang.ts")} ${renderScript($$result, "C:/Users/Akansh/Downloads/JyotirSetu-2.0-main/JyotirSetu-2.0-main/src/components/DailyTipsDisplay.astro?astro&type=script&index=1&lang.ts")}`;
-}, "C:/Users/Akansh/Downloads/JyotirSetu-2.0-main/JyotirSetu-2.0-main/src/components/DailyTipsDisplay.astro", void 0);
 
 const $$Astro$2 = createAstro("https://jyotirsetu.com");
 const $$Note = createComponent(async ($$result, $$props, $$slots) => {
@@ -86,7 +78,7 @@ const $$Index = createComponent(($$result, $$props, $$slots) => {
     { text: "Learn more", href: "#features" }
   ], "image": { src: "~/assets/images/2hero-image.png", alt: "JyotirSetu Hero Image" } }, { "subtitle": ($$result3) => renderTemplate`${maybeRenderHead()}<div> <span class="font-semibold">At JyotirSetu,</span> we offer expert guidance in Vedic Astrology, Palmistry, and Numerology — helping you gain deeper clarity, direction, and peace of mind in life's journey.
 </div>`, "title": ($$result3) => renderTemplate`<div>
-JyotirSetu<span class="hidden xl:inline"></span> <span class="text-accent dark:text-white"> Astrology</span> </div>` })}  ${renderComponent($$result2, "DailyAstroTip", $$DailyAstroTip, {})}  ${renderComponent($$result2, "DailyTipsDisplay", $$DailyTipsDisplay, {})}  ${renderComponent($$result2, "Note", $$Note, { "title": "\u2728 Bridge to Cosmic Clarity \u2728", "description": "Guiding your journey through Vedic Astrology, Palmistry & Numerology" })}  ${renderComponent($$result2, "Features", $$Features, { "id": "features", "tagline": "Why Choose", "title": "JyotirSetu ?", "subtitle": "Trusted advisory in Astrology, Palmistry, and Numerology \u2014 offering structured, reliable, and insightful consultations tailored to your life\u2019s unique journey.", "items": [
+JyotirSetu<span class="hidden xl:inline"></span> <span class="text-accent dark:text-white"> Astrology</span> </div>` })}  ${renderComponent($$result2, "DailyAstroTip", $$DailyAstroTip, {})}  ${renderComponent($$result2, "Note", $$Note, { "title": "\u2728 Bridge to Cosmic Clarity \u2728", "description": "Guiding your journey through Vedic Astrology, Palmistry & Numerology" })}  ${renderComponent($$result2, "Features", $$Features, { "id": "features", "tagline": "Why Choose", "title": "JyotirSetu ?", "subtitle": "Trusted advisory in Astrology, Palmistry, and Numerology \u2014 offering structured, reliable, and insightful consultations tailored to your life\u2019s unique journey.", "items": [
     {
       title: "Personalized Consultations",
       description: "Every session is unique, based on your individual birth chart, palmistry lines, and numerological profile.",

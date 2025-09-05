@@ -1,8 +1,8 @@
-import { d as createAstro, c as createComponent, a as renderTemplate, b as addAttribute, m as maybeRenderHead, r as renderComponent, e as renderScript, F as Fragment } from '../chunks/astro/server__1NYpXS4.mjs';
+import { d as createAstro, c as createComponent, a as renderTemplate, b as addAttribute, m as maybeRenderHead, r as renderComponent, F as Fragment } from '../chunks/astro/server__1NYpXS4.mjs';
 import 'kleur/colors';
-import { $ as $$PageLayout } from '../chunks/PageLayout_BS-CRfBK.mjs';
+import { $ as $$PageLayout } from '../chunks/PageLayout_Csp_TKXi.mjs';
 import 'clsx';
-import { $ as $$Hero } from '../chunks/Hero_rgOHnRuB.mjs';
+import { $ as $$Hero } from '../chunks/Hero_D3KHvnMr.mjs';
 export { renderers } from '../renderers.mjs';
 
 var __freeze = Object.freeze;
@@ -547,19 +547,6 @@ I agree to the terms and conditions and privacy policy of JyotirSetu.
         submitBtn.disabled = true;
         
         try {
-          // Wait for Supabase client to be available
-          let attempts = 0;
-          const maxAttempts = 10;
-          
-          while (!window.supabaseClient && attempts < maxAttempts) {
-            console.log(\`Waiting for Supabase client... Attempt \${attempts + 1}/\${maxAttempts}\`);
-            await new Promise(resolve => setTimeout(resolve, 200));
-            attempts++;
-          }
-          
-          if (!window.supabaseClient) {
-            throw new Error('Supabase client not available after waiting. Please refresh the page and try again.');
-          }
           
           // Collect form data
           const formData = new FormData(this);
@@ -610,67 +597,36 @@ I agree to the terms and conditions and privacy policy of JyotirSetu.
           
           console.log('Final appointment data:', appointmentData);
           
-          console.log('Supabase client available, attempting to save...');
+          // Submit to Formspree
+          const formspreeData = new FormData();
+          formspreeData.append('name', appointmentData.name);
+          formspreeData.append('email', appointmentData.email);
+          formspreeData.append('phone', appointmentData.phone);
+          formspreeData.append('service', appointmentData.service);
+          formspreeData.append('date', appointmentData.date);
+          formspreeData.append('time', appointmentData.time);
+          formspreeData.append('consultation_method', appointmentData.consultation_method);
+          formspreeData.append('message', appointmentData.message);
+          formspreeData.append('service_details', JSON.stringify(appointmentData.service_details));
           
-          try {
-            // Try to save to Supabase first
-            const { data, error } = await window.supabaseClient
-              .from('appointments')
-              .insert([appointmentData])
-              .select()
-              .single();
-            
-            if (error) {
-              console.error('Supabase error:', error);
-              throw new Error(error.message);
+          const formspreeResponse = await fetch('https://formspree.io/f/xnnbzveo', {
+            method: 'POST',
+            body: formspreeData,
+            headers: {
+              'Accept': 'application/json'
             }
-            
-            console.log('Successfully saved to Supabase:', data);
-            
-            // Show success message
+          });
+          
+          if (formspreeResponse.ok) {
+            console.log('Successfully sent via Formspree');
             showSuccessMessage();
-            
-            // Reset form
             this.reset();
             const serviceSpecificFields = document.getElementById('serviceSpecificFields');
             if (serviceSpecificFields) {
               serviceSpecificFields.style.display = 'none';
             }
-            
-          } catch (supabaseError) {
-            console.error('Supabase failed, trying Formspree fallback:', supabaseError);
-            
-            // Fallback to Formspree
-            const formspreeData = new FormData();
-            formspreeData.append('name', appointmentData.name);
-            formspreeData.append('email', appointmentData.email);
-            formspreeData.append('phone', appointmentData.phone);
-            formspreeData.append('service', appointmentData.service);
-            formspreeData.append('date', appointmentData.date);
-            formspreeData.append('time', appointmentData.time);
-            formspreeData.append('consultation_method', appointmentData.consultation_method);
-            formspreeData.append('message', appointmentData.message);
-            formspreeData.append('service_details', JSON.stringify(appointmentData.service_details));
-            
-            const formspreeResponse = await fetch('https://formspree.io/f/xnnbzveo', {
-              method: 'POST',
-              body: formspreeData,
-              headers: {
-                'Accept': 'application/json'
-              }
-            });
-            
-            if (formspreeResponse.ok) {
-              console.log('Successfully sent via Formspree fallback');
-              showSuccessMessage();
-              this.reset();
-              const serviceSpecificFields = document.getElementById('serviceSpecificFields');
-              if (serviceSpecificFields) {
-                serviceSpecificFields.style.display = 'none';
-              }
-            } else {
-              throw new Error('Both Supabase and Formspree failed');
-            }
+          } else {
+            throw new Error('Form submission failed');
           }
           
         } catch (error) {
@@ -678,9 +634,7 @@ I agree to the terms and conditions and privacy policy of JyotirSetu.
           
           // Show user-friendly error message
           let errorMessage = 'Sorry, there was an error submitting your form. ';
-          if (error.message.includes('Supabase client not available')) {
-            errorMessage += 'Please refresh the page and try again.';
-          } else if (error.message.includes('network') || error.message.includes('fetch')) {
+          if (error.message.includes('network') || error.message.includes('fetch')) {
             errorMessage += 'Please check your internet connection and try again.';
           } else {
             errorMessage += 'Please try again or contact us directly.';
@@ -770,71 +724,43 @@ I agree to the terms and conditions and privacy policy of JyotirSetu.
            
            console.log('Final appointment data:', appointmentData);
            
-           // Check if Supabase client is available
-           if (!window.supabaseClient) {
-             console.error('Supabase client not available');
-             alert('Supabase client not initialized. Please refresh the page and try again.');
-             return;
-           }
+           // Submit to Formspree
            
-           console.log('Supabase client available, attempting to save...');
+           const formspreeData = new FormData();
+           formspreeData.append('name', appointmentData.name);
+           formspreeData.append('email', appointmentData.email);
+           formspreeData.append('phone', appointmentData.phone);
+           formspreeData.append('service', appointmentData.service);
+           formspreeData.append('date', appointmentData.date);
+           formspreeData.append('time', appointmentData.time);
+           formspreeData.append('consultation_method', appointmentData.consultation_method);
+           formspreeData.append('message', appointmentData.message);
+           formspreeData.append('service_details', JSON.stringify(appointmentData.service_details));
            
-           // Save to Supabase
-           window.supabaseClient
-             .from('appointments')
-             .insert([appointmentData])
-             .select()
-             .single()
-             .then(({ data, error }) => {
-               if (error) {
-                 console.error('Supabase error:', error);
-                 // Try Formspree fallback
-                 console.log('Supabase failed, trying Formspree fallback...');
-                 
-                 const formspreeData = new FormData();
-                 formspreeData.append('name', appointmentData.name);
-                 formspreeData.append('email', appointmentData.email);
-                 formspreeData.append('phone', appointmentData.phone);
-                 formspreeData.append('service', appointmentData.service);
-                 formspreeData.append('date', appointmentData.date);
-                 formspreeData.append('time', appointmentData.time);
-                 formspreeData.append('consultation_method', appointmentData.consultation_method);
-                 formspreeData.append('message', appointmentData.message);
-                 formspreeData.append('service_details', JSON.stringify(appointmentData.service_details));
-                 
-                 return fetch('https://formspree.io/f/xnnbzveo', {
-                   method: 'POST',
-                   body: formspreeData,
-                   headers: {
-                     'Accept': 'application/json'
-                   }
-                 });
-               } else {
-                 console.log('Successfully saved to Supabase:', data);
-                 showSuccessMessage();
-                 form.reset();
-                 const serviceSpecificFields = document.getElementById('serviceSpecificFields');
-                 if (serviceSpecificFields) {
-                   serviceSpecificFields.style.display = 'none';
-                 }
-                 return Promise.resolve({ ok: true });
+           fetch('https://formspree.io/f/xnnbzveo', {
+             method: 'POST',
+             body: formspreeData,
+             headers: {
+               'Accept': 'application/json'
+             }
+           })
+           .then(response => {
+             if (response.ok) {
+               console.log('Successfully sent via Formspree');
+               showSuccessMessage();
+               form.reset();
+               const serviceSpecificFields = document.getElementById('serviceSpecificFields');
+               if (serviceSpecificFields) {
+                 serviceSpecificFields.style.display = 'none';
                }
-             })
-             .then(response => {
-               if (response && response.ok) {
-                 console.log('Successfully sent via Formspree fallback');
-                 showSuccessMessage();
-                 form.reset();
-                 const serviceSpecificFields = document.getElementById('serviceSpecificFields');
-                 if (serviceSpecificFields) {
-                   serviceSpecificFields.style.display = 'none';
-                 }
-               }
-             })
-             .catch(error => {
-               console.error('Form submission error:', error);
+             } else {
                alert('Sorry, there was an error submitting your form. Please try again or contact us directly.');
-             });
+             }
+           })
+           .catch(error => {
+             console.error('Form submission error:', error);
+             alert('Sorry, there was an error submitting your form. Please try again or contact us directly.');
+           });
          }
        });
        
@@ -1387,19 +1313,6 @@ I agree to the terms and conditions and privacy policy of JyotirSetu.
         submitBtn.disabled = true;
         
         try {
-          // Wait for Supabase client to be available
-          let attempts = 0;
-          const maxAttempts = 10;
-          
-          while (!window.supabaseClient && attempts < maxAttempts) {
-            console.log(\\\`Waiting for Supabase client... Attempt \\\${attempts + 1}/\\\${maxAttempts}\\\`);
-            await new Promise(resolve => setTimeout(resolve, 200));
-            attempts++;
-          }
-          
-          if (!window.supabaseClient) {
-            throw new Error('Supabase client not available after waiting. Please refresh the page and try again.');
-          }
           
           // Collect form data
           const formData = new FormData(this);
@@ -1450,67 +1363,36 @@ I agree to the terms and conditions and privacy policy of JyotirSetu.
           
           console.log('Final appointment data:', appointmentData);
           
-          console.log('Supabase client available, attempting to save...');
+          // Submit to Formspree
+          const formspreeData = new FormData();
+          formspreeData.append('name', appointmentData.name);
+          formspreeData.append('email', appointmentData.email);
+          formspreeData.append('phone', appointmentData.phone);
+          formspreeData.append('service', appointmentData.service);
+          formspreeData.append('date', appointmentData.date);
+          formspreeData.append('time', appointmentData.time);
+          formspreeData.append('consultation_method', appointmentData.consultation_method);
+          formspreeData.append('message', appointmentData.message);
+          formspreeData.append('service_details', JSON.stringify(appointmentData.service_details));
           
-          try {
-            // Try to save to Supabase first
-            const { data, error } = await window.supabaseClient
-              .from('appointments')
-              .insert([appointmentData])
-              .select()
-              .single();
-            
-            if (error) {
-              console.error('Supabase error:', error);
-              throw new Error(error.message);
+          const formspreeResponse = await fetch('https://formspree.io/f/xnnbzveo', {
+            method: 'POST',
+            body: formspreeData,
+            headers: {
+              'Accept': 'application/json'
             }
-            
-            console.log('Successfully saved to Supabase:', data);
-            
-            // Show success message
+          });
+          
+          if (formspreeResponse.ok) {
+            console.log('Successfully sent via Formspree');
             showSuccessMessage();
-            
-            // Reset form
             this.reset();
             const serviceSpecificFields = document.getElementById('serviceSpecificFields');
             if (serviceSpecificFields) {
               serviceSpecificFields.style.display = 'none';
             }
-            
-          } catch (supabaseError) {
-            console.error('Supabase failed, trying Formspree fallback:', supabaseError);
-            
-            // Fallback to Formspree
-            const formspreeData = new FormData();
-            formspreeData.append('name', appointmentData.name);
-            formspreeData.append('email', appointmentData.email);
-            formspreeData.append('phone', appointmentData.phone);
-            formspreeData.append('service', appointmentData.service);
-            formspreeData.append('date', appointmentData.date);
-            formspreeData.append('time', appointmentData.time);
-            formspreeData.append('consultation_method', appointmentData.consultation_method);
-            formspreeData.append('message', appointmentData.message);
-            formspreeData.append('service_details', JSON.stringify(appointmentData.service_details));
-            
-            const formspreeResponse = await fetch('https://formspree.io/f/xnnbzveo', {
-              method: 'POST',
-              body: formspreeData,
-              headers: {
-                'Accept': 'application/json'
-              }
-            });
-            
-            if (formspreeResponse.ok) {
-              console.log('Successfully sent via Formspree fallback');
-              showSuccessMessage();
-              this.reset();
-              const serviceSpecificFields = document.getElementById('serviceSpecificFields');
-              if (serviceSpecificFields) {
-                serviceSpecificFields.style.display = 'none';
-              }
-            } else {
-              throw new Error('Both Supabase and Formspree failed');
-            }
+          } else {
+            throw new Error('Form submission failed');
           }
           
         } catch (error) {
@@ -1518,9 +1400,7 @@ I agree to the terms and conditions and privacy policy of JyotirSetu.
           
           // Show user-friendly error message
           let errorMessage = 'Sorry, there was an error submitting your form. ';
-          if (error.message.includes('Supabase client not available')) {
-            errorMessage += 'Please refresh the page and try again.';
-          } else if (error.message.includes('network') || error.message.includes('fetch')) {
+          if (error.message.includes('network') || error.message.includes('fetch')) {
             errorMessage += 'Please check your internet connection and try again.';
           } else {
             errorMessage += 'Please try again or contact us directly.';
@@ -1610,71 +1490,43 @@ I agree to the terms and conditions and privacy policy of JyotirSetu.
            
            console.log('Final appointment data:', appointmentData);
            
-           // Check if Supabase client is available
-           if (!window.supabaseClient) {
-             console.error('Supabase client not available');
-             alert('Supabase client not initialized. Please refresh the page and try again.');
-             return;
-           }
+           // Submit to Formspree
            
-           console.log('Supabase client available, attempting to save...');
+           const formspreeData = new FormData();
+           formspreeData.append('name', appointmentData.name);
+           formspreeData.append('email', appointmentData.email);
+           formspreeData.append('phone', appointmentData.phone);
+           formspreeData.append('service', appointmentData.service);
+           formspreeData.append('date', appointmentData.date);
+           formspreeData.append('time', appointmentData.time);
+           formspreeData.append('consultation_method', appointmentData.consultation_method);
+           formspreeData.append('message', appointmentData.message);
+           formspreeData.append('service_details', JSON.stringify(appointmentData.service_details));
            
-           // Save to Supabase
-           window.supabaseClient
-             .from('appointments')
-             .insert([appointmentData])
-             .select()
-             .single()
-             .then(({ data, error }) => {
-               if (error) {
-                 console.error('Supabase error:', error);
-                 // Try Formspree fallback
-                 console.log('Supabase failed, trying Formspree fallback...');
-                 
-                 const formspreeData = new FormData();
-                 formspreeData.append('name', appointmentData.name);
-                 formspreeData.append('email', appointmentData.email);
-                 formspreeData.append('phone', appointmentData.phone);
-                 formspreeData.append('service', appointmentData.service);
-                 formspreeData.append('date', appointmentData.date);
-                 formspreeData.append('time', appointmentData.time);
-                 formspreeData.append('consultation_method', appointmentData.consultation_method);
-                 formspreeData.append('message', appointmentData.message);
-                 formspreeData.append('service_details', JSON.stringify(appointmentData.service_details));
-                 
-                 return fetch('https://formspree.io/f/xnnbzveo', {
-                   method: 'POST',
-                   body: formspreeData,
-                   headers: {
-                     'Accept': 'application/json'
-                   }
-                 });
-               } else {
-                 console.log('Successfully saved to Supabase:', data);
-                 showSuccessMessage();
-                 form.reset();
-                 const serviceSpecificFields = document.getElementById('serviceSpecificFields');
-                 if (serviceSpecificFields) {
-                   serviceSpecificFields.style.display = 'none';
-                 }
-                 return Promise.resolve({ ok: true });
+           fetch('https://formspree.io/f/xnnbzveo', {
+             method: 'POST',
+             body: formspreeData,
+             headers: {
+               'Accept': 'application/json'
+             }
+           })
+           .then(response => {
+             if (response.ok) {
+               console.log('Successfully sent via Formspree');
+               showSuccessMessage();
+               form.reset();
+               const serviceSpecificFields = document.getElementById('serviceSpecificFields');
+               if (serviceSpecificFields) {
+                 serviceSpecificFields.style.display = 'none';
                }
-             })
-             .then(response => {
-               if (response && response.ok) {
-                 console.log('Successfully sent via Formspree fallback');
-                 showSuccessMessage();
-                 form.reset();
-                 const serviceSpecificFields = document.getElementById('serviceSpecificFields');
-                 if (serviceSpecificFields) {
-                   serviceSpecificFields.style.display = 'none';
-                 }
-               }
-             })
-             .catch(error => {
-               console.error('Form submission error:', error);
+             } else {
                alert('Sorry, there was an error submitting your form. Please try again or contact us directly.');
-             });
+             }
+           })
+           .catch(error => {
+             console.error('Form submission error:', error);
+             alert('Sorry, there was an error submitting your form. Please try again or contact us directly.');
+           });
          }
        });
        
@@ -1724,7 +1576,7 @@ const $$ScheduleAppointmentJyotirSetu = createComponent(($$result, $$props, $$sl
       icon: "tabler:calendar"
     }
   ] }, { "title": ($$result3) => renderTemplate`${renderComponent($$result3, "Fragment", Fragment, { "slot": "title" }, { "default": ($$result4) => renderTemplate`
-Book Your ${maybeRenderHead()}<span class="text-accent dark:text-white">Astrology Consultation</span> ` })}` })}  <section class="py-16 bg-page"> <div class="max-w-7xl mx-auto px-6"> <div class="grid grid-cols-2 md:grid-cols-4 gap-6"> <div class="text-center relative"> <div class="text-3xl font-bold text-primary">10,000+</div> <div class="text-muted text-sm">Happy Clients and Counting</div> <!-- Separator for mobile --> <div class="absolute right-0 top-1/2 transform -translate-y-1/2 w-px h-8 bg-gray-300 hidden md:block"></div> <!-- Separator for bottom --> <div class="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-8 h-px bg-gray-300 md:hidden"></div> </div> <div class="text-center relative"> <div class="text-3xl font-bold text-primary">25+</div> <div class="text-muted text-sm">Years Experience</div> <!-- Separator for mobile --> <div class="absolute right-0 top-1/2 transform -translate-y-1/2 w-px h-8 bg-gray-300 hidden md:block"></div> <!-- Separator for bottom --> <div class="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-8 h-px bg-gray-300 md:hidden"></div> </div> <div class="text-center relative"> <div class="text-3xl font-bold text-primary">98%</div> <div class="text-muted text-sm">Success Rate</div> <!-- Separator for mobile --> <div class="absolute right-0 top-1/2 transform -translate-y-1/2 w-px h-8 bg-gray-300 hidden md:block"></div> <!-- Separator for bottom --> <div class="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-8 h-px bg-gray-300 md:hidden"></div> </div> <div class="text-center relative"> <div class="text-3xl font-bold text-primary">24/7</div> <div class="text-muted text-sm">Support</div> </div> </div> </div> </section>  <section class="py-16 bg-page"> <div class="max-w-7xl mx-auto px-6"> <div class="text-center mb-12"> <h2 class="text-3xl font-bold text-heading mb-4">How to Book Your Consultation</h2> <p class="text-lg text-muted">Simple steps to connect with our expert astrologers</p> </div> <div class="grid md:grid-cols-3 gap-8"> <div class="text-center"> <div class="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-6"> <span class="text-2xl font-bold text-white">1</span> </div> <h3 class="text-xl font-semibold text-heading mb-4">Fill the Form</h3> <p class="text-muted">Complete the appointment form with your details and select your preferred service.</p> </div> <div class="text-center"> <div class="w-16 h-16 bg-secondary rounded-full flex items-center justify-center mx-auto mb-6"> <span class="text-2xl font-bold text-white">2</span> </div> <h3 class="text-xl font-semibold text-heading mb-4">Get Confirmation</h3> <p class="text-muted">Receive confirmation and payment details within 24 hours of form submission.</p> </div> <div class="text-center"> <div class="w-16 h-16 bg-accent rounded-full flex items-center justify-center mx-auto mb-6"> <span class="text-2xl font-bold text-white">3</span> </div> <h3 class="text-xl font-semibold text-heading mb-4">Start Consultation</h3> <p class="text-muted">Connect with our expert astrologer at your scheduled time via call or video.</p> </div> </div> </div> </section>  <section id="appointment-form" class="py-16 bg-page"> <div class="max-w-4xl mx-auto px-6"> <div class="text-center mb-12"> <h2 class="text-3xl font-bold text-heading mb-4">Book Your Consultation</h2> <p class="text-lg text-muted">Select your service and fill out the form below to schedule your personalized astrology consultation. Our expert astrologers will guide you towards clarity and success.</p> </div> ${renderComponent($$result2, "DynamicAppointmentForm", $$DynamicAppointmentForm, {})} </div> </section>  ${renderScript($$result2, "C:/Users/Akansh/Downloads/JyotirSetu-2.0-main/JyotirSetu-2.0-main/src/pages/ScheduleAppointmentJyotirSetu.astro?astro&type=script&index=0&lang.ts")} ${renderScript($$result2, "C:/Users/Akansh/Downloads/JyotirSetu-2.0-main/JyotirSetu-2.0-main/src/pages/ScheduleAppointmentJyotirSetu.astro?astro&type=script&index=1&lang.ts")}  <section class="py-12 bg-green-50"> <div class="max-w-4xl mx-auto px-6 text-center"> <div class="bg-white rounded-2xl shadow-lg p-8"> <h3 class="text-2xl font-bold text-gray-800 mb-4">Prefer WhatsApp?</h3> <p class="text-gray-600 mb-6">Get instant responses and quick booking through WhatsApp</p> <a href="https://wa.me/919266991298?text=Hello%20JyotirSetu,%20I%20would%20like%20to%20book%20an%20appointment%20for%20astrology%20consultation." target="_blank" class="inline-flex items-center px-8 py-4 bg-green-600 text-white font-semibold rounded-xl shadow-lg hover:bg-green-700 transition-all duration-300 transform hover:scale-105"> <svg class="w-6 h-6 mr-3" fill="currentColor" viewBox="0 0 24 24"> <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.488"></path> </svg>
+Book Your ${maybeRenderHead()}<span class="text-accent dark:text-white">Astrology Consultation</span> ` })}` })}  <section class="py-16 bg-page"> <div class="max-w-7xl mx-auto px-6"> <div class="grid grid-cols-2 md:grid-cols-4 gap-6"> <div class="text-center relative"> <div class="text-3xl font-bold text-primary">10,000+</div> <div class="text-muted text-sm">Happy Clients and Counting</div> <!-- Separator for mobile --> <div class="absolute right-0 top-1/2 transform -translate-y-1/2 w-px h-8 bg-gray-300 hidden md:block"></div> <!-- Separator for bottom --> <div class="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-8 h-px bg-gray-300 md:hidden"></div> </div> <div class="text-center relative"> <div class="text-3xl font-bold text-primary">25+</div> <div class="text-muted text-sm">Years Experience</div> <!-- Separator for mobile --> <div class="absolute right-0 top-1/2 transform -translate-y-1/2 w-px h-8 bg-gray-300 hidden md:block"></div> <!-- Separator for bottom --> <div class="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-8 h-px bg-gray-300 md:hidden"></div> </div> <div class="text-center relative"> <div class="text-3xl font-bold text-primary">98%</div> <div class="text-muted text-sm">Success Rate</div> <!-- Separator for mobile --> <div class="absolute right-0 top-1/2 transform -translate-y-1/2 w-px h-8 bg-gray-300 hidden md:block"></div> <!-- Separator for bottom --> <div class="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-8 h-px bg-gray-300 md:hidden"></div> </div> <div class="text-center relative"> <div class="text-3xl font-bold text-primary">24/7</div> <div class="text-muted text-sm">Support</div> </div> </div> </div> </section>  <section class="py-16 bg-page"> <div class="max-w-7xl mx-auto px-6"> <div class="text-center mb-12"> <h2 class="text-3xl font-bold text-heading mb-4">How to Book Your Consultation</h2> <p class="text-lg text-muted">Simple steps to connect with our expert astrologers</p> </div> <div class="grid md:grid-cols-3 gap-8"> <div class="text-center"> <div class="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-6"> <span class="text-2xl font-bold text-white">1</span> </div> <h3 class="text-xl font-semibold text-heading mb-4">Fill the Form</h3> <p class="text-muted">Complete the appointment form with your details and select your preferred service.</p> </div> <div class="text-center"> <div class="w-16 h-16 bg-secondary rounded-full flex items-center justify-center mx-auto mb-6"> <span class="text-2xl font-bold text-white">2</span> </div> <h3 class="text-xl font-semibold text-heading mb-4">Get Confirmation</h3> <p class="text-muted">Receive confirmation and payment details within 24 hours of form submission.</p> </div> <div class="text-center"> <div class="w-16 h-16 bg-accent rounded-full flex items-center justify-center mx-auto mb-6"> <span class="text-2xl font-bold text-white">3</span> </div> <h3 class="text-xl font-semibold text-heading mb-4">Start Consultation</h3> <p class="text-muted">Connect with our expert astrologer at your scheduled time via call or video.</p> </div> </div> </div> </section>  <section id="appointment-form" class="py-16 bg-page"> <div class="max-w-4xl mx-auto px-6"> <div class="text-center mb-12"> <h2 class="text-3xl font-bold text-heading mb-4">Book Your Consultation</h2> <p class="text-lg text-muted">Select your service and fill out the form below to schedule your personalized astrology consultation. Our expert astrologers will guide you towards clarity and success.</p> </div> ${renderComponent($$result2, "DynamicAppointmentForm", $$DynamicAppointmentForm, {})} </div> </section>  <section class="py-12 bg-green-50"> <div class="max-w-4xl mx-auto px-6 text-center"> <div class="bg-white rounded-2xl shadow-lg p-8"> <h3 class="text-2xl font-bold text-gray-800 mb-4">Prefer WhatsApp?</h3> <p class="text-gray-600 mb-6">Get instant responses and quick booking through WhatsApp</p> <a href="https://wa.me/919266991298?text=Hello%20JyotirSetu,%20I%20would%20like%20to%20book%20an%20appointment%20for%20astrology%20consultation." target="_blank" class="inline-flex items-center px-8 py-4 bg-green-600 text-white font-semibold rounded-xl shadow-lg hover:bg-green-700 transition-all duration-300 transform hover:scale-105"> <svg class="w-6 h-6 mr-3" fill="currentColor" viewBox="0 0 24 24"> <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.488"></path> </svg>
 Book on WhatsApp
 </a> </div> </div> </section>  <section class="py-16 bg-page"> <div class="max-w-7xl mx-auto px-6"> <div class="text-center mb-12"> <h2 class="text-3xl font-bold text-heading mb-4">What Our Clients Say</h2> <p class="text-lg text-muted">Real experiences from satisfied clients</p> </div> <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8"> <div class="bg-light rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700"> <div class="flex items-center mb-4"> <div class="w-12 h-12 bg-primary rounded-full flex items-center justify-center mr-4"> <span class="text-white font-bold">R</span> </div> <div> <h4 class="font-semibold text-heading">Rahul Sharma</h4> <p class="text-muted text-sm">Mumbai, Business Owner</p> </div> </div> <p class="text-default text-sm">"JyotirSetu helped me understand my career path better. The consultation was insightful and practical. I got clarity on my business decisions."</p> </div> <div class="bg-light rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700"> <div class="flex items-center mb-4"> <div class="w-12 h-12 bg-secondary rounded-full flex items-center justify-center mr-4"> <span class="text-white font-bold">P</span> </div> <div> <h4 class="font-semibold text-heading">Priya Patel</h4> <p class="text-muted text-sm">Delhi, Software Engineer</p> </div> </div> <p class="text-default text-sm">"The matchmaking service was excellent. Found my perfect match through their guidance. The compatibility analysis was spot on!"</p> </div> <div class="bg-light rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700"> <div class="flex items-center mb-4"> <div class="w-12 h-12 bg-accent rounded-full flex items-center justify-center mr-4"> <span class="text-white font-bold">A</span> </div> <div> <h4 class="font-semibold text-heading">Amit Kumar</h4> <p class="text-muted text-sm">Bangalore, Student</p> </div> </div> <p class="text-default text-sm">"Professional service with accurate predictions. The study guidance helped me choose the right career path. Highly recommend!"</p> </div> <div class="bg-light rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700"> <div class="flex items-center mb-4"> <div class="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center mr-4"> <span class="text-white font-bold">S</span> </div> <div> <h4 class="font-semibold text-heading">Sunita Verma</h4> <p class="text-muted text-sm">Pune, Homemaker</p> </div> </div> <p class="text-default text-sm">"The palmistry reading was fascinating! JyotirSetu's expert explained everything so clearly. I feel more confident about my future now."</p> </div> <div class="bg-light rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700"> <div class="flex items-center mb-4"> <div class="w-12 h-12 bg-yellow-600 rounded-full flex items-center justify-center mr-4"> <span class="text-white font-bold">M</span> </div> <div> <h4 class="font-semibold text-heading">Mohit Singh</h4> <p class="text-muted text-sm">Chennai, Marketing Manager</p> </div> </div> <p class="text-default text-sm">"The gemstone consultation was life-changing. Wearing the recommended gemstone improved my confidence and career prospects significantly."</p> </div> <div class="bg-light rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700"> <div class="flex items-center mb-4"> <div class="w-12 h-12 bg-indigo-600 rounded-full flex items-center justify-center mr-4"> <span class="text-white font-bold">N</span> </div> <div> <h4 class="font-semibold text-heading">Neha Gupta</h4> <p class="text-muted text-sm">Hyderabad, Doctor</p> </div> </div> <p class="text-default text-sm">"As a medical professional, I was skeptical at first. But JyotirSetu's approach is scientific and practical. The career guidance was invaluable."</p> </div> </div> </div> </section>  <section class="py-12 bg-gradient-to-r from-primary to-secondary"> <div class="max-w-4xl mx-auto px-6 text-center"> <h2 class="text-2xl font-bold text-white mb-4">Ready to Discover Your Destiny?</h2> <p class="text-lg text-blue-100 mb-6">Book your consultation today and take the first step towards a brighter future.</p> <a href="#appointment-form" class="inline-block px-6 py-3 bg-white text-primary font-semibold rounded-lg shadow-lg hover:bg-gray-100 transition-all duration-300">
 Book Now

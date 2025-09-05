@@ -1,5 +1,5 @@
 ---
-// DailyTipsDisplay.astro - Displays daily tips from Supabase on the website
+// DailyTipsDisplay.astro - Displays daily astrological tips
 ---
 
 <div class="daily-tips-section bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 py-16">
@@ -7,37 +7,27 @@
     <!-- Section Header -->
     <div class="text-center mb-12">
       <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-        ✨ Daily Cosmic Insights
+        🌟 Daily Cosmic Insights
       </h2>
       <p class="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-        Discover today's spiritual guidance and cosmic wisdom to illuminate your path
+        Discover what the stars have in store for you today with our personalized astrological guidance
       </p>
     </div>
 
-    <!-- Tips Container -->
+    <!-- Tips Grid -->
     <div id="daily-tips-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <!-- Loading State -->
-      <div class="col-span-full text-center py-12">
-        <div class="inline-flex items-center space-x-2">
-          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
-          <span class="text-gray-600 dark:text-gray-400">Loading cosmic insights...</span>
-        </div>
-      </div>
+      <!-- Tips will be populated here -->
     </div>
 
-    <!-- No Tips State (hidden by default) -->
-    <div id="no-tips-state" class="hidden text-center py-12">
-      <div class="text-gray-500 dark:text-gray-400">
-        <span class="text-6xl block mb-4">🌟</span>
-        <p class="text-lg">No cosmic insights available yet</p>
-        <p class="text-sm mt-2">Check back soon for daily wisdom</p>
+    <!-- Loading State -->
+    <div id="loading-state" class="text-center py-8">
+      <div class="inline-flex items-center px-4 py-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+        <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600 mr-3"></div>
+        <span class="text-purple-700 dark:text-purple-300">Loading cosmic insights...</span>
       </div>
     </div>
   </div>
 </div>
-
-<!-- Supabase Client Script -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
   // Type definitions
@@ -50,153 +40,128 @@
     active: boolean;
   }
 
-  // Initialize Supabase client
-  interface SupabaseClient {
-    from: (table: string) => {
-      select: (columns: string) => {
-        eq: (column: string, value: boolean) => Promise<{ data: DailyTip[] | null; error: unknown }>;
-      };
-    };
-  }
-  
-  let supabase: SupabaseClient;
-  
-  async function initSupabase() {
-    try {
-      supabase = window.supabase.createClient(
-        'https://czbypbrrxxjcjdfjxczv.supabase.co',
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN6YnlwYnJyeHhqY2pkZmp4Y3p2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY5MjU2NDcsImV4cCI6MjA3MjUwMTY0N30.SQ-eabMNo5RBy8N0MHWDmlxVH7Tmh-EGykI0Qt5wDjg'
-      ) as SupabaseClient;
-      console.log('DailyTipsDisplay: Supabase initialized successfully');
-      await loadDailyTips();
-    } catch (error) {
-      console.error('DailyTipsDisplay: Error initializing Supabase:', error);
-      showFallbackTips();
+  // Static daily tips data
+  const staticTips: DailyTip[] = [
+    {
+      id: 1,
+      title: "🌟 Today's Cosmic Guidance",
+      content: "The stars align to bring clarity to your decisions. Trust your intuition and embrace new opportunities that come your way.",
+      category: "General",
+      date: new Date().toISOString().split('T')[0],
+      active: true
+    },
+    {
+      id: 2,
+      title: "💫 Mercury's Influence",
+      content: "Communication flows smoothly today. It's an excellent time for important conversations and making connections.",
+      category: "Communication",
+      date: new Date().toISOString().split('T')[0],
+      active: true
+    },
+    {
+      id: 3,
+      title: "🌙 Lunar Energy",
+      content: "The moon's energy supports emotional healing and introspection. Take time for self-reflection and inner peace.",
+      category: "Emotional",
+      date: new Date().toISOString().split('T')[0],
+      active: true
+    },
+    {
+      id: 4,
+      title: "☀️ Solar Power",
+      content: "The sun's energy boosts your confidence and vitality. Perfect day for taking action on your goals and ambitions.",
+      category: "Energy",
+      date: new Date().toISOString().split('T')[0],
+      active: true
+    },
+    {
+      id: 5,
+      title: "🔮 Venus's Blessing",
+      content: "Love and harmony are in the air. Focus on relationships and creative endeavors for maximum benefit.",
+      category: "Love",
+      date: new Date().toISOString().split('T')[0],
+      active: true
+    },
+    {
+      id: 6,
+      title: "⚡ Mars's Drive",
+      content: "Your energy and determination are at their peak. Channel this powerful energy into productive activities.",
+      category: "Action",
+      date: new Date().toISOString().split('T')[0],
+      active: true
     }
-  }
+  ];
 
-  // Load daily tips from Supabase
-  async function loadDailyTips() {
-    try {
-      console.log('DailyTipsDisplay: Loading tips from Supabase...');
-      
-      const { data: tips, error } = await supabase
-        .from('daily_tips')
-        .select('*')
-        .eq('active', true)
-        .then(query => query.data?.sort((a, b) => 
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-        )?.slice(0, 6) || []); // Show latest 6 tips
-      
-      if (error) {
-        console.error('DailyTipsDisplay: Supabase error:', error);
-        showFallbackTips();
-        return;
-      }
-      
-      console.log('DailyTipsDisplay: Tips loaded:', tips);
-      
-      if (tips && tips.length > 0) {
-        displayTips(tips);
-      } else {
-        showNoTipsState();
-      }
-    } catch (error) {
-      console.error('DailyTipsDisplay: Error loading tips:', error);
-      showFallbackTips();
-    }
+  // Initialize and display tips
+  function initTips() {
+    console.log('DailyTipsDisplay: Loading static tips...');
+    displayTips(staticTips);
   }
 
   // Display tips in the grid
   function displayTips(tips: DailyTip[]) {
     const container = document.getElementById('daily-tips-container');
+    const loadingState = document.getElementById('loading-state');
+    
     if (!container) return;
     
-    container.innerHTML = tips.map((tip: DailyTip) => `
-      <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border border-purple-200 dark:border-purple-700 overflow-hidden group">
-        <!-- Tip Header -->
-        <div class="bg-gradient-to-r from-purple-500 to-blue-500 px-6 py-4">
-          <div class="flex items-center justify-between">
-            <h3 class="text-lg font-semibold text-white">${tip.title}</h3>
-            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-white/20 text-white">
-              ${tip.category}
-            </span>
+    // Hide loading state
+    if (loadingState) {
+      loadingState.style.display = 'none';
+    }
+    
+    // Clear container
+    container.innerHTML = '';
+    
+    // Display each tip
+    tips.forEach(tip => {
+      const tipElement = document.createElement('div');
+      tipElement.className = 'bg-white dark:bg-slate-800 rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow duration-300 border border-purple-100 dark:border-purple-800';
+      
+      tipElement.innerHTML = `
+        <div class="flex items-start space-x-3">
+          <div class="flex-shrink-0">
+            <div class="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
+              <span class="text-white text-lg">${getCategoryIcon(tip.category)}</span>
+            </div>
+          </div>
+          <div class="flex-1 min-w-0">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              ${tip.title}
+            </h3>
+            <p class="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
+              ${tip.content}
+            </p>
+            <div class="mt-3 flex items-center justify-between">
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300">
+                ${tip.category}
+              </span>
+              <span class="text-xs text-gray-500 dark:text-gray-400">
+                ${new Date(tip.date).toLocaleDateString()}
+              </span>
+            </div>
           </div>
         </div>
-        
-        <!-- Tip Content -->
-        <div class="p-6">
-          <p class="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-            ${tip.content}
-          </p>
-          
-          <!-- Tip Footer -->
-          <div class="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
-            <span>${formatDate(tip.date)}</span>
-            <span class="text-purple-500">✨</span>
-          </div>
-        </div>
-        
-        <!-- Hover Effect -->
-        <div class="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
-      </div>
-    `).join('');
-  }
-
-  // Show fallback tips if Supabase fails
-  function showFallbackTips() {
-    const container = document.getElementById('daily-tips-container');
-    if (!container) return;
-    
-    const fallbackTips: DailyTip[] = [
-      {
-        id: 1,
-        title: "Moon in Aries",
-        content: "Today's energy is perfect for new beginnings and taking bold actions. Trust your intuition and embrace change.",
-        category: "Zodiac",
-        date: new Date().toISOString().split('T')[0],
-        active: true
-      },
-      {
-        id: 2,
-        title: "Mercury Retrograde",
-        content: "Communication may be challenging. Double-check all messages and contracts. Patience is your ally.",
-        category: "Planets",
-        date: new Date().toISOString().split('T')[0],
-        active: true
-      },
-      {
-        id: 3,
-        title: "Spiritual Awakening",
-        content: "The universe is calling you to explore deeper spiritual practices. Meditation and reflection will bring clarity.",
-        category: "Spiritual",
-        date: new Date().toISOString().split('T')[0],
-        active: true
-      }
-    ];
-    
-    displayTips(fallbackTips);
-  }
-
-  // Show no tips state
-  function showNoTipsState() {
-    const container = document.getElementById('daily-tips-container');
-    const noTipsState = document.getElementById('no-tips-state');
-    
-    if (container) container.innerHTML = '';
-    if (noTipsState) noTipsState.classList.remove('hidden');
-  }
-
-  // Format date for display
-  function formatDate(dateString: string) {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric',
-      year: 'numeric'
+      `;
+      
+      container.appendChild(tipElement);
     });
   }
 
+  // Get category icon
+  function getCategoryIcon(category: string): string {
+    const icons: Record<string, string> = {
+      'General': '🌟',
+      'Communication': '💬',
+      'Emotional': '💝',
+      'Energy': '⚡',
+      'Love': '💕',
+      'Action': '🚀'
+    };
+    return icons[category] || '✨';
+  }
+
+
   // Initialize when DOM is ready
-  document.addEventListener('DOMContentLoaded', initSupabase);
+  document.addEventListener('DOMContentLoaded', initTips);
 </script>

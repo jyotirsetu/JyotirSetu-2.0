@@ -1,13 +1,13 @@
 import { d as createAstro, c as createComponent, r as renderComponent, a as renderTemplate, F as Fragment, m as maybeRenderHead } from '../../chunks/astro/server__1NYpXS4.mjs';
 import 'kleur/colors';
-import { $ as $$PageLayout, a as $$Header, h as headerData } from '../../chunks/PageLayout_BS-CRfBK.mjs';
-import { $ as $$Hero2 } from '../../chunks/Hero2_BA4krDK8.mjs';
-import { $ as $$Features } from '../../chunks/Features_BRiFLvpq.mjs';
-import { $ as $$Steps2 } from '../../chunks/Steps2_586UTjak.mjs';
-import { $ as $$Content } from '../../chunks/Content_C_HdlqUw.mjs';
-import { $ as $$Pricing } from '../../chunks/Pricing_BEBAmSlc.mjs';
-import { $ as $$FAQs } from '../../chunks/FAQs_QED3PyBU.mjs';
-import { $ as $$BlogLatestPosts } from '../../chunks/BlogLatestPosts_x8N7JMqd.mjs';
+import { $ as $$PageLayout, a as $$Header, h as headerData } from '../../chunks/PageLayout_Csp_TKXi.mjs';
+import { $ as $$Hero2 } from '../../chunks/Hero2_mk_p4HGj.mjs';
+import { $ as $$Features } from '../../chunks/Features_C0OaI_0y.mjs';
+import { $ as $$Steps2 } from '../../chunks/Steps2_BGLi4XMg.mjs';
+import { $ as $$Content } from '../../chunks/Content_MDUchm0g.mjs';
+import { $ as $$Pricing } from '../../chunks/Pricing_COwxddAc.mjs';
+import { $ as $$FAQs } from '../../chunks/FAQs_DVbRvvZ-.mjs';
+import { $ as $$BlogLatestPosts } from '../../chunks/BlogLatestPosts_CuHGysel.mjs';
 export { renderers } from '../../renderers.mjs';
 
 const $$Astro = createAstro("https://jyotirsetu.com");

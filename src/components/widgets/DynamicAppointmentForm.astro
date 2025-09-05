@@ -783,19 +783,6 @@
         submitBtn.disabled = true;
         
         try {
-          // Wait for Supabase client to be available
-          let attempts = 0;
-          const maxAttempts = 10;
-          
-          while (!window.supabaseClient && attempts < maxAttempts) {
-            console.log(`Waiting for Supabase client... Attempt ${attempts + 1}/${maxAttempts}`);
-            await new Promise(resolve => setTimeout(resolve, 200));
-            attempts++;
-          }
-          
-          if (!window.supabaseClient) {
-            throw new Error('Supabase client not available after waiting. Please refresh the page and try again.');
-          }
           
           // Collect form data
           const formData = new FormData(this);
@@ -846,67 +833,36 @@
           
           console.log('Final appointment data:', appointmentData);
           
-          console.log('Supabase client available, attempting to save...');
+          // Submit to Formspree
+          const formspreeData = new FormData();
+          formspreeData.append('name', appointmentData.name);
+          formspreeData.append('email', appointmentData.email);
+          formspreeData.append('phone', appointmentData.phone);
+          formspreeData.append('service', appointmentData.service);
+          formspreeData.append('date', appointmentData.date);
+          formspreeData.append('time', appointmentData.time);
+          formspreeData.append('consultation_method', appointmentData.consultation_method);
+          formspreeData.append('message', appointmentData.message);
+          formspreeData.append('service_details', JSON.stringify(appointmentData.service_details));
           
-          try {
-            // Try to save to Supabase first
-            const { data, error } = await window.supabaseClient
-              .from('appointments')
-              .insert([appointmentData])
-              .select()
-              .single();
-            
-            if (error) {
-              console.error('Supabase error:', error);
-              throw new Error(error.message);
+          const formspreeResponse = await fetch('https://formspree.io/f/xnnbzveo', {
+            method: 'POST',
+            body: formspreeData,
+            headers: {
+              'Accept': 'application/json'
             }
-            
-            console.log('Successfully saved to Supabase:', data);
-            
-            // Show success message
+          });
+          
+          if (formspreeResponse.ok) {
+            console.log('Successfully sent via Formspree');
             showSuccessMessage();
-            
-            // Reset form
             this.reset();
             const serviceSpecificFields = document.getElementById('serviceSpecificFields');
             if (serviceSpecificFields) {
               serviceSpecificFields.style.display = 'none';
             }
-            
-          } catch (supabaseError) {
-            console.error('Supabase failed, trying Formspree fallback:', supabaseError);
-            
-            // Fallback to Formspree
-            const formspreeData = new FormData();
-            formspreeData.append('name', appointmentData.name);
-            formspreeData.append('email', appointmentData.email);
-            formspreeData.append('phone', appointmentData.phone);
-            formspreeData.append('service', appointmentData.service);
-            formspreeData.append('date', appointmentData.date);
-            formspreeData.append('time', appointmentData.time);
-            formspreeData.append('consultation_method', appointmentData.consultation_method);
-            formspreeData.append('message', appointmentData.message);
-            formspreeData.append('service_details', JSON.stringify(appointmentData.service_details));
-            
-            const formspreeResponse = await fetch('https://formspree.io/f/xnnbzveo', {
-              method: 'POST',
-              body: formspreeData,
-              headers: {
-                'Accept': 'application/json'
-              }
-            });
-            
-            if (formspreeResponse.ok) {
-              console.log('Successfully sent via Formspree fallback');
-              showSuccessMessage();
-              this.reset();
-              const serviceSpecificFields = document.getElementById('serviceSpecificFields');
-              if (serviceSpecificFields) {
-                serviceSpecificFields.style.display = 'none';
-              }
-            } else {
-              throw new Error('Both Supabase and Formspree failed');
-            }
+          } else {
+            throw new Error('Form submission failed');
           }
           
         } catch (error) {
@@ -914,9 +870,7 @@
           
           // Show user-friendly error message
           let errorMessage = 'Sorry, there was an error submitting your form. ';
-          if (error.message.includes('Supabase client not available')) {
-            errorMessage += 'Please refresh the page and try again.';
-          } else if (error.message.includes('network') || error.message.includes('fetch')) {
+          if (error.message.includes('network') || error.message.includes('fetch')) {
             errorMessage += 'Please check your internet connection and try again.';
           } else {
             errorMessage += 'Please try again or contact us directly.';
@@ -1006,71 +960,43 @@
            
            console.log('Final appointment data:', appointmentData);
            
-           // Check if Supabase client is available
-           if (!window.supabaseClient) {
-             console.error('Supabase client not available');
-             alert('Supabase client not initialized. Please refresh the page and try again.');
-             return;
-           }
+           // Submit to Formspree
            
-           console.log('Supabase client available, attempting to save...');
+           const formspreeData = new FormData();
+           formspreeData.append('name', appointmentData.name);
+           formspreeData.append('email', appointmentData.email);
+           formspreeData.append('phone', appointmentData.phone);
+           formspreeData.append('service', appointmentData.service);
+           formspreeData.append('date', appointmentData.date);
+           formspreeData.append('time', appointmentData.time);
+           formspreeData.append('consultation_method', appointmentData.consultation_method);
+           formspreeData.append('message', appointmentData.message);
+           formspreeData.append('service_details', JSON.stringify(appointmentData.service_details));
            
-           // Save to Supabase
-           window.supabaseClient
-             .from('appointments')
-             .insert([appointmentData])
-             .select()
-             .single()
-             .then(({ data, error }) => {
-               if (error) {
-                 console.error('Supabase error:', error);
-                 // Try Formspree fallback
-                 console.log('Supabase failed, trying Formspree fallback...');
-                 
-                 const formspreeData = new FormData();
-                 formspreeData.append('name', appointmentData.name);
-                 formspreeData.append('email', appointmentData.email);
-                 formspreeData.append('phone', appointmentData.phone);
-                 formspreeData.append('service', appointmentData.service);
-                 formspreeData.append('date', appointmentData.date);
-                 formspreeData.append('time', appointmentData.time);
-                 formspreeData.append('consultation_method', appointmentData.consultation_method);
-                 formspreeData.append('message', appointmentData.message);
-                 formspreeData.append('service_details', JSON.stringify(appointmentData.service_details));
-                 
-                 return fetch('https://formspree.io/f/xnnbzveo', {
-                   method: 'POST',
-                   body: formspreeData,
-                   headers: {
-                     'Accept': 'application/json'
-                   }
-                 });
-               } else {
-                 console.log('Successfully saved to Supabase:', data);
-                 showSuccessMessage();
-                 form.reset();
-                 const serviceSpecificFields = document.getElementById('serviceSpecificFields');
-                 if (serviceSpecificFields) {
-                   serviceSpecificFields.style.display = 'none';
-                 }
-                 return Promise.resolve({ ok: true });
+           fetch('https://formspree.io/f/xnnbzveo', {
+             method: 'POST',
+             body: formspreeData,
+             headers: {
+               'Accept': 'application/json'
+             }
+           })
+           .then(response => {
+             if (response.ok) {
+               console.log('Successfully sent via Formspree');
+               showSuccessMessage();
+               form.reset();
+               const serviceSpecificFields = document.getElementById('serviceSpecificFields');
+               if (serviceSpecificFields) {
+                 serviceSpecificFields.style.display = 'none';
                }
-             })
-             .then(response => {
-               if (response && response.ok) {
-                 console.log('Successfully sent via Formspree fallback');
-                 showSuccessMessage();
-                 form.reset();
-                 const serviceSpecificFields = document.getElementById('serviceSpecificFields');
-                 if (serviceSpecificFields) {
-                   serviceSpecificFields.style.display = 'none';
-                 }
-               }
-             })
-             .catch(error => {
-               console.error('Form submission error:', error);
+             } else {
                alert('Sorry, there was an error submitting your form. Please try again or contact us directly.');
-             });
+             }
+           })
+           .catch(error => {
+             console.error('Form submission error:', error);
+             alert('Sorry, there was an error submitting your form. Please try again or contact us directly.');
+           });
          }
        });
        
