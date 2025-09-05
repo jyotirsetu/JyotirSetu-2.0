@@ -14,7 +14,21 @@
   "eslint.useFlatConfig": true,
   "typescript.preferences.includePackageJsonAutoImports": "off",
   "files.exclude": {
-    "**/.vercel/output/**": true,
-    "**/dist/**": true
-  }
+    "**/.vercel/**": true,
+    "**/dist/**": true,
+    "**/node_modules/**": true
+  },
+  "search.exclude": {
+    "**/.vercel/**": true,
+    "**/dist/**": true,
+    "**/node_modules/**": true
+  },
+  "typescript.preferences.exclude": [
+    "**/.vercel/**",
+    "**/dist/**",
+    "**/node_modules/**"
+  ],
+  "typescript.suggest.autoImports": false,
+  "typescript.validate.enable": true,
+  "typescript.preferences.includePackageJsonAutoImports": "off"
 }

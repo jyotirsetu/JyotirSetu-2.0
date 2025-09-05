@@ -8,6 +8,12 @@
       "~/*": ["src/*"]
     }
   },
-  "include": [".astro/types.d.ts", "**/*"],
-  "exclude": ["dist/", ".vercel/output/", "node_modules/"]
+  "include": [".astro/types.d.ts", "src/**/*"],
+  "exclude": [
+    "dist/", 
+    ".vercel/", 
+    "node_modules/",
+    "**/.vercel/**",
+    "**/dist/**"
+  ]
 }
