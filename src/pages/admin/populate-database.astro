@@ -1,0 +1,144 @@
+---
+import { supabaseDataService } from '../../lib/supabase-data';
+
+let result = {
+  success: false,
+  message: '',
+  appointmentsCreated: 0
+};
+
+try {
+  // Test appointments to insert
+  const testAppointments = [
+    {
+      id: '550e8400-e29b-41d4-a716-446655440001',
+      name: 'Priya Sharma',
+      email: 'priya@email.com',
+      phone: '+91-9876543210',
+      service: '🔮 Astrology',
+      date: '2024-01-15',
+      time: '10:00 AM',
+      status: 'pending' as const,
+      consultation_method: 'video-call' as const,
+      message: 'Birth chart analysis needed',
+      service_details: { dateOfBirth: '1990-05-15', birthTime: '10:30', birthPlace: 'Mumbai, India' }
+    },
+    {
+      id: '550e8400-e29b-41d4-a716-446655440002',
+      name: 'Rajesh Kumar',
+      email: 'rajesh@email.com',
+      phone: '+91-9876543211',
+      service: '💎 Gemstone Consultation',
+      date: '2024-01-16',
+      time: '2:00 PM',
+      status: 'scheduled' as const,
+      consultation_method: 'call' as const,
+      message: 'Need gemstone recommendation',
+      service_details: { wearingPurpose: 'wealth', currentProfession: 'Software Engineer', dateOfBirth: '1985-08-15', birthTime: '14:30', wearingGemstone: 'None currently' }
+    },
+    {
+      id: '550e8400-e29b-41d4-a716-446655440003',
+      name: 'Sunita Patel',
+      email: 'sunita@email.com',
+      phone: '+91-9876543212',
+      service: '✋ Palmistry',
+      date: '2024-01-17',
+      time: '11:30 AM',
+      status: 'completed' as const,
+      consultation_method: 'in-person' as const,
+      message: 'Palm reading for career guidance',
+      service_details: { focusArea: 'career', handDominance: 'right', specificConcerns: 'Career growth and financial stability' }
+    },
+    {
+      id: '550e8400-e29b-41d4-a716-446655440004',
+      name: 'Amit Singh',
+      email: 'amit@email.com',
+      phone: '+91-9876543213',
+      service: '🔢 Numerology',
+      date: '2024-01-18',
+      time: '3:30 PM',
+      status: 'pending' as const,
+      consultation_method: 'whatsapp' as const,
+      message: 'Life path number analysis',
+      service_details: { officialName: 'Amit Singh', commonName: 'Amit', dateOfBirth: '1985-12-08', gender: 'male', focusArea: 'career-finance' }
+    },
+    {
+      id: '550e8400-e29b-41d4-a716-446655440005',
+      name: 'Kavita Reddy',
+      email: 'kavita@email.com',
+      phone: '+91-9876543214',
+      service: '💕 Matchmaking',
+      date: '2024-01-19',
+      time: '4:00 PM',
+      status: 'scheduled' as const,
+      consultation_method: 'video-call' as const,
+      message: 'Compatibility analysis needed',
+      service_details: { person1Name: 'Kavita Reddy', person1Gender: 'female', person1DOB: '1992-07-10', person1TOB: '08:30', person1POB: 'Delhi, India', person2Name: 'Rahul Verma', person2Gender: 'male', person2DOB: '1990-11-15', person2TOB: '12:45', person2POB: 'Mumbai, India' }
+    }
+  ];
+
+  // Insert appointments one by one
+  for (const appointment of testAppointments) {
+    try {
+      await supabaseDataService.createAppointment(appointment);
+      result.appointmentsCreated++;
+    } catch {
+      console.log(`Skipping appointment ${appointment.id} - might already exist`);
+    }
+  }
+
+  result.success = true;
+  result.message = `Successfully created ${result.appointmentsCreated} appointments in the database!`;
+
+} catch (error) {
+  result.message = `Error: ${error.message}`;
+}
+---
+
+<html>
+<head>
+    <title>Populate Database</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .result { padding: 20px; margin: 20px 0; border-radius: 8px; }
+        .success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .error { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .info { background: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <h1>🗄️ Populate Supabase Database</h1>
+    
+    <div class="result {result.success ? 'success' : 'error'}">
+        <h3>Result</h3>
+        <p><strong>Status:</strong> {result.success ? '✅ Success' : '❌ Error'}</p>
+        <p><strong>Message:</strong> {result.message}</p>
+        <p><strong>Appointments Created:</strong> {result.appointmentsCreated}</p>
+    </div>
+    
+    <div class="result info">
+        <h3>Next Steps</h3>
+        <ul>
+            <li>If successful: Go to <a href="/admin/appointment-management">Appointment Management</a></li>
+            <li>Test the Confirm/Cancel buttons - they should work now!</li>
+            <li>Check your Supabase dashboard to see the data</li>
+        </ul>
+    </div>
+    
+    <div class="result info">
+        <h3>Manual Alternative</h3>
+        <p>If this doesn't work, you can manually run the SQL script in your Supabase SQL Editor:</p>
+        <pre style="background: #f8f9fa; padding: 15px; border-radius: 5px; overflow-x: auto;">
+-- Insert test appointments
+INSERT INTO appointments (id, name, email, phone, service, date, time, status, consultation_method, message, service_details) VALUES
+('550e8400-e29b-41d4-a716-446655440001', 'Priya Sharma', 'priya@email.com', '+91-9876543210', '🔮 Astrology', '2024-01-15', '10:00 AM', 'pending', 'video-call', 'Birth chart analysis needed', '{{"dateOfBirth": "1990-05-15", "birthTime": "10:30", "birthPlace": "Mumbai, India"}}'),
+('550e8400-e29b-41d4-a716-446655440002', 'Rajesh Kumar', 'rajesh@email.com', '+91-9876543211', '💎 Gemstone Consultation', '2024-01-16', '2:00 PM', 'scheduled', 'call', 'Need gemstone recommendation', '{{"wearingPurpose": "wealth", "currentProfession": "Software Engineer", "dateOfBirth": "1985-08-15", "birthTime": "14:30", "wearingGemstone": "None currently"}}'),
+('550e8400-e29b-41d4-a716-446655440003', 'Sunita Patel', 'sunita@email.com', '+91-9876543212', '✋ Palmistry', '2024-01-17', '11:30 AM', 'completed', 'in-person', 'Palm reading for career guidance', '{{"focusArea": "career", "handDominance": "right", "specificConcerns": "Career growth and financial stability"}}');
+        </pre>
+    </div>
+    
+    <a href="/admin/appointment-management" style="display: inline-block; margin-top: 20px; padding: 10px 20px; background: #007bff; color: white; text-decoration: none; border-radius: 5px;">
+        Go to Appointment Management
+    </a>
+</body>
+</html>

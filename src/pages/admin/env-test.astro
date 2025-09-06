@@ -1,0 +1,61 @@
+---
+// Test different ways to load environment variables
+import { loadEnv } from 'vite';
+
+// Method 1: Direct import.meta.env
+const directUrl = import.meta.env.PUBLIC_SUPABASE_URL;
+const directKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
+
+// Method 2: Using process.env (if available)
+const processUrl = process.env.PUBLIC_SUPABASE_URL;
+const processKey = process.env.PUBLIC_SUPABASE_ANON_KEY;
+
+// Method 3: Using Vite's loadEnv
+const env = loadEnv('development', process.cwd(), '');
+const viteUrl = env.PUBLIC_SUPABASE_URL;
+const viteKey = env.PUBLIC_SUPABASE_ANON_KEY;
+
+console.log('Environment loading test:');
+console.log('Direct import.meta.env:', { url: directUrl, key: directKey ? 'Present' : 'Missing' });
+console.log('Process.env:', { url: processUrl, key: processKey ? 'Present' : 'Missing' });
+console.log('Vite loadEnv:', { url: viteUrl, key: viteKey ? 'Present' : 'Missing' });
+---
+
+<html>
+<head>
+    <title>Environment Variables Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .method { padding: 20px; margin: 10px 0; border: 1px solid #ccc; border-radius: 8px; }
+        .success { background: #d4edda; border-color: #c3e6cb; }
+        .error { background: #f8d7da; border-color: #f5c6cb; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Environment Variables Loading Test</h1>
+    
+    <div class="method {directUrl ? 'success' : 'error'}">
+        <h3>Method 1: import.meta.env</h3>
+        <p><strong>URL:</strong> {directUrl || 'NOT FOUND'}</p>
+        <p><strong>Key:</strong> {directKey ? 'Present (hidden)' : 'NOT FOUND'}</p>
+    </div>
+    
+    <div class="method {processUrl ? 'success' : 'error'}">
+        <h3>Method 2: process.env</h3>
+        <p><strong>URL:</strong> {processUrl || 'NOT FOUND'}</p>
+        <p><strong>Key:</strong> {processKey ? 'Present (hidden)' : 'NOT FOUND'}</p>
+    </div>
+    
+    <div class="method {viteUrl ? 'success' : 'error'}">
+        <h3>Method 3: Vite loadEnv</h3>
+        <p><strong>URL:</strong> {viteUrl || 'NOT FOUND'}</p>
+        <p><strong>Key:</strong> {viteKey ? 'Present (hidden)' : 'NOT FOUND'}</p>
+    </div>
+    
+    <div class="method">
+        <h3>Next Steps</h3>
+        <p>If all methods show "NOT FOUND", the issue is with the .env file loading.</p>
+        <p>If one method works, we'll use that approach.</p>
+    </div>
+</body>
+</html>

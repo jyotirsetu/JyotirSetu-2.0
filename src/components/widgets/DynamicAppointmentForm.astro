@@ -169,15 +169,15 @@
           class="w-full px-4 py-3.5 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-xl sm:rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-base transition-all duration-200"
         >
           <option value="">Choose your service...</option>
-          <option value="astrology">🔮 Astrology</option>
-          <option value="gemstone">💎 Gemstone Consultation</option>
-          <option value="palmistry">✋ Palmistry</option>
-          <option value="numerology">🔢 Numerology</option>
-          <option value="career-finance">💼 Career & Finance</option>
-          <option value="matchmaking">💕 Matchmaking</option>
-          <option value="study-education">📚 Study / Education</option>
-          <option value="corporate">🏢 Corporate Consultation</option>
-          <option value="other">✨ Other Reason</option>
+          <option value="🔮 Astrology">🔮 Astrology</option>
+          <option value="💎 Gemstone Consultation">💎 Gemstone Consultation</option>
+          <option value="✋ Palmistry">✋ Palmistry</option>
+          <option value="🔢 Numerology">🔢 Numerology</option>
+          <option value="💼 Career & Finance">💼 Career & Finance</option>
+          <option value="💕 Matchmaking">💕 Matchmaking</option>
+          <option value="📚 Study / Education">📚 Study / Education</option>
+          <option value="🏢 Corporate Consultation">🏢 Corporate Consultation</option>
+          <option value="✨ Other Reason">✨ Other Reason</option>
         </select>
       </div>
     </div>
@@ -309,7 +309,7 @@
 <script is:inline>
   // Service configurations for dynamic fields
   const serviceConfigs = {
-    astrology: {
+    '🔮 Astrology': {
       fields: [
         {
           name: 'astrologyConcern',
@@ -352,7 +352,7 @@
         },
       ],
     },
-    gemstone: {
+    '💎 Gemstone Consultation': {
       fields: [
         {
           name: 'wearingPurpose',
@@ -395,7 +395,7 @@
         },
       ],
     },
-    palmistry: {
+    '✋ Palmistry': {
       fields: [
         {
           name: 'focusArea',
@@ -441,7 +441,7 @@
         note: 'You can share the image link in the "Message" field below or send via WhatsApp.',
       },
     },
-    matchmaking: {
+    '💕 Matchmaking': {
       fields: [
         {
           name: 'person1Name',
@@ -519,7 +519,7 @@
         },
       ],
     },
-    numerology: {
+    '🔢 Numerology': {
       fields: [
         {
           name: 'officialName',
@@ -567,7 +567,7 @@
         },
       ],
     },
-    'career-finance': {
+    '💼 Career & Finance': {
       fields: [
         {
           name: 'currentProfession',
@@ -591,7 +591,7 @@
         },
       ],
     },
-    'study-education': {
+    '📚 Study / Education': {
       fields: [
         {
           name: 'futureGoal',
@@ -606,7 +606,7 @@
         },
       ],
     },
-    corporate: {
+    '🏢 Corporate Consultation': {
       fields: [
         {
           name: 'companyName',
@@ -656,7 +656,7 @@
         },
       ],
     },
-    other: {
+    '✨ Other Reason': {
       fields: [
         {
           name: 'subjectTitle',
@@ -842,7 +842,21 @@
           const mobileNumber = formData.get('mobileNumber');
           if (!mobileNumber || mobileNumber.length !== 10 || !/^[0-9]{10}$/.test(mobileNumber)) {
             alert('Please enter a valid 10-digit mobile number');
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
             return;
+          }
+
+          // Validate required fields
+          const requiredFields = ['fullName', 'emailAddress', 'serviceType', 'appointmentDate', 'appointmentTime'];
+          for (const field of requiredFields) {
+            const value = formData.get(field);
+            if (!value || value.toString().trim() === '') {
+              alert(`Please fill in the ${field.replace(/([A-Z])/g, ' $1').toLowerCase()} field`);
+              submitBtn.innerHTML = originalText;
+              submitBtn.disabled = false;
+              return;
+            }
           }
 
           // Debug: Log all form data
@@ -884,47 +898,88 @@
 
           console.log('Final appointment data:', appointmentData);
 
-          // Submit to Formspree
-          const formspreeData = new FormData();
-          formspreeData.append('name', appointmentData.name);
-          formspreeData.append('email', appointmentData.email);
-          formspreeData.append('phone', appointmentData.phone);
-          formspreeData.append('service', appointmentData.service);
-          formspreeData.append('date', appointmentData.date);
-          formspreeData.append('time', appointmentData.time);
-          formspreeData.append('consultation_method', appointmentData.consultation_method);
-          formspreeData.append('message', appointmentData.message);
-          formspreeData.append('service_details', JSON.stringify(appointmentData.service_details));
-
-          const formspreeResponse = await fetch('https://formspree.io/f/xnnbzveo', {
+          // Submit to Supabase database first (primary)
+          console.log('Submitting to Supabase...');
+          const supabaseResponse = await fetch('/api/appointments', {
             method: 'POST',
-            body: formspreeData,
             headers: {
-              Accept: 'application/json',
+              'Content-Type': 'application/json',
             },
+            body: JSON.stringify(appointmentData)
           });
 
-          if (formspreeResponse.ok) {
-            console.log('Successfully sent via Formspree');
-            showSuccessMessage();
-            this.reset();
-            const serviceSpecificFields = document.getElementById('serviceSpecificFields');
-            if (serviceSpecificFields) {
-              serviceSpecificFields.style.display = 'none';
+          // Check if Supabase save was successful
+          if (!supabaseResponse.ok) {
+            const supabaseError = await supabaseResponse.json();
+            console.error('Supabase save failed:', supabaseError);
+            throw new Error('Failed to save appointment to database');
+          }
+
+          console.log('✅ Appointment saved to Supabase successfully');
+
+          // Try to send email notification via Formspree (secondary - don't fail if this fails)
+          try {
+            console.log('Sending email notification via Formspree...');
+            const formspreeData = new FormData();
+            formspreeData.append('name', appointmentData.name);
+            formspreeData.append('email', appointmentData.email);
+            formspreeData.append('phone', appointmentData.phone);
+            formspreeData.append('service', appointmentData.service);
+            formspreeData.append('date', appointmentData.date);
+            formspreeData.append('time', appointmentData.time);
+            formspreeData.append('consultation_method', appointmentData.consultation_method);
+            formspreeData.append('message', appointmentData.message);
+            formspreeData.append('service_details', JSON.stringify(appointmentData.service_details));
+
+            const formspreeResponse = await fetch('https://formspree.io/f/xnnbzveo', {
+              method: 'POST',
+              body: formspreeData,
+              headers: {
+                Accept: 'application/json',
+              },
+            });
+
+            if (formspreeResponse.ok) {
+              console.log('✅ Email notification sent successfully');
+            } else {
+              console.warn('⚠️ Email notification failed, but appointment was saved');
             }
-          } else {
-            throw new Error('Form submission failed');
+          } catch (formspreeError) {
+            console.warn('⚠️ Formspree email failed:', formspreeError.message);
+            // Don't throw error - appointment was already saved successfully
+          }
+
+          console.log('Appointment saved successfully to database');
+          showSuccessMessage();
+          this.reset();
+          const serviceSpecificFields = document.getElementById('serviceSpecificFields');
+          if (serviceSpecificFields) {
+            serviceSpecificFields.style.display = 'none';
           }
         } catch (error) {
           console.error('Form submission error:', error);
 
-          // Show user-friendly error message
+          // Enhanced error handling with specific error messages
           let errorMessage = 'Sorry, there was an error submitting your form. ';
+          
           if (error.message.includes('network') || error.message.includes('fetch')) {
             errorMessage += 'Please check your internet connection and try again.';
+          } else if (error.message.includes('Failed to save appointment to database')) {
+            errorMessage += 'Database connection issue. Please try again or contact us directly.';
+          } else if (error.message.includes('required')) {
+            errorMessage += 'Please fill in all required fields.';
+          } else if (error.message.includes('validation')) {
+            errorMessage += 'Please check your input and try again.';
           } else {
             errorMessage += 'Please try again or contact us directly.';
           }
+
+          // Show detailed error in console for debugging
+          console.error('Detailed error:', {
+            message: error.message,
+            stack: error.stack,
+            name: error.name
+          });
 
           alert(errorMessage);
         } finally {
@@ -1010,8 +1065,21 @@
 
           console.log('Final appointment data:', appointmentData);
 
-          // Submit to Formspree
+          // Submit to both Supabase and Formspree
+          const promises = [];
 
+          // 1. Save to Supabase database
+          promises.push(
+            fetch('/api/appointments', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(appointmentData)
+            })
+          );
+
+          // 2. Send email notification via Formspree
           const formspreeData = new FormData();
           formspreeData.append('name', appointmentData.name);
           formspreeData.append('email', appointmentData.email);
@@ -1023,24 +1091,37 @@
           formspreeData.append('message', appointmentData.message);
           formspreeData.append('service_details', JSON.stringify(appointmentData.service_details));
 
-          fetch('https://formspree.io/f/xnnbzveo', {
-            method: 'POST',
-            body: formspreeData,
-            headers: {
-              Accept: 'application/json',
-            },
-          })
-            .then((response) => {
-              if (response.ok) {
-                console.log('Successfully sent via Formspree');
-                showSuccessMessage();
-                form.reset();
-                const serviceSpecificFields = document.getElementById('serviceSpecificFields');
-                if (serviceSpecificFields) {
-                  serviceSpecificFields.style.display = 'none';
-                }
+          promises.push(
+            fetch('https://formspree.io/f/xnnbzveo', {
+              method: 'POST',
+              body: formspreeData,
+              headers: {
+                Accept: 'application/json',
+              },
+            })
+          );
+
+          // Wait for both submissions
+          Promise.all(promises)
+            .then(([supabaseResponse, formspreeResponse]) => {
+              // Check if Supabase save was successful
+              if (!supabaseResponse.ok) {
+                throw new Error('Failed to save appointment to database');
+              }
+
+              // Check if Formspree email was sent (optional)
+              if (formspreeResponse.ok) {
+                console.log('Successfully sent email notification via Formspree');
               } else {
-                alert('Sorry, there was an error submitting your form. Please try again or contact us directly.');
+                console.warn('Formspree email notification failed, but appointment was saved');
+              }
+
+              console.log('Appointment saved successfully to database');
+              showSuccessMessage();
+              form.reset();
+              const serviceSpecificFields = document.getElementById('serviceSpecificFields');
+              if (serviceSpecificFields) {
+                serviceSpecificFields.style.display = 'none';
               }
             })
             .catch((error) => {

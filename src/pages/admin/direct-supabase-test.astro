@@ -1,0 +1,82 @@
+---
+import { createClient } from '@supabase/supabase-js';
+
+// Direct Supabase connection test
+const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
+const supabaseKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
+
+let testResult = {
+  envLoaded: false,
+  connectionTest: 'Not tested',
+  error: null
+};
+
+try {
+  // Check if environment variables are loaded
+  if (supabaseUrl && supabaseKey) {
+    testResult.envLoaded = true;
+    
+    // Create direct Supabase client
+    const supabase = createClient(supabaseUrl, supabaseKey);
+    
+    // Test connection
+    const { data, error } = await supabase
+      .from('appointments')
+      .select('count')
+      .limit(1);
+    
+    if (error) {
+      testResult.connectionTest = 'Failed';
+      testResult.error = error.message;
+    } else {
+      testResult.connectionTest = 'Success';
+    }
+  } else {
+    testResult.error = 'Environment variables not loaded';
+  }
+} catch (error) {
+  testResult.error = error.message;
+}
+---
+
+<html>
+<head>
+    <title>Direct Supabase Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .result { padding: 20px; margin: 10px 0; border-radius: 8px; }
+        .success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .error { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .info { background: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <h1>🔗 Direct Supabase Connection Test</h1>
+    
+    <div class="result info">
+        <h3>Environment Variables</h3>
+        <p><strong>Loaded:</strong> {testResult.envLoaded ? '✅ Yes' : '❌ No'}</p>
+        <p><strong>URL:</strong> {supabaseUrl || 'NOT FOUND'}</p>
+        <p><strong>Key:</strong> {supabaseKey ? '✅ Present' : '❌ Missing'}</p>
+    </div>
+    
+    <div class="result {testResult.connectionTest === 'Success' ? 'success' : 'error'}">
+        <h3>Connection Test</h3>
+        <p><strong>Status:</strong> {testResult.connectionTest}</p>
+        {testResult.error && <p><strong>Error:</strong> {testResult.error}</p>}
+    </div>
+    
+    <div class="result info">
+        <h3>Next Steps</h3>
+        <ul>
+            <li>If environment variables are not loaded: Check your .env file</li>
+            <li>If connection fails: Check your Supabase project and table setup</li>
+            <li>If everything is green: Go back to the main test page</li>
+        </ul>
+    </div>
+    
+    <a href="/admin/test-supabase" style="display: inline-block; margin-top: 20px; padding: 10px 20px; background: #007bff; color: white; text-decoration: none; border-radius: 5px;">
+        Back to Main Test
+    </a>
+</body>
+</html>

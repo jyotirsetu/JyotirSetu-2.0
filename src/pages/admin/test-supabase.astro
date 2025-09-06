@@ -1,0 +1,91 @@
+---
+import AdminLayout from '../../admin/layouts/AdminLayout.astro';
+import { supabaseDataService } from '../../lib/supabase-data';
+
+let connectionStatus = 'Testing...';
+let testResults: any = {};
+
+try {
+  // Test connection
+  const isConnected = await supabaseDataService.testConnection();
+  connectionStatus = isConnected ? '✅ Connected' : '❌ Failed';
+  
+  if (isConnected) {
+    // Test getting appointments
+    const appointments = await supabaseDataService.getAppointments();
+    testResults = {
+      connection: 'Success',
+      appointmentsCount: appointments.length,
+      sampleAppointment: appointments[0] || null
+    };
+  }
+} catch (error) {
+  connectionStatus = '❌ Error';
+  testResults = {
+    error: error.message
+  };
+}
+---
+
+<AdminLayout title="Supabase Test">
+  <div class="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6">
+    <div class="max-w-4xl mx-auto">
+      <div class="bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20">
+        <h1 class="text-3xl font-bold text-white mb-8">🔗 Supabase Connection Test</h1>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Connection Status -->
+          <div class="bg-white/10 rounded-xl p-6 border border-white/20">
+            <h2 class="text-xl font-semibold text-white mb-4">Connection Status</h2>
+            <div class="text-2xl font-bold mb-2">{connectionStatus}</div>
+            <p class="text-gray-300 text-sm">
+              {connectionStatus.includes('✅') 
+                ? 'Successfully connected to Supabase database!' 
+                : 'Failed to connect. Check your configuration.'}
+            </p>
+          </div>
+
+          <!-- Test Results -->
+          <div class="bg-white/10 rounded-xl p-6 border border-white/20">
+            <h2 class="text-xl font-semibold text-white mb-4">Test Results</h2>
+            <div class="space-y-2">
+              {Object.entries(testResults).map(([key, value]) => (
+                <div class="flex justify-between">
+                  <span class="text-gray-300 capitalize">{key}:</span>
+                  <span class="text-white font-mono text-sm">
+                    {typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <!-- Setup Instructions -->
+        <div class="mt-8 bg-yellow-500/20 rounded-xl p-6 border border-yellow-500/30">
+          <h3 class="text-lg font-semibold text-yellow-200 mb-4">🚀 Setup Instructions</h3>
+          <div class="text-yellow-100 space-y-2">
+            <p>1. Create a Supabase project at <a href="https://supabase.com" class="underline" target="_blank">supabase.com</a></p>
+            <p>2. Get your Project URL and Anon Key from Settings → API</p>
+            <p>3. Create a <code class="bg-black/20 px-2 py-1 rounded">.env</code> file with:</p>
+            <pre class="bg-black/20 p-3 rounded mt-2 text-sm overflow-x-auto">
+PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here</pre>
+            <p>4. Run the SQL script from <code class="bg-black/20 px-2 py-1 rounded">SUPABASE_SETUP.md</code></p>
+            <p>5. Refresh this page to test the connection</p>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="mt-8 flex gap-4">
+          <a href="/admin/appointment-management" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors">
+            Go to Appointments
+          </a>
+          <button onclick="location.reload()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition-colors">
+            Test Again
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</AdminLayout>

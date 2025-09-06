@@ -8,7 +8,6 @@
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "noEmit": true,
-    "suppressImplicitAnyIndexErrors": true,
     "types": ["astro/client"],
     "typeRoots": ["./node_modules/@types", "./src/types"],
     "paths": {
