@@ -1,6 +1,6 @@
 site:
   name: JyotirSetu
-  site: 'https://jyotirsetu.com'
+  site: 'https://www.jyotirsetu.com'
   base: '/'
   trailingSlash: false
 

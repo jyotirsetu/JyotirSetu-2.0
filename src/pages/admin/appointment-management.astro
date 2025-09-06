@@ -143,19 +143,39 @@ try {
       const appointmentDate = new Date(appointment.date);
       const dateStr = appointmentDate.toISOString().slice(0, 10).replace(/-/g, '');
       
-      // Get sequence number for that service on that date
+      // Format phone number with country code
+      const formatPhoneNumber = (phone: string): string => {
+        if (!phone) return phone;
+        
+        let cleanPhone = phone.replace(/\D/g, '');
+        
+        // Add default country code +91 if not present
+        if (cleanPhone.length === 10) {
+          cleanPhone = '+91' + cleanPhone;
+        } else if (cleanPhone.startsWith('0')) {
+          cleanPhone = '+91' + cleanPhone.substring(1);
+        } else if (!cleanPhone.startsWith('+91') && !cleanPhone.startsWith('91')) {
+          cleanPhone = '+91' + cleanPhone;
+        } else if (cleanPhone.startsWith('91') && cleanPhone.length === 12) {
+          cleanPhone = '+' + cleanPhone;
+        }
+        
+        return cleanPhone;
+      };
+
+      // Get sequence number for that date (global sequence, not per-service)
       const serviceCode = getServiceCode(appointment.service);
-      const sameServiceDateCount = realAppointments.slice(0, index).filter(apt => {
-        const aptServiceCode = getServiceCode(apt.service);
+      const sameDateCount = realAppointments.slice(0, index).filter(apt => {
         const aptDateStr = new Date(apt.date).toISOString().slice(0, 10).replace(/-/g, '');
-        return aptServiceCode === serviceCode && aptDateStr === dateStr;
+        return aptDateStr === dateStr;
       }).length;
       
-      const sequence = String(sameServiceDateCount + 1).padStart(3, '0');
+      const sequence = String(sameDateCount + 1).padStart(3, '0');
       
       return {
         ...appointment,
         service: mapServiceName(appointment.service), // Map old service name to new format
+        phone: formatPhoneNumber(appointment.phone), // Format phone number with country code
         id: `${serviceCode}-${dateStr}-${sequence}`
       };
     });
@@ -694,28 +714,46 @@ services = [
         return 'OTH';
       }
 
-      getSequenceForServiceDate(serviceName: string, date: string, _currentIndex: number): string {
-        // Count how many appointments of this service exist on this date
-        const serviceCode = this.getServiceCode(serviceName);
+      getSequenceForServiceDate(serviceName: string, date: string, currentIndex: number): string {
+        // Count how many appointments exist on this date (across all services)
         const dateStr = new Date(date).toISOString().slice(0, 10).replace(/-/g, '');
         
-        // Count existing appointments with same service and date
-        const sameServiceDateCount = this.appointments.filter(apt => {
-          const aptServiceCode = this.getServiceCode(apt.service);
+        // Count existing appointments on the same date (global sequence, not per-service)
+        const sameDateCount = this.appointments.slice(0, currentIndex).filter(apt => {
           const aptDateStr = new Date(apt.date).toISOString().slice(0, 10).replace(/-/g, '');
-          return aptServiceCode === serviceCode && aptDateStr === dateStr;
+          return aptDateStr === dateStr;
         }).length;
         
-        return String(sameServiceDateCount + 1).padStart(3, '0');
+        return String(sameDateCount + 1).padStart(3, '0');
       }
 
       convertToReadableIds(appointments: Appointment[]): Appointment[] {
         return appointments.map((appointment, index) => ({
           ...appointment,
           service: this.mapServiceName(appointment.service), // Map old service name to new format
+          phone: this.formatPhoneNumber(appointment.phone), // Format phone number with country code
           originalId: appointment.id, // Store the original database ID
           id: this.generateReadableId(appointment, index)
         }));
+      }
+
+      formatPhoneNumber(phone: string): string {
+        if (!phone) return phone;
+        
+        let cleanPhone = phone.replace(/\D/g, '');
+        
+        // Add default country code +91 if not present
+        if (cleanPhone.length === 10) {
+          cleanPhone = '+91' + cleanPhone;
+        } else if (cleanPhone.startsWith('0')) {
+          cleanPhone = '+91' + cleanPhone.substring(1);
+        } else if (!cleanPhone.startsWith('+91') && !cleanPhone.startsWith('91')) {
+          cleanPhone = '+91' + cleanPhone;
+        } else if (cleanPhone.startsWith('91') && cleanPhone.length === 12) {
+          cleanPhone = '+' + cleanPhone;
+        }
+        
+        return cleanPhone;
       }
 
       getFallbackData(): Appointment[] {
