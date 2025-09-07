@@ -1,6 +1,9 @@
 import type { APIRoute } from 'astro';
 import { supabaseDataService } from '../../lib/supabase-data';
 
+// This API route should be server-side rendered
+export const prerender = false;
+
 export const POST: APIRoute = async ({ request }) => {
   try {
     const appointmentData = await request.json();

@@ -2,6 +2,9 @@ import type { APIRoute } from 'astro';
 import { verifyAdminCredentials } from '~/lib/admin-credentials';
 import { generateSessionId, createSession } from '~/lib/session-management';
 
+// This API route should be server-side rendered
+export const prerender = false;
+
 export const POST: APIRoute = async ({ request, cookies }) => {
   try {
     const { username, password } = await request.json();

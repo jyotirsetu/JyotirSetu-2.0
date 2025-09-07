@@ -3,6 +3,9 @@ import { supabase } from '~/lib/supabase';
 import { generateSessionId } from '~/lib/session-management';
 import { sendPasswordResetEmail } from '~/lib/email-service';
 
+// This API route should be server-side rendered
+export const prerender = false;
+
 export const POST: APIRoute = async ({ request }) => {
   try {
     const { username } = await request.json();
