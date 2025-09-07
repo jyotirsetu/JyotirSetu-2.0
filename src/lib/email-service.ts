@@ -72,11 +72,39 @@ export async function sendPasswordResetEmail(email: string, resetLink: string): 
             text-align: center;
             margin-bottom: 30px;
           }
-          .logo {
-            font-size: 24px;
+          .logo-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+          }
+          .logo-icon {
+            font-size: 32px;
+            margin-right: 15px;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+          }
+          .logo-text {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+          }
+          .logo-main {
+            font-size: 28px;
             font-weight: bold;
-            color: #2563eb;
-            margin-bottom: 10px;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            letter-spacing: 1px;
+          }
+          .logo-subtitle {
+            font-size: 14px;
+            color: rgba(255,255,255,0.9);
+            font-weight: 500;
+            margin-top: 2px;
+            letter-spacing: 0.5px;
           }
           .reset-button {
             display: inline-block;
@@ -112,7 +140,13 @@ export async function sendPasswordResetEmail(email: string, resetLink: string): 
       <body>
         <div class="container">
           <div class="header">
-            <div class="logo">🔮 JyotirSetu</div>
+            <div class="logo-container">
+              <div class="logo-icon">🔮</div>
+              <div class="logo-text">
+                <span class="logo-main">JyotirSetu</span>
+                <span class="logo-subtitle">Admin Panel</span>
+              </div>
+            </div>
             <h1>Password Reset Request</h1>
           </div>
           
