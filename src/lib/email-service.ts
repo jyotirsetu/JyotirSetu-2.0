@@ -190,7 +190,7 @@ export async function sendPasswordResetEmail(email: string, resetLink: string): 
     const { data, error } = await resend!.emails.send({
       from: import.meta.env.DEV 
         ? 'noreply@example.com' // Development - simple format
-        : 'JyotirSetu Admin <onboarding@resend.dev>', // Production - use Resend's verified domain
+        : 'JyotirSetu Admin <noreply@jyotirsetu.com>', // Production - your domain
       to: [emailConfig.to],
       subject: emailConfig.subject,
       html: emailConfig.html,
