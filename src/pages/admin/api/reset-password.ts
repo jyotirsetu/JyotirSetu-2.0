@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { ADMIN_CREDENTIALS, updateAdminPassword } from '~/lib/admin-credentials';
+import { updateAdminPassword, getAdminCredentials } from '~/lib/admin-credentials';
 
 export const POST: APIRoute = async ({ request }) => {
   try {
@@ -31,8 +31,9 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
     
-    // Verify username exists (in production, verify against Supabase)
-    if (username !== ADMIN_CREDENTIALS.username) {
+    // Verify username exists in database
+    const adminData = await getAdminCredentials(username);
+    if (!adminData) {
       return new Response(JSON.stringify({
         success: false,
         message: 'Invalid username'
@@ -44,8 +45,19 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
     
-    // Update password (in production, update in Supabase)
-    updateAdminPassword(newPassword);
+    // Update password in database
+    const passwordUpdated = await updateAdminPassword(username, newPassword);
+    if (!passwordUpdated) {
+      return new Response(JSON.stringify({
+        success: false,
+        message: 'Failed to reset password'
+      }), {
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+    }
     
     // In production, you would:
     // 1. Hash the new password

@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { verifyCurrentPassword, updateAdminPassword } from '~/lib/admin-credentials';
+import { validateSession } from '~/lib/session-management';
 
 export const POST: APIRoute = async ({ request, cookies }) => {
   try {
@@ -31,7 +32,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       });
     }
     
-    // Check if user is logged in
+    // Check if user is logged in and validate session
     const adminSession = cookies.get('admin-session');
     if (!adminSession) {
       return new Response(JSON.stringify({
@@ -45,8 +46,25 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       });
     }
     
-    // Verify current password (in production, verify against Supabase)
-    if (!verifyCurrentPassword(currentPassword)) {
+    // Validate session
+    const sessionValidation = await validateSession(adminSession.value);
+    if (!sessionValidation.valid || !sessionValidation.username) {
+      return new Response(JSON.stringify({
+        success: false,
+        message: 'Invalid or expired session'
+      }), {
+        status: 401,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+    }
+    
+    const username = sessionValidation.username;
+    
+    // Verify current password against database
+    const isCurrentPasswordValid = await verifyCurrentPassword(username, currentPassword);
+    if (!isCurrentPasswordValid) {
       return new Response(JSON.stringify({
         success: false,
         message: 'Current password is incorrect'
@@ -58,8 +76,19 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       });
     }
     
-    // Update password (in production, update in Supabase)
-    updateAdminPassword(newPassword);
+    // Update password in database
+    const passwordUpdated = await updateAdminPassword(username, newPassword);
+    if (!passwordUpdated) {
+      return new Response(JSON.stringify({
+        success: false,
+        message: 'Failed to update password'
+      }), {
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+    }
     
     // In production, you would:
     // 1. Hash the new password

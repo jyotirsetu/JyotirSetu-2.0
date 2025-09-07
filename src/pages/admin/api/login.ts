@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { verifyAdminCredentials } from '~/lib/admin-credentials';
+import { generateSessionId, createSession } from '~/lib/session-management';
 
 export const POST: APIRoute = async ({ request, cookies }) => {
   try {
@@ -18,10 +19,27 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       });
     }
     
-    // Check credentials (in production, verify against Supabase)
-    if (verifyAdminCredentials(username, password)) {
-      // Create session cookie
+    // Check credentials against database
+    const isValidCredentials = await verifyAdminCredentials(username, password);
+    
+    if (isValidCredentials) {
+      // Create session in database
       const sessionId = generateSessionId();
+      const sessionCreated = await createSession(username, sessionId);
+      
+      if (!sessionCreated) {
+        return new Response(JSON.stringify({
+          success: false,
+          message: 'Failed to create session'
+        }), {
+          status: 500,
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+      }
+      
+      // Create session cookie
       cookies.set('admin-session', sessionId, {
         httpOnly: true,
         secure: true,
@@ -30,7 +48,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         path: '/admin'
       });
       
-      // Store session data (in production, store in Supabase)
+      // Store username in cookie for convenience
       cookies.set('admin-user', username, {
         httpOnly: true,
         secure: true,
@@ -72,7 +90,3 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     });
   }
 };
-
-function generateSessionId(): string {
-  return Math.random().toString(36).substring(2) + Date.now().toString(36);
-}

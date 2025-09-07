@@ -64,6 +64,52 @@ export interface Database {
           updated_at?: string;
         };
       };
+      admin_credentials: {
+        Row: {
+          id: string;
+          username: string;
+          password_hash: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          username: string;
+          password_hash: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          username?: string;
+          password_hash?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      admin_sessions: {
+        Row: {
+          id: string;
+          session_id: string;
+          username: string;
+          expires_at: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          session_id: string;
+          username: string;
+          expires_at: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          session_id?: string;
+          username?: string;
+          expires_at?: string;
+          created_at?: string;
+        };
+      };
     };
   };
 }
