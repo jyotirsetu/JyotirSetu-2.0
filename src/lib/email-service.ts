@@ -13,16 +13,27 @@ let resend: Resend | null = null;
 
 // Email sending function using Resend
 export async function sendPasswordResetEmail(email: string, resetLink: string): Promise<void> {
-  // Check if we have the API key
-  const apiKey = import.meta.env.RESEND_API_KEY;
-  if (!apiKey) {
-    console.warn('⚠️ RESEND_API_KEY not found, using fallback mode');
-    // Fallback: log the email details
-    console.log('=== EMAIL FALLBACK (No API Key) ===');
+  // Skip email sending on localhost - only work on production
+  if (import.meta.env.DEV) {
+    console.log('=== LOCALHOST MODE - Email Service Disabled ===');
     console.log('To:', email);
     console.log('Subject: Password Reset Request - JyotirSetu Admin');
     console.log('Reset Link:', resetLink);
-    console.log('=========================================');
+    console.log('Note: Email service is disabled on localhost');
+    console.log('===============================================');
+    return Promise.resolve();
+  }
+
+  // Check if we have the API key for production
+  const apiKey = import.meta.env.RESEND_API_KEY;
+  if (!apiKey) {
+    console.warn('⚠️ RESEND_API_KEY not found in production, using fallback mode');
+    // Fallback: log the email details
+    console.log('=== EMAIL FALLBACK (Production - No API Key) ===');
+    console.log('To:', email);
+    console.log('Subject: Password Reset Request - JyotirSetu Admin');
+    console.log('Reset Link:', resetLink);
+    console.log('===============================================');
     return Promise.resolve();
   }
 
@@ -173,13 +184,9 @@ export async function sendPasswordResetEmail(email: string, resetLink: string): 
 
     if (error) {
       console.error('Resend email error:', error);
-      // Don't throw error in production - use fallback instead
-      if (import.meta.env.DEV) {
-        throw new Error(`Failed to send email: ${error.message}`);
-      } else {
-        console.log('Email sending failed in production, using fallback');
-        throw new Error('Email service temporarily unavailable');
-      }
+      // In production, don't throw error - use fallback instead
+      console.log('Email sending failed in production, using fallback');
+      throw new Error('Email service temporarily unavailable');
     }
 
     console.log('✅ Password reset email sent successfully:', data);
@@ -187,29 +194,16 @@ export async function sendPasswordResetEmail(email: string, resetLink: string): 
   } catch (error) {
     console.error('❌ Email sending failed:', error);
     
-    // Fallback: log the email details
-    if (import.meta.env.DEV) {
-      console.log('=== EMAIL FALLBACK (Development Mode) ===');
-      console.log('To:', emailConfig.to);
-      console.log('Subject:', emailConfig.subject);
-      console.log('Reset Link:', resetLink);
-      console.log('=========================================');
-    } else {
-      console.log('=== EMAIL FALLBACK (Production Mode) ===');
-      console.log('To:', emailConfig.to);
-      console.log('Subject:', emailConfig.subject);
-      console.log('Reset Link:', resetLink);
-      console.log('Note: Email service failed, but reset link is available');
-      console.log('=========================================');
-    }
+    // Fallback: log the email details for production
+    console.log('=== EMAIL FALLBACK (Production Mode) ===');
+    console.log('To:', emailConfig.to);
+    console.log('Subject:', emailConfig.subject);
+    console.log('Reset Link:', resetLink);
+    console.log('Note: Email service failed, but reset link is available');
+    console.log('=========================================');
     
-    // In production, don't throw error - let the API handle it gracefully
-    if (import.meta.env.DEV) {
-      throw error;
-    } else {
-      // Return success even if email fails - the reset link is still generated
-      return Promise.resolve();
-    }
+    // Return success even if email fails - the reset link is still generated
+    return Promise.resolve();
   }
 }
 

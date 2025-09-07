@@ -12,9 +12,10 @@ export const GET: APIRoute = async ({ request }) => {
     
     return new Response(JSON.stringify({
       success: true,
-      message: 'Email service test completed',
+      message: import.meta.env.DEV ? 'Email service disabled on localhost' : 'Email service test completed',
       hasApiKey: !!import.meta.env.RESEND_API_KEY,
-      environment: import.meta.env.DEV ? 'development' : 'production'
+      environment: import.meta.env.DEV ? 'development' : 'production',
+      emailEnabled: !import.meta.env.DEV
     }), {
       status: 200,
       headers: {
@@ -27,7 +28,8 @@ export const GET: APIRoute = async ({ request }) => {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
       hasApiKey: !!import.meta.env.RESEND_API_KEY,
-      environment: import.meta.env.DEV ? 'development' : 'production'
+      environment: import.meta.env.DEV ? 'development' : 'production',
+      emailEnabled: !import.meta.env.DEV
     }), {
       status: 500,
       headers: {
