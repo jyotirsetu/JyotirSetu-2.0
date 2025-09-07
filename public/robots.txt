@@ -1,2 +1,25 @@
 User-agent: *
-Disallow:
+Allow: /
+
+# Block admin and private areas
+Disallow: /admin/
+Disallow: /admin
+
+# Block template demo pages (not used for business)
+Disallow: /blog/
+Disallow: /category/
+Disallow: /tag/
+Disallow: /landing/
+Disallow: /homes/
+Disallow: /astrowind-template-in-depth/
+Disallow: /get-started-website-with-astro-tailwind-css/
+Disallow: /how-to-customize-astrowind-to-your-brand/
+Disallow: /markdown-elements-demo-post/
+Disallow: /useful-resources-to-create-websites/
+
+# Block non-existent pages
+Disallow: /pricing/
+Disallow: /resources/
+
+# Sitemap
+Sitemap: https://www.jyotirsetu.com/sitemap-index.xml

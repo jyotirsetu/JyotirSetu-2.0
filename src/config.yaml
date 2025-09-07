@@ -1,5 +1,5 @@
 site:
-  name: JyotirSetu
+  name: JyotirSetu Astrology
   site: 'https://www.jyotirsetu.com'
   base: '/'
   trailingSlash: false
@@ -9,14 +9,14 @@ site:
 # Default SEO metadata
 metadata:
   title:
-    default: JyotirSetu
-    template: '%s — JyotirSetu'
+    default: JyotirSetu Astrology – Bridge to Cosmic Light
+    template: '%s — JyotirSetu Astrology'
   description: 'Professional astrology, palmistry & numerology consultations by Astrologer Punita Sharma.'
   robots:
     index: true
     follow: true
   openGraph:
-    site_name: JyotirSetu
+    site_name: JyotirSetu Astrology
     images:
       - url: '~/assets/images/logo.png' # Your logo for social sharing
         width: 1200

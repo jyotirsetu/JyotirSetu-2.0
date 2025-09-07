@@ -40,7 +40,32 @@ export default defineConfig({
     tailwind({
       applyBaseStyles: false,
     }),
-    sitemap(),
+    sitemap({
+      filter: (page) => {
+        // Exclude admin pages (private) - including main admin page
+        if (page.includes('/admin')) return false;
+        
+        // Exclude blog and template demo pages (not used)
+        if (page.includes('/blog') || 
+            page.includes('/category/') || 
+            page.includes('/tag/') ||
+            page.includes('/astrowind-template') ||
+            page.includes('/get-started-website') ||
+            page.includes('/how-to-customize') ||
+            page.includes('/markdown-elements') ||
+            page.includes('/useful-resources')) return false;
+        
+        // Exclude landing page templates (not used for business) - including main landing page
+        if (page.includes('/landing') || 
+            page.includes('/homes/')) return false;
+        
+        // Exclude pages that don't exist
+        if (page.includes('/pricing') || 
+            page.includes('/resources')) return false;
+        
+        return true;
+      }
+    }),
     mdx(),
     icon({
       include: {

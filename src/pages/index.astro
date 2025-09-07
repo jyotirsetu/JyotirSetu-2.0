@@ -3,6 +3,11 @@ export const prerender = false;
 
 import Layout from '~/layouts/PageLayout.astro';
 
+const metadata = {
+  title: 'JyotirSetu Astrology – Bridge to Cosmic Light',
+  description: 'Professional astrology, palmistry & numerology consultations by Astrologer Punita Sharma. Get expert guidance for your life journey.',
+};
+
 import Hero from '~/components/widgets/Hero.astro';
 import DailyAstroTip from '~/components/widgets/DailyAstroTip.astro';
 import Note from '~/components/widgets/Note.astro';
@@ -16,10 +21,6 @@ import Stats from '~/components/widgets/Stats.astro';
 import CallToAction from '~/components/widgets/CallToAction.astro';
 import EmailCapture from '~/components/widgets/EmailCapture.astro';
 
-const metadata = {
-  title: 'JyotirSetu',
-  ignoreTitleTemplate: true,
-};
 ---
 
 <Layout metadata={metadata}>
