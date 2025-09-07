@@ -1,10 +1,5 @@
 import type { APIRoute } from 'astro';
-
-// Simple in-memory admin credentials (in production, use Supabase)
-const ADMIN_CREDENTIALS = {
-  username: 'admin',
-  password: 'admin123' // This will be hashed in production
-};
+import { verifyCurrentPassword, updateAdminPassword } from '~/lib/admin-credentials';
 
 export const POST: APIRoute = async ({ request, cookies }) => {
   try {
@@ -51,7 +46,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     }
     
     // Verify current password (in production, verify against Supabase)
-    if (currentPassword !== ADMIN_CREDENTIALS.password) {
+    if (!verifyCurrentPassword(currentPassword)) {
       return new Response(JSON.stringify({
         success: false,
         message: 'Current password is incorrect'
@@ -64,7 +59,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     }
     
     // Update password (in production, update in Supabase)
-    ADMIN_CREDENTIALS.password = newPassword;
+    updateAdminPassword(newPassword);
     
     // In production, you would:
     // 1. Hash the new password

@@ -1,10 +1,5 @@
 import type { APIRoute } from 'astro';
-
-// Simple in-memory admin credentials (in production, use Supabase)
-const ADMIN_CREDENTIALS = {
-  username: 'admin',
-  password: 'admin123' // This will be hashed in production
-};
+import { verifyAdminCredentials } from '~/lib/admin-credentials';
 
 export const POST: APIRoute = async ({ request, cookies }) => {
   try {
@@ -24,7 +19,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     }
     
     // Check credentials (in production, verify against Supabase)
-    if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
+    if (verifyAdminCredentials(username, password)) {
       // Create session cookie
       const sessionId = generateSessionId();
       cookies.set('admin-session', sessionId, {
