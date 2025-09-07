@@ -8,11 +8,29 @@ interface EmailConfig {
   text?: string;
 }
 
-// Initialize Resend client
-const resend = new Resend(import.meta.env.RESEND_API_KEY);
+// Initialize Resend client (will be created conditionally)
+let resend: Resend | null = null;
 
 // Email sending function using Resend
 export async function sendPasswordResetEmail(email: string, resetLink: string): Promise<void> {
+  // Check if we have the API key
+  const apiKey = import.meta.env.RESEND_API_KEY;
+  if (!apiKey) {
+    console.warn('⚠️ RESEND_API_KEY not found, using fallback mode');
+    // Fallback: log the email details
+    console.log('=== EMAIL FALLBACK (No API Key) ===');
+    console.log('To:', email);
+    console.log('Subject: Password Reset Request - JyotirSetu Admin');
+    console.log('Reset Link:', resetLink);
+    console.log('=========================================');
+    return Promise.resolve();
+  }
+
+  // Initialize Resend client if not already done
+  if (!resend) {
+    resend = new Resend(apiKey);
+  }
+
   const emailConfig: EmailConfig = {
     to: email,
     subject: 'Password Reset Request - JyotirSetu Admin',
@@ -143,7 +161,7 @@ export async function sendPasswordResetEmail(email: string, resetLink: string): 
 
   try {
     // Send email using Resend
-    const { data, error } = await resend.emails.send({
+    const { data, error } = await resend!.emails.send({
       from: import.meta.env.DEV 
         ? 'noreply@example.com' // Development - simple format
         : 'noreply@jyotirsetu.com', // Production - verify domain in Resend dashboard
