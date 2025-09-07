@@ -215,8 +215,8 @@ const getBreakpoints = ({
 export const astroAssetsOptimizer: ImagesOptimizer = async (
   image,
   breakpoints,
-  _width,
-  _height,
+  width,
+  height,
   format = undefined
 ) => {
   if (!image) {
@@ -225,7 +225,12 @@ export const astroAssetsOptimizer: ImagesOptimizer = async (
 
   return Promise.all(
     breakpoints.map(async (w: number) => {
-      const result = await getImage({ src: image, width: w, inferSize: true, ...(format ? { format: format } : {}) });
+      const result = await getImage({ 
+        src: image, 
+        width: w, 
+        height: height && width ? Math.round((w * height) / width) : undefined,
+        ...(format ? { format: format } : {}) 
+      });
 
       return {
         src: result?.src,
