@@ -24,7 +24,7 @@ const whenExternalScripts = (items: (() => AstroIntegration) | (() => AstroInteg
   hasExternalScripts ? (Array.isArray(items) ? items.map((item) => item()) : [items()]) : [];
 
 export default defineConfig({
-  output: 'hybrid',
+  output: 'server',
   adapter: vercel({
     webAnalytics: { enabled: true },
     speedInsights: { enabled: true },
@@ -33,7 +33,7 @@ export default defineConfig({
     format: 'file',
   },
   prerender: {
-    default: true,
+    default: false,
   },
 
   integrations: [
