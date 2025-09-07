@@ -278,7 +278,7 @@ if (Astro.cookies.has('admin-session')) {
                 </div>
               `;
             }
-          } catch (error) {
+          } catch (error) { // eslint-disable-line @typescript-eslint/no-unused-vars
             messageContainer.innerHTML = `
               <div class="error-message">
                 An error occurred. Please try again.

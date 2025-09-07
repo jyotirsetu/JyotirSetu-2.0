@@ -3,7 +3,7 @@ import AdminLayout from '../../admin/layouts/AdminLayout.astro';
 import { supabaseDataService } from '../../lib/supabase-data';
 
 let connectionStatus = 'Testing...';
-let testResults: any = {};
+let testResults: Record<string, unknown> = {};
 
 try {
   // Test connection

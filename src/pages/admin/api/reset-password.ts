@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 
 // Simple in-memory admin credentials (in production, use Supabase)
-let ADMIN_CREDENTIALS = {
+const ADMIN_CREDENTIALS = {
   username: 'admin',
   password: 'admin123' // This will be hashed in production
 };

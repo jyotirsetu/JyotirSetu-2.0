@@ -153,7 +153,7 @@ export class SupabaseDataService {
   // Test connection
   async testConnection(): Promise<boolean> {
     try {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('appointments')
         .select('count')
         .limit(1);
