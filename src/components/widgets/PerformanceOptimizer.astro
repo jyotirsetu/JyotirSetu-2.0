@@ -72,7 +72,7 @@
           if (response.ok) {
             return navigator.serviceWorker.register('/sw.js');
           } else {
-            console.log('Service Worker file not found, skipping registration');
+            // Silently skip if service worker doesn't exist
             return Promise.reject('Service Worker file not found');
           }
         })
@@ -80,7 +80,10 @@
           console.log('SW registered: ', registration);
         })
         .catch(function (registrationError) {
-          console.log('SW registration failed: ', registrationError);
+          // Only log if it's not the expected "file not found" error
+          if (registrationError !== 'Service Worker file not found') {
+            console.log('SW registration failed: ', registrationError);
+          }
         });
     });
   }
