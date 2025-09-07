@@ -23,6 +23,11 @@
     "**/dist/**", 
     ".vercel/output/**", 
     ".vercel/output/functions/**",
-    ".vercel/output/functions/_render.func/**"
+    ".vercel/output/functions/_render.func/**",
+    "**/.vercel/output/**",
+    "**/.vercel/output/functions/**",
+    "**/.vercel/output/functions/_render.func/**",
+    "**/functions/**",
+    "**/output/**"
   ]
 }

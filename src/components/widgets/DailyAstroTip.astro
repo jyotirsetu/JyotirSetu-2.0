@@ -126,21 +126,38 @@
 
   // Get a fresh tip on each page load/refresh
   function getFreshTip() {
-    // Use current timestamp to ensure different tips on each refresh
-    const timestamp = Date.now();
-    const randomSeed = timestamp % dailyTips.length;
+    // Use current date + time for better variety
+    const now = new Date();
+    const startOfYear = new Date(now.getFullYear(), 0, 0);
+    const dayOfYear = Math.floor((now.getTime() - startOfYear.getTime()) / (1000 * 60 * 60 * 24));
+    const hourOfDay = now.getHours();
+    const minuteOfHour = now.getMinutes();
+    
+    // Combine multiple time factors for better distribution
+    const randomSeed = (dayOfYear + hourOfDay + minuteOfHour) % dailyTips.length;
     return dailyTips[randomSeed];
   }
 
   // Initialize tip widget
   document.addEventListener('DOMContentLoaded', function () {
-    const tipElement = document.getElementById('daily-tip-text');
-    const categoryElement = document.getElementById('daily-tip-category');
+    const freshTip = getFreshTip();
+    
+    // Update mobile layout elements
+    const mobileTipElement = document.getElementById('daily-tip-text-mobile');
+    const mobileCategoryElement = document.getElementById('daily-tip-category-mobile');
+    
+    // Update desktop layout elements
+    const desktopTipElement = document.getElementById('daily-tip-text-desktop');
+    const desktopCategoryElement = document.getElementById('daily-tip-category-desktop');
 
-    if (tipElement && categoryElement) {
-      const freshTip = getFreshTip();
-      tipElement.textContent = freshTip.tip;
-      categoryElement.textContent = freshTip.category;
+    if (mobileTipElement && mobileCategoryElement) {
+      mobileTipElement.textContent = freshTip.tip;
+      mobileCategoryElement.textContent = freshTip.category;
+    }
+    
+    if (desktopTipElement && desktopCategoryElement) {
+      desktopTipElement.textContent = freshTip.tip;
+      desktopCategoryElement.textContent = freshTip.category;
     }
   });
 </script>
@@ -159,7 +176,7 @@
         <div class="flex items-center justify-between mb-3">
           <span
             class="text-xs font-medium text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/30 px-3 py-1 rounded-full"
-            id="daily-tip-category"
+            id="daily-tip-category-mobile"
           >
             Nakshatra
           </span>
@@ -169,7 +186,7 @@
         <!-- Tip Text -->
         <p
           class="text-base sm:text-lg text-gray-800 dark:text-gray-200 font-medium leading-relaxed mb-4"
-          id="daily-tip-text"
+          id="daily-tip-text-mobile"
         >
           🌌 Moon in Rohini Nakshatra—ideal for creativity & nurturing connections.
         </p>
@@ -185,7 +202,7 @@
 
           <a
             href="/#path-to-clarity"
-            class="w-full text-center block text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 font-medium text-sm transition-colors duration-200 px-4 py-3 rounded-lg border border-purple-200 hover:border-purple-300 transition-all duration-200"
+            class="w-full text-center block text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 font-medium text-sm px-4 py-3 rounded-lg border border-purple-200 hover:border-purple-300 transition-all duration-200"
           >
             Learn More
           </a>
@@ -198,13 +215,13 @@
           <div class="flex items-center space-x-3 mb-2">
             <span
               class="text-xs font-medium text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/30 px-3 py-1 rounded-full"
-              id="daily-tip-category"
+              id="daily-tip-category-desktop"
             >
               Nakshatra
             </span>
             <span class="text-xs text-gray-500 dark:text-gray-400"> 🌟 Daily Cosmic Insight </span>
           </div>
-          <p class="text-lg text-gray-800 dark:text-gray-200 font-medium leading-relaxed" id="daily-tip-text">
+          <p class="text-lg text-gray-800 dark:text-gray-200 font-medium leading-relaxed" id="daily-tip-text-desktop">
             🌌 Moon in Rohini Nakshatra—ideal for creativity & nurturing connections.
           </p>
         </div>
@@ -219,7 +236,7 @@
 
           <a
             href="/#path-to-clarity"
-            class="text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 font-medium text-sm transition-colors duration-200 px-4 py-2 rounded-lg border border-purple-200 hover:border-purple-300 transition-all duration-200"
+            class="text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 font-medium text-sm px-4 py-2 rounded-lg border border-purple-200 hover:border-purple-300 transition-all duration-200"
           >
             Learn More
           </a>
