@@ -29,6 +29,12 @@ export default defineConfig({
     webAnalytics: { enabled: true },
     speedInsights: { enabled: true },
   }),
+  build: {
+    format: 'file',
+  },
+  prerender: {
+    default: false,
+  },
 
   integrations: [
     tailwind({
