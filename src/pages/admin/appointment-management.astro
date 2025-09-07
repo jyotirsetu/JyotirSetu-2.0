@@ -163,20 +163,24 @@ try {
         return cleanPhone;
       };
 
-      // Get sequence number for that date (global sequence, not per-service)
+      // Get sequence number for that month (global sequence, not per-service)
       const serviceCode = getServiceCode(appointment.service);
-      const sameDateCount = realAppointments.slice(0, index).filter(apt => {
-        const aptDateStr = new Date(apt.date).toISOString().slice(0, 10).replace(/-/g, '');
-        return aptDateStr === dateStr;
+      const currentAppointmentDate = new Date(appointment.date);
+      const yearMonth = currentAppointmentDate.toISOString().slice(0, 7).replace(/-/g, '');
+      
+      const sameMonthCount = realAppointments.slice(0, index).filter(apt => {
+        const aptDate = new Date(apt.date);
+        const aptYearMonth = aptDate.toISOString().slice(0, 7).replace(/-/g, '');
+        return aptYearMonth === yearMonth;
       }).length;
       
-      const sequence = String(sameDateCount + 1).padStart(3, '0');
+      const sequence = String(sameMonthCount + 1).padStart(3, '0');
       
       return {
         ...appointment,
         service: mapServiceName(appointment.service), // Map old service name to new format
         phone: formatPhoneNumber(appointment.phone), // Format phone number with country code
-        id: `${serviceCode}-${dateStr}-${sequence}`
+        id: `${serviceCode}-${yearMonth}-${sequence}`
       };
     });
   } else {
@@ -606,14 +610,14 @@ services = [
         // Get service code from appointment service name
         const serviceCode = this.getServiceCode(appointment.service);
         
-        // Get date in YYYYMMDD format
+        // Get date in YYYYMM format (Year-Month)
         const appointmentDate = new Date(appointment.date);
-        const dateStr = appointmentDate.toISOString().slice(0, 10).replace(/-/g, '');
+        const yearMonth = appointmentDate.toISOString().slice(0, 7).replace(/-/g, '');
         
-        // Generate sequence number for that service on that date
-        const sequence = this.getSequenceForServiceDate(appointment.service, appointment.date, index);
+        // Generate global sequence number for that month
+        const sequence = this.getGlobalSequenceForMonth(appointment.date, index);
         
-        return `${serviceCode}-${dateStr}-${sequence}`;
+        return `${serviceCode}-${yearMonth}-${sequence}`;
       }
 
       mapServiceName(serviceName: string): string {
@@ -714,17 +718,19 @@ services = [
         return 'OTH';
       }
 
-      getSequenceForServiceDate(serviceName: string, date: string, currentIndex: number): string {
-        // Count how many appointments exist on this date (across all services)
-        const dateStr = new Date(date).toISOString().slice(0, 10).replace(/-/g, '');
+      getGlobalSequenceForMonth(date: string, currentIndex: number): string {
+        // Get the year-month for the current appointment
+        const appointmentDate = new Date(date);
+        const yearMonth = appointmentDate.toISOString().slice(0, 7).replace(/-/g, '');
         
-        // Count existing appointments on the same date (global sequence, not per-service)
-        const sameDateCount = this.appointments.slice(0, currentIndex).filter(apt => {
-          const aptDateStr = new Date(apt.date).toISOString().slice(0, 10).replace(/-/g, '');
-          return aptDateStr === dateStr;
+        // Count how many appointments exist in the same month (global sequence across all services)
+        const sameMonthCount = this.appointments.slice(0, currentIndex).filter(apt => {
+          const aptDate = new Date(apt.date);
+          const aptYearMonth = aptDate.toISOString().slice(0, 7).replace(/-/g, '');
+          return aptYearMonth === yearMonth;
         }).length;
         
-        return String(sameDateCount + 1).padStart(3, '0');
+        return String(sameMonthCount + 1).padStart(3, '0');
       }
 
       convertToReadableIds(appointments: Appointment[]): Appointment[] {
