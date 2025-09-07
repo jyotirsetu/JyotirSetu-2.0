@@ -17,11 +17,5 @@
         }
       ]
     }
-  ],
-  "rewrites": [
-    {
-      "source": "/admin",
-      "destination": "/admin/login"
-    }
   ]
 }

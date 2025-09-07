@@ -1,0 +1,634 @@
+---
+import AdminLayout from '../../admin/layouts/AdminLayout.astro';
+// TypeScript refresh
+
+// WhatsApp communication data interface
+interface WhatsAppMessage {
+  id: string;
+  phone: string;
+  name: string;
+  message: string;
+  timestamp: string;
+  status: 'sent' | 'delivered' | 'read' | 'failed';
+  type: 'incoming' | 'outgoing';
+  appointment_id?: string;
+}
+
+interface WhatsAppTemplate {
+  id: string;
+  name: string;
+  content: string;
+  category: 'appointment' | 'reminder' | 'followup' | 'general';
+  is_active: boolean;
+}
+
+let whatsappMessages: WhatsAppMessage[] = [];
+let whatsappTemplates: WhatsAppTemplate[] = [];
+let totalMessages = 0;
+
+// Sample data for demonstration
+whatsappMessages = [
+  {
+    id: 'WA001',
+    phone: '+91-9876543210',
+    name: 'Priya Sharma',
+    message: 'Hello, I would like to book an appointment for astrology consultation.',
+    timestamp: '2025-01-27T10:30:00Z',
+    status: 'read',
+    type: 'incoming',
+    appointment_id: 'APT001'
+  },
+  {
+    id: 'WA002',
+    phone: '+91-9876543210',
+    name: 'Priya Sharma',
+    message: 'Thank you for your interest! Please visit our website to book your appointment: https://www.jyotirsetu.com/ScheduleAppointmentJyotirSetu',
+    timestamp: '2025-01-27T10:35:00Z',
+    status: 'delivered',
+    type: 'outgoing'
+  },
+  {
+    id: 'WA003',
+    phone: '+91-8765432109',
+    name: 'Rajesh Kumar',
+    message: 'What are your consultation timings?',
+    timestamp: '2025-01-27T11:15:00Z',
+    status: 'sent',
+    type: 'incoming'
+  }
+];
+
+whatsappTemplates = [
+  {
+    id: 'TMP001',
+    name: 'Appointment Confirmation',
+    content: 'Namaste! Your appointment has been confirmed for {date} at {time}. We look forward to guiding you on your spiritual journey. 🙏',
+    category: 'appointment',
+    is_active: true
+  },
+  {
+    id: 'TMP002',
+    name: 'Reminder Message',
+    content: 'Reminder: Your astrology consultation is scheduled for tomorrow at {time}. Please prepare your birth details. 🌟',
+    category: 'reminder',
+    is_active: true
+  },
+  {
+    id: 'TMP003',
+    name: 'Follow-up Message',
+    content: 'Thank you for your consultation! We hope our guidance was helpful. Feel free to reach out if you have any questions. 🙏✨',
+    category: 'followup',
+    is_active: true
+  }
+];
+
+totalMessages = whatsappMessages.length;
+---
+
+<AdminLayout title="WhatsApp Communication Management">
+  <div class="admin-container">
+    <!-- Header Section -->
+    <div class="admin-header">
+      <div class="admin-header-content">
+        <div class="admin-header-left">
+          <h1 class="admin-title">
+            <svg class="admin-title-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+            </svg>
+            WhatsApp Communication
+          </h1>
+          <p class="admin-subtitle">Manage WhatsApp messages, templates, and automated communications</p>
+        </div>
+        <div class="admin-header-right">
+          <div class="admin-stats">
+            <div class="admin-stat-item">
+              <div class="admin-stat-value">{totalMessages}</div>
+              <div class="admin-stat-label">Total Messages</div>
+            </div>
+            <div class="admin-stat-item">
+              <div class="admin-stat-value">{whatsappTemplates.length}</div>
+              <div class="admin-stat-label">Templates</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="admin-actions">
+      <button class="admin-btn-primary" onclick="openNewMessageModal()">
+        <svg class="admin-btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+        </svg>
+        Send New Message
+      </button>
+      <button class="admin-btn-secondary" onclick="openTemplateModal()">
+        <svg class="admin-btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+        </svg>
+        Manage Templates
+      </button>
+      <button class="admin-btn-secondary" onclick="refreshWhatsAppData()">
+        <svg class="admin-btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+        </svg>
+        Refresh
+      </button>
+    </div>
+
+    <!-- Filter and Search Section -->
+    <div class="admin-filters">
+      <div class="admin-filter-group">
+        <div class="admin-filter-item">
+          <label class="admin-filter-label">Status</label>
+          <select class="admin-filter-select" id="statusFilter">
+            <option value="">All Status</option>
+            <option value="sent">Sent</option>
+            <option value="delivered">Delivered</option>
+            <option value="read">Read</option>
+            <option value="failed">Failed</option>
+          </select>
+        </div>
+        <div class="admin-filter-item">
+          <label class="admin-filter-label">Type</label>
+          <select class="admin-filter-select" id="typeFilter">
+            <option value="">All Types</option>
+            <option value="incoming">Incoming</option>
+            <option value="outgoing">Outgoing</option>
+          </select>
+        </div>
+        <div class="admin-filter-item">
+          <label class="admin-filter-label">Date Range</label>
+          <input type="date" class="admin-filter-input" id="dateFilter">
+        </div>
+      </div>
+      <div class="admin-search-group">
+        <div class="admin-search-box">
+          <svg class="admin-search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+          <input type="text" class="admin-search-input" placeholder="Search messages, names, or phone numbers..." id="searchInput">
+        </div>
+      </div>
+    </div>
+
+    <!-- Messages Table -->
+    <div class="admin-table-container">
+      <div class="admin-table-header">
+        <h3 class="admin-table-title">Recent Messages</h3>
+        <div class="admin-table-actions">
+          <button class="admin-btn-small" onclick="exportWhatsAppData()">
+            <svg class="admin-btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+            Export
+          </button>
+        </div>
+      </div>
+      
+      <div class="admin-table-wrapper">
+        <table class="admin-table">
+          <thead class="admin-table-head">
+            <tr>
+              <th class="admin-table-header-cell">Contact</th>
+              <th class="admin-table-header-cell">Message</th>
+              <th class="admin-table-header-cell">Type</th>
+              <th class="admin-table-header-cell">Status</th>
+              <th class="admin-table-header-cell">Timestamp</th>
+              <th class="admin-table-header-cell">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="admin-table-body" id="whatsappMessagesTable">
+            {whatsappMessages.map((message) => (
+              <tr class="admin-table-row">
+                <td class="admin-table-cell">
+                  <div class="admin-contact-info">
+                    <div class="admin-contact-avatar">
+                      {message.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div class="admin-contact-details">
+                      <div class="admin-contact-name">{message.name}</div>
+                      <div class="admin-contact-phone">{message.phone}</div>
+                    </div>
+                  </div>
+                </td>
+                <td class="admin-table-cell">
+                  <div class="admin-message-preview">
+                    {message.message.length > 100 ? `${message.message.substring(0, 100)}...` : message.message}
+                  </div>
+                </td>
+                <td class="admin-table-cell">
+                  <span class={`admin-badge ${message.type === 'incoming' ? 'admin-badge-incoming' : 'admin-badge-outgoing'}`}>
+                    {message.type === 'incoming' ? '📥 Incoming' : '📤 Outgoing'}
+                  </span>
+                </td>
+                <td class="admin-table-cell">
+                  <span class={`admin-badge admin-badge-${message.status}`}>
+                    {message.status === 'sent' ? '📤 Sent' : 
+                     message.status === 'delivered' ? '✅ Delivered' :
+                     message.status === 'read' ? '👁️ Read' : '❌ Failed'}
+                  </span>
+                </td>
+                <td class="admin-table-cell">
+                  <div class="admin-timestamp">
+                    {new Date(message.timestamp).toLocaleString('en-US', {
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </div>
+                </td>
+                <td class="admin-table-cell">
+                  <div class="admin-action-buttons">
+                    <button class="admin-action-btn" onclick={`viewMessage('${message.id}')`} title="View Message">
+                      <svg class="admin-action-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                      </svg>
+                    </button>
+                    <button class="admin-action-btn" onclick={`replyToMessage('${message.id}')`} title="Reply">
+                      <svg class="admin-action-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path>
+                      </svg>
+                    </button>
+                    <button class="admin-action-btn admin-action-btn-danger" onclick={`deleteMessage('${message.id}')`} title="Delete">
+                      <svg class="admin-action-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                      </svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Templates Section -->
+    <div class="admin-table-container">
+      <div class="admin-table-header">
+        <h3 class="admin-table-title">Message Templates</h3>
+        <div class="admin-table-actions">
+          <button class="admin-btn-small" onclick="openNewTemplateModal()">
+            <svg class="admin-btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+            </svg>
+            New Template
+          </button>
+        </div>
+      </div>
+      
+      <div class="admin-table-wrapper">
+        <table class="admin-table">
+          <thead class="admin-table-head">
+            <tr>
+              <th class="admin-table-header-cell">Template Name</th>
+              <th class="admin-table-header-cell">Category</th>
+              <th class="admin-table-header-cell">Content Preview</th>
+              <th class="admin-table-header-cell">Status</th>
+              <th class="admin-table-header-cell">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="admin-table-body">
+            {whatsappTemplates.map((template) => (
+              <tr class="admin-table-row">
+                <td class="admin-table-cell">
+                  <div class="admin-template-name">{template.name}</div>
+                </td>
+                <td class="admin-table-cell">
+                  <span class={`admin-badge admin-badge-${template.category}`}>
+                    {template.category === 'appointment' ? '📅 Appointment' :
+                     template.category === 'reminder' ? '⏰ Reminder' :
+                     template.category === 'followup' ? '🔄 Follow-up' : '📝 General'}
+                  </span>
+                </td>
+                <td class="admin-table-cell">
+                  <div class="admin-template-preview">
+                    {template.content.length > 80 ? `${template.content.substring(0, 80)}...` : template.content}
+                  </div>
+                </td>
+                <td class="admin-table-cell">
+                  <span class={`admin-badge ${template.is_active ? 'admin-badge-active' : 'admin-badge-inactive'}`}>
+                    {template.is_active ? '✅ Active' : '❌ Inactive'}
+                  </span>
+                </td>
+                <td class="admin-table-cell">
+                  <div class="admin-action-buttons">
+                    <button class="admin-action-btn" onclick={`editTemplate('${template.id}')`} title="Edit Template">
+                      <svg class="admin-action-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                      </svg>
+                    </button>
+                    <button class="admin-action-btn" onclick={`toggleTemplate('${template.id}')`} title={template.is_active ? 'Deactivate' : 'Activate'}>
+                      <svg class="admin-action-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={template.is_active ? "M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728" : "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"}></path>
+                      </svg>
+                    </button>
+                    <button class="admin-action-btn admin-action-btn-danger" onclick={`deleteTemplate('${template.id}')`} title="Delete Template">
+                      <svg class="admin-action-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                      </svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- New Message Modal -->
+  <div id="newMessageModal" class="admin-modal">
+    <div class="admin-modal-content">
+      <div class="admin-modal-header">
+        <h3 class="admin-modal-title">Send New WhatsApp Message</h3>
+        <button class="admin-modal-close" onclick="closeNewMessageModal()">
+          <svg class="admin-modal-close-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      <div class="admin-modal-body">
+        <form id="newMessageForm" class="admin-form">
+          <div class="admin-form-group">
+            <label class="admin-form-label">Recipient Phone Number</label>
+            <input type="tel" class="admin-form-input" placeholder="+91-9876543210" required>
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-form-label">Recipient Name</label>
+            <input type="text" class="admin-form-input" placeholder="Enter recipient name" required>
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-form-label">Message</label>
+            <textarea class="admin-form-textarea" rows="4" placeholder="Type your message here..." required></textarea>
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-form-label">Use Template</label>
+            <select class="admin-form-select" id="templateSelect">
+              <option value="">Select a template (optional)</option>
+              {whatsappTemplates.map((template) => (
+                <option value={template.id}>{template.name}</option>
+              ))}
+            </select>
+          </div>
+        </form>
+      </div>
+      <div class="admin-modal-footer">
+        <button class="admin-btn-secondary" onclick="closeNewMessageModal()">Cancel</button>
+        <button class="admin-btn-primary" onclick="sendWhatsAppMessage()">Send Message</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Template Modal -->
+  <div id="templateModal" class="admin-modal">
+    <div class="admin-modal-content">
+      <div class="admin-modal-header">
+        <h3 class="admin-modal-title">Message Template</h3>
+        <button class="admin-modal-close" onclick="closeTemplateModal()">
+          <svg class="admin-modal-close-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      <div class="admin-modal-body">
+        <form id="templateForm" class="admin-form">
+          <div class="admin-form-group">
+            <label class="admin-form-label">Template Name</label>
+            <input type="text" class="admin-form-input" placeholder="Enter template name" required>
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-form-label">Category</label>
+            <select class="admin-form-select" required>
+              <option value="">Select category</option>
+              <option value="appointment">Appointment</option>
+              <option value="reminder">Reminder</option>
+              <option value="followup">Follow-up</option>
+              <option value="general">General</option>
+            </select>
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-form-label">Template Content</label>
+            <textarea class="admin-form-textarea" rows="6" placeholder="Enter template content. Use {date}, {time}, {name} for dynamic values..." required></textarea>
+            <div class="admin-form-help">
+              Available variables: &#123;date&#125;, &#123;time&#125;, &#123;name&#125;, &#123;service&#125;
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="admin-modal-footer">
+        <button class="admin-btn-secondary" onclick="closeTemplateModal()">Cancel</button>
+        <button class="admin-btn-primary" onclick="saveTemplate()">Save Template</button>
+      </div>
+    </div>
+  </div>
+
+  <script define:vars={{ whatsappMessagesData: whatsappMessages, whatsappTemplatesData: whatsappTemplates }}>
+    // WhatsApp Management Functions
+    /* eslint-disable @typescript-eslint/no-unused-vars */
+    function openNewMessageModal() {
+      document.getElementById('newMessageModal').classList.add('admin-modal-open');
+    }
+
+    function closeNewMessageModal() {
+      document.getElementById('newMessageModal').classList.remove('admin-modal-open');
+      document.getElementById('newMessageForm').reset();
+    }
+
+    function openTemplateModal() {
+      document.getElementById('templateModal').classList.add('admin-modal-open');
+    }
+
+    function closeTemplateModal() {
+      document.getElementById('templateModal').classList.remove('admin-modal-open');
+      document.getElementById('templateForm').reset();
+    }
+
+    function openNewTemplateModal() {
+      openTemplateModal();
+    }
+
+    function sendWhatsAppMessage() {
+      const form = document.getElementById('newMessageForm');
+      const formData = new FormData(form);
+      
+      // Simulate sending message
+      showNotification('WhatsApp message sent successfully!', 'success');
+      closeNewMessageModal();
+      
+      // In real implementation, you would call your WhatsApp API here
+      console.log('Sending WhatsApp message:', Object.fromEntries(formData));
+    }
+
+    function saveTemplate() {
+      const form = document.getElementById('templateForm');
+      const formData = new FormData(form);
+      
+      // Simulate saving template
+      showNotification('Template saved successfully!', 'success');
+      closeTemplateModal();
+      
+      // In real implementation, you would save to your database
+      console.log('Saving template:', Object.fromEntries(formData));
+    }
+
+    function viewMessage(messageId) {
+      // Find message and show details
+      const message = whatsappMessagesData.find(m => m.id === messageId);
+      if (message) {
+        const formattedDate = new Date(message.timestamp).toLocaleString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+        alert(`Message Details:\n\nFrom: ${message.name} (${message.phone})\nMessage: ${message.message}\nTime: ${formattedDate}`);
+      }
+    }
+
+    function replyToMessage(messageId) {
+      const message = whatsappMessagesData.find(m => m.id === messageId);
+      if (message) {
+        // Pre-fill the new message form with recipient details
+        const modal = document.getElementById('newMessageModal');
+        const phoneInput = modal.querySelector('input[type="tel"]');
+        const nameInput = modal.querySelector('input[type="text"]');
+        
+        phoneInput.value = message.phone;
+        nameInput.value = message.name;
+        
+        openNewMessageModal();
+      }
+    }
+
+    function deleteMessage(messageId) {
+      if (confirm('Are you sure you want to delete this message?')) {
+        // Remove message from array
+        const index = whatsappMessagesData.findIndex(m => m.id === messageId);
+        if (index > -1) {
+          whatsappMessagesData.splice(index, 1);
+          showNotification('Message deleted successfully!', 'success');
+          // Refresh table
+          refreshWhatsAppData();
+        }
+      }
+    }
+
+    function editTemplate(templateId) {
+      const template = whatsappTemplatesData.find(t => t.id === templateId);
+      if (template) {
+        // Pre-fill template form
+        const form = document.getElementById('templateForm');
+        form.querySelector('input[type="text"]').value = template.name;
+        form.querySelector('select').value = template.category;
+        form.querySelector('textarea').value = template.content;
+        
+        openTemplateModal();
+      }
+    }
+
+    function toggleTemplate(templateId) {
+      const template = whatsappTemplatesData.find(t => t.id === templateId);
+      if (template) {
+        template.is_active = !template.is_active;
+        showNotification(`Template ${template.is_active ? 'activated' : 'deactivated'} successfully!`, 'success');
+        // Refresh table
+        refreshWhatsAppData();
+      }
+    }
+
+    function deleteTemplate(templateId) {
+      if (confirm('Are you sure you want to delete this template?')) {
+        const index = whatsappTemplatesData.findIndex(t => t.id === templateId);
+        if (index > -1) {
+          whatsappTemplatesData.splice(index, 1);
+          showNotification('Template deleted successfully!', 'success');
+          // Refresh table
+          refreshWhatsAppData();
+        }
+      }
+    }
+
+    function refreshWhatsAppData() {
+      // In real implementation, you would fetch fresh data from your API
+      showNotification('WhatsApp data refreshed!', 'info');
+      location.reload();
+    }
+
+    function exportWhatsAppData() {
+      // Export messages to CSV
+      const csvContent = "data:text/csv;charset=utf-8," + 
+        "ID,Name,Phone,Message,Type,Status,Timestamp\n" +
+        whatsappMessagesData.map(msg => 
+          `${msg.id},${msg.name},${msg.phone},"${msg.message}",${msg.type},${msg.status},${msg.timestamp}`
+        ).join("\n");
+      
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", "whatsapp_messages.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      showNotification('WhatsApp data exported successfully!', 'success');
+    }
+
+    // Filter and search functionality
+    function filterMessages() {
+      const statusFilter = document.getElementById('statusFilter').value;
+      const typeFilter = document.getElementById('typeFilter').value;
+      const searchInput = document.getElementById('searchInput').value.toLowerCase();
+      
+      const rows = document.querySelectorAll('#whatsappMessagesTable tr');
+      
+      rows.forEach(row => {
+        const status = row.querySelector('.admin-badge').textContent.toLowerCase();
+        const type = row.querySelector('.admin-badge-incoming, .admin-badge-outgoing').textContent.toLowerCase();
+        const name = row.querySelector('.admin-contact-name').textContent.toLowerCase();
+        const phone = row.querySelector('.admin-contact-phone').textContent.toLowerCase();
+        const message = row.querySelector('.admin-message-preview').textContent.toLowerCase();
+        
+        const matchesStatus = !statusFilter || status.includes(statusFilter);
+        const matchesType = !typeFilter || type.includes(typeFilter);
+        const matchesSearch = !searchInput || name.includes(searchInput) || phone.includes(searchInput) || message.includes(searchInput);
+        
+        row.style.display = matchesStatus && matchesType && matchesSearch ? '' : 'none';
+      });
+    }
+
+    // Event listeners
+    document.addEventListener('DOMContentLoaded', function() {
+      document.getElementById('statusFilter').addEventListener('change', filterMessages);
+      document.getElementById('typeFilter').addEventListener('change', filterMessages);
+      document.getElementById('dateFilter').addEventListener('change', filterMessages);
+      document.getElementById('searchInput').addEventListener('input', filterMessages);
+    });
+
+    // Close modals when clicking outside
+    document.addEventListener('click', function(event) {
+      const modals = document.querySelectorAll('.admin-modal');
+      modals.forEach(modal => {
+        if (event.target === modal) {
+          modal.classList.remove('admin-modal-open');
+        }
+      });
+    });
+
+    // Close modals with Escape key
+    document.addEventListener('keydown', function(event) {
+      if (event.key === 'Escape') {
+        const openModal = document.querySelector('.admin-modal-open');
+        if (openModal) {
+          openModal.classList.remove('admin-modal-open');
+        }
+      }
+    });
+  </script>
+</AdminLayout>
