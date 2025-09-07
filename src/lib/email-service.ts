@@ -82,29 +82,14 @@ export async function sendPasswordResetEmail(email: string, resetLink: string): 
             border-radius: 15px;
             box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
           }
-          .logo-icon {
-            font-size: 32px;
-            margin-right: 15px;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+          .logo-image {
+            max-width: 200px;
+            height: auto;
+            filter: drop-shadow(0 2px 8px rgba(0,0,0,0.2));
+            transition: transform 0.3s ease;
           }
-          .logo-text {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-          }
-          .logo-main {
-            font-size: 28px;
-            font-weight: bold;
-            color: white;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-            letter-spacing: 1px;
-          }
-          .logo-subtitle {
-            font-size: 14px;
-            color: rgba(255,255,255,0.9);
-            font-weight: 500;
-            margin-top: 2px;
-            letter-spacing: 0.5px;
+          .logo-image:hover {
+            transform: scale(1.05);
           }
           .reset-button {
             display: inline-block;
@@ -141,11 +126,7 @@ export async function sendPasswordResetEmail(email: string, resetLink: string): 
         <div class="container">
           <div class="header">
             <div class="logo-container">
-              <div class="logo-icon">🔮</div>
-              <div class="logo-text">
-                <span class="logo-main">JyotirSetu</span>
-                <span class="logo-subtitle">Admin Panel</span>
-              </div>
+              <img src="https://www.jyotirsetu.com/src/assets/images/JyotirSetu%20Full%20Logo%20Transparent.png" alt="JyotirSetu Logo" class="logo-image" />
             </div>
             <h1>Password Reset Request</h1>
           </div>
