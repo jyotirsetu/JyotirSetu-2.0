@@ -12,19 +12,37 @@
     "./.vscode/astrowind/config-schema.json": "/src/config.yaml"
   },
   "eslint.useFlatConfig": true,
-  "typescript.preferences.includePackageJsonAutoImports": "off",
   "files.exclude": {
     "**/.vercel/**": true,
     "**/dist/**": true,
-    "**/node_modules/**": true
+    "**/node_modules/**": true,
+    "**/.vercel/output/**": true,
+    "**/.vercel/output/functions/**": true,
+    "**/.vercel/output/functions/_render.func/**": true
   },
   "search.exclude": {
     "**/.vercel/**": true,
     "**/dist/**": true,
-    "**/node_modules/**": true
+    "**/node_modules/**": true,
+    "**/.vercel/output/**": true,
+    "**/.vercel/output/functions/**": true,
+    "**/.vercel/output/functions/_render.func/**": true
   },
-  "typescript.preferences.exclude": ["**/.vercel/**", "**/dist/**", "**/node_modules/**"],
+  "typescript.preferences.exclude": [
+    "**/.vercel/**", 
+    "**/dist/**", 
+    "**/node_modules/**",
+    "**/.vercel/output/**",
+    "**/.vercel/output/functions/**",
+    "**/.vercel/output/functions/_render.func/**"
+  ],
   "typescript.suggest.autoImports": false,
   "typescript.validate.enable": true,
-  "typescript.preferences.includePackageJsonAutoImports": "off"
+  "typescript.preferences.includePackageJsonAutoImports": "off",
+  "files.watcherExclude": {
+    "**/.vercel/**": true,
+    "**/.vercel/output/**": true,
+    "**/.vercel/output/functions/**": true,
+    "**/.vercel/output/functions/_render.func/**": true
+  }
 }
