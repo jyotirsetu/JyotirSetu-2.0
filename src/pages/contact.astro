@@ -633,16 +633,28 @@ const metadata = {
               field instanceof HTMLSelectElement ||
               field instanceof HTMLTextAreaElement
             ) {
-              if (!field.value || !field.value.trim()) {
-                field.classList.add('border-red-500');
-                isValid = false;
+              // For select fields, check if a valid option is selected (not the default empty option)
+              if (field instanceof HTMLSelectElement) {
+                if (!field.value || field.value === '') {
+                  field.classList.add('border-red-500');
+                  isValid = false;
+                } else {
+                  field.classList.remove('border-red-500');
+                }
               } else {
-                field.classList.remove('border-red-500');
+                // For input and textarea fields, check for empty or whitespace-only values
+                if (!field.value || !field.value.trim()) {
+                  field.classList.add('border-red-500');
+                  isValid = false;
+                } else {
+                  field.classList.remove('border-red-500');
+                }
               }
             }
           });
 
           if (isValid) {
+            console.log('✅ Form validation passed');
             // Collect form data
             const formData = new FormData(form as HTMLFormElement);
             const contactData = {
@@ -652,6 +664,8 @@ const metadata = {
               subject: formData.get('queryType'),
               message: formData.get('message')
             };
+            
+            console.log('📊 Contact form data:', contactData);
 
             // Show loading state
             const submitBtn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
@@ -693,6 +707,7 @@ const metadata = {
               submitBtn.disabled = false;
             }
           } else {
+            console.log('❌ Form validation failed - required fields missing');
             alert('Please fill in all required fields.');
           }
         });
