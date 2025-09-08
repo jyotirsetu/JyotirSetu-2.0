@@ -620,7 +620,7 @@ const metadata = {
       const form = document.getElementById('contactForm');
 
       if (form) {
-        form.addEventListener('submit', function (e) {
+        form.addEventListener('submit', async function (e) {
           e.preventDefault();
 
           // Basic validation
@@ -643,10 +643,54 @@ const metadata = {
           });
 
           if (isValid) {
-            // Show success message (you can replace this with actual form submission)
-            alert('Thank you for your message! We will get back to you within 24-48 hours.');
-            if (form instanceof HTMLFormElement) {
-              form.reset();
+            // Collect form data
+            const formData = new FormData(form as HTMLFormElement);
+            const contactData = {
+              name: formData.get('fullName'),
+              email: formData.get('email'),
+              phone: formData.get('phoneNumber'),
+              subject: formData.get('subject'),
+              message: formData.get('message')
+            };
+
+            // Show loading state
+            const submitBtn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '⏳ Sending...';
+            submitBtn.disabled = true;
+
+            try {
+              // Send confirmation email
+              const emailResponse = await fetch('/api/send-contact-confirmation', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(contactData)
+              });
+
+              if (emailResponse.ok) {
+                console.log('✅ Contact confirmation email sent successfully');
+                alert('Thank you for your message! We have sent you a confirmation email and will get back to you within 24-48 hours.');
+              } else {
+                console.warn('⚠️ Contact confirmation email failed, but message was received');
+                alert('Thank you for your message! We will get back to you within 24-48 hours.');
+              }
+
+              // Reset form
+              if (form instanceof HTMLFormElement) {
+                form.reset();
+              }
+            } catch (error) {
+              console.error('Error sending contact confirmation:', error);
+              alert('Thank you for your message! We will get back to you within 24-48 hours.');
+              if (form instanceof HTMLFormElement) {
+                form.reset();
+              }
+            } finally {
+              // Reset button
+              submitBtn.innerHTML = originalText;
+              submitBtn.disabled = false;
             }
           } else {
             alert('Please fill in all required fields.');
