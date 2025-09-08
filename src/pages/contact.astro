@@ -607,7 +607,7 @@ const metadata = {
     };
 
     // Make toggleFAQ globally accessible
-    window.toggleFAQ = toggleFAQ;
+    (window as any).toggleFAQ = toggleFAQ;
 
     // Show success message
     function showSuccessMessage(message) {
@@ -634,8 +634,16 @@ const metadata = {
     }
 
     // Form submission handler function
-    async function handleFormSubmission(form) {
+    async function handleFormSubmission(e) {
+      e.preventDefault();
+      e.stopPropagation();
       console.log('🔍 handleFormSubmission called');
+      
+      const form = document.getElementById('contactForm');
+      if (!form) {
+        console.error('Contact form not found');
+        return;
+      }
       
       // Basic validation
       const requiredFields = form.querySelectorAll('[required]');
@@ -670,7 +678,7 @@ const metadata = {
       if (isValid) {
         console.log('✅ Form validation passed');
         // Collect form data
-        const formData = new FormData(form);
+        const formData = new FormData(form as HTMLFormElement);
         const contactData = {
           name: formData.get('fullName'),
           email: formData.get('email'),
@@ -682,7 +690,12 @@ const metadata = {
         console.log('📊 Contact form data:', contactData);
 
         // Show loading state
-        const submitBtn = form.querySelector('button[type="submit"]');
+        const submitBtn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+        if (!submitBtn) {
+          console.error('Submit button not found');
+          return;
+        }
+
         const originalText = submitBtn.innerHTML;
         submitBtn.innerHTML = '⏳ Sending...';
         submitBtn.disabled = true;
@@ -702,7 +715,7 @@ const metadata = {
           if (result.success) {
             console.log('✅ Form submitted successfully');
             showSuccessMessage(result.message || 'Thank you for your message! We will get back to you soon.');
-            form.reset();
+            (form as HTMLFormElement).reset();
           } else {
             console.error('❌ Form submission failed:', result.message);
             showErrorMessage('Sorry, there was an error sending your message. Please try again.');
@@ -730,33 +743,20 @@ const metadata = {
       if (form) {
         console.log('🔍 Adding event listener to contact form');
         
-        // Also add click listener to submit button as backup
+        // Add form submit event listener
+        form.addEventListener('submit', handleFormSubmission);
+        
+        // Add click listener to submit button for mobile compatibility
         const submitBtn = form.querySelector('button[type="submit"]');
         if (submitBtn) {
           console.log('🔍 Adding click listener to submit button');
           submitBtn.addEventListener('click', function(e) {
-            console.log('🔍 Submit button clicked');
-            e.preventDefault();
-            e.stopPropagation();
-            console.log('🔍 Button click prevented and stopped');
-            
-            // Manually trigger form submission
-            console.log('🔍 Manually triggering form submission');
-            handleFormSubmission(form);
-            return false;
+            // Only handle if form submit event didn't already handle it
+            if (!e.defaultPrevented) {
+              handleFormSubmission(e);
+            }
           });
         }
-        
-        form.addEventListener('submit', function (e) {
-          console.log('🔍 Form submit event triggered');
-          e.preventDefault();
-          e.stopPropagation();
-          console.log('🔍 Form submission prevented and stopped');
-          
-          // Use the same handler function
-          handleFormSubmission(form);
-          return false;
-        });
       }
     });
   </script>

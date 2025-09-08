@@ -826,27 +826,31 @@
     if (form) {
       console.log('Attaching submit event listener to form');
 
-      form.addEventListener('submit', async function (e) {
+      // Single form submission handler
+      async function handleFormSubmission(e) {
         e.preventDefault();
+        e.stopPropagation();
         console.log('Form submit event triggered!');
-        console.log('Form data being collected...');
 
         // Show loading state
-        const submitBtn = this.querySelector('button[type="submit"]');
+        const submitBtn = form.querySelector('button[type="submit"]');
+        if (!submitBtn) {
+          console.error('Submit button not found');
+          return;
+        }
+
         const originalText = submitBtn.innerHTML;
         submitBtn.innerHTML = '⏳ Submitting...';
         submitBtn.disabled = true;
 
         try {
           // Collect form data
-          const formData = new FormData(this);
+          const formData = new FormData(form);
 
           // Validate mobile number
           const mobileNumber = formData.get('mobileNumber');
           if (!mobileNumber || mobileNumber.length !== 10 || !/^[0-9]{10}$/.test(mobileNumber)) {
-            alert('Please enter a valid 10-digit mobile number');
-            submitBtn.innerHTML = originalText;
-            submitBtn.disabled = false;
+            showErrorMessage('Please enter a valid 10-digit mobile number');
             return;
           }
 
@@ -855,9 +859,8 @@
           for (const field of requiredFields) {
             const value = formData.get(field);
             if (!value || value.toString().trim() === '') {
-              alert(`Please fill in the ${field.replace(/([A-Z])/g, ' $1').toLowerCase()} field`);
-              submitBtn.innerHTML = originalText;
-              submitBtn.disabled = false;
+              const fieldName = field.replace(/([A-Z])/g, ' $1').toLowerCase();
+              showErrorMessage(`Please fill in the ${fieldName} field`);
               return;
             }
           }
@@ -954,7 +957,7 @@
 
           console.log('Appointment saved successfully to database');
           showSuccessMessage();
-          this.reset();
+          form.reset();
           const serviceSpecificFields = document.getElementById('serviceSpecificFields');
           if (serviceSpecificFields) {
             serviceSpecificFields.style.display = 'none';
@@ -984,13 +987,27 @@
             name: error.name
           });
 
-          alert(errorMessage);
+          showErrorMessage(errorMessage);
         } finally {
           // Reset button state
           submitBtn.innerHTML = originalText;
           submitBtn.disabled = false;
         }
-      });
+      }
+
+      // Add form submit event listener
+      form.addEventListener('submit', handleFormSubmission);
+
+      // Add click event listener to submit button for mobile compatibility
+      const submitBtn = form.querySelector('button[type="submit"]');
+      if (submitBtn) {
+        submitBtn.addEventListener('click', function(e) {
+          // Only handle if form submit event didn't already handle it
+          if (!e.defaultPrevented) {
+            handleFormSubmission(e);
+          }
+        });
+      }
 
       console.log('Form submit event listener attached successfully');
     } else {
@@ -1010,153 +1027,17 @@
     }, 5000);
   }
 
-  // Add click handler to submit button as backup
-  document.addEventListener('DOMContentLoaded', function () {
-    const submitBtn = document.querySelector('button[type="submit"]');
-    if (submitBtn) {
-      submitBtn.addEventListener('click', function () {
-        console.log('Submit button clicked!');
+  // Add error message function
+  function showErrorMessage(message) {
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+    errorDiv.innerHTML = `❌ ${message}`;
+    document.body.appendChild(errorDiv);
 
-        // Manually trigger form submission
-        const form = document.getElementById('dynamic-appointment-form');
-        if (form) {
-          console.log('Manually submitting form from button click');
-
-          // Collect form data manually
-          const formData = new FormData(form);
-
-          // Validate mobile number
-          const mobileNumber = formData.get('mobileNumber');
-          if (!mobileNumber || mobileNumber.length !== 10 || !/^[0-9]{10}$/.test(mobileNumber)) {
-            alert('Please enter a valid 10-digit mobile number');
-            return;
-          }
-
-          // Debug: Log all form data
-          console.log('=== MANUAL FORM SUBMISSION DEBUG ===');
-          for (const [key, value] of formData.entries()) {
-            console.log(`${key}: ${value}`);
-          }
-
-          const appointmentData = {
-            name: formData.get('fullName'),
-            email: formData.get('emailAddress'),
-            phone: formData.get('mobileNumber'),
-            service: formData.get('serviceType'),
-            date: formData.get('appointmentDate'),
-            time: formData.get('appointmentTime'),
-            consultation_method: formData.get('consultationMethod'),
-            message: formData.get('userQuery'),
-            status: 'scheduled',
-            service_details: {},
-          };
-
-          // Collect service-specific fields
-          const serviceType = formData.get('serviceType');
-          console.log('Selected service type:', serviceType);
-
-          if (serviceType && serviceConfigs[serviceType]) {
-            console.log('Service config found:', serviceConfigs[serviceType]);
-            serviceConfigs[serviceType].fields.forEach((field) => {
-              const value = formData.get(field.name);
-              console.log(`Field ${field.name}: ${value}`);
-              if (value) {
-                appointmentData.service_details[field.name] = value;
-              }
-            });
-          }
-
-          console.log('Final appointment data:', appointmentData);
-
-          // Submit to Supabase, Formspree, and send confirmation email
-          const promises = [];
-
-          // 1. Save to Supabase database
-          promises.push(
-            fetch('/api/appointments', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify(appointmentData)
-            })
-          );
-
-          // 2. Send confirmation email to user
-          promises.push(
-            fetch('/api/send-confirmation-email', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify(appointmentData)
-            })
-          );
-
-          // 3. Send email notification via Formspree (for admin)
-          const formspreeData = new FormData();
-          formspreeData.append('name', appointmentData.name);
-          formspreeData.append('email', appointmentData.email);
-          formspreeData.append('phone', appointmentData.phone);
-          formspreeData.append('service', appointmentData.service);
-          formspreeData.append('date', appointmentData.date);
-          formspreeData.append('time', appointmentData.time);
-          formspreeData.append('consultation_method', appointmentData.consultation_method);
-          formspreeData.append('message', appointmentData.message);
-          formspreeData.append('service_details', JSON.stringify(appointmentData.service_details));
-
-          promises.push(
-            fetch('https://formspree.io/f/xnnbzveo', {
-              method: 'POST',
-              body: formspreeData,
-              headers: {
-                Accept: 'application/json',
-              },
-            })
-          );
-
-          // Wait for all submissions
-          Promise.all(promises)
-            .then(([supabaseResponse, emailResponse, formspreeResponse]) => {
-              // Check if Supabase save was successful
-              if (!supabaseResponse.ok) {
-                throw new Error('Failed to save appointment to database');
-              }
-
-              // Check if confirmation email was sent
-              if (emailResponse.ok) {
-                console.log('✅ Confirmation email sent successfully to user');
-              } else {
-                console.warn('⚠️ Confirmation email failed, but appointment was saved');
-              }
-
-              // Check if Formspree email was sent (optional)
-              if (formspreeResponse.ok) {
-                console.log('✅ Admin notification sent via Formspree');
-              } else {
-                console.warn('⚠️ Formspree notification failed, but appointment was saved');
-              }
-
-              console.log('✅ Appointment saved successfully to database');
-              showSuccessMessage();
-              form.reset();
-              const serviceSpecificFields = document.getElementById('serviceSpecificFields');
-              if (serviceSpecificFields) {
-                serviceSpecificFields.style.display = 'none';
-              }
-            })
-            .catch((error) => {
-              console.error('Form submission error:', error);
-              alert('Sorry, there was an error submitting your form. Please try again or contact us directly.');
-            });
-        }
-      });
-
-      console.log('Submit button click handler attached successfully');
-    } else {
-      console.error('Submit button not found!');
-    }
-  });
+    setTimeout(() => {
+      errorDiv.remove();
+    }, 5000);
+  }
 
   // Mobile number input validation
   document.addEventListener('DOMContentLoaded', () => {
