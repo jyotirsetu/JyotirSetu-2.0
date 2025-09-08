@@ -38,8 +38,7 @@ const { language, textDirection } = I18N;
     <Analytics />
 
     <!-- Preload critical CSS to prevent FOUC -->
-    <link rel="preload" href="/src/assets/styles/tailwind.css" as="style" />
-    <link rel="preload" href="/src/assets/styles/custom.css" as="style" />
+    <!-- CSS preload removed to prevent 404 errors in production -->
 
     <!-- Comment the line below to disable View Transitions -->
     <ClientRouter fallback="swap" />
