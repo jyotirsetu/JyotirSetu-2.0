@@ -648,6 +648,7 @@ const metadata = {
       // Basic validation
       const requiredFields = form.querySelectorAll('[required]');
       let isValid = true;
+      let firstInvalidField: HTMLElement | null = null;
 
       requiredFields.forEach(function (field) {
         if (
@@ -659,6 +660,7 @@ const metadata = {
           if (field instanceof HTMLSelectElement) {
             if (!field.value || field.value === '') {
               field.classList.add('border-red-500');
+              if (!firstInvalidField) firstInvalidField = field;
               isValid = false;
             } else {
               field.classList.remove('border-red-500');
@@ -667,6 +669,7 @@ const metadata = {
             // For input and textarea fields, check for empty or whitespace-only values
             if (!field.value || !field.value.trim()) {
               field.classList.add('border-red-500');
+              if (!firstInvalidField) firstInvalidField = field;
               isValid = false;
             } else {
               field.classList.remove('border-red-500');
@@ -674,6 +677,11 @@ const metadata = {
           }
         }
       });
+
+      // Focus on first invalid field
+      if (firstInvalidField && 'focus' in firstInvalidField) {
+        (firstInvalidField as any).focus();
+      }
 
       if (isValid) {
         console.log('✅ Form validation passed');
@@ -730,7 +738,13 @@ const metadata = {
         }
       } else {
         console.log('❌ Form validation failed - required fields missing');
-        showErrorMessage('Please fill in all required fields.');
+        showErrorMessage('Please fill in all required fields (marked with red border).');
+        // Reset button state
+        const submitBtn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+        if (submitBtn) {
+          submitBtn.innerHTML = '✨ Send Message';
+          submitBtn.disabled = false;
+        }
       }
     }
 
@@ -744,19 +758,27 @@ const metadata = {
         console.log('🔍 Adding event listener to contact form');
         
         // Add form submit event listener
-        form.addEventListener('submit', handleFormSubmission);
+        form.addEventListener('submit', function(e) {
+          console.log('🔍 Form submit event triggered');
+          handleFormSubmission(e);
+        });
         
         // Add click listener to submit button for mobile compatibility
         const submitBtn = form.querySelector('button[type="submit"]');
         if (submitBtn) {
           console.log('🔍 Adding click listener to submit button');
           submitBtn.addEventListener('click', function(e) {
+            console.log('🔍 Submit button clicked');
             // Only handle if form submit event didn't already handle it
             if (!e.defaultPrevented) {
               handleFormSubmission(e);
             }
           });
+        } else {
+          console.error('🔍 Submit button not found!');
         }
+      } else {
+        console.error('🔍 Contact form not found!');
       }
     });
   </script>
