@@ -31,6 +31,7 @@ export default defineConfig({
   }),
   build: {
     format: 'file',
+    assets: '_astro',
   },
   prerender: {
     default: false,

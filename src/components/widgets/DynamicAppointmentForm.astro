@@ -1068,7 +1068,7 @@
 
           console.log('Final appointment data:', appointmentData);
 
-          // Submit to both Supabase and Formspree
+          // Submit to Supabase, Formspree, and send confirmation email
           const promises = [];
 
           // 1. Save to Supabase database
@@ -1082,7 +1082,18 @@
             })
           );
 
-          // 2. Send email notification via Formspree
+          // 2. Send confirmation email to user
+          promises.push(
+            fetch('/api/send-confirmation-email', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(appointmentData)
+            })
+          );
+
+          // 3. Send email notification via Formspree (for admin)
           const formspreeData = new FormData();
           formspreeData.append('name', appointmentData.name);
           formspreeData.append('email', appointmentData.email);
@@ -1104,22 +1115,29 @@
             })
           );
 
-          // Wait for both submissions
+          // Wait for all submissions
           Promise.all(promises)
-            .then(([supabaseResponse, formspreeResponse]) => {
+            .then(([supabaseResponse, emailResponse, formspreeResponse]) => {
               // Check if Supabase save was successful
               if (!supabaseResponse.ok) {
                 throw new Error('Failed to save appointment to database');
               }
 
-              // Check if Formspree email was sent (optional)
-              if (formspreeResponse.ok) {
-                console.log('Successfully sent email notification via Formspree');
+              // Check if confirmation email was sent
+              if (emailResponse.ok) {
+                console.log('✅ Confirmation email sent successfully to user');
               } else {
-                console.warn('Formspree email notification failed, but appointment was saved');
+                console.warn('⚠️ Confirmation email failed, but appointment was saved');
               }
 
-              console.log('Appointment saved successfully to database');
+              // Check if Formspree email was sent (optional)
+              if (formspreeResponse.ok) {
+                console.log('✅ Admin notification sent via Formspree');
+              } else {
+                console.warn('⚠️ Formspree notification failed, but appointment was saved');
+              }
+
+              console.log('✅ Appointment saved successfully to database');
               showSuccessMessage();
               form.reset();
               const serviceSpecificFields = document.getElementById('serviceSpecificFields');

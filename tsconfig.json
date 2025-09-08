@@ -36,6 +36,9 @@
     "**/.vercel/**/*",
     "**/.vercel/output/**/*",
     "**/.vercel/output/functions/**/*",
-    "**/.vercel/output/functions/_render.func/**/*"
+    "**/.vercel/output/functions/_render.func/**/*",
+    "**/.vercel/output/functions/_render.func/src/pages/ScheduleAppointmentJyotirSetu.astro",
+    "src/pages/pricing.astro",
+    "src/pages/services.astro"
   ]
 }

@@ -1,6 +1,5 @@
 import type { APIRoute } from 'astro';
 import { supabase } from '~/lib/supabase';
-import { sendPasswordResetEmail } from '~/lib/email-service';
 
 // This API route should be server-side rendered
 export const prerender = false;
