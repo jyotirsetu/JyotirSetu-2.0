@@ -842,19 +842,21 @@
 
   // Form submission handling
   document.addEventListener('DOMContentLoaded', function () {
-    console.log('DOMContentLoaded event fired');
+    console.log('🔍 DOMContentLoaded event fired for appointment form');
 
     const form = document.getElementById('dynamic-appointment-form');
-    console.log('Form element found:', form);
+    console.log('🔍 Form element found:', form);
+    console.log('🔍 Form element type:', typeof form);
+    console.log('🔍 Form element tagName:', form ? form.tagName : 'null');
 
     if (form) {
-      console.log('Attaching submit event listener to form');
+      console.log('🔍 Attaching submit event listener to appointment form');
 
       // Single form submission handler
       async function handleFormSubmission(e) {
         e.preventDefault();
         e.stopPropagation();
-        console.log('Form submit event triggered!');
+        console.log('🔍 Appointment form submit event triggered!');
 
         // Show loading state
         const submitBtn = form.querySelector('button[type="submit"]');
@@ -874,11 +876,17 @@
         try {
           // Collect form data
           const formData = new FormData(form);
+          
+          // Debug: Log all form data
+          console.log('🔍 === APPOINTMENT FORM DATA DEBUG ===');
+          for (const [key, value] of formData.entries()) {
+            console.log(`🔍 ${key}: ${value}`);
+          }
 
           // Validate mobile number
           const mobileNumber = formData.get('mobileNumber');
           const mobileStr = mobileNumber ? mobileNumber.toString() : '';
-          console.log('Mobile number validation:', { mobileNumber, mobileStr, length: mobileStr.length });
+          console.log('🔍 Mobile number validation:', { mobileNumber, mobileStr, length: mobileStr.length });
           
           if (!mobileNumber || mobileStr.length !== 10 || !/^[0-9]{10}$/.test(mobileStr)) {
             showErrorMessage('Please enter a valid 10-digit mobile number');
@@ -890,10 +898,13 @@
 
           // Validate required fields
           const requiredFields = ['fullName', 'emailAddress', 'serviceType', 'appointmentDate', 'appointmentTime'];
+          console.log('🔍 Validating required fields:', requiredFields);
           for (const field of requiredFields) {
             const value = formData.get(field);
+            console.log(`🔍 Field ${field}: "${value}"`);
             if (!value || value.toString().trim() === '') {
               const fieldName = field.replace(/([A-Z])/g, ' $1').toLowerCase();
+              console.log(`🔍 Missing required field: ${field}`);
               showErrorMessage(`Please fill in the ${fieldName} field`);
               submitBtn.innerHTML = originalText;
               submitBtn.disabled = false;
@@ -901,12 +912,7 @@
               return;
             }
           }
-
-          // Debug: Log all form data
-          console.log('=== FORM SUBMISSION DEBUG ===');
-          for (const [key, value] of formData.entries()) {
-            console.log(`${key}: ${value}`);
-          }
+          console.log('🔍 All required fields validated successfully');
 
           const appointmentData = {
             name: formData.get('fullName'),
@@ -1066,7 +1072,7 @@
         
         // Simple click handler for mobile compatibility
         submitBtn.addEventListener('click', function(e) {
-          console.log('Submit button clicked');
+          console.log('🔍 Appointment submit button clicked');
           // Let the form submit event handle it naturally
         });
       }
