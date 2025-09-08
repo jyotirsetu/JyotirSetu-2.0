@@ -49,6 +49,195 @@ const { language, textDirection } = I18N;
 
     <BasicScripts />
     
+    <!-- Enhanced Cache Manager -->
+    <script is:inline>
+      // Comprehensive Cache Manager for JyotirSetu
+      (function() {
+        'use strict';
+        
+        const CACHE_VERSION = 'v2.1';
+        const CACHE_KEY = 'jyotirsetu-cache-version';
+        
+        // Clear all types of cache
+        async function clearAllCaches() {
+          try {
+            // Clear Service Worker caches
+            if ('caches' in window) {
+              const cacheNames = await caches.keys();
+              await Promise.all(
+                cacheNames.map(cacheName => {
+                  console.log('Clearing cache:', cacheName);
+                  return caches.delete(cacheName);
+                })
+              );
+            }
+            
+            // Clear localStorage form data
+            const keysToRemove = [];
+            for (let i = 0; i < localStorage.length; i++) {
+              const key = localStorage.key(i);
+              if (key && (key.includes('form') || key.includes('appointment'))) {
+                keysToRemove.push(key);
+              }
+            }
+            keysToRemove.forEach(key => localStorage.removeItem(key));
+            
+            // Clear sessionStorage
+            sessionStorage.clear();
+            
+            console.log('All caches cleared successfully');
+            return true;
+          } catch (error) {
+            console.error('Error clearing caches:', error);
+            return false;
+          }
+        }
+        
+        // Check if cache needs to be cleared
+        function shouldClearCache() {
+          const storedVersion = localStorage.getItem(CACHE_KEY);
+          return storedVersion !== CACHE_VERSION;
+        }
+        
+        // Clear cache on page refresh (selective clearing)
+        function handlePageRefresh() {
+          // Check if this is a refresh (not initial load)
+          if (performance.navigation && performance.navigation.type === 1) {
+            console.log('Page refresh detected - clearing selective caches');
+            clearSelectiveCaches();
+          }
+        }
+        
+        // Clear only problematic caches, keep performance caches
+        async function clearSelectiveCaches() {
+          try {
+            if ('caches' in window) {
+              const cacheNames = await caches.keys();
+              // Only clear HTML and API caches, keep static asset caches
+              const cachesToClear = cacheNames.filter(name => 
+                name.includes('html') || 
+                name.includes('api') || 
+                name.includes('jyotirsetu-v') // Clear main cache but keep static cache
+              );
+              
+              await Promise.all(
+                cachesToClear.map(cacheName => {
+                  console.log('Clearing selective cache:', cacheName);
+                  return caches.delete(cacheName);
+                })
+              );
+            }
+            
+            // Clear form-related storage
+            const keysToRemove = [];
+            for (let i = 0; i < localStorage.length; i++) {
+              const key = localStorage.key(i);
+              if (key && (key.includes('form') || key.includes('appointment'))) {
+                keysToRemove.push(key);
+              }
+            }
+            keysToRemove.forEach(key => localStorage.removeItem(key));
+            
+            // Clear sessionStorage
+            sessionStorage.clear();
+            
+            console.log('Selective caches cleared successfully');
+            return true;
+          } catch (error) {
+            console.error('Error clearing selective caches:', error);
+            return false;
+          }
+        }
+        
+        // Initialize cache management
+        async function initializeCacheManager() {
+          // Clear cache if version mismatch
+          if (shouldClearCache()) {
+            console.log('Version mismatch detected, clearing cache...');
+            await clearAllCaches();
+            localStorage.setItem(CACHE_KEY, CACHE_VERSION);
+          }
+          
+          // Handle page refresh
+          handlePageRefresh();
+          
+          // Add cache clear button for development
+          if (window.location.hostname === 'localhost' || window.location.hostname.includes('localhost')) {
+            addCacheClearButton();
+          }
+        }
+        
+        // Add cache clear button for development
+        function addCacheClearButton() {
+          const button = document.createElement('button');
+          button.textContent = '🗑️ Clear Cache';
+          button.style.cssText = `
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 9999;
+            background: #ff4444;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+          `;
+          
+          button.onclick = async () => {
+            button.textContent = 'Clearing...';
+            button.disabled = true;
+            await clearSelectiveCaches();
+            button.textContent = '✅ Cleared';
+            setTimeout(() => {
+              button.textContent = '🗑️ Clear Cache';
+              button.disabled = false;
+            }, 2000);
+          };
+          
+          document.body.appendChild(button);
+        }
+        
+        // Enhanced fetch with cache busting
+        function createCacheBustingFetch() {
+          const originalFetch = window.fetch;
+          window.fetch = function(url, options = {}) {
+            // Add cache busting for API calls
+            if (typeof url === 'string' && url.includes('/api/')) {
+              options.cache = 'no-cache';
+              options.headers = {
+                ...options.headers,
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0'
+              };
+            }
+            return originalFetch(url, options);
+          };
+        }
+        
+        // Initialize when DOM is ready
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', initializeCacheManager);
+        } else {
+          initializeCacheManager();
+        }
+        
+        // Set up cache busting fetch
+        createCacheBustingFetch();
+        
+        // Export for manual use
+        window.JyotirSetuCacheManager = {
+          clearAllCaches,
+          shouldClearCache,
+          CACHE_VERSION
+        };
+        
+      })();
+    </script>
+    
     <!-- Service Worker Unregistration Script -->
     <script is:inline>
       // Unregister any existing service workers to prevent caching issues
