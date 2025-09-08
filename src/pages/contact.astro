@@ -633,188 +633,61 @@ const metadata = {
       }, 5000);
     }
 
-    // Form submission handler function
+    // Simple form submission handler
     async function handleFormSubmission(e) {
       e.preventDefault();
-      e.stopPropagation();
-      console.log('🔍 handleFormSubmission called');
+      console.log('Contact form submitted');
       
       const form = document.getElementById('contactForm');
-      if (!form) {
-        console.error('Contact form not found');
-        return;
-      }
-      
-      // Basic validation
-      const requiredFields = form.querySelectorAll('[required]');
-      let isValid = true;
-      let firstInvalidField: HTMLElement | null = null;
+      if (!form) return;
 
-      requiredFields.forEach(function (field) {
-        if (
-          field instanceof HTMLInputElement ||
-          field instanceof HTMLSelectElement ||
-          field instanceof HTMLTextAreaElement
-        ) {
-          // Clear previous error styling
-          field.classList.remove('border-red-500');
-          
-          // For select fields, check if a valid option is selected (not the default empty option)
-          if (field instanceof HTMLSelectElement) {
-            if (!field.value || field.value === '') {
-              field.classList.add('border-red-500');
-              if (!firstInvalidField) firstInvalidField = field;
-              isValid = false;
-            }
-          } else {
-            // For input and textarea fields, check for empty or whitespace-only values
-            if (!field.value || !field.value.trim()) {
-              field.classList.add('border-red-500');
-              if (!firstInvalidField) firstInvalidField = field;
-              isValid = false;
-            }
-            
-            // Additional validation for email
-            if (field.type === 'email' && field.value) {
-              const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-              if (!emailRegex.test(field.value)) {
-                field.classList.add('border-red-500');
-                if (!firstInvalidField) firstInvalidField = field;
-                isValid = false;
-              }
-            }
-          }
-        }
-      });
+      const submitBtn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+      if (!submitBtn) return;
 
-      // Focus on first invalid field
-      if (firstInvalidField && 'focus' in firstInvalidField) {
-        (firstInvalidField as any).focus();
-        // Scroll to field on mobile
-        firstInvalidField.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
+      // Show loading
+      const originalText = submitBtn.innerHTML;
+      submitBtn.innerHTML = '⏳ Sending...';
+      submitBtn.disabled = true;
 
-      if (isValid) {
-        console.log('✅ Form validation passed');
-        // Collect form data
+      try {
         const formData = new FormData(form as HTMLFormElement);
-        const contactData = {
+        const data = {
           name: formData.get('fullName'),
           email: formData.get('email'),
           phone: formData.get('phone'),
           subject: formData.get('queryType'),
           message: formData.get('message')
         };
+
+        const response = await fetch('/api/contact', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
         
-        console.log('📊 Contact form data:', contactData);
-        console.log('📊 Form data entries:');
-        for (const [key, value] of formData.entries()) {
-          console.log(`${key}: ${value}`);
+        if (result.success) {
+          showSuccessMessage('Thank you for your message! We will get back to you soon.');
+          (form as HTMLFormElement).reset();
+        } else {
+          showErrorMessage('Sorry, there was an error. Please try again.');
         }
-
-        // Show loading state
-        const submitBtn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
-        if (!submitBtn) {
-          console.error('Submit button not found');
-          return;
-        }
-
-        const originalText = submitBtn.innerHTML;
-        submitBtn.innerHTML = '⏳ Sending...';
-        submitBtn.disabled = true;
-        
-        // Disable all form inputs during submission
-        const inputs = form.querySelectorAll('input, select, textarea');
-        inputs.forEach(input => (input as HTMLInputElement).disabled = true);
-
-        try {
-          console.log('📡 Sending request to /api/contact...');
-          
-          // Send data to API
-          const response = await fetch('/api/contact', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(contactData)
-          });
-
-          console.log('📡 Response status:', response.status);
-          console.log('📡 Response ok:', response.ok);
-
-          if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-          }
-
-          const result = await response.json();
-          console.log('📊 API Response:', result);
-
-          if (result.success) {
-            console.log('✅ Form submitted successfully');
-            showSuccessMessage(result.message || 'Thank you for your message! We will get back to you soon.');
-            (form as HTMLFormElement).reset();
-          } else {
-            console.error('❌ Form submission failed:', result.message);
-            showErrorMessage(result.message || 'Sorry, there was an error sending your message. Please try again.');
-          }
-        } catch (error) {
-          console.error('❌ Form submission error:', error);
-          showErrorMessage('Sorry, there was an error sending your message. Please try again or contact us directly.');
-        } finally {
-          // Reset button and inputs
-          submitBtn.innerHTML = originalText;
-          submitBtn.disabled = false;
-          inputs.forEach(input => (input as HTMLInputElement).disabled = false);
-        }
-      } else {
-        console.log('❌ Form validation failed - required fields missing');
-        showErrorMessage('Please fill in all required fields (marked with red border).');
+      } catch (error) {
+        console.error('Form error:', error);
+        showErrorMessage('Sorry, there was an error. Please try again.');
+      } finally {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
       }
     }
 
 
-    // Form Validation and Submission
+    // Form setup
     document.addEventListener('DOMContentLoaded', function () {
-      console.log('🔍 DOM loaded, looking for contact form');
       const form = document.getElementById('contactForm');
-      console.log('🔍 Form element found:', form);
-
       if (form) {
-        console.log('🔍 Adding event listener to contact form');
-        
-        // Add form submit event listener
-        form.addEventListener('submit', function(e) {
-          console.log('🔍 Form submit event triggered');
-          handleFormSubmission(e);
-        });
-        
-        // Add touch event support for mobile devices
-        const submitBtn = form.querySelector('button[type="submit"]');
-        if (submitBtn) {
-          console.log('🔍 Adding touch event listeners to submit button');
-          
-          // Add visual feedback for touch
-          submitBtn.addEventListener('touchstart', function(e) {
-            this.style.transform = 'scale(0.98)';
-            this.style.opacity = '0.8';
-          });
-          
-          submitBtn.addEventListener('touchend', function(e) {
-            this.style.transform = 'scale(1)';
-            this.style.opacity = '1';
-          });
-          
-          // Simple click handler for mobile compatibility
-          submitBtn.addEventListener('click', function(e) {
-            console.log('🔍 Submit button clicked');
-            // Let the form submit event handle it naturally
-          });
-          
-        } else {
-          console.error('🔍 Submit button not found!');
-        }
-      } else {
-        console.error('🔍 Contact form not found!');
+        form.addEventListener('submit', handleFormSubmission);
       }
     });
   </script>

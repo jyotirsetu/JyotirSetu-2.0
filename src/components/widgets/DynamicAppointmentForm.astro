@@ -840,79 +840,33 @@
     document.getElementById('appointmentDate').value = tomorrow.toISOString().split('T')[0];
   });
 
-  // Form submission handling
+  // Simple form submission handling
   document.addEventListener('DOMContentLoaded', function () {
-    console.log('🔍 DOMContentLoaded event fired for appointment form');
-
     const form = document.getElementById('dynamic-appointment-form');
-    console.log('🔍 Form element found:', form);
-    console.log('🔍 Form element type:', typeof form);
-    console.log('🔍 Form element tagName:', form ? form.tagName : 'null');
-
     if (form) {
-      console.log('🔍 Attaching submit event listener to appointment form');
-
-      // Single form submission handler
-      async function handleFormSubmission(e) {
+      form.addEventListener('submit', async function(e) {
         e.preventDefault();
-        e.stopPropagation();
-        console.log('🔍 Appointment form submit event triggered!');
+        console.log('Appointment form submitted');
 
-        // Show loading state
         const submitBtn = form.querySelector('button[type="submit"]');
-        if (!submitBtn) {
-          console.error('Submit button not found');
-          return;
-        }
+        if (!submitBtn) return;
 
+        // Show loading
         const originalText = submitBtn.innerHTML;
         submitBtn.innerHTML = '⏳ Submitting...';
         submitBtn.disabled = true;
-        
-        // Disable all form inputs during submission
-        const inputs = form.querySelectorAll('input, select, textarea');
-        inputs.forEach(input => input.disabled = true);
 
         try {
-          // Collect form data
           const formData = new FormData(form);
           
-          // Debug: Log all form data
-          console.log('🔍 === APPOINTMENT FORM DATA DEBUG ===');
-          for (const [key, value] of formData.entries()) {
-            console.log(`🔍 ${key}: ${value}`);
-          }
-
-          // Validate mobile number
+          // Basic validation
           const mobileNumber = formData.get('mobileNumber');
-          const mobileStr = mobileNumber ? mobileNumber.toString() : '';
-          console.log('🔍 Mobile number validation:', { mobileNumber, mobileStr, length: mobileStr.length });
-          
-          if (!mobileNumber || mobileStr.length !== 10 || !/^[0-9]{10}$/.test(mobileStr)) {
+          if (!mobileNumber || mobileNumber.toString().length !== 10) {
             showErrorMessage('Please enter a valid 10-digit mobile number');
             submitBtn.innerHTML = originalText;
             submitBtn.disabled = false;
-            inputs.forEach(input => input.disabled = false);
             return;
           }
-
-          // Validate required fields
-          const requiredFields = ['fullName', 'emailAddress', 'serviceType', 'appointmentDate', 'appointmentTime'];
-          console.log('🔍 Validating required fields:', requiredFields);
-          for (const field of requiredFields) {
-            const value = formData.get(field);
-            console.log(`🔍 Field ${field}: "${value}"`);
-            if (!value || value.toString().trim() === '') {
-              const fieldName = field.replace(/([A-Z])/g, ' $1').toLowerCase();
-              console.log(`🔍 Missing required field: ${field}`);
-              showErrorMessage(`Please fill in the ${fieldName} field`);
-              submitBtn.innerHTML = originalText;
-              submitBtn.disabled = false;
-              inputs.forEach(input => input.disabled = false);
-              return;
-            }
-          }
-          console.log('🔍 All required fields validated successfully');
 
           const appointmentData = {
             name: formData.get('fullName'),
@@ -924,162 +878,46 @@
             consultation_method: formData.get('consultationMethod'),
             message: formData.get('userQuery'),
             status: 'scheduled',
-            // Service-specific data
             service_details: {},
           };
 
           // Collect service-specific fields
           const serviceType = formData.get('serviceType');
-          console.log('Selected service type:', serviceType);
-
           if (serviceType && serviceConfigs[serviceType]) {
-            console.log('Service config found:', serviceConfigs[serviceType]);
             serviceConfigs[serviceType].fields.forEach((field) => {
               const value = formData.get(field.name);
-              console.log(`Field ${field.name}: ${value}`);
               if (value) {
                 appointmentData.service_details[field.name] = value;
               }
             });
-          } else {
-            console.log('No service config found for:', serviceType);
           }
 
-          console.log('Final appointment data:', appointmentData);
-
-          // Submit to API
-          console.log('📡 Sending request to /api/appointments...');
           const response = await fetch('/api/appointments', {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Cache-Control': 'no-cache, no-store, must-revalidate',
-              'Pragma': 'no-cache',
-              'Expires': '0'
-            },
-            cache: 'no-cache',
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(appointmentData)
           });
 
-          console.log('📡 Response status:', response.status);
-          console.log('📡 Response ok:', response.ok);
-
-          if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-          }
-
           const result = await response.json();
-          console.log('📊 API Response:', result);
-
-          if (!result.success) {
-            throw new Error(result.message || 'Failed to save appointment');
-          }
-
-          console.log('✅ Appointment saved successfully');
-
-          // Try to send email notification via Formspree (secondary - don't fail if this fails)
-          try {
-            console.log('Sending email notification via Formspree...');
-            const formspreeData = new FormData();
-            formspreeData.append('name', appointmentData.name);
-            formspreeData.append('email', appointmentData.email);
-            formspreeData.append('phone', appointmentData.phone);
-            formspreeData.append('service', appointmentData.service);
-            formspreeData.append('date', appointmentData.date);
-            formspreeData.append('time', appointmentData.time);
-            formspreeData.append('consultation_method', appointmentData.consultation_method);
-            formspreeData.append('message', appointmentData.message);
-            formspreeData.append('service_details', JSON.stringify(appointmentData.service_details));
-
-            const formspreeResponse = await fetch('https://formspree.io/f/xnnbzveo', {
-              method: 'POST',
-              body: formspreeData,
-              headers: {
-                Accept: 'application/json',
-              },
-            });
-
-            if (formspreeResponse.ok) {
-              console.log('✅ Email notification sent successfully');
-            } else {
-              console.warn('⚠️ Email notification failed, but appointment was saved');
+          
+          if (result.success) {
+            showSuccessMessage('Appointment booked successfully! We will contact you soon.');
+            form.reset();
+            const serviceSpecificFields = document.getElementById('serviceSpecificFields');
+            if (serviceSpecificFields) {
+              serviceSpecificFields.style.display = 'none';
             }
-          } catch (formspreeError) {
-            console.warn('⚠️ Formspree email failed:', formspreeError.message);
-            // Don't throw error - appointment was already saved successfully
-          }
-
-          console.log('Appointment saved successfully to database');
-          showSuccessMessage(result.message || 'Appointment booked successfully! We will contact you soon.');
-          form.reset();
-          const serviceSpecificFields = document.getElementById('serviceSpecificFields');
-          if (serviceSpecificFields) {
-            serviceSpecificFields.style.display = 'none';
+          } else {
+            showErrorMessage('Sorry, there was an error. Please try again.');
           }
         } catch (error) {
-          console.error('Form submission error:', error);
-
-          // Enhanced error handling with specific error messages
-          let errorMessage = 'Sorry, there was an error submitting your form. ';
-          
-          if (error.message.includes('network') || error.message.includes('fetch')) {
-            errorMessage += 'Please check your internet connection and try again.';
-          } else if (error.message.includes('Failed to save appointment to database')) {
-            errorMessage += 'Database connection issue. Please try again or contact us directly.';
-          } else if (error.message.includes('required')) {
-            errorMessage += 'Please fill in all required fields.';
-          } else if (error.message.includes('validation')) {
-            errorMessage += 'Please check your input and try again.';
-          } else {
-            errorMessage += 'Please try again or contact us directly.';
-          }
-
-          // Show detailed error in console for debugging
-          console.error('Detailed error:', {
-            message: error.message,
-            stack: error.stack,
-            name: error.name
-          });
-
-          showErrorMessage(errorMessage);
+          console.error('Form error:', error);
+          showErrorMessage('Sorry, there was an error. Please try again.');
         } finally {
-          // Reset button state
           submitBtn.innerHTML = originalText;
           submitBtn.disabled = false;
-          inputs.forEach(input => input.disabled = false);
         }
-      }
-
-
-      // Add form submit event listener
-      form.addEventListener('submit', handleFormSubmission);
-
-      // Add touch event support for mobile devices
-      const submitBtn = form.querySelector('button[type="submit"]');
-      if (submitBtn) {
-        console.log('Adding touch event listeners to submit button');
-        
-        // Add visual feedback for touch
-        submitBtn.addEventListener('touchstart', function(e) {
-          this.style.transform = 'scale(0.98)';
-          this.style.opacity = '0.8';
-        });
-        
-        submitBtn.addEventListener('touchend', function(e) {
-          this.style.transform = 'scale(1)';
-          this.style.opacity = '1';
-        });
-        
-        // Simple click handler for mobile compatibility
-        submitBtn.addEventListener('click', function(e) {
-          console.log('🔍 Appointment submit button clicked');
-          // Let the form submit event handle it naturally
-        });
-      }
-
-      console.log('Form submit event listener attached successfully');
-    } else {
-      console.error('Form element not found!');
+      });
     }
   });
 
