@@ -582,15 +582,9 @@ const metadata = {
   </section>
 
   <script>
-    // Global type declarations
-    declare global {
-      interface Window {
-        toggleFAQ: (button: HTMLElement) => void;
-      }
-    }
 
     // FAQ Toggle Function - Global scope
-    const toggleFAQ = function (button: HTMLElement) {
+    const toggleFAQ = function (button) {
       const content = button.nextElementSibling;
       const icon = button.querySelector('span:last-child');
       console.log('Icon element:', icon);
@@ -599,14 +593,14 @@ const metadata = {
         content.classList.remove('hidden');
         if (icon) {
           icon.textContent = '−';
-          (icon as HTMLElement).style.transform = 'rotate(180deg)';
+          icon.style.transform = 'rotate(180deg)';
         }
         console.log('FAQ expanded');
       } else if (content) {
         content.classList.add('hidden');
         if (icon) {
           icon.textContent = '+';
-          (icon as HTMLElement).style.transform = 'rotate(0deg)';
+          icon.style.transform = 'rotate(0deg)';
         }
         console.log('FAQ collapsed');
       }
