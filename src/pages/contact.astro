@@ -617,11 +617,16 @@ const metadata = {
 
     // Form Validation and Submission
     document.addEventListener('DOMContentLoaded', function () {
+      console.log('🔍 DOM loaded, looking for contact form');
       const form = document.getElementById('contactForm');
+      console.log('🔍 Form element found:', form);
 
       if (form) {
+        console.log('🔍 Adding event listener to contact form');
         form.addEventListener('submit', async function (e) {
+          console.log('🔍 Form submit event triggered');
           e.preventDefault();
+          console.log('🔍 Form submission prevented');
 
           // Basic validation
           const requiredFields = form.querySelectorAll('[required]');
