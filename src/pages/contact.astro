@@ -609,6 +609,118 @@ const metadata = {
     // Make toggleFAQ globally accessible
     window.toggleFAQ = toggleFAQ;
 
+    // Show success message
+    function showSuccessMessage(message) {
+      const successDiv = document.createElement('div');
+      successDiv.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+      successDiv.innerHTML = `✅ ${message}`;
+      document.body.appendChild(successDiv);
+
+      setTimeout(() => {
+        successDiv.remove();
+      }, 5000);
+    }
+
+    // Show error message
+    function showErrorMessage(message) {
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+      errorDiv.innerHTML = `❌ ${message}`;
+      document.body.appendChild(errorDiv);
+
+      setTimeout(() => {
+        errorDiv.remove();
+      }, 5000);
+    }
+
+    // Form submission handler function
+    async function handleFormSubmission(form) {
+      console.log('🔍 handleFormSubmission called');
+      
+      // Basic validation
+      const requiredFields = form.querySelectorAll('[required]');
+      let isValid = true;
+
+      requiredFields.forEach(function (field) {
+        if (
+          field instanceof HTMLInputElement ||
+          field instanceof HTMLSelectElement ||
+          field instanceof HTMLTextAreaElement
+        ) {
+          // For select fields, check if a valid option is selected (not the default empty option)
+          if (field instanceof HTMLSelectElement) {
+            if (!field.value || field.value === '') {
+              field.classList.add('border-red-500');
+              isValid = false;
+            } else {
+              field.classList.remove('border-red-500');
+            }
+          } else {
+            // For input and textarea fields, check for empty or whitespace-only values
+            if (!field.value || !field.value.trim()) {
+              field.classList.add('border-red-500');
+              isValid = false;
+            } else {
+              field.classList.remove('border-red-500');
+            }
+          }
+        }
+      });
+
+      if (isValid) {
+        console.log('✅ Form validation passed');
+        // Collect form data
+        const formData = new FormData(form);
+        const contactData = {
+          name: formData.get('fullName'),
+          email: formData.get('email'),
+          phone: formData.get('phone'),
+          subject: formData.get('queryType'),
+          message: formData.get('message')
+        };
+        
+        console.log('📊 Contact form data:', contactData);
+
+        // Show loading state
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '⏳ Sending...';
+        submitBtn.disabled = true;
+
+        try {
+          // Send data to API
+          const response = await fetch('/api/contact', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(contactData)
+          });
+
+          const result = await response.json();
+
+          if (result.success) {
+            console.log('✅ Form submitted successfully');
+            showSuccessMessage(result.message || 'Thank you for your message! We will get back to you soon.');
+            form.reset();
+          } else {
+            console.error('❌ Form submission failed:', result.message);
+            showErrorMessage('Sorry, there was an error sending your message. Please try again.');
+          }
+        } catch (error) {
+          console.error('❌ Network error:', error);
+          showErrorMessage('Sorry, there was a network error. Please check your connection and try again.');
+        } finally {
+          // Reset button
+          submitBtn.innerHTML = originalText;
+          submitBtn.disabled = false;
+        }
+      } else {
+        console.log('❌ Form validation failed - required fields missing');
+        showErrorMessage('Please fill in all required fields.');
+      }
+    }
+
     // Form Validation and Submission
     document.addEventListener('DOMContentLoaded', function () {
       console.log('🔍 DOM loaded, looking for contact form');
@@ -625,102 +737,25 @@ const metadata = {
           submitBtn.addEventListener('click', function(e) {
             console.log('🔍 Submit button clicked');
             e.preventDefault();
-            console.log('🔍 Button click prevented');
+            e.stopPropagation();
+            console.log('🔍 Button click prevented and stopped');
+            
+            // Manually trigger form submission
+            console.log('🔍 Manually triggering form submission');
+            handleFormSubmission(form);
+            return false;
           });
         }
         
-        form.addEventListener('submit', async function (e) {
+        form.addEventListener('submit', function (e) {
           console.log('🔍 Form submit event triggered');
           e.preventDefault();
-          console.log('🔍 Form submission prevented');
-
-          // Basic validation
-          const requiredFields = form.querySelectorAll('[required]');
-          let isValid = true;
-
-          requiredFields.forEach(function (field) {
-            if (
-              field instanceof HTMLInputElement ||
-              field instanceof HTMLSelectElement ||
-              field instanceof HTMLTextAreaElement
-            ) {
-              // For select fields, check if a valid option is selected (not the default empty option)
-              if (field instanceof HTMLSelectElement) {
-                if (!field.value || field.value === '') {
-                  field.classList.add('border-red-500');
-                  isValid = false;
-                } else {
-                  field.classList.remove('border-red-500');
-                }
-              } else {
-                // For input and textarea fields, check for empty or whitespace-only values
-                if (!field.value || !field.value.trim()) {
-                  field.classList.add('border-red-500');
-                  isValid = false;
-                } else {
-                  field.classList.remove('border-red-500');
-                }
-              }
-            }
-          });
-
-          if (isValid) {
-            console.log('✅ Form validation passed');
-            // Collect form data
-            const formData = new FormData(form as HTMLFormElement);
-            const contactData = {
-              name: formData.get('fullName'),
-              email: formData.get('email'),
-              phone: formData.get('phone'),
-              subject: formData.get('queryType'),
-              message: formData.get('message')
-            };
-            
-            console.log('📊 Contact form data:', contactData);
-
-            // Show loading state
-            const submitBtn = form.querySelector('button[type="submit"]');
-            const originalText = submitBtn.innerHTML;
-            submitBtn.innerHTML = '⏳ Sending...';
-            submitBtn.disabled = true;
-
-            try {
-              // Send contact form data
-              const emailResponse = await fetch('/api/contact', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(contactData)
-              });
-
-              if (emailResponse.ok) {
-                console.log('✅ Contact confirmation email sent successfully');
-                alert('Thank you for your message! We have sent you a confirmation email and will get back to you within 24-48 hours.');
-              } else {
-                console.warn('⚠️ Contact confirmation email failed, but message was received');
-                alert('Thank you for your message! We will get back to you within 24-48 hours.');
-              }
-
-              // Reset form
-              if (form instanceof HTMLFormElement) {
-                form.reset();
-              }
-            } catch (error) {
-              console.error('Error sending contact confirmation:', error);
-              alert('Thank you for your message! We will get back to you within 24-48 hours.');
-              if (form instanceof HTMLFormElement) {
-                form.reset();
-              }
-            } finally {
-              // Reset button
-              submitBtn.innerHTML = originalText;
-              submitBtn.disabled = false;
-            }
-          } else {
-            console.log('❌ Form validation failed - required fields missing');
-            alert('Please fill in all required fields.');
-          }
+          e.stopPropagation();
+          console.log('🔍 Form submission prevented and stopped');
+          
+          // Use the same handler function
+          handleFormSubmission(form);
+          return false;
         });
       }
     });
