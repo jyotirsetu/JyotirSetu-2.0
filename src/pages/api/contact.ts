@@ -35,32 +35,29 @@ export const POST: APIRoute = async ({ request }) => {
 
     console.log('📊 Contact saved to database:', newContact);
 
-    // Send confirmation email
-    const emailSent = await emailService.sendContactConfirmationEmail(contactData);
-    
-    if (emailSent) {
-      console.log('✅ Contact form processed successfully');
-      return new Response(JSON.stringify({
-        success: true,
-        message: 'Thank you for your message! We will get back to you within 24-48 hours.',
-        data: {
-          id: newContact.id,
-          timestamp: newContact.created_at
-        }
-      }), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    } else {
-      console.error('❌ Failed to send contact confirmation email');
-      return new Response(JSON.stringify({
-        success: false,
-        message: 'Failed to process your message. Please try again or contact us directly.'
-      }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
-      });
+    // Send confirmation email (don't fail if email fails)
+    let emailSent = false;
+    try {
+      emailSent = await emailService.sendContactConfirmationEmail(contactData);
+      console.log('📧 Email service result:', emailSent);
+    } catch (emailError) {
+      console.warn('⚠️ Email service failed, but continuing:', emailError);
+      emailSent = false;
     }
+    
+    console.log('✅ Contact form processed successfully');
+    return new Response(JSON.stringify({
+      success: true,
+      message: 'Thank you for your message! We will get back to you within 24-48 hours.',
+      data: {
+        id: newContact.id,
+        timestamp: newContact.created_at,
+        emailSent: emailSent
+      }
+    }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    });
   } catch (error) {
     console.error('❌ Error in contact API:', error);
     return new Response(JSON.stringify({

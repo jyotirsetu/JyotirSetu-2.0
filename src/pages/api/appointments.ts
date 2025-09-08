@@ -41,44 +41,40 @@ export const POST: APIRoute = async ({ request }) => {
 
     console.log('📊 Appointment saved to database:', newAppointment);
 
-    // Send confirmation email
-    const emailSent = await emailService.sendConfirmationEmail({
-      name: appointmentData.name,
-      email: appointmentData.email,
-      phone: appointmentData.phone,
-      service: appointmentData.service,
-      date: appointmentData.date,
-      time: appointmentData.time,
-      consultation_method: appointmentData.consultation_method || 'call',
-      message: appointmentData.message,
-      service_details: appointmentData.service_details || {}
-    });
-
-    if (emailSent) {
-      console.log('✅ Appointment confirmation email sent successfully');
-      return new Response(JSON.stringify({
-        success: true,
-        data: newAppointment,
-        message: 'Appointment created successfully! You will receive a confirmation email shortly.'
-      }), {
-        status: 201,
-        headers: {
-          'Content-Type': 'application/json'
-        }
+    // Send confirmation email (don't fail if email fails)
+    let emailSent = false;
+    try {
+      emailSent = await emailService.sendConfirmationEmail({
+        name: appointmentData.name,
+        email: appointmentData.email,
+        phone: appointmentData.phone,
+        service: appointmentData.service,
+        date: appointmentData.date,
+        time: appointmentData.time,
+        consultation_method: appointmentData.consultation_method || 'call',
+        message: appointmentData.message,
+        service_details: appointmentData.service_details || {}
       });
-    } else {
-      console.warn('⚠️ Appointment confirmation email failed, but appointment was created');
-      return new Response(JSON.stringify({
-        success: true,
-        data: newAppointment,
-        message: 'Appointment created successfully! We will contact you soon.'
-      }), {
-        status: 201,
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
+      console.log('📧 Email service result:', emailSent);
+    } catch (emailError) {
+      console.warn('⚠️ Email service failed, but continuing:', emailError);
+      emailSent = false;
     }
+
+    console.log('✅ Appointment created successfully');
+    return new Response(JSON.stringify({
+      success: true,
+      data: newAppointment,
+      message: emailSent 
+        ? 'Appointment created successfully! You will receive a confirmation email shortly.'
+        : 'Appointment created successfully! We will contact you soon.',
+      emailSent: emailSent
+    }), {
+      status: 201,
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
   } catch (error) {
     console.error('Public appointment creation error:', error);
     

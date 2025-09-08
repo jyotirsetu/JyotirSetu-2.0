@@ -941,11 +941,35 @@
 
           console.log('Final appointment data:', appointmentData);
 
-          // Submit to Supabase database first (primary)
-          console.log('Submitting to Supabase...');
-          const supabaseResponse = await submitFormWithFallback(appointmentData, '/api/appointments');
+          // Submit to API
+          console.log('📡 Sending request to /api/appointments...');
+          const response = await fetch('/api/appointments', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Cache-Control': 'no-cache, no-store, must-revalidate',
+              'Pragma': 'no-cache',
+              'Expires': '0'
+            },
+            cache: 'no-cache',
+            body: JSON.stringify(appointmentData)
+          });
 
-          console.log('✅ Appointment saved to Supabase successfully');
+          console.log('📡 Response status:', response.status);
+          console.log('📡 Response ok:', response.ok);
+
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
+
+          const result = await response.json();
+          console.log('📊 API Response:', result);
+
+          if (!result.success) {
+            throw new Error(result.message || 'Failed to save appointment');
+          }
+
+          console.log('✅ Appointment saved successfully');
 
           // Try to send email notification via Formspree (secondary - don't fail if this fails)
           try {
@@ -980,7 +1004,7 @@
           }
 
           console.log('Appointment saved successfully to database');
-          showSuccessMessage();
+          showSuccessMessage(result.message || 'Appointment booked successfully! We will contact you soon.');
           form.reset();
           const serviceSpecificFields = document.getElementById('serviceSpecificFields');
           if (serviceSpecificFields) {
@@ -1020,55 +1044,6 @@
         }
       }
 
-      // Fallback function for form submission
-      async function submitFormWithFallback(formData, endpoint) {
-        try {
-          // Try fetch first
-          const response = await fetch(endpoint, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Cache-Control': 'no-cache, no-store, must-revalidate',
-              'Pragma': 'no-cache',
-              'Expires': '0'
-            },
-            cache: 'no-cache',
-            body: JSON.stringify(formData)
-          });
-          
-          if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-          }
-          
-          return await response.json();
-        } catch (error) {
-          console.warn('Fetch failed, trying XMLHttpRequest:', error);
-          
-          // Fallback to XMLHttpRequest for older browsers
-          return new Promise((resolve, reject) => {
-            const xhr = new XMLHttpRequest();
-            xhr.open('POST', endpoint);
-            xhr.setRequestHeader('Content-Type', 'application/json');
-            xhr.setRequestHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-            xhr.setRequestHeader('Pragma', 'no-cache');
-            xhr.setRequestHeader('Expires', '0');
-            
-            xhr.onload = function() {
-              if (xhr.status >= 200 && xhr.status < 300) {
-                resolve(JSON.parse(xhr.responseText));
-              } else {
-                reject(new Error(`HTTP ${xhr.status}`));
-              }
-            };
-            
-            xhr.onerror = function() {
-              reject(new Error('Network error'));
-            };
-            
-            xhr.send(JSON.stringify(formData));
-          });
-        }
-      }
 
       // Add form submit event listener
       form.addEventListener('submit', handleFormSubmission);
