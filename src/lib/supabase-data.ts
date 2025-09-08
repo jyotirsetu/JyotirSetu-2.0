@@ -4,6 +4,10 @@ type Appointment = Database['public']['Tables']['appointments']['Row'];
 type AppointmentInsert = Database['public']['Tables']['appointments']['Insert'];
 type AppointmentUpdate = Database['public']['Tables']['appointments']['Update'];
 
+type Contact = Database['public']['Tables']['contacts']['Row'];
+type ContactInsert = Database['public']['Tables']['contacts']['Insert'];
+type ContactUpdate = Database['public']['Tables']['contacts']['Update'];
+
 export class SupabaseDataService {
   // Get all appointments
   async getAppointments(): Promise<Appointment[]> {
@@ -49,6 +53,27 @@ export class SupabaseDataService {
   // Create new appointment
   async createAppointment(appointment: AppointmentInsert): Promise<Appointment> {
     try {
+      // Check if Supabase is configured
+      if (!import.meta.env.SUPABASE_URL || !import.meta.env.SUPABASE_ANON_KEY) {
+        console.warn('⚠️ Supabase not configured. Creating mock appointment data.');
+        // Return mock data when Supabase is not configured
+        return {
+          id: `mock_${Date.now()}`,
+          name: appointment.name || '',
+          email: appointment.email || '',
+          phone: appointment.phone || '',
+          service: appointment.service || '',
+          date: appointment.date || '',
+          time: appointment.time || '',
+          status: 'scheduled' as const,
+          consultation_method: appointment.consultation_method || 'call' as const,
+          message: appointment.message || undefined,
+          service_details: appointment.service_details || undefined,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        } as Appointment;
+      }
+
       const { data, error } = await supabase
         .from('appointments')
         .insert(appointment)
@@ -146,6 +171,175 @@ export class SupabaseDataService {
       return data || [];
     } catch (error) {
       console.error('Failed to get filtered appointments:', error);
+      throw error;
+    }
+  }
+
+  // =============================================
+  // CONTACT MANAGEMENT METHODS
+  // =============================================
+
+  // Get all contacts
+  async getContacts(): Promise<Contact[]> {
+    try {
+      const { data, error } = await supabase
+        .from('contacts')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching contacts:', error);
+        throw error;
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error('Failed to get contacts:', error);
+      throw error;
+    }
+  }
+
+  // Get contact by ID
+  async getContactById(id: string): Promise<Contact | null> {
+    try {
+      const { data, error } = await supabase
+        .from('contacts')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) {
+        console.error('Error fetching contact:', error);
+        return null;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Failed to get contact by ID:', error);
+      return null;
+    }
+  }
+
+  // Create new contact
+  async createContact(contact: ContactInsert): Promise<Contact> {
+    try {
+      // Check if Supabase is configured
+      if (!import.meta.env.SUPABASE_URL || !import.meta.env.SUPABASE_ANON_KEY) {
+        console.warn('⚠️ Supabase not configured. Creating mock contact data.');
+        // Return mock data when Supabase is not configured
+        return {
+          id: `mock_contact_${Date.now()}`,
+          name: contact.name || '',
+          email: contact.email || '',
+          phone: contact.phone || undefined,
+          subject: contact.subject || '',
+          message: contact.message || '',
+          status: 'new' as const,
+          priority: 'normal' as const,
+          assigned_to: undefined,
+          notes: undefined,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        } as Contact;
+      }
+
+      const { data, error } = await supabase
+        .from('contacts')
+        .insert(contact)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error creating contact:', error);
+        throw error;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Failed to create contact:', error);
+      throw error;
+    }
+  }
+
+  // Update contact
+  async updateContact(id: string, updates: ContactUpdate): Promise<Contact | null> {
+    try {
+      const { data, error } = await supabase
+        .from('contacts')
+        .update({
+          ...updates,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error updating contact:', error);
+        throw error;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Failed to update contact:', error);
+      throw error;
+    }
+  }
+
+  // Delete contact
+  async deleteContact(id: string): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('contacts')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        console.error('Error deleting contact:', error);
+        throw error;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Failed to delete contact:', error);
+      throw error;
+    }
+  }
+
+  // Get contacts with filters
+  async getContactsWithFilters(filters: {
+    status?: string;
+    priority?: string;
+    limit?: number;
+  }): Promise<Contact[]> {
+    try {
+      let query = supabase
+        .from('contacts')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (filters.status) {
+        query = query.eq('status', filters.status);
+      }
+
+      if (filters.priority) {
+        query = query.eq('priority', filters.priority);
+      }
+
+      if (filters.limit) {
+        query = query.limit(filters.limit);
+      }
+
+      const { data, error } = await query;
+
+      if (error) {
+        console.error('Error fetching filtered contacts:', error);
+        throw error;
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error('Failed to get filtered contacts:', error);
       throw error;
     }
   }

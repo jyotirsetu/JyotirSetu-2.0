@@ -648,8 +648,8 @@ const metadata = {
             const contactData = {
               name: formData.get('fullName'),
               email: formData.get('email'),
-              phone: formData.get('phoneNumber'),
-              subject: formData.get('subject'),
+              phone: formData.get('phone'),
+              subject: formData.get('queryType'),
               message: formData.get('message')
             };
 
@@ -660,8 +660,8 @@ const metadata = {
             submitBtn.disabled = true;
 
             try {
-              // Send confirmation email
-              const emailResponse = await fetch('/api/send-contact-confirmation', {
+              // Send contact form data
+              const emailResponse = await fetch('/api/contact', {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',

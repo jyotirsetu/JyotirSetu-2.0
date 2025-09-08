@@ -1,0 +1,198 @@
+---
+export const prerender = false;
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Test - JyotirSetu</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        .test-section h3 { margin-top: 0; color: #333; }
+        button { padding: 10px 20px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .result { margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 4px; white-space: pre-wrap; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        input, textarea, select { width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #ddd; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <h1>🔧 JyotirSetu API Testing</h1>
+    
+    <!-- Email Configuration Test -->
+    <div class="test-section">
+        <h3>📧 Email Configuration Test</h3>
+        <button onclick="testEmailConfig()">Check Email Configuration</button>
+        <div id="emailConfigResult" class="result"></div>
+    </div>
+
+    <!-- Contact Form Test -->
+    <div class="test-section">
+        <h3>📝 Contact Form Test</h3>
+        <form id="contactTestForm">
+            <input type="text" name="name" placeholder="Full Name" required>
+            <input type="email" name="email" placeholder="Email Address" required>
+            <input type="tel" name="phone" placeholder="Phone Number">
+            <select name="subject" required>
+                <option value="">Select Query Type</option>
+                <option value="general">General Inquiry</option>
+                <option value="media">Media/Press</option>
+                <option value="collaboration">Business Collaboration</option>
+                <option value="astrology">Astrology Query</option>
+                <option value="other">Other</option>
+            </select>
+            <textarea name="message" placeholder="Your Message" rows="4" required></textarea>
+            <button type="submit">Test Contact Form</button>
+        </form>
+        <div id="contactResult" class="result"></div>
+    </div>
+
+    <!-- Appointment Form Test -->
+    <div class="test-section">
+        <h3>📅 Appointment Form Test</h3>
+        <form id="appointmentTestForm">
+            <input type="text" name="name" placeholder="Full Name" required>
+            <input type="email" name="email" placeholder="Email Address" required>
+            <input type="tel" name="phone" placeholder="Phone Number" required>
+            <select name="service" required>
+                <option value="">Select Service</option>
+                <option value="kundli-analysis">Kundli Analysis</option>
+                <option value="palmistry">Palmistry</option>
+                <option value="matchmaking">Matchmaking</option>
+                <option value="numerology">Numerology</option>
+                <option value="gemstone-consultation">Gemstone Consultation</option>
+                <option value="career-finance">Career & Finance</option>
+                <option value="spiritual-guidance">Spiritual Guidance</option>
+                <option value="remedial-solutions">Remedial Solutions</option>
+                <option value="dosha-analysis">Dosha Analysis</option>
+            </select>
+            <input type="date" name="date" required>
+            <input type="time" name="time" required>
+            <select name="consultation_method" required>
+                <option value="">Select Method</option>
+                <option value="call">Call</option>
+                <option value="video-call">Video Call</option>
+                <option value="in-person">In-person</option>
+                <option value="whatsapp">WhatsApp</option>
+            </select>
+            <textarea name="message" placeholder="Additional Message" rows="3"></textarea>
+            <button type="submit">Test Appointment Form</button>
+        </form>
+        <div id="appointmentResult" class="result"></div>
+    </div>
+
+    <script>
+        // Test Email Configuration
+        async function testEmailConfig() {
+            const resultDiv = document.getElementById('emailConfigResult');
+            resultDiv.textContent = 'Testing email configuration...';
+            
+            try {
+                const response = await fetch('/api/test-email-setup');
+                const data = await response.json();
+                
+                if (data.success) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `✅ Email Configuration Check:
+API Key: ${data.config.hasApiKey ? '✅ Configured' : '❌ Not configured'}
+From Email: ${data.config.fromEmail}
+API Key Preview: ${data.config.apiKeyPrefix}`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `❌ Error: ${data.message}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Network Error: ${error.message}`;
+            }
+        }
+
+        // Test Contact Form
+        document.getElementById('contactTestForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const resultDiv = document.getElementById('contactResult');
+            resultDiv.textContent = 'Submitting contact form...';
+            
+            const formData = new FormData(e.target);
+            const contactData = {
+                name: formData.get('name'),
+                email: formData.get('email'),
+                phone: formData.get('phone'),
+                subject: formData.get('subject'),
+                message: formData.get('message')
+            };
+            
+            try {
+                const response = await fetch('/api/contact', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(contactData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `✅ Contact Form Success:
+${data.message}
+ID: ${data.data.id}
+Timestamp: ${data.data.timestamp}`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `❌ Error: ${data.message}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Network Error: ${error.message}`;
+            }
+        });
+
+        // Test Appointment Form
+        document.getElementById('appointmentTestForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const resultDiv = document.getElementById('appointmentResult');
+            resultDiv.textContent = 'Submitting appointment form...';
+            
+            const formData = new FormData(e.target);
+            const appointmentData = {
+                name: formData.get('name'),
+                email: formData.get('email'),
+                phone: formData.get('phone'),
+                service: formData.get('service'),
+                date: formData.get('date'),
+                time: formData.get('time'),
+                consultation_method: formData.get('consultation_method'),
+                message: formData.get('message')
+            };
+            
+            try {
+                const response = await fetch('/api/appointments', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(appointmentData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `✅ Appointment Form Success:
+${data.message}
+ID: ${data.data.id}
+Status: ${data.data.status}`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `❌ Error: ${data.message}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Network Error: ${error.message}`;
+            }
+        });
+    </script>
+</body>
+</html>

@@ -32,7 +32,7 @@ export const POST: APIRoute = async ({ request }) => {
       service: appointmentData.service,
       date: appointmentData.date,
       time: appointmentData.time,
-      status: 'pending' as const,
+      status: 'scheduled' as const,
       consultation_method: appointmentData.consultation_method || 'call' as const,
       message: appointmentData.message,
       service_details: appointmentData.service_details || {}

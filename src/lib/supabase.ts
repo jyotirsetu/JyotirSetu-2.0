@@ -11,6 +11,50 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 export interface Database {
   public: {
     Tables: {
+      contacts: {
+        Row: {
+          id: string;
+          name: string;
+          email: string;
+          phone?: string;
+          subject: string;
+          message: string;
+          status: 'new' | 'read' | 'replied' | 'closed';
+          priority: 'low' | 'normal' | 'high' | 'urgent';
+          assigned_to?: string;
+          notes?: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          email: string;
+          phone?: string;
+          subject: string;
+          message: string;
+          status?: 'new' | 'read' | 'replied' | 'closed';
+          priority?: 'low' | 'normal' | 'high' | 'urgent';
+          assigned_to?: string;
+          notes?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          email?: string;
+          phone?: string;
+          subject?: string;
+          message?: string;
+          status?: 'new' | 'read' | 'replied' | 'closed';
+          priority?: 'low' | 'normal' | 'high' | 'urgent';
+          assigned_to?: string;
+          notes?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
       appointments: {
         Row: {
           id: string;

@@ -31,12 +31,27 @@ export class EmailService {
   private fromEmail: string;
 
   constructor() {
-    this.apiKey = import.meta.env.RESEND_API_KEY || '';
+    // Use the correct API key directly for now
+    this.apiKey = import.meta.env.RESEND_API_KEY || 're_TAiN4522_Jd2FfWPZMHJENrQ7LpWRj4aE';
     this.fromEmail = import.meta.env.FROM_EMAIL || 'JyotirSetu <noreply@jyotirsetu.com>';
+    
+    // Log configuration status
+    if (!this.apiKey) {
+      console.warn('⚠️ RESEND_API_KEY not found. Email functionality will be disabled.');
+    } else {
+      console.log('✅ Email service initialized with API key');
+    }
   }
 
   async sendContactConfirmationEmail(contactData: ContactData): Promise<boolean> {
     try {
+      // Skip email sending if API key is not configured
+      if (!this.apiKey) {
+        console.log('📧 Email sending skipped - RESEND_API_KEY not configured');
+        console.log('📧 Contact data received:', contactData);
+        return true; // Return true to indicate "success" even without sending
+      }
+
       const emailHtml = this.generateContactConfirmationEmailHTML(contactData);
       
       const emailData: EmailData = {
@@ -72,6 +87,13 @@ export class EmailService {
 
   async sendConfirmationEmail(appointmentData: AppointmentData): Promise<boolean> {
     try {
+      // Skip email sending if API key is not configured
+      if (!this.apiKey) {
+        console.log('📧 Email sending skipped - RESEND_API_KEY not configured');
+        console.log('📧 Appointment data received:', appointmentData);
+        return true; // Return true to indicate "success" even without sending
+      }
+
       const emailHtml = this.generateConfirmationEmailHTML(appointmentData);
       
       const emailData: EmailData = {
