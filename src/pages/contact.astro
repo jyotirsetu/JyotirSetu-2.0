@@ -707,6 +707,10 @@ const metadata = {
         };
         
         console.log('📊 Contact form data:', contactData);
+        console.log('📊 Form data entries:');
+        for (const [key, value] of formData.entries()) {
+          console.log(`${key}: ${value}`);
+        }
 
         // Show loading state
         const submitBtn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
@@ -813,25 +817,6 @@ const metadata = {
         if (submitBtn) {
           console.log('🔍 Adding touch event listeners to submit button');
           
-          // Handle touch events for mobile
-          submitBtn.addEventListener('touchend', function(e) {
-            console.log('🔍 Submit button touched');
-            e.preventDefault();
-            e.stopPropagation();
-            // Trigger form submission
-            form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-          });
-          
-          // Handle click events as fallback
-          submitBtn.addEventListener('click', function(e) {
-            console.log('🔍 Submit button clicked');
-            // Only handle if form submit event didn't already handle it
-            if (!e.defaultPrevented) {
-              e.preventDefault();
-              form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-            }
-          });
-          
           // Add visual feedback for touch
           submitBtn.addEventListener('touchstart', function(e) {
             this.style.transform = 'scale(0.98)';
@@ -841,6 +826,12 @@ const metadata = {
           submitBtn.addEventListener('touchend', function(e) {
             this.style.transform = 'scale(1)';
             this.style.opacity = '1';
+          });
+          
+          // Simple click handler for mobile compatibility
+          submitBtn.addEventListener('click', function(e) {
+            console.log('🔍 Submit button clicked');
+            // Let the form submit event handle it naturally
           });
           
         } else {

@@ -877,7 +877,10 @@
 
           // Validate mobile number
           const mobileNumber = formData.get('mobileNumber');
-          if (!mobileNumber || mobileNumber.length !== 10 || !/^[0-9]{10}$/.test(mobileNumber)) {
+          const mobileStr = mobileNumber ? mobileNumber.toString() : '';
+          console.log('Mobile number validation:', { mobileNumber, mobileStr, length: mobileStr.length });
+          
+          if (!mobileNumber || mobileStr.length !== 10 || !/^[0-9]{10}$/.test(mobileStr)) {
             showErrorMessage('Please enter a valid 10-digit mobile number');
             submitBtn.innerHTML = originalText;
             submitBtn.disabled = false;
@@ -1075,25 +1078,6 @@
       if (submitBtn) {
         console.log('Adding touch event listeners to submit button');
         
-        // Handle touch events for mobile
-        submitBtn.addEventListener('touchend', function(e) {
-          console.log('Submit button touched');
-          e.preventDefault();
-          e.stopPropagation();
-          // Trigger form submission
-          form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-        });
-        
-        // Handle click events as fallback
-        submitBtn.addEventListener('click', function(e) {
-          console.log('Submit button clicked');
-          // Only handle if form submit event didn't already handle it
-          if (!e.defaultPrevented) {
-            e.preventDefault();
-            form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-          }
-        });
-        
         // Add visual feedback for touch
         submitBtn.addEventListener('touchstart', function(e) {
           this.style.transform = 'scale(0.98)';
@@ -1103,6 +1087,12 @@
         submitBtn.addEventListener('touchend', function(e) {
           this.style.transform = 'scale(1)';
           this.style.opacity = '1';
+        });
+        
+        // Simple click handler for mobile compatibility
+        submitBtn.addEventListener('click', function(e) {
+          console.log('Submit button clicked');
+          // Let the form submit event handle it naturally
         });
       }
 
