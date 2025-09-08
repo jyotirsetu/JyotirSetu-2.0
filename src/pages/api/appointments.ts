@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { supabaseDataService } from '../../lib/supabase-data';
+import { emailService } from '../../lib/email-service';
 
 // This API route should be server-side rendered
 export const prerender = false;
@@ -38,16 +39,46 @@ export const POST: APIRoute = async ({ request }) => {
       service_details: appointmentData.service_details || {}
     });
 
-    return new Response(JSON.stringify({
-      success: true,
-      data: newAppointment,
-      message: 'Appointment created successfully'
-    }), {
-      status: 201,
-      headers: {
-        'Content-Type': 'application/json'
-      }
+    console.log('📊 Appointment saved to database:', newAppointment);
+
+    // Send confirmation email
+    const emailSent = await emailService.sendConfirmationEmail({
+      name: appointmentData.name,
+      email: appointmentData.email,
+      phone: appointmentData.phone,
+      service: appointmentData.service,
+      date: appointmentData.date,
+      time: appointmentData.time,
+      consultation_method: appointmentData.consultation_method || 'call',
+      message: appointmentData.message,
+      service_details: appointmentData.service_details || {}
     });
+
+    if (emailSent) {
+      console.log('✅ Appointment confirmation email sent successfully');
+      return new Response(JSON.stringify({
+        success: true,
+        data: newAppointment,
+        message: 'Appointment created successfully! You will receive a confirmation email shortly.'
+      }), {
+        status: 201,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+    } else {
+      console.warn('⚠️ Appointment confirmation email failed, but appointment was created');
+      return new Response(JSON.stringify({
+        success: true,
+        data: newAppointment,
+        message: 'Appointment created successfully! We will contact you soon.'
+      }), {
+        status: 201,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+    }
   } catch (error) {
     console.error('Public appointment creation error:', error);
     
