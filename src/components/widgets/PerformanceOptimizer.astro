@@ -63,30 +63,21 @@
     optimizeScrollPerformance();
   });
 
-  // Service Worker registration for offline support
+  // Service Worker registration disabled to prevent caching issues
+  // Uncomment the code below if you want to re-enable service worker
+  /*
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function () {
-      // Check if service worker file exists before registering
-      fetch('/sw.js', { method: 'HEAD' })
-        .then(function (response) {
-          if (response.ok) {
-            return navigator.serviceWorker.register('/sw.js');
-          } else {
-            // Silently skip if service worker doesn't exist
-            return Promise.reject('Service Worker file not found');
-          }
-        })
-        .then(function (registration) {
-          console.log('SW registered: ', registration);
-        })
-        .catch(function (registrationError) {
-          // Only log if it's not the expected "file not found" error
-          if (registrationError !== 'Service Worker file not found') {
-            console.log('SW registration failed: ', registrationError);
-          }
-        });
+      // Unregister any existing service workers
+      navigator.serviceWorker.getRegistrations().then(function(registrations) {
+        for(let registration of registrations) {
+          registration.unregister();
+          console.log('Service Worker unregistered');
+        }
+      });
     });
   }
+  */
 </script>
 
 <!-- Performance Monitoring -->
