@@ -617,6 +617,18 @@ const metadata = {
 
       if (form) {
         console.log('🔍 Adding event listener to contact form');
+        
+        // Also add click listener to submit button as backup
+        const submitBtn = form.querySelector('button[type="submit"]');
+        if (submitBtn) {
+          console.log('🔍 Adding click listener to submit button');
+          submitBtn.addEventListener('click', function(e) {
+            console.log('🔍 Submit button clicked');
+            e.preventDefault();
+            console.log('🔍 Button click prevented');
+          });
+        }
+        
         form.addEventListener('submit', async function (e) {
           console.log('🔍 Form submit event triggered');
           e.preventDefault();
@@ -667,7 +679,7 @@ const metadata = {
             console.log('📊 Contact form data:', contactData);
 
             // Show loading state
-            const submitBtn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+            const submitBtn = form.querySelector('button[type="submit"]');
             const originalText = submitBtn.innerHTML;
             submitBtn.innerHTML = '⏳ Sending...';
             submitBtn.disabled = true;
