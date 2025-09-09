@@ -636,7 +636,7 @@ const metadata = {
     // Simple form submission handler
     async function handleFormSubmission(e) {
       e.preventDefault();
-      console.log('Contact form submitted');
+      console.log('📝 Contact form submitted');
       
       const form = document.getElementById('contactForm');
       if (!form) return;
@@ -659,13 +659,18 @@ const metadata = {
           message: formData.get('message')
         };
 
-        const response = await fetch('/api/contact', {
+        console.log('📋 Contact form data collected:', data);
+        console.log('🚀 Sending contact data to API...');
+
+        const response = await fetch('/api/contact-form', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data)
         });
 
+        console.log('📡 Contact API response status:', response.status);
         const result = await response.json();
+        console.log('📄 Contact API response data:', result);
         
         if (result.success) {
           showSuccessMessage('Thank you for your message! We will get back to you soon.');
@@ -674,8 +679,21 @@ const metadata = {
           showErrorMessage('Sorry, there was an error. Please try again.');
         }
       } catch (error) {
-        console.error('Form error:', error);
-        showErrorMessage('Sorry, there was an error. Please try again.');
+        console.error('❌ Contact form error:', error);
+        console.error('Error details:', {
+          message: error.message,
+          stack: error.stack,
+          name: error.name
+        });
+        
+        let errorMessage = 'Sorry, there was an error. Please try again.';
+        if (error.message.includes('fetch')) {
+          errorMessage = 'Network error. Please check your internet connection and try again.';
+        } else if (error.message.includes('JSON')) {
+          errorMessage = 'Server response error. Please try again.';
+        }
+        
+        showErrorMessage(errorMessage);
       } finally {
         submitBtn.innerHTML = originalText;
         submitBtn.disabled = false;
@@ -683,12 +701,46 @@ const metadata = {
     }
 
 
-    // Form setup
+    // Form setup with enhanced debugging
     document.addEventListener('DOMContentLoaded', function () {
+      console.log('DOM loaded, initializing contact form...');
+      
       const form = document.getElementById('contactForm');
+      console.log('Contact form element found:', form);
+      
       if (form) {
+        console.log('Adding submit event listener to contact form...');
         form.addEventListener('submit', handleFormSubmission);
+        console.log('✅ Contact form submit event listener added successfully');
+      } else {
+        console.error('❌ Contact form element not found! Form ID: contactForm');
       }
     });
+
+    // Fallback: Try to attach event listener after a short delay
+    setTimeout(function() {
+      const form = document.getElementById('contactForm');
+      const submitBtn = document.querySelector('#contactForm button[type="submit"]');
+      
+      console.log('🔍 Contact Form Debug Info:');
+      console.log('- Form element:', form);
+      console.log('- Submit button:', submitBtn);
+      
+      if (form && submitBtn) {
+        console.log('✅ Contact form and submit button found - adding direct click handler');
+        
+        // Add direct click handler as fallback
+        submitBtn.addEventListener('click', function(e) {
+          console.log('🖱️ Contact submit button clicked!');
+          e.preventDefault(); // Prevent default form submission
+          
+          // Manually trigger our form submission logic
+          console.log('🚀 Manually triggering contact form submission...');
+          handleFormSubmission(e);
+        });
+      } else {
+        console.error('❌ Contact form or submit button not found');
+      }
+    }, 1000);
   </script>
 </Layout>

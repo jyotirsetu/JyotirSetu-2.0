@@ -831,22 +831,161 @@
     }, 5000);
   }
 
-  // Set default dates
+  // Form submission handler function
+  async function handleFormSubmission(form) {
+    console.log('📝 Starting form submission process...');
+    
+    const submitBtn = form.querySelector('button[type="submit"]');
+    if (!submitBtn) {
+      console.error('❌ Submit button not found');
+      return;
+    }
+
+    // Show loading
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '⏳ Submitting...';
+    submitBtn.disabled = true;
+
+    try {
+      const formData = new FormData(form);
+      
+      // Enhanced validation
+      const requiredFields = {
+        fullName: formData.get('fullName'),
+        emailAddress: formData.get('emailAddress'),
+        mobileNumber: formData.get('mobileNumber'),
+        serviceType: formData.get('serviceType'),
+        appointmentDate: formData.get('appointmentDate'),
+        appointmentTime: formData.get('appointmentTime'),
+        consultationMethod: formData.get('consultationMethod')
+      };
+
+      console.log('📋 Form data collected:', requiredFields);
+
+      // Check for missing required fields
+      for (const [fieldName, value] of Object.entries(requiredFields)) {
+        if (!value || value.toString().trim() === '') {
+          showErrorMessage(`Please fill in the ${fieldName.replace(/([A-Z])/g, ' $1').toLowerCase()} field`);
+          submitBtn.innerHTML = originalText;
+          submitBtn.disabled = false;
+          return;
+        }
+      }
+
+      // Validate mobile number
+      const mobileNumber = requiredFields.mobileNumber.toString();
+      if (mobileNumber.length !== 10 || !/^\d{10}$/.test(mobileNumber)) {
+        showErrorMessage('Please enter a valid 10-digit mobile number');
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+        return;
+      }
+
+      // Validate email
+      const email = requiredFields.emailAddress.toString();
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        showErrorMessage('Please enter a valid email address');
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+        return;
+      }
+
+      console.log('✅ Form validation passed, preparing data...');
+
+      const appointmentData = {
+        name: requiredFields.fullName,
+        email: requiredFields.emailAddress,
+        phone: requiredFields.mobileNumber,
+        service: requiredFields.serviceType,
+        date: requiredFields.appointmentDate,
+        time: requiredFields.appointmentTime,
+        consultation_method: requiredFields.consultationMethod,
+        message: formData.get('userQuery') || '',
+        status: 'scheduled',
+        service_details: {},
+      };
+
+      console.log('📊 Appointment data prepared:', appointmentData);
+
+      // Collect service-specific fields
+      const serviceType = formData.get('serviceType');
+      if (serviceType && serviceConfigs[serviceType]) {
+        serviceConfigs[serviceType].fields.forEach((field) => {
+          const value = formData.get(field.name);
+          if (value) {
+            appointmentData.service_details[field.name] = value;
+          }
+        });
+      }
+
+      console.log('🚀 Sending appointment data to API...');
+      const response = await fetch('/api/appointment-form', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(appointmentData)
+      });
+
+      console.log('📡 API response status:', response.status);
+      const result = await response.json();
+      console.log('📄 API response data:', result);
+      
+      if (result.success) {
+        showSuccessMessage(result.message || 'Appointment booked successfully! We will contact you soon.');
+        form.reset();
+        const serviceSpecificFields = document.getElementById('serviceSpecificFields');
+        if (serviceSpecificFields) {
+          serviceSpecificFields.style.display = 'none';
+        }
+      } else {
+        showErrorMessage(result.message || 'Sorry, there was an error. Please try again.');
+      }
+    } catch (error) {
+      console.error('❌ Form submission error:', error);
+      console.error('Error details:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      });
+      
+      let errorMessage = 'Sorry, there was an error. Please try again.';
+      if (error.message.includes('fetch')) {
+        errorMessage = 'Network error. Please check your internet connection and try again.';
+      } else if (error.message.includes('JSON')) {
+        errorMessage = 'Server response error. Please try again.';
+      }
+      
+      showErrorMessage(errorMessage);
+    } finally {
+      submitBtn.innerHTML = originalText;
+      submitBtn.disabled = false;
+    }
+  }
+
+  // Initialize everything when DOM is ready
   document.addEventListener('DOMContentLoaded', function () {
+    console.log('DOM loaded, initializing appointment form...');
+    
+    // Set default dates
     const today = new Date();
     const tomorrow = new Date(today);
     tomorrow.setDate(today.getDate() + 1);
 
-    document.getElementById('appointmentDate').value = tomorrow.toISOString().split('T')[0];
-  });
+    const dateInput = document.getElementById('appointmentDate');
+    if (dateInput) {
+      dateInput.value = tomorrow.toISOString().split('T')[0];
+      console.log('Default date set to:', tomorrow.toISOString().split('T')[0]);
+    }
 
-  // Simple form submission handling
-  document.addEventListener('DOMContentLoaded', function () {
+    // Form submission handling
     const form = document.getElementById('dynamic-appointment-form');
+    console.log('Form element found:', form);
+    
     if (form) {
+      console.log('Adding submit event listener to form...');
       form.addEventListener('submit', async function(e) {
         e.preventDefault();
-        console.log('Appointment form submitted');
+        console.log('🚀 Appointment form submitted - event triggered!');
 
         const submitBtn = form.querySelector('button[type="submit"]');
         if (!submitBtn) return;
@@ -859,27 +998,62 @@
         try {
           const formData = new FormData(form);
           
-          // Basic validation
-          const mobileNumber = formData.get('mobileNumber');
-          if (!mobileNumber || mobileNumber.toString().length !== 10) {
+          // Enhanced validation
+          const requiredFields = {
+            fullName: formData.get('fullName'),
+            emailAddress: formData.get('emailAddress'),
+            mobileNumber: formData.get('mobileNumber'),
+            serviceType: formData.get('serviceType'),
+            appointmentDate: formData.get('appointmentDate'),
+            appointmentTime: formData.get('appointmentTime'),
+            consultationMethod: formData.get('consultationMethod')
+          };
+
+          // Check for missing required fields
+          for (const [fieldName, value] of Object.entries(requiredFields)) {
+            if (!value || value.toString().trim() === '') {
+              showErrorMessage(`Please fill in the ${fieldName.replace(/([A-Z])/g, ' $1').toLowerCase()} field`);
+              submitBtn.innerHTML = originalText;
+              submitBtn.disabled = false;
+              return;
+            }
+          }
+
+          // Validate mobile number
+          const mobileNumber = requiredFields.mobileNumber.toString();
+          if (mobileNumber.length !== 10 || !/^\d{10}$/.test(mobileNumber)) {
             showErrorMessage('Please enter a valid 10-digit mobile number');
             submitBtn.innerHTML = originalText;
             submitBtn.disabled = false;
             return;
           }
 
+          // Validate email
+          const email = requiredFields.emailAddress.toString();
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (!emailRegex.test(email)) {
+            showErrorMessage('Please enter a valid email address');
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+            return;
+          }
+
+          console.log('Form validation passed, preparing data...');
+
           const appointmentData = {
-            name: formData.get('fullName'),
-            email: formData.get('emailAddress'),
-            phone: formData.get('mobileNumber'),
-            service: formData.get('serviceType'),
-            date: formData.get('appointmentDate'),
-            time: formData.get('appointmentTime'),
-            consultation_method: formData.get('consultationMethod'),
-            message: formData.get('userQuery'),
+            name: requiredFields.fullName,
+            email: requiredFields.emailAddress,
+            phone: requiredFields.mobileNumber,
+            service: requiredFields.serviceType,
+            date: requiredFields.appointmentDate,
+            time: requiredFields.appointmentTime,
+            consultation_method: requiredFields.consultationMethod,
+            message: formData.get('userQuery') || '',
             status: 'scheduled',
             service_details: {},
           };
+
+          console.log('Appointment data prepared:', appointmentData);
 
           // Collect service-specific fields
           const serviceType = formData.get('serviceType');
@@ -892,34 +1066,192 @@
             });
           }
 
-          const response = await fetch('/api/appointments', {
+          console.log('Sending appointment data to API...');
+          const response = await fetch('/api/appointment-form', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(appointmentData)
           });
 
+          console.log('API response status:', response.status);
           const result = await response.json();
+          console.log('API response data:', result);
           
           if (result.success) {
-            showSuccessMessage('Appointment booked successfully! We will contact you soon.');
+            showSuccessMessage(result.message || 'Appointment booked successfully! We will contact you soon.');
             form.reset();
             const serviceSpecificFields = document.getElementById('serviceSpecificFields');
             if (serviceSpecificFields) {
               serviceSpecificFields.style.display = 'none';
             }
           } else {
-            showErrorMessage('Sorry, there was an error. Please try again.');
+            showErrorMessage(result.message || 'Sorry, there was an error. Please try again.');
           }
         } catch (error) {
-          console.error('Form error:', error);
-          showErrorMessage('Sorry, there was an error. Please try again.');
+          console.error('Form submission error:', error);
+          console.error('Error details:', {
+            message: error.message,
+            stack: error.stack,
+            name: error.name
+          });
+          
+          let errorMessage = 'Sorry, there was an error. Please try again.';
+          if (error.message.includes('fetch')) {
+            errorMessage = 'Network error. Please check your internet connection and try again.';
+          } else if (error.message.includes('JSON')) {
+            errorMessage = 'Server response error. Please try again.';
+          }
+          
+          showErrorMessage(errorMessage);
+        } finally {
+          submitBtn.innerHTML = originalText;
+          submitBtn.disabled = false;
+        }
+      });
+      
+      console.log('✅ Form submit event listener added successfully');
+    } else {
+      console.error('❌ Form element not found! Form ID: dynamic-appointment-form');
+    }
+  });
+
+  // Fallback: Try to attach event listener after a short delay
+  setTimeout(function() {
+    const form = document.getElementById('dynamic-appointment-form');
+    if (form && !form.hasAttribute('data-listener-attached')) {
+      console.log('🔄 Fallback: Adding submit event listener...');
+      form.setAttribute('data-listener-attached', 'true');
+      
+      form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        console.log('🚀 Fallback: Appointment form submitted!');
+
+        const submitBtn = form.querySelector('button[type="submit"]');
+        if (!submitBtn) {
+          console.error('❌ Submit button not found');
+          return;
+        }
+
+        // Show loading
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '⏳ Submitting...';
+        submitBtn.disabled = true;
+
+        try {
+          const formData = new FormData(form);
+          
+          // Enhanced validation
+          const requiredFields = {
+            fullName: formData.get('fullName'),
+            emailAddress: formData.get('emailAddress'),
+            mobileNumber: formData.get('mobileNumber'),
+            serviceType: formData.get('serviceType'),
+            appointmentDate: formData.get('appointmentDate'),
+            appointmentTime: formData.get('appointmentTime'),
+            consultationMethod: formData.get('consultationMethod')
+          };
+
+          // Check for missing required fields
+          for (const [fieldName, value] of Object.entries(requiredFields)) {
+            if (!value || value.toString().trim() === '') {
+              showErrorMessage(`Please fill in the ${fieldName.replace(/([A-Z])/g, ' $1').toLowerCase()} field`);
+              submitBtn.innerHTML = originalText;
+              submitBtn.disabled = false;
+              return;
+            }
+          }
+
+          // Validate mobile number
+          const mobileNumber = requiredFields.mobileNumber.toString();
+          if (mobileNumber.length !== 10 || !/^\d{10}$/.test(mobileNumber)) {
+            showErrorMessage('Please enter a valid 10-digit mobile number');
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+            return;
+          }
+
+          // Validate email
+          const email = requiredFields.emailAddress.toString();
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (!emailRegex.test(email)) {
+            showErrorMessage('Please enter a valid email address');
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+            return;
+          }
+
+          console.log('Form validation passed, preparing data...');
+
+          const appointmentData = {
+            name: requiredFields.fullName,
+            email: requiredFields.emailAddress,
+            phone: requiredFields.mobileNumber,
+            service: requiredFields.serviceType,
+            date: requiredFields.appointmentDate,
+            time: requiredFields.appointmentTime,
+            consultation_method: requiredFields.consultationMethod,
+            message: formData.get('userQuery') || '',
+            status: 'scheduled',
+            service_details: {},
+          };
+
+          console.log('Appointment data prepared:', appointmentData);
+
+          // Collect service-specific fields
+          const serviceType = formData.get('serviceType');
+          if (serviceType && serviceConfigs[serviceType]) {
+            serviceConfigs[serviceType].fields.forEach((field) => {
+              const value = formData.get(field.name);
+              if (value) {
+                appointmentData.service_details[field.name] = value;
+              }
+            });
+          }
+
+          console.log('Sending appointment data to API...');
+          const response = await fetch('/api/appointment-form', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(appointmentData)
+          });
+
+          console.log('API response status:', response.status);
+          const result = await response.json();
+          console.log('API response data:', result);
+          
+          if (result.success) {
+            showSuccessMessage(result.message || 'Appointment booked successfully! We will contact you soon.');
+            form.reset();
+            const serviceSpecificFields = document.getElementById('serviceSpecificFields');
+            if (serviceSpecificFields) {
+              serviceSpecificFields.style.display = 'none';
+            }
+          } else {
+            showErrorMessage(result.message || 'Sorry, there was an error. Please try again.');
+          }
+        } catch (error) {
+          console.error('Form submission error:', error);
+          console.error('Error details:', {
+            message: error.message,
+            stack: error.stack,
+            name: error.name
+          });
+          
+          let errorMessage = 'Sorry, there was an error. Please try again.';
+          if (error.message.includes('fetch')) {
+            errorMessage = 'Network error. Please check your internet connection and try again.';
+          } else if (error.message.includes('JSON')) {
+            errorMessage = 'Server response error. Please try again.';
+          }
+          
+          showErrorMessage(errorMessage);
         } finally {
           submitBtn.innerHTML = originalText;
           submitBtn.disabled = false;
         }
       });
     }
-  });
+  }, 1000);
 
 
   // Mobile number input validation
@@ -931,4 +1263,31 @@
       });
     }
   });
+
+  // Debug: Test form submission manually
+  setTimeout(function() {
+    const form = document.getElementById('dynamic-appointment-form');
+    const submitBtn = document.querySelector('button[type="submit"]');
+    
+    console.log('🔍 Debug Info:');
+    console.log('- Form element:', form);
+    console.log('- Submit button:', submitBtn);
+    console.log('- Form has submit listener:', form ? form.onsubmit !== null : 'Form not found');
+    
+    if (form && submitBtn) {
+      console.log('✅ Form and submit button found - form should work');
+      
+      // Test if we can manually trigger the submit event
+      submitBtn.addEventListener('click', function(e) {
+        console.log('🖱️ Submit button clicked!');
+        e.preventDefault(); // Prevent default form submission
+        
+        // Manually trigger our form submission logic
+        console.log('🚀 Manually triggering form submission...');
+        handleFormSubmission(form);
+      });
+    } else {
+      console.error('❌ Form or submit button not found');
+    }
+  }, 2000);
 </script>

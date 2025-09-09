@@ -7,7 +7,7 @@ export const prerender = false;
 
 export const POST: APIRoute = async ({ request }) => {
   try {
-    console.log('📝 Appointment API called');
+    console.log('📝 Appointment Form API called');
     const appointmentData = await request.json();
     console.log('📊 Received appointment data:', appointmentData);
 
@@ -27,7 +27,7 @@ export const POST: APIRoute = async ({ request }) => {
         });
       }
     }
-    console.log('✅ All required fields validated');
+    console.log('✅ All required appointment fields validated');
 
     // Create appointment in Supabase
     const newAppointment = await supabaseDataService.createAppointment({
@@ -59,9 +59,9 @@ export const POST: APIRoute = async ({ request }) => {
         message: appointmentData.message,
         service_details: appointmentData.service_details || {}
       });
-      console.log('📧 Email service result:', emailSent);
+      console.log('📧 Appointment email service result:', emailSent);
     } catch (emailError) {
-      console.warn('⚠️ Email service failed, but continuing:', emailError);
+      console.warn('⚠️ Appointment email service failed, but continuing:', emailError);
       emailSent = false;
     }
 
@@ -80,10 +80,10 @@ export const POST: APIRoute = async ({ request }) => {
       }
     });
   } catch (error) {
-    console.error('Public appointment creation error:', error);
+    console.error('Appointment form creation error:', error);
     
     // Enhanced error logging
-    console.error('Detailed error information:', {
+    console.error('Detailed appointment error information:', {
       message: error.message,
       stack: error.stack,
       name: error.name
