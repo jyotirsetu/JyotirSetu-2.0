@@ -13,15 +13,15 @@
 *Modern, responsive homepage showcasing our astrology services and expert guidance*
 
 ### **Services Page**
-![Services Page](images/screenshots/services.png)
+![Services Page](screenshots/services.png)
 *Comprehensive overview of all our astrology services including Kundli Analysis, Palmistry, Numerology, and more*
 
 ### **About Page**
-![About Page](images/screenshots/about.png)
+![About Page](screenshots/about.png)
 *Learn about our expert Astrologer Punita Sharma and her 25+ years of experience*
 
 ### **Blog**
-![Blog Page](images/screenshots/blog.png)
+![Blog Page](screenshots/blog.png)
 *Expert astrology insights, remedies, and cosmic guidance on our dedicated blog*
 
 ## 🚀 **Live Website**
@@ -45,7 +45,7 @@ JyotirSetu is a professional astrology consultation platform offering expert gui
 
 ## ��‍ **Our Expert**
 
-![Astrologer Punita Sharma](images/expert/punita-sharma.jpg)
+![Astrologer Punita Sharma](screenshots/punita-sharma.jpg)
 
 **Astrologer Punita Sharma** - M.A. Sanskrit
 - ✅ Certified Astrologer – Bharatiya Vidya Bhavan
@@ -57,7 +57,7 @@ JyotirSetu is a professional astrology consultation platform offering expert gui
 
 ## 🏢 **Our Office**
 
-![JyotirSetu Office](images/office/office.jpg)
+![JyotirSetu Office](screenshots/office.jpg)
 *Professional consultation space in Sector-15, Gurugram, Haryana*
 
 ## 🛠️ **Technology Stack**
