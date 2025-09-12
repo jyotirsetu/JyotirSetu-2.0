@@ -43,7 +43,7 @@ export default defineConfig({
     }),
     sitemap({
       filter: (page) => {
-        // Exclude admin pages (private) - including main admin page
+        // Exclude admin pages (private)
         if (page.includes('/admin')) return false;
         
         // Exclude blog and template demo pages (not used)
@@ -56,7 +56,7 @@ export default defineConfig({
             page.includes('/markdown-elements') ||
             page.includes('/useful-resources')) return false;
         
-        // Exclude landing page templates (not used for business) - including main landing page
+        // Exclude landing page templates (not used for business)
         if (page.includes('/landing') || 
             page.includes('/homes/')) return false;
         
@@ -65,7 +65,12 @@ export default defineConfig({
             page.includes('/resources')) return false;
         
         return true;
-      }
+      },
+      // Add custom URLs for blog integration
+      customPages: [
+        'https://www.blog.jyotirsetu.com',
+        'https://www.blog.jyotirsetu.com/blog',
+      ]
     }),
     mdx(),
     icon({
