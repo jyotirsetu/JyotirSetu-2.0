@@ -9,6 +9,61 @@
       "source": "/(.*)/index\\.html",
       "destination": "/$1",
       "permanent": true
+    },
+    {
+      "source": "/tarot",
+      "destination": "/services/spiritual-guidance",
+      "permanent": true
+    },
+    {
+      "source": "/numerology",
+      "destination": "/services/numerology",
+      "permanent": true
+    },
+    {
+      "source": "/birthchart",
+      "destination": "/services/kundli-analysis",
+      "permanent": true
+    },
+    {
+      "source": "/palmistry",
+      "destination": "/services/palmistry",
+      "permanent": true
+    },
+    {
+      "source": "/gemstone",
+      "destination": "/services/gemstone-consultation",
+      "permanent": true
+    },
+    {
+      "source": "/blog",
+      "destination": "/services",
+      "permanent": true
+    },
+    {
+      "source": "/pricing",
+      "destination": "/services",
+      "permanent": true
+    },
+    {
+      "source": "/thank-you",
+      "destination": "/contact",
+      "permanent": true
+    },
+    {
+      "source": "/services/study-education",
+      "destination": "/services/career-finance",
+      "permanent": true
+    },
+    {
+      "source": "/useful-resources-to-create-websites",
+      "destination": "/services",
+      "permanent": true
+    },
+    {
+      "source": "/markdown-elements-demo-post",
+      "destination": "/services",
+      "permanent": true
     }
   ],
   "headers": [
