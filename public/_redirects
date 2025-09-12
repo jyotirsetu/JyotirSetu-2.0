@@ -1,0 +1,12 @@
+# Redirect old URLs to relevant pages
+/tarot.html /services/spiritual-guidance 301
+/numerology.html /services/numerology 301
+/birthchart.html /services/kundli-analysis 301
+/palmistry.html /services/palmistry 301
+/gemstone.html /services/gemstone-consultation 301
+/blog /services 301
+/pricing /services 301
+/thank-you /contact 301
+/services/study-education /services/career-finance 301
+/useful-resources-to-create-websites /services 301
+/markdown-elements-demo-post /services 301
