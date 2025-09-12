@@ -24,7 +24,10 @@ export const headerData = {
         { text: 'Dosha Analysis & Remedies', href: '/services/dosha-analysis' },
       ],
     },
-
+    {
+      text: 'Blog',
+      href: 'https://blog.jyotirsetu.com',
+    },
     {
       text: 'Testimonials',
       href: getPermalink('/testimonials'),
@@ -57,6 +60,7 @@ export const footerData = {
       title: 'Company',
       links: [
         { text: 'About Us', href: '/about' },
+        { text: 'Blog', href: 'https://blog.jyotirsetu.com' },
         { text: 'Success Stories', href: '/success-stories' },
         { text: 'Testimonials', href: '/testimonials' },
         { text: 'Contact', href: '/contact' },
