@@ -1,302 +1,262 @@
-# 🚀 AstroWind - Deployment Fix
+# 🌟 JyotirSetu Astrology - Bridge to Cosmic Light
 
-<img src="https://raw.githubusercontent.com/arthelokyo/.github/main/resources/astrowind/lighthouse-score.png" align="right"
-     alt="AstroWind Lighthouse Score" width="100" height="358">
+[![Website](https://img.shields.io/badge/Website-www.jyotirsetu.com-blue)](https://www.jyotirsetu.com)
+[![Blog](https://img.shields.io/badge/Blog-blog.jyotirsetu.com-green)](https://www.blog.jyotirsetu.com)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE.md)
 
-🌟 _Most *starred* & *forked* Astro theme in 2022, 2023 & 2024_. 🌟
+> Professional astrology, palmistry & numerology consultations by Astrologer Punita Sharma. Get expert guidance for your life journey.
 
-**AstroWind** is a free and open-source template to make your website using **[Astro 5.0](https://astro.build/) + [Tailwind CSS](https://tailwindcss.com/)**. Ready to start a new project and designed taking into account web best practices.
+## ��️ **Website Preview**
 
-- ✅ **Production-ready** scores in **PageSpeed Insights** reports.
-- ✅ Integration with **Tailwind CSS** supporting **Dark mode** and **_RTL_**.
-- ✅ **Fast and SEO friendly blog** with automatic **RSS feed**, **MDX** support, **Categories & Tags**, **Social Share**, ...
-- ✅ **Image Optimization** (using new **Astro Assets** and **Unpic** for Universal image CDN).
-- ✅ Generation of **project sitemap** based on your routes.
-- ✅ **Open Graph tags** for social media sharing.
-- ✅ **Analytics** built-in Google Analytics, and Splitbee integration.
+### **Homepage**
+![JyotirSetu Homepage](images/screenshots/homepage.png)
+*Modern, responsive homepage showcasing our astrology services and expert guidance*
 
-<br>
+### **Services Page**
+![Services Page](images/screenshots/services.png)
+*Comprehensive overview of all our astrology services including Kundli Analysis, Palmistry, Numerology, and more*
 
-![AstroWind Theme Screenshot](https://raw.githubusercontent.com/arthelokyo/.github/main/resources/astrowind/screenshot-astrowind-1.0.png)
+### **About Page**
+![About Page](images/screenshots/about.png)
+*Learn about our expert Astrologer Punita Sharma and her 25+ years of experience*
 
-[![arthelokyo](https://custom-icon-badges.demolab.com/badge/made%20by%20-arthelokyo-556bf2?style=flat-square&logo=arthelokyo&logoColor=white&labelColor=101827)](https://github.com/arthelokyo)
-[![License](https://img.shields.io/github/license/arthelokyo/astrowind?style=flat-square&color=dddddd&labelColor=000000)](https://github.com/arthelokyo/astrowind/blob/main/LICENSE.md)
-[![Maintained](https://img.shields.io/badge/maintained%3F-yes-brightgreen.svg?style=flat-square)](https://github.com/arthelokyo)
-[![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat-square)](https://github.com/arthelokyo/astrowind#contributing)
-[![Known Vulnerabilities](https://snyk.io/test/github/arthelokyo/astrowind/badge.svg?style=flat-square)](https://snyk.io/test/github/arthelokyo/astrowind)
-[![Stars](https://img.shields.io/github/stars/arthelokyo/astrowind.svg?style=social&label=stars&maxAge=86400&color=ff69b4)](https://github.com/arthelokyo/astrowind)
-[![Forks](https://img.shields.io/github/forks/arthelokyo/astrowind.svg?style=social&label=forks&maxAge=86400&color=ff69b4)](https://github.com/arthelokyo/astrowind)
+### **Blog**
+![Blog Page](images/screenshots/blog.png)
+*Expert astrology insights, remedies, and cosmic guidance on our dedicated blog*
 
-<br>
+## 🚀 **Live Website**
 
-<details open>
-<summary>Table of Contents</summary>
+- **Main Website**: [www.jyotirsetu.com](https://www.jyotirsetu.com)
+- **Blog**: [www.blog.jyotirsetu.com](https://www.blog.jyotirsetu.com)
 
-- [Demo](#demo)
-- [Upcoming: AstroWind 2.0 – We Need Your Vision!](#-upcoming-astrowind-20--we-need-your-vision)
-- [TL;DR](#tldr)
-- [Getting started](#getting-started)
-  - [Project structure](#project-structure)
-  - [Commands](#commands)
-  - [Configuration](#configuration)
-  - [Deploy](#deploy)
-- [Frequently Asked Questions](#frequently-asked-questions)
-- [Related Projects](#related-projects)
-- [Contributing](#contributing)
-- [Acknowledgements](#acknowledgements)
-- [License](#license)
+## ✨ **About JyotirSetu**
 
-</details>
+JyotirSetu is a professional astrology consultation platform offering expert guidance in:
 
-<br>
+- **Vedic Astrology** - Birth chart analysis and predictions
+- ✋ **Palmistry** - Hand reading and destiny analysis  
+- 🔢 **Numerology** - Number-based life guidance
+- 💎 **Gemstone Consultation** - Personalized gemstone recommendations
+- ❤️ **Matchmaking (Kundli Milan)** - Relationship compatibility analysis
+- 💼 **Career & Finance Guidance** - Professional and financial insights
+- **Spiritual Guidance** - Meditation and spiritual counseling
+- **Remedial Solutions** - Astrological remedies and solutions
+- **Dosha Analysis** - Mangal Dosha, Kaal Sarp Dosha, and more
 
-## Demo
+## ��‍ **Our Expert**
 
-📌 [https://astrowind.vercel.app/](https://astrowind.vercel.app/)
+![Astrologer Punita Sharma](images/expert/punita-sharma.jpg)
 
-<br>
+**Astrologer Punita Sharma** - M.A. Sanskrit
+- ✅ Certified Astrologer – Bharatiya Vidya Bhavan
+- ✅ Diploma in Palmistry – Indian Council of Astrological Sciences (ICAS)
+- ✅ Certified Numerologist – All India Federation of Astrologers' Societies (AIFAS)
+- ✅ Life Member – Astrological Research Project, Kolkata
+- ✅ 25+ Years of Experience
+- ✅ Trusted by clients across India and abroad
 
-## 🔔 Upcoming: AstroWind 2.0 – We Need Your Vision!
+## 🏢 **Our Office**
 
-We're embarking on an exciting journey with **AstroWind 2.0**, and we want you to be a part of it! We're currently taking the first steps in developing this new version and your insights are invaluable. Join the discussion and share your feedback, ideas, and suggestions to help shape the future of **AstroWind**. Let's make **AstroWind 2.0** even better, together!
+![JyotirSetu Office](images/office/office.jpg)
+*Professional consultation space in Sector-15, Gurugram, Haryana*
 
-[Share Your Feedback in Our Discussion!](https://github.com/arthelokyo/astrowind/discussions/392)
+## 🛠️ **Technology Stack**
 
-<br>
+### **Frontend**
+- **Framework**: [Astro 5.0](https://astro.build/) - Modern static site generator
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS framework
+- **Icons**: [Tabler Icons](https://tabler-icons.io/) & [Flat Color Icons](https://iconify.design/)
+- **Typography**: [Inter Font](https://rsms.me/inter/) - Modern, readable font
 
-## TL;DR
+### **Backend & Deployment**
+- **Hosting**: [Vercel](https://vercel.com/) - Edge-first platform
+- **Analytics**: [Vercel Analytics](https://vercel.com/analytics) & [Speed Insights](https://vercel.com/speed-insights)
+- **Database**: [Supabase](https://supabase.com/) - Open source Firebase alternative
+- **Email**: [Resend](https://resend.com/) - Modern email API
 
-```shell
-npm create astro@latest -- --template arthelokyo/astrowind
-```
+### **SEO & Performance**
+- **SEO**: [AstroLib SEO](https://github.com/onwidget/astrolib) - Advanced SEO optimization
+- **Sitemap**: Automatic XML sitemap generation
+- **Compression**: [Astro Compress](https://github.com/astro-community/astro-compress) - Asset optimization
+- **Images**: [Unpic](https://unpic.pics/) - Universal image optimization
 
-## Getting started
-
-**AstroWind** tries to give you quick access to creating a website using [Astro 5.0](https://astro.build/) + [Tailwind CSS](https://tailwindcss.com/). It's a free theme which focuses on simplicity, good practices and high performance.
-
-Very little vanilla javascript is used only to provide basic functionality so that each developer decides which framework (React, Vue, Svelte, Solid JS...) to use and how to approach their goals.
-
-In this version the template supports all the options in the `output` configuration, `static`, `hybrid` and `server`, but the blog only works with `prerender = true`. We are working on the next version and aim to make it fully compatible with SSR.
-
-### Project structure
-
-Inside **AstroWind** template, you'll see the following folders and files:
-
-```
-/
-├── public/
-│   ├── _headers
-│   └── robots.txt
+## **Project Structure**
+JyotirSetu-2.0-main/
 ├── src/
-│   ├── assets/
-│   │   ├── favicons/
-│   │   ├── images/
-│   │   └── styles/
-│   │       └── tailwind.css
-│   ├── components/
-│   │   ├── blog/
-│   │   ├── common/
-│   │   ├── ui/
-│   │   ├── widgets/
-│   │   │   ├── Header.astro
-│   │   │   └── ...
-│   │   ├── CustomStyles.astro
-│   │   ├── Favicons.astro
-│   │   └── Logo.astro
-│   ├── content/
-│   │   ├── post/
-│   │   │   ├── post-slug-1.md
-│   │   │   ├── post-slug-2.mdx
-│   │   │   └── ...
-│   │   └-- config.ts
-│   ├── layouts/
-│   │   ├── Layout.astro
-│   │   ├── MarkdownLayout.astro
-│   │   └── PageLayout.astro
-│   ├── pages/
-│   │   ├── [...blog]/
-│   │   │   ├── [category]/
-│   │   │   ├── [tag]/
-│   │   │   ├── [...page].astro
-│   │   │   └── index.astro
-│   │   ├── index.astro
-│   │   ├── 404.astro
-│   │   ├-- rss.xml.ts
-│   │   └── ...
-│   ├── utils/
-│   ├── config.yaml
-│   └── navigation.js
-├── package.json
-├── astro.config.ts
-└── ...
+│ ├── components/ # Reusable UI components
+│ │ ├── widgets/ # Page-specific components
+│ │ └── ui/ # Basic UI elements
+│ ├── layouts/ # Page layouts
+│ ├── pages/ # Website pages
+│ ├── assets/ # Images, icons, etc.
+│ ├── config.yaml # Site configuration
+│ └── navigation.ts # Navigation structure
+├── images/ # README images
+│ ├── screenshots/ # Website screenshots
+│ ├── expert/ # Expert photos
+│ ├── office/ # Office photos
+│ └── logo/ # Logo files
+├── public/ # Static assets
+├── astro.config.ts # Astro configuration
+├── vercel.json # Vercel deployment config
+└── package.json # Dependencies
+
+
+## **Getting Started**
+
+### **Prerequisites**
+- Node.js >= 20.0.0
+- npm or yarn
+
+### **Installation**
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/yourusername/jyotirsetu-website.git
+   cd jyotirsetu-website
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Start development server**
+   ```bash
+   npm run dev
+   ```
+
+4. **Open your browser**
+   ```
+   http://localhost:4321
+   ```
+
+### **Available Scripts**
+
+```bash
+# Development
+npm run dev          # Start development server
+npm run start        # Start development server (alias)
+
+# Building
+npm run build        # Build for production
+npm run preview      # Preview production build
+
+# Code Quality
+npm run check        # Run all checks
+npm run check:astro  # Check Astro files
+npm run check:eslint # Check JavaScript/TypeScript
+npm run check:prettier # Check code formatting
+
+# Fixing
+npm run fix          # Fix all fixable issues
+npm run fix:eslint   # Fix ESLint issues
+npm run fix:prettier # Fix Prettier formatting
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+## 🌐 **Deployment**
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+### **Vercel (Recommended)**
 
-Any static assets, like images, can be placed in the `public/` directory if they do not require any transformation or in the `assets/` directory if they are imported directly.
+1. **Connect to Vercel**
+   - Push your code to GitHub
+   - Connect your repository to Vercel
+   - Deploy automatically
 
-[![Edit AstroWind on CodeSandbox](https://codesandbox.io/static/img/play-codesandbox.svg)](https://githubbox.com/arthelokyo/astrowind/tree/main) [![Open in Gitpod](https://svgshare.com/i/xdi.svg)](https://gitpod.io/?on=gitpod#https://github.com/arthelokyo/astrowind) [![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/arthelokyo/astrowind)
+2. **Environment Variables**
+   ```bash
+   # Add these in Vercel dashboard
+   SUPABASE_URL=your_supabase_url
+   SUPABASE_ANON_KEY=your_supabase_anon_key
+   RESEND_API_KEY=your_resend_api_key
+   ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file `README.md`. Update `src/config.yaml` and contents. Have fun!
+### **Other Platforms**
 
-<br>
+The site can be deployed to any static hosting platform:
+- Netlify
+- GitHub Pages
+- Cloudflare Pages
+- AWS S3 + CloudFront
 
-### Commands
+## 📧 **Contact & Support**
 
-All commands are run from the root of the project, from a terminal:
+- **Website**: [www.jyotirsetu.com](https://www.jyotirsetu.com)
+- **Email**: guidance@jyotirsetu.com
+- **Phone**: +91-9266991298
+- **Address**: 40A/5, Sector-15, Part-2, Gurugram, Haryana
 
-| Command             | Action                                             |
-| :------------------ | :------------------------------------------------- |
-| `npm install`       | Installs dependencies                              |
-| `npm run dev`       | Starts local dev server at `localhost:4321`        |
-| `npm run build`     | Build your production site to `./dist/`            |
-| `npm run preview`   | Preview your build locally, before deploying       |
-| `npm run check`     | Check your project for errors                      |
-| `npm run fix`       | Run Eslint and format codes with Prettier          |
-| `npm run astro ...` | Run CLI commands like `astro add`, `astro preview` |
+## 🔧 **Configuration**
 
-<br>
+### **Site Settings**
+Edit `src/config.yaml` to customize:
+- Site name and description
+- SEO metadata
+- Social media links
+- Analytics configuration
 
-### Configuration
+### **Navigation**
+Edit `src/navigation.ts` to modify:
+- Header navigation
+- Footer links
+- Social media links
 
-Basic configuration file: `./src/config.yaml`
+### **Styling**
+- **Colors**: Edit `tailwind.config.js`
+- **Components**: Modify files in `src/components/`
+- **Layouts**: Update files in `src/layouts/`
 
-```yaml
-site:
-  name: 'Example'
-  site: 'https://example.com'
-  base: '/' # Change this if you need to deploy to Github Pages, for example
-  trailingSlash: false # Generate permalinks with or without "/" at the end
+## 📊 **Performance Features**
 
-  googleSiteVerificationId: false # Or some value,
+- ⚡ **Fast Loading** - Astro's zero-JS by default approach
+- 🖼️ **Image Optimization** - Automatic image compression and lazy loading
+- **Mobile First** - Responsive design for all devices
+- **SEO Optimized** - Meta tags, structured data, sitemaps
+- ♿ **Accessible** - WCAG compliant design
+- 🌐 **PWA Ready** - Progressive Web App capabilities
 
-# Default SEO metadata
-metadata:
-  title:
-    default: 'Example'
-    template: '%s — Example'
-  description: 'This is the default meta description of Example website'
-  robots:
-    index: true
-    follow: true
-  openGraph:
-    site_name: 'Example'
-    images:
-      - url: '~/assets/images/default.png'
-        width: 1200
-        height: 628
-    type: website
-  twitter:
-    handle: '@twitter_user'
-    site: '@twitter_user'
-    cardType: summary_large_image
+## 🛡️ **Security**
 
-i18n:
-  language: en
-  textDirection: ltr
+- **Admin Protection** - Secure admin panel with authentication
+- **Headers** - Security headers for admin routes
+- **HTTPS** - SSL/TLS encryption
+- **Input Validation** - Form validation and sanitization
 
-apps:
-  blog:
-    isEnabled: true # If the blog will be enabled
-    postsPerPage: 6 # Number of posts per page
+## 📈 **Analytics & Monitoring**
 
-    post:
-      isEnabled: true
-      permalink: '/blog/%slug%' # Variables: %slug%, %year%, %month%, %day%, %hour%, %minute%, %second%, %category%
-      robots:
-        index: true
+- **Vercel Analytics** - Real-time performance metrics
+- **Speed Insights** - Core Web Vitals monitoring
+- **Google Analytics** - User behavior tracking (configurable)
+- **Error Tracking** - Automatic error reporting
 
-    list:
-      isEnabled: true
-      pathname: 'blog' # Blog main path, you can change this to "articles" (/articles)
-      robots:
-        index: true
+## **Contributing**
 
-    category:
-      isEnabled: true
-      pathname: 'category' # Category main path /category/some-category, you can change this to "group" (/group/some-category)
-      robots:
-        index: true
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-    tag:
-      isEnabled: true
-      pathname: 'tag' # Tag main path /tag/some-tag, you can change this to "topics" (/topics/some-category)
-      robots:
-        index: false
+## 📄 **License**
 
-    isRelatedPostsEnabled: true # If a widget with related posts is to be displayed below each post
-    relatedPostsCount: 4 # Number of related posts to display
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
 
-analytics:
-  vendors:
-    googleAnalytics:
-      id: null # or "G-XXXXXXXXXX"
+## **Acknowledgments**
 
-ui:
-  theme: 'system' # Values: "system" | "light" | "dark" | "light:only" | "dark:only"
-```
+- Built with [AstroWind](https://github.com/onwidget/astrowind) template
+- Icons by [Tabler Icons](https://tabler-icons.io/)
+- Font by [Inter](https://rsms.me/inter/)
+- Hosted on [Vercel](https://vercel.com/)
 
-<br>
+---
 
-#### Customize Design
+<div align="center">
 
-To customize Font families, Colors or more Elements refer to the following files:
+**🌟 JyotirSetu Astrology - Bridging Cosmic Light with Modern Guidance 🌟**
 
-- `src/components/CustomStyles.astro`
-- `src/assets/styles/tailwind.css`
+[Website](https://www.jyotirsetu.com) • [Blog](https://www.blog.jyotirsetu.com) • [Contact](https://www.jyotirsetu.com/contact)
 
-### Deploy
+</div>
 
-#### Deploy to production (manual)
 
-You can create an optimized production build with:
 
-```shell
-npm run build
-```
-
-Now, your website is ready to be deployed. All generated files are located at
-`dist` folder, which you can deploy the folder to any hosting service you
-prefer.
-
-#### Deploy to Netlify
-
-Clone this repository on your own GitHub account and deploy it to Netlify:
-
-[![Netlify Deploy button](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/arthelokyo/astrowind)
-
-#### Deploy to Vercel
-
-Clone this repository on your own GitHub account and deploy to Vercel:
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Farthelokyo%2Fastrowind)
-
-<br>
-
-## Frequently Asked Questions
-
-- Why?
--
--
-
-<br>
-
-## Related projects
-
-- [TailNext](https://tailnext.vercel.app/) - Free template using Next.js 14 and Tailwind CSS with the new App Router.
-- [Qwind](https://qwind.pages.dev/) - Free template to make your website using Qwik + Tailwind CSS.
-
-## Contributing
-
-If you have any ideas, suggestions or find any bugs, feel free to open a discussion, an issue or create a pull request.
-That would be very useful for all of us and we would be happy to listen and take action.
-
-## Acknowledgements
-
-Initially created by **Arthelokyo** and maintained by a community of [contributors](https://github.com/arthelokyo/astrowind/graphs/contributors).
-
-## License
-
-**AstroWind** is licensed under the MIT license — see the [LICENSE](./LICENSE.md) file for details.
