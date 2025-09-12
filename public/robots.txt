@@ -20,6 +20,14 @@ Disallow: /useful-resources-to-create-websites/
 # Block non-existent pages
 Disallow: /pricing/
 Disallow: /resources/
+Disallow: /tarot.html
+Disallow: /numerology.html
+Disallow: /birthchart.html
+Disallow: /palmistry.html
+Disallow: /gemstone.html
+Disallow: /thank-you
+Disallow: /services/study-education
 
-# Sitemap
+# Sitemaps
 Sitemap: https://www.jyotirsetu.com/sitemap-index.xml
+Sitemap: https://www.blog.jyotirsetu.com/sitemap-index.xml
