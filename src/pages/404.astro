@@ -1,23 +1,86 @@
 ---
 import Layout from '~/layouts/Layout.astro';
 import { getHomePermalink } from '~/utils/permalinks';
+import { Icon } from 'astro-icon/components';
 
-const title = `Error 404`;
+const metadata = {
+  title: 'Page Not Found - JyotirSetu Astrology',
+  description: 'The page you are looking for does not exist. Explore our astrology services and get expert guidance.',
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 ---
 
-<Layout metadata={{ title }}>
-  <section class="flex items-center h-full p-16">
+<Layout metadata={metadata}>
+  <section class="flex items-center min-h-screen p-16">
     <div class="container flex flex-col items-center justify-center px-5 mx-auto my-8">
-      <div class="max-w-md text-center">
-        <h2 class="mb-8 font-bold text-9xl">
-          <span class="sr-only">Error</span>
-          <span class="text-primary">404</span>
-        </h2>
-        <p class="text-3xl font-semibold md:text-3xl">Sorry, we couldn't find this page.</p>
-        <p class="mt-4 mb-8 text-lg text-muted dark:text-slate-400">
-          But dont worry, you can find plenty of other things on our homepage.
-        </p>
-        <a rel="noopener noreferrer" href={getHomePermalink()} class="btn ml-4">Back to homepage</a>
+      <div class="max-w-4xl text-center">
+        <!-- 404 Error Display -->
+        <div class="mb-8">
+          <h1 class="mb-4 font-bold text-9xl">
+            <span class="sr-only">Error</span>
+            <span class="text-primary">404</span>
+          </h1>
+          <h2 class="text-3xl font-semibold md:text-4xl mb-4">Page Not Found</h2>
+          <p class="text-lg text-muted dark:text-slate-400 mb-8">
+            The page you are looking for does not exist or has been moved. But don't worry, you can find plenty of other things on our website.
+          </p>
+        </div>
+
+        <!-- Quick Navigation -->
+        <div class="bg-blue-50 dark:bg-slate-800 rounded-lg p-6 mb-8">
+          <h3 class="text-xl font-semibold text-heading mb-4">Quick Navigation</h3>
+          <div class="grid md:grid-cols-2 gap-4">
+            <a href={getHomePermalink()} class="flex items-center p-3 bg-white dark:bg-slate-700 rounded-lg hover:bg-blue-50 dark:hover:bg-slate-600 transition-colors">
+              <Icon name="tabler:home" class="w-5 h-5 mr-3 text-blue-500" />
+              <span>Home</span>
+            </a>
+            <a href="/services" class="flex items-center p-3 bg-white dark:bg-slate-700 rounded-lg hover:bg-blue-50 dark:hover:bg-slate-600 transition-colors">
+              <Icon name="tabler:star" class="w-5 h-5 mr-3 text-blue-500" />
+              <span>Our Services</span>
+            </a>
+            <a href="/about" class="flex items-center p-3 bg-white dark:bg-slate-700 rounded-lg hover:bg-blue-50 dark:hover:bg-slate-600 transition-colors">
+              <Icon name="tabler:user" class="w-5 h-5 mr-3 text-blue-500" />
+              <span>About Us</span>
+            </a>
+            <a href="/contact" class="flex items-center p-3 bg-white dark:bg-slate-700 rounded-lg hover:bg-blue-50 dark:hover:bg-slate-600 transition-colors">
+              <Icon name="tabler:phone" class="w-5 h-5 mr-3 text-blue-500" />
+              <span>Contact</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Popular Services -->
+        <div class="mb-8">
+          <h3 class="text-xl font-semibold text-heading mb-4">Popular Services</h3>
+          <div class="grid md:grid-cols-3 gap-4">
+            <a href="/services/kundli-analysis" class="p-4 bg-white dark:bg-slate-700 rounded-lg hover:bg-blue-50 dark:hover:bg-slate-600 transition-colors">
+              <Icon name="flat-color-icons:template" class="w-8 h-8 mx-auto mb-2" />
+              <span class="text-sm">Kundli Analysis</span>
+            </a>
+            <a href="/services/palmistry" class="p-4 bg-white dark:bg-slate-700 rounded-lg hover:bg-blue-50 dark:hover:bg-slate-600 transition-colors">
+              <Icon name="flat-color-icons:gallery" class="w-8 h-8 mx-auto mb-2" />
+              <span class="text-sm">Palmistry</span>
+            </a>
+            <a href="/services/numerology" class="p-4 bg-white dark:bg-slate-700 rounded-lg hover:bg-blue-50 dark:hover:bg-slate-600 transition-colors">
+              <Icon name="flat-color-icons:document" class="w-8 h-8 mx-auto mb-2" />
+              <span class="text-sm">Numerology</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Call to Action -->
+        <div class="text-center">
+          <a href="/ScheduleAppointmentJyotirSetu" class="btn btn-primary inline-flex items-center">
+            <Icon name="tabler:calendar" class="w-5 h-5 mr-2" />
+            Book Your Consultation
+          </a>
+          <p class="mt-4 text-sm text-muted">
+            Get expert astrology guidance from our experienced astrologer
+          </p>
+        </div>
       </div>
     </div>
   </section>
