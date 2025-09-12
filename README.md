@@ -9,7 +9,7 @@
 ## ��️ **Website Preview**
 
 ### **Homepage**
-![JyotirSetu Homepage](images/screenshots/homepage.png)
+![JyotirSetu Homepage](screenshots/homepage.png)
 *Modern, responsive homepage showcasing our astrology services and expert guidance*
 
 ### **Services Page**
