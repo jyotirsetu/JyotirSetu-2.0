@@ -26,140 +26,76 @@ const { metadata = {} } = Astro.props;
 const { language, textDirection } = I18N;
 ---
 
+<!doctype html>
+<html lang={language} dir={textDirection} class="2xl:text-[20px]">
+  <head>
 ---
-/* PageLayout.astro frontmatter - add the schema const here */
-const homeSchema = {
-  "@context":"https://schema.org",
-  "@graph":[
+const jsonLdSchema = JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "JyotirSetu Astrology",
+  "url": "https://www.jyotirsetu.com",
+  "description": "Professional astrology, palmistry & numerology consultations by Astrologer Punita Sharma.",
+  "publisher": {
+    "@type": "Person",
+    "name": "Punita Sharma",
+    "image": "https://www.jyotirsetu.com/assets/images/Astrologer_PunitaSharma.jpg",
+    "sameAs": [
+      "https://www.facebook.com/jyotirsetu",
+      "https://www.instagram.com/jyotirsetu"
+    ]
+  },
+  "mainEntity": [
     {
-      "@type":"Organization",
-      "@id":"https://www.jyotirsetu.com#organization",
-      "name":"JyotirSetu",
-      "url":"https://www.jyotirsetu.com",
-      "logo":{
-        "@type":"ImageObject",
-        "url":"https://www.jyotirsetu.com/JyotirSetu%20Full%20Logo%20Transparent.png"
-      },
-      "description":"Astrology consultations by Punita Sharma – Vedic astrology, palmistry, numerology, gemstone guidance and weekly horoscopes."
-    },
-    {
-      "@type":"Person",
-      "@id":"https://www.jyotirsetu.com#punita-sharma",
-      "name":"Punita Sharma",
-      "image":"https://ik.imagekit.io/37za8gbvl/Astrologer_PunitaSharma.jpg?updatedAt=1757195629463",
-      "jobTitle":"Astrologer",
-      "description":"Punita Sharma (M.A. Sanskrit) — Certified Vedic astrologer, palmistry & numerology expert with 25+ years of practice."
-    },
-    {
-      "@type":"WebSite",
-      "@id":"https://www.jyotirsetu.com#website",
-      "url":"https://www.jyotirsetu.com",
-      "name":"JyotirSetu",
-      "publisher":{"@id":"https://www.jyotirsetu.com#organization"}
-    },
-    {
-      "@type":"WebPage",
-      "@id":"https://www.jyotirsetu.com/#webpage",
-      "url":"https://www.jyotirsetu.com",
-      "name":"JyotirSetu - Home",
-      "primaryImageOfPage":{
-        "@type":"ImageObject",
-        "url":"https://www.jyotirsetu.com/_astro/2hero-image.DaFZ3mN9.png"
-      },
-      "isPartOf":{"@id":"https://www.jyotirsetu.com#website"},
-      "about":{"@id":"https://www.jyotirsetu.com#punita-sharma"}
-    },
-    {
-      "@type":"FAQPage",
-      "@id":"https://www.jyotirsetu.com#faqpage",
-      "mainEntity":[
+      "@type": "FAQPage",
+      "mainEntity": [
         {
-          "@type":"Question",
-          "@id":"https://www.jyotirsetu.com#faq-what-information",
-          "name":"What information do I need to provide for a precise Kundli reading?",
-          "acceptedAnswer":{"@type":"Answer","text":"To ensure accuracy, please share your exact date, time, and place of birth. Even small discrepancies can affect the birth chart's interpretation and timing of insights."}
+          "@type": "Question",
+          "name": "What information do I need to provide for a precise Kundli reading?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "To ensure accuracy, please share your exact date, time, and place of birth."
+          }
         },
         {
-          "@type":"Question",
-          "@id":"https://www.jyotirsetu.com#faq-jyotish-vs-western",
-          "name":"How does Jyotish (Vedic astrology) differ from Western astrology?",
-          "acceptedAnswer":{"@type":"Answer","text":"Jyotish is based on the sidereal zodiac, focusing on the moon sign and nakshatras, rather than the sun sign. Its core lies in timing via dashas and planetary periods, believed to offer deeper, culturally anchored insights."}
+          "@type": "Question",
+          "name": "How does Jyotish (Vedic astrology) differ from Western astrology?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Jyotish focuses on the moon sign and nakshatras rather than sun sign, using dashas for timing."
+          }
         },
         {
-          "@type":"Question",
-          "@id":"https://www.jyotirsetu.com#faq-services",
-          "name":"What types of readings and services do you offer?",
-          "acceptedAnswer":{"@type":"Answer","text":"We provide Kundli Analysis, Dosha Identification & Remedies, Matchmaking (Kundli Milan), Gemstone Consultation, Numerology, Career & Finance Insights, Palmistry, Spiritual Guidance, and more."}
+          "@type": "Question",
+          "name": "What are the benefits of palmistry consultations?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Palmistry offers insights into your personality, life path, and potential challenges."
+          }
         },
         {
-          "@type":"Question",
-          "@id":"https://www.jyotirsetu.com#faq-why-jyotirsetu",
-          "name":"Why consult JyotirSetu for your astrology needs?",
-          "acceptedAnswer":{"@type":"Answer","text":"Our experienced astrologers offer personalized guidance using chart-specific insights, practical remedies, and spiritual counseling—helping you make informed decisions rather than vague predictions."}
+          "@type": "Question",
+          "name": "How can numerology influence my life decisions?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Numerology analyzes your birth date and name to provide guidance on personal and professional choices."
+          }
         },
         {
-          "@type":"Question",
-          "@id":"https://www.jyotirsetu.com#faq-predict-future",
-          "name":"Can astrology predict the future with certainty?",
-          "acceptedAnswer":{"@type":"Answer","text":"Astrology highlights patterns and potential timings—but it does not override free will. It serves as guidance to make informed choices rather than an absolute deterministic script."}
-        },
-        {
-          "@type":"Question",
-          "@id":"https://www.jyotirsetu.com#faq-dosha",
-          "name":"What is a Dosha, and how can you help?",
-          "acceptedAnswer":{"@type":"Answer","text":"Doshas—like Mangal, Kaal Sarp, and Pitru Dosha—are imbalances in your planetary configuration. JyotirSetu analyzes these and offers tailored, practical remedies aligned with Vedic tradition."}
-        },
-        {
-          "@type":"Question",
-          "@id":"https://www.jyotirsetu.com#faq-gemstones",
-          "name":"How do gemstones work in astrology?",
-          "acceptedAnswer":{"@type":"Answer","text":"Gemstones act as vibrational amplifiers to strengthen planetary energies. We suggest precise gems after chart analysis to enhance balance and well-being."}
-        },
-        {
-          "@type":"Question",
-          "@id":"https://www.jyotirsetu.com#faq-career-finance",
-          "name":"How can astrology support my career and financial decisions?",
-          "acceptedAnswer":{"@type":"Answer","text":"By examining relevant houses and planetary placements, we provide clarity on strengths, timing, and optimal paths—helping you navigate professional and financial transitions with confidence."}
-        },
-        {
-          "@type":"Question",
-          "@id":"https://www.jyotirsetu.com#faq-birthtime",
-          "name":"I don't know my exact birth time. Can I still get insights?",
-          "acceptedAnswer":{"@type":"Answer","text":"Partial readings are possible, but accuracy improves exponentially with a precise birth time. Astrologers may use rectification techniques to estimate your correct chart when needed."}
-        },
-        {
-          "@type":"Question",
-          "@id":"https://www.jyotirsetu.com#faq-benefits",
-          "name":"What benefits do I gain from a consultation with JyotirSetu?",
-          "acceptedAnswer":{"@type":"Answer","text":"You will receive clarity, greater self-awareness, timing guidance, and actionable solutions—helping you align with your life's purpose and cosmic rhythm."}
-        },
-        {
-          "@type":"Question",
-          "@id":"https://www.jyotirsetu.com#faq-privacy",
-          "name":"How secure and private are your consultations and data?",
-          "acceptedAnswer":{"@type":"Answer","text":"We uphold full confidentiality. Discussions are private, and personal details remain encrypted and are accessible only to your astrologer."}
-        },
-        {
-          "@type":"Question",
-          "@id":"https://www.jyotirsetu.com#faq-booking",
-          "name":"How do I book, and what is the process?",
-          "acceptedAnswer":{"@type":"Answer","text":"Booking is simple: choose your consultation type, fill in your birth details, schedule your slot, and you will receive confirmation with all required instructions."}
-        },
-        {
-          "@type":"Question",
-          "@id":"https://www.jyotirsetu.com#faq-remedies-safe",
-          "name":"Are the remedies and guidance you offer safe and practical?",
-          "acceptedAnswer":{"@type":"Answer","text":"Yes—our suggested remedies are grounded in classical texts and designed to be practical, easy to follow, and safe for daily use."}
+          "@type": "Question",
+          "name": "What is gemstone consultation and how does it work?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Gemstone consultation recommends specific gemstones to balance energies and enhance well-being."
+          }
         }
       ]
     }
   ]
-};
+});
 ---
 
-<!doctype html>
-<html lang={language} dir={textDirection} class="2xl:text-[20px]">
-  <head>
+<script type="application/ld+json" set:html={jsonLdSchema} />
     <CommonMeta />
     <Favicons />
     <CustomStyles />
@@ -167,7 +103,6 @@ const homeSchema = {
     <Metadata {...metadata} />
     <SiteVerification />
     <Analytics />
-<script type="application/ld+json" set:html={JSON.stringify(homeSchema)} />
 
     <!-- Preload critical CSS to prevent FOUC -->
     <!-- CSS preload removed to prevent 404 errors in production -->
