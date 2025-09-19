@@ -167,10 +167,7 @@ const homeSchema = {
     <Metadata {...metadata} />
     <SiteVerification />
     <Analytics />
-<script type="application/ld+json">
-  {JSON.stringify(homeSchema)}
-</script>
-
+<script type="application/ld+json" set:html={JSON.stringify(homeSchema)} />
 
     <!-- Preload critical CSS to prevent FOUC -->
     <!-- CSS preload removed to prevent 404 errors in production -->
