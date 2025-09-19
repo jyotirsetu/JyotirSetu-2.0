@@ -1,52 +1,117 @@
 ---
-// Ultra-Simple Email Capture Component - Guaranteed to Work
 ---
 
-<div
-  style="background: linear-gradient(135deg, #f3f4f6, #e5e7eb); padding: 2rem; border-radius: 1rem; margin: 2rem 0; text-align: center;"
->
-  <h3 style="font-size: 1.5rem; font-weight: bold; margin-bottom: 1rem; color: #1f2937;">
-    🌟 Get Your Daily Astro Tip
-  </h3>
-  <p style="color: #6b7280; margin-bottom: 2rem;">
+<div class="bg-gray-100 p-8 rounded-xl my-8 text-center">
+  <h3 class="text-2xl font-bold text-gray-900 mb-4">🌟 Get Your Daily Astro Tip</h3>
+  <p class="text-gray-600 mb-6">
     Discover cosmic insights delivered to your inbox daily! Plus, receive your FREE Dosha Balancing Guide!
   </p>
 
-  <!-- Ultra-Simple Formspree Form - Exactly as Formspree expects -->
-  <form action="https://formspree.io/f/xnnbgerl" method="POST" style="max-width: 500px; margin: 0 auto;">
-    <div style="margin-bottom: 1rem;">
-      <input
-        type="text"
-        name="name"
-        placeholder="Your Name"
-        required
-        style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; margin-bottom: 0.5rem;"
-      />
-    </div>
+  <form 
+    id="emailCaptureForm"
+    action="https://formspree.io/f/xnnbgerl" 
+    method="POST" 
+    class="max-w-md mx-auto"
+  >
+    <!-- Name Input -->
+    <input 
+      type="text" 
+      name="name" 
+      placeholder="Your Name" 
+      required 
+      class="w-full p-3 mb-4 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-purple-400 focus:outline-none"
+    />
 
-    <div style="margin-bottom: 1rem;">
-      <input
-        type="email"
-        name="email"
-        placeholder="Your Email"
-        required
-        style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; margin-bottom: 0.5rem;"
-      />
-    </div>
+    <!-- Email Input -->
+    <input 
+      type="email" 
+      name="email" 
+      placeholder="Your Email" 
+      required 
+      class="w-full p-3 mb-4 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-purple-400 focus:outline-none"
+    />
 
-    <!-- Hidden fields for tracking -->
+    <!-- Hidden fields -->
     <input type="hidden" name="source" value="homepage_email_capture" />
     <input type="hidden" name="type" value="daily_astro_tip" />
 
-    <button
+    <!-- Submit Button with Spinner -->
+    <button 
       type="submit"
-      style="width: 100%; background: linear-gradient(135deg, #8b5cf6, #3b82f6); color: white; padding: 0.75rem; border: none; border-radius: 0.5rem; font-weight: 500; cursor: pointer;"
+      id="submitBtn"
+      class="w-full py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white font-semibold rounded-lg hover:from-purple-600 hover:to-blue-600 transition-colors duration-200 flex justify-center items-center gap-2"
     >
-      Get Free Guide & Daily Tips
+      <span id="btnText">Get Free Guide & Daily Tips</span>
+      <svg id="btnSpinner" class="w-5 h-5 animate-spin hidden text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+      </svg>
     </button>
 
-    <p style="font-size: 0.75rem; color: #6b7280; margin-top: 1rem;">
+    <p class="text-xs text-gray-500 mt-2">
       We respect your privacy. Unsubscribe at any time.
+    </p>
+
+    <!-- Success & Error messages -->
+    <p id="formSuccess" class="opacity-0 transition-opacity duration-500 text-green-600 font-semibold mt-4">
+      ✅ Thank you! Your email has been submitted.
+    </p>
+    <p id="formError" class="opacity-0 transition-opacity duration-500 text-red-600 font-semibold mt-4">
+      ❌ Oops! Something went wrong. Please try again.
     </p>
   </form>
 </div>
+
+<script is:inline>
+  const form = document.getElementById('emailCaptureForm');
+  const successMsg = document.getElementById('formSuccess');
+  const errorMsg = document.getElementById('formError');
+  const submitBtn = document.getElementById('submitBtn');
+  const btnText = document.getElementById('btnText');
+  const btnSpinner = document.getElementById('btnSpinner');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    // Hide messages
+    successMsg.classList.add('opacity-0');
+    errorMsg.classList.add('opacity-0');
+
+    // Show spinner
+    btnText.textContent = 'Submitting...';
+    btnSpinner.classList.remove('hidden');
+    submitBtn.disabled = true;
+
+    const formData = new FormData(form);
+    const action = form.action;
+
+    try {
+      const response = await fetch(action, {
+        method: 'POST',
+        body: formData,
+        headers: { 'Accept': 'application/json' }
+      });
+
+      if (response.ok) {
+        successMsg.classList.remove('opacity-0');
+        form.reset();
+      } else {
+        errorMsg.classList.remove('opacity-0');
+      }
+    } catch (error) {
+      errorMsg.classList.remove('opacity-0');
+      console.error('Form submission error:', error);
+    } finally {
+      // Reset button
+      btnText.textContent = 'Get Free Guide & Daily Tips';
+      btnSpinner.classList.add('hidden');
+      submitBtn.disabled = false;
+
+      // Fade out messages after 5 seconds
+      setTimeout(() => {
+        successMsg.classList.add('opacity-0');
+        errorMsg.classList.add('opacity-0');
+      }, 5000);
+    }
+  });
+</script>
