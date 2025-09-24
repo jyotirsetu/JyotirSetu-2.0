@@ -36,21 +36,6 @@ const { language, textDirection } = I18N;
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
   gtag('config', 'G-EQGNCD55GL');
-
-<!-- Event snippet for Click to call conversion page
-In your html page, add the snippet and call gtag_report_conversion when someone clicks on the chosen link or button. -->
-function gtag_report_conversion(url) {
-  var callback = function () {
-    if (typeof(url) != 'undefined') {
-      window.location = url;
-    }
-  };
-  gtag('event', 'conversion', {
-      'send_to': 'AW-17506750409/_FQ0CO2e-KAbEMmf75tB',
-      'event_callback': callback
-  });
-  return false;
-}
 <!-- Event snippet for Book appointment (2) conversion page -->
   gtag('event', 'conversion', {
       'send_to': 'AW-17506750409/QnhGCP-qiaEbEMmf75tB',
