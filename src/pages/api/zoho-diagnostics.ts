@@ -1,0 +1,113 @@
+import type { APIRoute } from 'astro';
+
+export const prerender = false;
+
+function getEnv(name: string): string | undefined {
+  // Prefer import.meta.env in Astro, fallback to process.env
+  // eslint-disable-next-line no-undef
+  return (import.meta.env as any)?.[name] ?? process?.env?.[name];
+}
+
+export const GET: APIRoute = async () => {
+  const mode = getEnv('MODE') || process.env.NODE_ENV || 'development';
+  const isDev = mode !== 'production';
+
+  const clientId = getEnv('ZOHO_CLIENT_ID');
+  const clientSecret = getEnv('ZOHO_CLIENT_SECRET');
+  const refreshToken = getEnv('ZOHO_REFRESH_TOKEN');
+  const region = (getEnv('ZOHO_REGION') || 'com').toString().trim();
+  const fromEmail = getEnv('ZOHO_FROM_EMAIL');
+  const toAdmin = getEnv('ZOHO_TO_ADMIN');
+
+  const missing = {
+    clientId: !!clientId,
+    clientSecret: !!clientSecret,
+    refreshToken: !!refreshToken,
+    region: !!region,
+    fromEmail: !!fromEmail,
+    toAdmin: !!toAdmin,
+  };
+
+  if (!clientId || !clientSecret || !refreshToken || !region || !fromEmail || !toAdmin) {
+    return new Response(
+      JSON.stringify({ ok: false, stage: 'env-check', missing }),
+      { status: 200, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+
+  try {
+    // 1) Exchange refresh token for access token
+    const tokenRes = await fetch(`https://accounts.zoho.${region}/oauth/v2/token`, {
+      method: 'POST',
+      body: new URLSearchParams({
+        grant_type: 'refresh_token',
+        client_id: clientId,
+        client_secret: clientSecret,
+        refresh_token: refreshToken,
+      }),
+    });
+    if (!tokenRes.ok) {
+      const text = await tokenRes.text();
+      return new Response(
+        JSON.stringify({ ok: false, stage: 'token', error: text }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+    const tokenJson = await tokenRes.json();
+    const accessToken = tokenJson.access_token as string;
+
+    // 2) Get accounts
+    const accountsRes = await fetch(`https://mail.zoho.${region}/api/accounts`, {
+      headers: { Authorization: `Zoho-oauthtoken ${accessToken}` },
+    });
+    const accountsJson = await accountsRes.json();
+    const rawAccounts = accountsJson?.data;
+    const accounts: any[] = Array.isArray(rawAccounts)
+      ? rawAccounts
+      : (rawAccounts ? [rawAccounts] : []);
+    const primary = accounts.find((a: any) => a?.status === 'active') || accounts[0];
+    if (!primary?.accountId) {
+      return new Response(
+        JSON.stringify({ ok: false, stage: 'accounts', error: accountsJson }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // 3) Get aliases for primary account
+    const aliasesRes = await fetch(`https://mail.zoho.${region}/api/accounts/${primary.accountId}/aliases`, {
+      headers: { Authorization: `Zoho-oauthtoken ${accessToken}` },
+    });
+    const aliasesJson = await aliasesRes.json();
+    const rawAliases = aliasesJson?.data;
+    const aliasArr: any[] = Array.isArray(rawAliases)
+      ? rawAliases
+      : (rawAliases ? [rawAliases] : []);
+    const aliases: string[] = aliasArr.map((x: any) => x?.aliasAddress).filter(Boolean);
+    const primaryAddress = primary?.emailAddress || primary?.primaryEmailAddress || primary?.address || '';
+    const allowedFroms = [primaryAddress, ...aliases].filter(Boolean);
+
+    // Check if configured fromEmail is allowed
+    const configuredFrom = String(fromEmail).toLowerCase();
+    const isFromAllowed = allowedFroms.map((s) => String(s).toLowerCase()).includes(configuredFrom);
+
+    return new Response(
+      JSON.stringify({
+        ok: true,
+        stage: 'diagnostics',
+        accountId: primary.accountId,
+        primaryAddress,
+        aliases: allowedFroms,
+        configuredFrom,
+        isFromAllowed,
+      }),
+      { status: 200, headers: { 'Content-Type': 'application/json' } }
+    );
+  } catch (e: any) {
+    return new Response(
+      JSON.stringify({ ok: false, stage: 'exception', error: e?.message || 'unknown' }),
+      { status: 200, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+};
+
+
