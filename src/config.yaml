@@ -1,0 +1,53 @@
+site:
+  name: JyotirSetu Astrology
+  site: 'https://www.jyotirsetu.com'
+  base: '/'
+  trailingSlash: false
+
+  googleSiteVerificationId: null # Add after Google Search Console verification
+
+# Default SEO metadata
+metadata:
+  title:
+    default: JyotirSetu Astrology – Bridge to Cosmic Light
+    template: '%s — JyotirSetu Astrology'
+  description: 'Professional astrology, palmistry & numerology consultations by Astrologer Punita Sharma.'
+  robots:
+    index: true
+    follow: true
+  openGraph:
+    site_name: JyotirSetu Astrology
+    images:
+      - url: '~/assets/images/logo.png' # Your logo for social sharing
+        width: 1200
+        height: 628
+        alt: 'JyotirSetu Logo'
+    type: website
+  twitter:
+    handle: null
+    site: null
+    cardType: summary_large_image
+    images:
+      - url: '~/assets/images/logo.png' # Logo for Twitter card
+        width: 1200
+        height: 628
+        alt: 'JyotirSetu Logo'
+
+i18n:
+  language: en
+  textDirection: ltr
+
+# Blog Integration (External)
+blog:
+  external:
+    url: "https://www.blog.jyotirsetu.com"
+    name: "JyotirSetu Astrology Blog"
+    description: "Expert astrology insights, remedies, and cosmic guidance"
+
+analytics:
+  vendors:
+    googleAnalytics:
+      id: null # Add after Google Analytics setup
+
+ui:
+  theme: 'system'
