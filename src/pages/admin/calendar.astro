@@ -1,6 +1,7 @@
 ---
 export const prerender = false;
 ---
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -104,11 +105,13 @@ export const prerender = false;
         const year = currentDate.getFullYear();
         const month = currentDate.getMonth();
         const firstDay = new Date(year, month, 1);
-        const lastDay = new Date(year, month + 1, 0);
+        // Removed unused lastDay to satisfy linter
+        // const lastDay = new Date(year, month + 1, 0);
         const startDate = new Date(firstDay);
         startDate.setDate(startDate.getDate() - startDate.getDay());
         
-        document.getElementById('currentMonth').textContent = `${monthNames[month]} ${year}`;
+        const currentMonthEl = document.getElementById('currentMonth');
+        if (currentMonthEl) currentMonthEl.textContent = `${monthNames[month]} ${year}`;
         
         let html = '';
         dayNames.forEach(day => {
@@ -141,20 +144,21 @@ export const prerender = false;
           </div>`;
         }
 
-        document.getElementById('calendarGrid').innerHTML = html;
+        const gridEl = document.getElementById('calendarGrid');
+        if (gridEl) gridEl.innerHTML = html;
       }
 
-      document.getElementById('prevMonth').addEventListener('click', () => {
+      document.getElementById('prevMonth')?.addEventListener('click', () => {
         currentDate.setMonth(currentDate.getMonth() - 1);
         renderCalendar();
       });
 
-      document.getElementById('nextMonth').addEventListener('click', () => {
+      document.getElementById('nextMonth')?.addEventListener('click', () => {
         currentDate.setMonth(currentDate.getMonth() + 1);
         renderCalendar();
       });
 
-      document.getElementById('todayBtn').addEventListener('click', () => {
+      document.getElementById('todayBtn')?.addEventListener('click', () => {
         currentDate = new Date();
         renderCalendar();
       });
@@ -165,14 +169,14 @@ export const prerender = false;
       // Mobile drawer
       const sidebar = document.getElementById('adminSidebar');
       const backdrop = document.getElementById('sidebarBackdrop');
-      const toggleBtn = document.getElementById('sidebarToggle');
+      const toggleBtn = document.getElementById('sidebarToggle') as HTMLButtonElement | null;
       let isOpen = false;
       
       function openSidebar() {
         sidebar?.classList.add('active');
         backdrop?.classList.add('active');
         toggleBtn?.classList.add('active');
-        toggleBtn.innerHTML = '✕';
+        if (toggleBtn) toggleBtn.innerHTML = '✕';
         isOpen = true;
       }
       
@@ -180,7 +184,7 @@ export const prerender = false;
         sidebar?.classList.remove('active');
         backdrop?.classList.remove('active');
         toggleBtn?.classList.remove('active');
-        toggleBtn.innerHTML = '☰';
+        if (toggleBtn) toggleBtn.innerHTML = '☰';
         isOpen = false;
       }
       
