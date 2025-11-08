@@ -11,6 +11,7 @@ Disallow: /api/admin/
 Disallow: /api/admin/*
 
 Sitemap: ${sitemapURL.href}
+Sitemap: https://www.follow.jyotirsetu.com/sitemap.xml
 Sitemap: https://follow.jyotirsetu.com/sitemap.xml
 `;
 
