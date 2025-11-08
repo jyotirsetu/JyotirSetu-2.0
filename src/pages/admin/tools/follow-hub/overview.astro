@@ -1,0 +1,145 @@
+---
+export const prerender = false;
+---
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Follow Hub – Overview</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <style>
+      :root{ --bg:#0b1020; --card:rgba(255,255,255,0.08); --border:rgba(255,255,255,0.15); --fg:#cfe8ea; --muted:#8bb0b3; --teal:#2ad1b2; --gold:#f1c40f; --blue:#3498db; --pink:#ff6fb3; --red:#e74c3c; --gray:#95a5a6; }
+      html,body{height:100%;}
+      body{margin:0;background:radial-gradient(circle at 20% 10%, #102040, #0b1020); color:var(--fg); font-family:Inter,system-ui,Segoe UI,Arial,sans-serif;}
+      .layout{display:flex; min-height:100vh;}
+      .sidebar{width:240px; background:linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03)); border-right:1px solid var(--border);}
+      .logo{padding:16px; font-weight:600; display:flex; align-items:center; gap:8px}
+      .brand-dot{width:10px; height:10px; border-radius:50%; background:var(--teal); box-shadow:0 0 12px var(--teal)}
+      .nav{display:flex; flex-direction:column}
+      .nav a{padding:12px 16px; text-decoration:none; color:var(--fg); border-bottom:1px solid rgba(255,255,255,0.06)}
+      .nav a.active{background:rgba(255,255,255,0.06)}
+      .content{flex:1}
+      .topbar{display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid var(--border)}
+      .container{padding:20px; max-width:1200px; margin:0 auto}
+      .cards{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px}
+      .card{background:var(--card); border:1px solid var(--border); border-radius:16px; padding:16px}
+      .card h4{margin:0 0 8px 0; font-size:14px; color:var(--muted)}
+      .stat{font-size:28px; font-weight:700}
+      .delta{font-size:12px; color:var(--muted)}
+      .spark{height:36px; width:100%;}
+      .section{margin-top:24px}
+      .chip{display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:999px; border:1px solid var(--border); margin:6px 6px 0 0; background:rgba(255,255,255,0.05)}
+      .chip .dot{width:8px; height:8px; border-radius:50%}
+      .chip.teal .dot{background:var(--teal)}
+      .chip.gold .dot{background:var(--gold)}
+      .chip.blue .dot{background:var(--blue)}
+      .chip.pink .dot{background:var(--pink)}
+      .chip.red .dot{background:var(--red)}
+      .chip.gray .dot{background:var(--gray)}
+      .row{display:flex; gap:12px; align-items:center; flex-wrap:wrap}
+      .tools{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+      input,select,button{background:rgba(255,255,255,0.06); color:var(--fg); border:1px solid var(--border); border-radius:8px; padding:8px 10px}
+      button{cursor:pointer}
+      a.pill{padding:8px 12px; border-radius:999px; border:1px solid var(--border); text-decoration:none; color:var(--fg)}
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="logo"><span class="brand-dot"></span> <span>JyotirSetu Admin</span></div>
+        <nav class="nav">
+          <a href="/admin/dashboard">Dashboard</a>
+          <a href="/admin/appointments">Appointments</a>
+          <a href="/admin/contacts">Contacts</a>
+          <a href="/admin/calendar">Calendar</a>
+          <a href="/admin/activity-log">Activity Log</a>
+          <a class="active" href="/admin/tools/follow-hub/overview">Follow Hub – Overview</a>
+          <a href="/admin/tools/follow-hub/insights">Follow Hub – Insights</a>
+          <a href="/admin/templates/email">Email Templates</a>
+          <a href="/admin/templates/whatsapp">WhatsApp Templates</a>
+          <a href="/admin/settings">Settings</a>
+        </nav>
+      </aside>
+      <section class="content">
+        <div class="topbar">
+          <strong>Follow Hub Clicks</strong>
+          <div class="row">
+            <a class="pill" id="exportCsv">Export CSV</a>
+            <a class="pill" href="/api/admin/logout">Logout</a>
+          </div>
+        </div>
+        <div class="container">
+          <div class="cards">
+            <div class="card"><h4>Totals</h4><div class="stat" id="totals">–</div><div class="delta">Overall clicks across CTAs</div></div>
+          </div>
+
+          <div class="section">
+            <h3 style="margin:0 0 8px 0">Clicks per Link</h3>
+            <div class="row" id="ctaChips"></div>
+          </div>
+
+          <div class="section">
+            <h3 style="margin:0 0 8px 0">Platforms</h3>
+            <div class="cards" id="platformCards"></div>
+          </div>
+
+          <!-- Daily chart removed; data consolidated on Insights page -->
+        </div>
+      </section>
+    </div>
+
+    <script>
+      const qs = (id) => document.getElementById(id);
+      function colorForCta(cta){
+        switch(String(cta||'').toLowerCase()){
+          case 'whatsapp': return 'teal';
+          case 'google_review': return 'gold';
+          case 'facebook': return 'blue';
+          case 'instagram': return 'pink';
+          case 'youtube': return 'red';
+          case 'website': return 'gray';
+          default: return 'gray';
+        }
+      }
+      async function loadOverview(){
+        const res = await fetch('/api/admin/follow-hub/overview');
+        const j = await res.json(); if(!j.ok) return;
+        const t = j.data.totals; const totalsEl = qs('totals'); if(totalsEl) totalsEl.textContent = `${t.cta_clicks||0} clicks (CTR ${t.ctr||0}%)`;
+        const allowed = new Set(['google_review','instagram','facebook','youtube','whatsapp']);
+        const breakdown = (j.data.cta_breakdown||[]).filter(r => allowed.has(String(r.cta||'').toLowerCase()));
+        const chips = breakdown.map(r=>{
+          const color = colorForCta(r.cta);
+          return `<span class="chip ${color}"><span class="dot"></span><span>${r.cta||'—'}</span><strong>${r.clicks||0}</strong></span>`;
+        }).join('');
+        const chipsEl = qs('ctaChips'); if(chipsEl) chipsEl.innerHTML = chips || '<span class="chip gray"><span class="dot"></span><span>No clicks yet</span></span>';
+
+        const max = Math.max(1, ...breakdown.map(r=>Number(r.clicks||0)));
+        const platformCardsEl = qs('platformCards'); if(platformCardsEl) platformCardsEl.innerHTML = breakdown.map(r=>{
+          const pct = Math.round((Number(r.clicks||0)/max)*100);
+          return `<div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <strong style="text-transform:capitalize">${r.cta}</strong>
+              <span>${r.clicks||0} clicks</span>
+            </div>
+            <div style="height:8px;border-radius:999px;background:rgba(255,255,255,0.08);margin-top:10px">
+              <div style="height:8px;border-radius:999px;background:linear-gradient(90deg, #2ad1b2, #3498db); width:${pct}%"></div>
+            </div>
+          </div>`;
+        }).join('');
+
+        // Chart moved to Insights page
+      }
+      loadOverview();
+      const exportEl = qs('exportCsv');
+      if (exportEl) exportEl.addEventListener('click', async ()=>{
+        const res = await fetch('/api/admin/follow-hub/events?limit=2000'); const j = await res.json(); const rows = j.data||[];
+        const csv = ['time,type,cta_shown,cta_clicked,variant,source,device,ip_masked'].concat(
+          rows.map(r => [r.created_at, r.event_type, r.primary_cta_shown, r.cta_clicked, r.cta_variant, r.source, r.device, r.ip_masked].map(x => '"' + String(x||'').replace(/"/g,'""') + '"').join(','))
+        ).join('\n');
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'follow-hub-' + new Date().toISOString().slice(0,10) + '.csv'; a.click();
+      });
+    </script>
+  </body>
+ </html>

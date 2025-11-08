@@ -9,6 +9,7 @@ export const prerender = false;
     <title>Settings – Admin</title>
 <link rel="stylesheet" href="/admin.css?v=20251108" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <script src="/js/admin-notify.js" defer></script>
     <style>
       .settings-section { background: linear-gradient(180deg, var(--panel), var(--panel-2)); border: 1px solid var(--border); border-radius: 14px; padding: 24px; margin-bottom: 20px; }
       .settings-section h3 { margin: 0 0 16px; font-size: 18px; font-weight: 700; }
@@ -36,6 +37,7 @@ export const prerender = false;
           <a href="/admin/contacts">Contacts</a>
           <a href="/admin/calendar">Calendar</a>
           <a href="/admin/activity-log">Activity Log</a>
+          <a href="/admin/tools/follow-hub/insights">Follow Hub – Insights</a>
           <a href="/admin/templates/email">Email Templates</a>
           <a href="/admin/templates/whatsapp">WhatsApp Templates</a>
           <a class="active" href="/admin/settings">Settings</a>
@@ -316,8 +318,7 @@ export const prerender = false;
        * @param {string | number | boolean} value
        */
       function setInputValue(id, value) {
-        /** @type {HTMLInputElement | HTMLSelectElement | null} */
-        const el = document.getElementById(id);
+        const el = document.getElementById(id) as HTMLInputElement | HTMLSelectElement | null;
         if (!el) return;
         if (el.type === 'checkbox') {
           el.checked = !!value;
@@ -331,8 +332,7 @@ export const prerender = false;
        * @returns {string | number | boolean}
        */
       function getInputValue(id) {
-        /** @type {HTMLInputElement | HTMLSelectElement | null} */
-        const el = document.getElementById(id);
+        const el = document.getElementById(id) as HTMLInputElement | HTMLSelectElement | null;
         if (!el) return null;
         if (el.type === 'checkbox') return el.checked;
         if (el.type === 'number' || el.tagName === 'SELECT') return Number(el.value);
@@ -343,7 +343,8 @@ export const prerender = false;
         const settings = getSettings();
         applySettings(settings);
 
-        document.getElementById('saveBtn').addEventListener('click', () => {
+        const saveBtn = document.getElementById('saveBtn') as HTMLButtonElement | null;
+        saveBtn?.addEventListener('click', () => {
           /** @type {Partial<Settings>} */
           const newSettings = {
             theme: getInputValue('theme'),
@@ -360,12 +361,13 @@ export const prerender = false;
             showTimestamps: getInputValue('showTimestamps'),
           };
           saveSettings(newSettings);
-          alert('Settings saved!');
+          window.AdminNotify?.success('Settings saved');
         });
 
         // Check DB status
         fetch('/api/db-health').then(res => res.json()).then(data => {
-          const statusEl = document.getElementById('dbStatus');
+          const statusEl = document.getElementById('dbStatus') as HTMLElement | null;
+          if (!statusEl) return;
           if (data.ok) {
             statusEl.textContent = 'Connected';
             statusEl.style.background = '#22c55e';
@@ -376,15 +378,15 @@ export const prerender = false;
         });
 
         // Test email
-        document.getElementById('testEmailBtn').addEventListener('click', async () => {
+        const testEmailBtn = document.getElementById('testEmailBtn') as HTMLButtonElement | null;
+        testEmailBtn?.addEventListener('click', async () => {
           const email = getInputValue('testEmail');
           if (!email || !/\S+@\S+\.\S+/.test(String(email))) {
-            alert('Please enter a valid email address.');
+            window.AdminNotify?.error('Invalid email', 'Please enter a valid email address');
             return;
           }
-          const btn = document.getElementById('testEmailBtn');
-          btn.textContent = 'Sending...';
-          btn.disabled = true;
+          const btn = document.getElementById('testEmailBtn') as HTMLButtonElement | null;
+          if (btn) { btn.textContent = 'Sending...'; btn.disabled = true; }
           try {
             const res = await fetch('/api/test-email', {
               method: 'POST',
@@ -392,16 +394,17 @@ export const prerender = false;
               body: JSON.stringify({ email }),
             });
             const result = await res.json();
-            alert(result.ok ? 'Test email sent successfully!' : `Error: ${result.error}`);
+            if (result.ok) window.AdminNotify?.success('Test email sent');
+            else window.AdminNotify?.error('Email error', result.error || 'Failed to send');
           } catch (e) {
-            alert(`An error occurred: ${e.message}`);
+            window.AdminNotify?.error('Error occurred', e.message);
           }
-          btn.textContent = 'Send Test';
-          btn.disabled = false;
+          if (btn) { btn.textContent = 'Send Test'; btn.disabled = false; }
         });
 
         // Backup DB
-        document.getElementById('backupBtn').addEventListener('click', () => {
+        const backupBtn = document.getElementById('backupBtn') as HTMLButtonElement | null;
+        backupBtn?.addEventListener('click', () => {
           window.location.href = '/api/admin/export';
         });
       });

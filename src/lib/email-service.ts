@@ -16,6 +16,7 @@ export interface AppointmentData {
   consultation_method: string;
   message?: string;
   service_details?: Record<string, unknown>;
+  public_id?: string;
 }
 
 export interface ContactData {
@@ -45,6 +46,7 @@ export class EmailService {
   private smtpSecure?: boolean;
   private smtpUser?: string;
   private smtpPass?: string;
+  private logoUrl: string;
 
   constructor() {
     this.clientId = import.meta.env.ZOHO_CLIENT_ID || '';
@@ -63,6 +65,84 @@ export class EmailService {
     this.smtpSecure = secureRaw ? (secureRaw === 'true' || secureRaw === '1' || secureRaw === 'yes') : undefined;
     this.smtpUser = (import.meta.env.SMTP_USER || process.env.SMTP_USER || '').toString().trim() || undefined;
     this.smtpPass = (import.meta.env.SMTP_PASS || process.env.SMTP_PASS || '').toString().trim() || undefined;
+
+    // Configure logo URL with fallbacks
+    const siteUrlRaw = (import.meta.env.SITE_URL || process.env.SITE_URL || 'https://www.jyotirsetu.com').toString();
+    const siteUrl = siteUrlRaw.replace(/\/$/, '');
+    const configuredLogo = (import.meta.env.EMAIL_LOGO_URL || process.env.EMAIL_LOGO_URL || '').toString().trim();
+    // Prefer configured URL; then legacy known-good path; finally site assets path (avoid constant truthiness in || chains)
+    const logoFallbacks = [
+      configuredLogo,
+      'https://www.jyotirsetu.com/JyotirSetu%20Full%20Logo%20Transparent.png',
+      `${siteUrl}/assets/images/Jyotirsetu-logo.png`,
+    ];
+    this.logoUrl = (logoFallbacks.find(v => !!v) as string);
+  }
+
+  private async loadEmailTemplate(key: string): Promise<{ subject: string; html: string } | null> {
+    try {
+      const { ensureTemplatesTables, getTursoClient } = await import('./turso');
+      await ensureTemplatesTables();
+      const client = await getTursoClient();
+      const res = await client.execute({ sql: `SELECT subject, html FROM email_templates WHERE key = ? LIMIT 1`, args: [String(key)] });
+      const row = (res.rows && res.rows[0]) as { subject?: unknown; html?: unknown } | undefined;
+      if (!row) return null;
+      return { subject: String(row.subject ?? ''), html: String(row.html ?? '') };
+    } catch {
+      return null;
+    }
+  }
+
+  private replaceVars(html: string, data: AppointmentData, extras: Record<string, string> = {}, status?: string): string {
+    const vars: Record<string, string> = {
+      name: String(data.name || ''),
+      service: String(data.service || ''),
+      date: String(data.date || ''),
+      time: String(data.time || ''),
+      method: String(data.consultation_method || ''),
+      status: String(status || ''),
+      public_id: String(data.public_id || ''),
+      appointment_id: String(data.public_id || ''),
+      follow_link: 'https://follow.jyotirsetu.com',
+      reason: String(extras.reason || ''),
+      new_date: String(extras.new_date || data.date || ''),
+      new_time: String(extras.new_time || data.time || ''),
+    };
+    return html.replace(/\{(\w+)\}/g, (_, k) => (vars[k] ?? `{${k}}`));
+  }
+
+  private wrapBranded(subject: string, innerHtml: string): string {
+    return `<!DOCTYPE html>
+    <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>${subject}</title>
+        <style>
+          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 650px; margin: 0 auto; padding: 20px; background: #f6f7fb; }
+          .container { background: white; border-radius: 16px; box-shadow: 0 12px 28px rgba(0,0,0,0.12); overflow: hidden; }
+          .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 28px 20px; text-align: center; color: white; }
+          .content { padding: 24px; }
+          .footer { padding: 16px 24px; border-top: 1px solid #eee; color: #666; font-size: 13px; text-align: center; }
+          .cta-link { display:inline-block; margin-top: 8px; color:#4f46e5; text-decoration:none; font-weight:600; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <div class="logo-container" style="text-align:center;">
+              <img src="${this.logoUrl}" alt="JyotirSetu Logo" class="logo-image" style="display:block;margin:0 auto;border:0;outline:none;text-decoration:none;" width="160" />
+            </div>
+            <div style="margin-top:8px; font-weight:700; letter-spacing:0.5px;">JyotirSetu Astrology</div>
+          </div>
+          <div class="content">${innerHtml}</div>
+          <div class="footer">
+            <div>Follow updates and insights at <a class="cta-link" href="https://follow.jyotirsetu.com" target="_blank">follow.jyotirsetu.com</a></div>
+            <div style="margin-top:6px">Thank you for choosing JyotirSetu</div>
+          </div>
+        </div>
+      </body>
+    </html>`;
   }
 
   private async getAccessToken(): Promise<string> {
@@ -229,14 +309,26 @@ export class EmailService {
 
   async sendAppointmentStatusEmail(appointmentData: AppointmentData, status: string): Promise<boolean> {
     try {
-      const emailHtml = this.generateStatusEmailHTML(appointmentData, status);
-      const statusSubjects: Record<string, string> = {
-        pending: 'Appointment Request Received - JyotirSetu',
-        confirmed: 'Appointment Confirmed - JyotirSetu',
-        rescheduled: 'Appointment Rescheduled - JyotirSetu',
-        cancelled: 'Appointment Cancelled - JyotirSetu',
-      };
-      const subject = statusSubjects[status.toLowerCase()] || `Appointment ${status} - JyotirSetu`;
+      const statusLower = String(status || '').toLowerCase();
+      // Try DB template for the given status key first
+      const tpl = await this.loadEmailTemplate(statusLower);
+      let subject = '';
+      let emailHtml = '';
+      if (tpl) {
+        subject = tpl.subject || `Appointment ${status} - JyotirSetu`;
+        const replaced = this.replaceVars(tpl.html || '', appointmentData, {}, statusLower);
+        emailHtml = this.wrapBranded(subject, replaced);
+      } else {
+        // Fallback to built-in generator
+        emailHtml = this.generateStatusEmailHTML(appointmentData, status);
+        const statusSubjects: Record<string, string> = {
+          pending: 'Appointment Request Received - JyotirSetu',
+          confirmed: 'Appointment Confirmed - JyotirSetu',
+          rescheduled: 'Appointment Rescheduled - JyotirSetu',
+          cancelled: 'Appointment Cancelled - JyotirSetu',
+        };
+        subject = statusSubjects[statusLower] || `Appointment ${status} - JyotirSetu`;
+      }
 
       if (this.smtpHost) {
         return await this.sendViaSmtp(appointmentData.email, subject, emailHtml);
@@ -247,6 +339,35 @@ export class EmailService {
       return await this.sendViaZoho(appointmentData.email, subject, emailHtml);
     } catch (error) {
       console.error('Error sending status email:', error);
+      return false;
+    }
+  }
+
+  async sendAppointmentTemplateEmail(appointmentData: AppointmentData, templateKey: string, extras: Record<string, string> = {}): Promise<boolean> {
+    try {
+      const key = String(templateKey || '').toLowerCase();
+      const tpl = await this.loadEmailTemplate(key);
+      const subject = tpl?.subject || `Appointment ${key} - JyotirSetu`;
+      const replaced = this.replaceVars((tpl?.html || ''), appointmentData, extras, key);
+      const html = this.wrapBranded(subject, replaced);
+      if (this.smtpHost) return await this.sendViaSmtp(appointmentData.email, subject, html);
+      if (this.useMailChannels) return await this.sendViaMailChannels(appointmentData.email, subject, html);
+      return await this.sendViaZoho(appointmentData.email, subject, html);
+    } catch (error) {
+      console.error('Error sending template email:', error);
+      return false;
+    }
+  }
+
+  async sendAppointmentCustomEmail(appointmentData: AppointmentData, subject: string, innerHtml: string, extras: Record<string, string> = {}): Promise<boolean> {
+    try {
+      const replaced = this.replaceVars(innerHtml || '', appointmentData, extras);
+      const html = this.wrapBranded(subject || 'Appointment Update - JyotirSetu', replaced);
+      if (this.smtpHost) return await this.sendViaSmtp(appointmentData.email, subject, html);
+      if (this.useMailChannels) return await this.sendViaMailChannels(appointmentData.email, subject, html);
+      return await this.sendViaZoho(appointmentData.email, subject, html);
+    } catch (error) {
+      console.error('Error sending custom appointment email:', error);
       return false;
     }
   }
@@ -277,6 +398,7 @@ export class EmailService {
           .detail-label { font-weight: 600; color: #666; }
           .detail-value { color: #333; }
           .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
+          .appointment-id { display:inline-block; background: linear-gradient(135deg, #667eea, #764ba2); color:#fff; padding: 6px 12px; border-radius:16px; font-family: 'Courier New', monospace; font-weight:bold; letter-spacing:1px; }
         </style>
       </head>
       <body>
@@ -286,6 +408,10 @@ export class EmailService {
             <p>${info.message}</p>
           </div>
           <div class="details">
+            <div class="detail-row">
+              <span class="detail-label">Appointment ID:</span>
+              <span class="detail-value"><span class="appointment-id">${(data.public_id || String(data.date).replace(/-/g, '') + Math.floor(Math.random() * 1000).toString().padStart(3, '0'))}</span></span>
+            </div>
             <div class="detail-row">
               <span class="detail-label">Name:</span>
               <span class="detail-value">${data.name}</span>
@@ -566,8 +692,8 @@ export class EmailService {
       <body>
         <div class="container">
           <div class="header">
-            <div class="logo-container">
-              <img src="https://www.jyotirsetu.com/JyotirSetu%20Full%20Logo%20Transparent.png" alt="JyotirSetu Logo" class="logo-image" />
+            <div class="logo-container" style="text-align:center;">
+              <img src="${this.logoUrl}" alt="JyotirSetu Logo" class="logo-image" style="display:block;margin:0 auto;border:0;outline:none;text-decoration:none;" width="200" />
             </div>
             <p class="tagline">Bridge to Cosmic Light</p>
           </div>
@@ -952,8 +1078,8 @@ export class EmailService {
       <body>
         <div class="container">
             <div class="header">
-                <div class="logo-container">
-                    <img src="https://www.jyotirsetu.com/JyotirSetu%20Full%20Logo%20Transparent.png" alt="JyotirSetu Logo" class="logo-image" />
+                <div class="logo-container" style="text-align:center;">
+                    <img src="${this.logoUrl}" alt="JyotirSetu Logo" class="logo-image" style="display:block;margin:0 auto;border:0;outline:none;text-decoration:none;" width="200" />
                 </div>
                 <p class="tagline">Bridge to Cosmic Light</p>
             </div>
@@ -1029,7 +1155,7 @@ export class EmailService {
                 <div class="info-box">
                     <h3>📋 Important Information</h3>
                     <div style="color: #0c4a6e;">
-                        <p><strong>⏰ Appointment ID:</strong> <span class="appointment-id">${data.service.toUpperCase().substring(0,3)}${data.date.replace(/-/g, '')}${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}</span></p>
+                        <p><strong>⏰ Appointment ID:</strong> <span class="appointment-id">${(data.public_id || String(data.date).replace(/-/g, '') + Math.floor(Math.random() * 1000).toString().padStart(3, '0'))}</span></p>
                         <p><strong>📅 Booking Date:</strong> ${new Date().toLocaleDateString('en-US', { 
                             weekday: 'long', 
                             year: 'numeric', 

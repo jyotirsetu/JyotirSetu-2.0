@@ -40,3 +40,20 @@ declare module '@astrolib/seo/src/AstroSeo.astro' {
   import type { Component } from 'astro';
   export default Component;
 }
+
+// Global window augmentations for admin scripts and analytics
+declare global {
+  interface Window {
+    AdminNotify?: {
+      success: (message: string, description?: string) => void;
+      error: (message: string, description?: string) => void;
+      info: (message: string, description?: string) => void;
+    };
+    dataLayer?: unknown[];
+    __followHubInsightsLoaded?: boolean;
+    FollowHubInsightsLoad?: () => void | Promise<void>;
+    followVariant?: string;
+  }
+}
+
+export {};

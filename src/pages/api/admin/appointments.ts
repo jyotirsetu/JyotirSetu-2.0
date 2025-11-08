@@ -19,6 +19,7 @@ interface Appointment {
   message: string | null;
   service_details: string | null;
   source: string;
+  customer_appointment_id?: string | null;
   created_at: string;
 }
 
@@ -33,7 +34,7 @@ export const GET: APIRoute = async ({ request }) => {
     const client = await getTursoClient();
     const [dataRes, countRes] = await Promise.all([
       client.execute({
-        sql: `SELECT id, name, email, phone, service, date, time, consultation_method, status, message, service_details, source, created_at
+        sql: `SELECT id, name, email, phone, service, date, time, consultation_method, status, message, service_details, source, customer_appointment_id, created_at
               FROM appointments ORDER BY datetime(created_at) DESC LIMIT ? OFFSET ?`,
         args: [limit, offset]
       }),
@@ -106,6 +107,36 @@ export const POST: APIRoute = async ({ request }) => {
       message?: string | null;
     }) || {};
     const { action, id, status } = req;
+
+    // Handle deletion by internal id or customer-facing Appointment ID
+    if (action === 'delete') {
+      const public_id = (req as { public_id?: string }).public_id;
+      if (!id && !public_id) {
+        return new Response(JSON.stringify({ ok: false, error: 'Provide id or public_id' }), { status: 400 });
+      }
+
+      await ensureAppointmentsTable();
+      const client = await getTursoClient();
+
+      let targetId: string | null = id ? String(id) : null;
+      if (!targetId && public_id) {
+        const findRes = await client.execute({
+          sql: `SELECT id FROM appointments WHERE customer_appointment_id = ? LIMIT 1`,
+          args: [String(public_id)]
+        });
+        const row0 = Array.isArray(findRes.rows) ? (findRes.rows[0] as Record<string, unknown>) : undefined;
+        const idField = row0 ? row0.id : undefined;
+        targetId = typeof idField === 'string' ? idField : (idField != null ? String(idField) : null);
+      }
+
+      if (!targetId) {
+        return new Response(JSON.stringify({ ok: false, error: 'Appointment not found' }), { status: 404 });
+      }
+
+      await client.execute({ sql: `DELETE FROM appointments WHERE id = ?`, args: [targetId] });
+      await logActivity('appointment_deleted', 'appointment', targetId, `Deleted appointment ${targetId}`);
+      return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json' } });
+    }
     
     // Handle email sending
     if (action === 'email' && id && status) {
@@ -114,14 +145,55 @@ export const POST: APIRoute = async ({ request }) => {
       const res = await client.execute({ sql: `SELECT * FROM appointments WHERE id = ? LIMIT 1`, args: [String(id)] });
       const row = res.rows?.[0] as unknown as Appointment;
       if (!row) return new Response(JSON.stringify({ ok: false, error: 'not found' }), { status: 404 });
-      const ok = await emailService.sendAppointmentStatusEmail({
-        name: row.name, email: row.email, phone: row.phone, service: row.service, date: row.date, time: row.time, consultation_method: row.consultation_method,
-      }, String(status));
+
+      // Ensure we have a customer-facing appointment ID; if missing, generate and persist
+      const makePublicId = (dateStr: string): string => {
+        try {
+          const yyyymmdd = String(dateStr || '').replace(/-/g, '');
+          const rand = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+          return `${yyyymmdd}${rand}`;
+        } catch { return `${Date.now()}`; }
+      };
+      let publicId = row.customer_appointment_id || null;
+      if (!publicId) {
+        publicId = makePublicId(row.date);
+        try {
+          await client.execute({ sql: `UPDATE appointments SET customer_appointment_id = ? WHERE id = ?`, args: [publicId, String(id)] });
+        } catch { /* ignore update errors */ }
+      }
+
+      const { template_key, reason, new_date, new_time, subject, html } = (req as {
+        template_key?: string;
+        reason?: string;
+        new_date?: string;
+        new_time?: string;
+        subject?: string;
+        html?: string;
+      });
+      let subjectUsed = String(subject || `Appointment ${status}`);
+      let ok = false;
+      if (html) {
+        ok = await emailService.sendAppointmentCustomEmail({
+          name: row.name, email: row.email, phone: row.phone, service: row.service, date: row.date, time: row.time, consultation_method: row.consultation_method,
+          public_id: publicId || undefined,
+        }, subjectUsed, String(html), { reason: String(reason || ''), new_date: String(new_date || row.date || ''), new_time: String(new_time || row.time || '') });
+      } else if (template_key) {
+        ok = await emailService.sendAppointmentTemplateEmail({
+          name: row.name, email: row.email, phone: row.phone, service: row.service, date: row.date, time: row.time, consultation_method: row.consultation_method,
+          public_id: publicId || undefined,
+        }, String(template_key), { reason: String(reason || ''), new_date: String(new_date || row.date || ''), new_time: String(new_time || row.time || '') });
+        subjectUsed = subjectUsed || String(template_key);
+      } else {
+        ok = await emailService.sendAppointmentStatusEmail({
+          name: row.name, email: row.email, phone: row.phone, service: row.service, date: row.date, time: row.time, consultation_method: row.consultation_method,
+          public_id: publicId || undefined,
+        }, String(status));
+      }
       
       await logEmail(
         row.email,
         row.name,
-        `Appointment ${status}`,
+        subjectUsed,
         'appointment_status',
         id,
         'appointment',
@@ -144,11 +216,19 @@ export const POST: APIRoute = async ({ request }) => {
       await ensureAppointmentsTable();
       const client = await getTursoClient();
       const appointmentId = `manual_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const makePublicId = (dateStr: string): string => {
+        try {
+          const yyyymmdd = String(dateStr || '').replace(/-/g, '');
+          const rand = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+          return `${yyyymmdd}${rand}`;
+        } catch { return `${Date.now()}`; }
+      };
       const createdAt = new Date().toISOString();
+      const publicId = makePublicId(String(date));
       
       await client.execute({
-        sql: `INSERT INTO appointments (id, name, email, phone, service, date, time, consultation_method, status, message, source, created_at)
-              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        sql: `INSERT INTO appointments (id, name, email, phone, service, date, time, consultation_method, status, message, source, customer_appointment_id, created_at)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         args: [
           appointmentId,
           String(name),
@@ -161,6 +241,7 @@ export const POST: APIRoute = async ({ request }) => {
           String(newStatus || 'pending'),
           message ? String(message) : null,
           'manual',
+          publicId,
           createdAt
         ]
       });

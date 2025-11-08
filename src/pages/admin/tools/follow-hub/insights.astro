@@ -1,0 +1,200 @@
+---
+export const prerender = false;
+---
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Follow Hub – Insights</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <style>
+      :root{ --bg:#0b1020; --card:rgba(255,255,255,0.08); --border:rgba(255,255,255,0.15); --fg:#cfe8ea; --muted:#8bb0b3; }
+      html,body{height:100%;}
+      body{margin:0;background:radial-gradient(circle at 20% 10%, #102040, #0b1020); color:var(--fg); font-family:Inter,system-ui,Segoe UI,Arial,sans-serif;}
+      .layout{display:flex; min-height:100vh;}
+      .sidebar{width:240px; background:linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03)); border-right:1px solid var(--border);}
+      .logo{padding:16px; font-weight:600; display:flex; align-items:center; gap:8px}
+      .brand-dot{width:10px; height:10px; border-radius:50%; background:#2ad1b2; box-shadow:0 0 12px #2ad1b2}
+      .nav{display:flex; flex-direction:column}
+      .nav a{padding:12px 16px; text-decoration:none; color:var(--fg); border-bottom:1px solid rgba(255,255,255,0.06)}
+      .nav a.active{background:rgba(255,255,255,0.06)}
+      .content{flex:1}
+      .topbar{display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid var(--border)}
+      .container{padding:20px; max-width:1200px; margin:0 auto}
+      input,select,button{background:rgba(255,255,255,0.06); color:var(--fg); border:1px solid var(--border); border-radius:8px; padding:8px 10px}
+      select{background-image:linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04)); color:var(--fg);} 
+      /* Make dropdown options readable on dark theme */
+      select option{ background-color:#0e1a2f; color:var(--fg); }
+      select optgroup{ background-color:#0e1a2f; color:var(--fg); }
+      select:focus, input:focus{outline:2px solid rgba(42,209,178,0.6)}
+      button{cursor:pointer}
+      table{width:100%; border-collapse:collapse}
+      th,td{border:1px solid var(--border); padding:8px; text-align:left}
+      .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:12px}
+      .card{background:var(--card); border:1px solid var(--border); border-radius:16px; padding:16px}
+      canvas{border:1px solid var(--border); max-width:100%}
+      /* Chips used for CTA breakdown */
+      .chip{display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:999px; border:1px solid var(--border); margin:6px 6px 0 0; background:rgba(255,255,255,0.05)}
+      .chip .dot{width:8px; height:8px; border-radius:50%}
+      .chip.teal .dot{background:#2ad1b2}
+      .chip.gold .dot{background:#f1c40f}
+      .chip.blue .dot{background:#3498db}
+      .chip.pink .dot{background:#ff6fb3}
+      .chip.red .dot{background:#e74c3c}
+      .chip.gray .dot{background:#95a5a6}
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  </head>
+  <body>
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="logo"><span class="brand-dot"></span> <span>JyotirSetu Admin</span></div>
+        <nav class="nav">
+          <a href="/admin/dashboard">Dashboard</a>
+          <a href="/admin/appointments">Appointments</a>
+          <a href="/admin/contacts">Contacts</a>
+          <a href="/admin/calendar">Calendar</a>
+          <a href="/admin/activity-log">Activity Log</a>
+          <a class="active" href="/admin/tools/follow-hub/insights">Follow Hub – Insights</a>
+          <a href="/admin/templates/email">Email Templates</a>
+          <a href="/admin/templates/whatsapp">WhatsApp Templates</a>
+          <a href="/admin/settings">Settings</a>
+        </nav>
+      </aside>
+      <section class="content">
+        <div class="topbar">
+          <strong>Follow Hub Insights</strong>
+          <div style="display:flex; gap:8px; align-items:center">
+            <a href="/admin/tools/follow-hub/overview" style="padding:8px 12px; border-radius:999px; border:1px solid var(--border); text-decoration:none; color:var(--fg)">Overview</a>
+            <a href="/api/admin/logout" style="padding:8px 12px; border-radius:999px; border:1px solid var(--border); text-decoration:none; color:var(--fg)">Logout</a>
+          </div>
+        </div>
+        <div class="container">
+          <div class="grid" style="margin-bottom:16px">
+            <div class="card"><strong>Page Views</strong><div id="ovPageViews" style="font-size:24px">–</div></div>
+            <div class="card"><strong>Impressions</strong><div id="ovImpressions" style="font-size:24px">–</div></div>
+            <div class="card"><strong>Clicks</strong><div id="ovClicks" style="font-size:24px">–</div></div>
+            <div class="card"><strong>Shares</strong><div id="ovShares" style="font-size:24px">–</div></div>
+            <div class="card"><strong>CTR</strong><div id="ovCtr" style="font-size:24px">–</div></div>
+          </div>
+          <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-bottom:12px">
+            <label>From <input type="date" id="from" /></label>
+            <label>To <input type="date" id="to" /></label>
+            <label>Source
+              <select id="source">
+                <option value="">All</option>
+                <option value="whatsapp">whatsapp</option>
+                <option value="google">google</option>
+                <option value="instagram">instagram</option>
+                <option value="facebook">facebook</option>
+                <option value="youtube">youtube</option>
+              </select>
+            </label>
+            <label>Device
+              <select id="device">
+                <option value="">All</option>
+                <option>mobile</option>
+                <option>desktop</option>
+                <option>tablet</option>
+              </select>
+            </label>
+            <button id="apply">Apply</button>
+            <button id="exportCsv">Export CSV</button>
+          </div>
+
+          <div class="grid">
+            <div class="card"><strong>Totals</strong><div id="totals">–</div></div>
+            <div class="card"><strong>By Device</strong><div id="devices">–</div></div>
+            <div class="card"><strong>By Source</strong><div id="sources">–</div></div>
+            <div class="card"><strong>A/B Variants</strong><div id="variants">–</div></div>
+          </div>
+
+          <div class="grid" style="margin-top:12px">
+            <div class="card"><strong>Last 7 Days</strong><div id="last7">–</div></div>
+            <div class="card"><strong>Per-Source (mini-bars)</strong><div id="sourceBars">–</div></div>
+          </div>
+
+          <div class="grid" style="margin-top:12px">
+            <div class="card">
+              <strong>Platforms</strong>
+              <div id="platformCards">–</div>
+            </div>
+          </div>
+
+          <h3 style="margin-top:20px">Daily Views vs Clicks</h3>
+          <canvas id="chart" width="900" height="320"></canvas>
+
+          <h3 style="margin-top:20px">Event Log</h3>
+          <div style="overflow:auto">
+            <table>
+              <thead><tr><th>Time</th><th>Type</th><th>CTA Shown</th><th>CTA Clicked</th><th>Variant</th><th>Source</th><th>Device</th><th>IP</th></tr></thead>
+              <tbody id="tbody"></tbody>
+            </table>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
+            <button id="prevPage">Prev</button>
+            <button id="nextPage">Next</button>
+            <span id="pageInfo" style="font-size:12px;color:var(--muted)"></span>
+            <label style="margin-left:auto">Page size
+              <select id="pageSize">
+                <option>25</option>
+                <option selected>50</option>
+                <option>100</option>
+              </select>
+            </label>
+          </div>
+
+          <h3 style="margin-top:20px">Controls</h3>
+          <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap">
+            <label>Variant
+              <select id="variant">
+                <option value="A">A (WhatsApp-first)</option>
+                <option value="B">B (Google-first)</option>
+              </select>
+            </label>
+            <button id="saveVariant">Save variant</button>
+            <span id="variantMsg" style="color:var(--muted)"></span>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <script src="/js/follow-hub-insights.js" defer onload="try{if(window.__followHubInsightsLoaded&&typeof window.FollowHubInsightsLoad==='function'){window.FollowHubInsightsLoad();}}catch{/* ignore onload errors */}"></script>
+    <script>
+      // Health-check: if external script didn't run, try a cache-busting reload and show a hint
+      (function(){
+        const mark = function(msg){
+          try{
+            const el = document.getElementById('totals');
+            if(!el) return;
+            const t = (el.textContent||'').trim();
+            if(t === '' || t === '–' || t === '-') el.textContent = msg;
+          }catch{/* ignore mark errors */}
+        };
+        function tryTrigger(){
+          if(window.__followHubInsightsLoaded && typeof window.FollowHubInsightsLoad === 'function'){
+            try{ window.FollowHubInsightsLoad(); }catch{/* ignore call errors */}
+            return true;
+          }
+          return false;
+        }
+        document.addEventListener('DOMContentLoaded', function(){
+          // First attempt: trigger load if available
+          if(tryTrigger()) return;
+          // Second attempt: re-inject the external script with cache-buster
+          try{
+            const s = document.createElement('script');
+            s.src = '/js/follow-hub-insights.js?v=' + Date.now();
+            s.defer = true;
+            s.onload = function(){
+              if (!tryTrigger()) { mark('Script loaded but no data'); }
+            };
+            s.onerror = function(){ mark('Script failed to load'); };
+            document.body.appendChild(s);
+          }catch{/* ignore reinject errors */}
+        });
+      })();
+    </script>
+  </body>
+ </html>

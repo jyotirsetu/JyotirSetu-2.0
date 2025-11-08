@@ -9,19 +9,20 @@ export const prerender = false;
     <title>Appointments – Admin</title>
 <link rel="stylesheet" href="/admin.css?v=20251108" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <script src="/js/admin-notify.js" defer></script>
     <style>
-      .modal { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.7); z-index:1000; align-items:center; justify-content:center; }
+      .modal { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(2,6,23,0.6); z-index:1000; align-items:center; justify-content:center; }
       .modal.active { display:flex; }
-      .modal-content { background:#ffffff; padding:28px; border-radius:12px; max-width:600px; width:90%; max-height:90vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.4); }
-      .modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; border-bottom:1px solid #e5e7eb; padding-bottom:16px; }
-      .modal-header h3 { margin:0; font-size:20px; font-weight:700; color:#111827; }
-      .close-btn { background:none; border:none; font-size:28px; cursor:pointer; padding:0; width:32px; height:32px; color:#6b7280; line-height:1; }
-      .close-btn:hover { color:#111827; }
+      .modal-content { background:#0f172a; padding:28px; border-radius:16px; max-width:640px; width:90%; max-height:90vh; overflow-y:auto; box-shadow:0 30px 80px rgba(15,23,42,0.8); border:1px solid rgba(148,163,184,0.2); }
+      .modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; border-bottom:1px solid rgba(148,163,184,0.2); padding-bottom:16px; }
+      .modal-header h3 { margin:0; font-size:20px; font-weight:700; color:#e2e8f0; }
+      .close-btn { background:none; border:none; font-size:28px; cursor:pointer; padding:0; width:32px; height:32px; color:#94a3b8; line-height:1; }
+      .close-btn:hover { color:#e2e8f0; }
       .form-group { margin-bottom:20px; }
-      .form-group label { display:block; margin-bottom:8px; font-weight:600; font-size:14px; color:#374151; }
-      .form-group .input, .form-group .select { width:100%; padding:10px 12px; border:1px solid #d1d5db; border-radius:8px; background:#ffffff; color:#111827; font-size:14px; }
-      .form-group .input:focus, .form-group .select:focus { outline:none; border-color:#667eea; box-shadow:0 0 0 3px rgba(102,126,234,0.1); }
-      .form-group .input::placeholder { color:#9ca3af; }
+      .form-group label { display:block; margin-bottom:8px; font-weight:600; font-size:14px; color:#94a3b8; }
+      .form-group .input, .form-group .select { width:100%; padding:10px 12px; border:1px solid rgba(148,163,184,0.25); border-radius:8px; background:#0b1220; color:#e5e7eb; font-size:14px; }
+      .form-group .input:focus, .form-group .select:focus { outline:none; border-color:#667eea; box-shadow:0 0 0 3px rgba(102,126,234,0.25); }
+      .form-group .input::placeholder { color:#64748b; }
       .form-group textarea.input { resize:vertical; min-height:80px; font-family:inherit; }
       .pagination { display:flex; gap:8px; align-items:center; justify-content:center; margin:20px 0; }
       .pagination button { padding:8px 12px; border:1px solid #d1d5db; background:#ffffff; color:#374151; cursor:pointer; border-radius:6px; font-size:14px; }
@@ -46,6 +47,7 @@ export const prerender = false;
           <a href="/admin/contacts">Contacts</a>
           <a href="/admin/calendar">Calendar</a>
           <a href="/admin/activity-log">Activity Log</a>
+          <a href="/admin/tools/follow-hub/insights">Follow Hub – Insights</a>
           <a href="/admin/templates/email">Email Templates</a>
           <a href="/admin/templates/whatsapp">WhatsApp Templates</a>
           <a href="/admin/settings">Settings</a>
@@ -177,6 +179,21 @@ export const prerender = false;
       </div>
     </div>
 
+    <!-- Email Confirm Modal -->
+    <div class="modal" id="emailConfirmModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Send Email</h3>
+          <button class="close-btn" id="emailConfirmCancel">&times;</button>
+        </div>
+        <div id="emailConfirmBody"></div>
+        <div style="display:flex; gap:12px; justify-content:flex-end; margin-top:24px; padding-top:20px; border-top:1px solid #e5e7eb;">
+          <button type="button" class="btn" id="emailConfirmCancel2" style="background:#f3f4f6; color:#374151; border:1px solid #d1d5db; padding:10px 20px; border-radius:8px; font-weight:600; cursor:pointer;">Cancel</button>
+          <button type="button" class="btn" id="emailConfirmSend" style="background:#667eea; color:#ffffff; border:none; padding:10px 20px; border-radius:8px; font-weight:600; cursor:pointer; box-shadow:0 2px 4px rgba(102,126,234,0.3);">Send Email</button>
+        </div>
+      </div>
+    </div>
+
     <script>
       let currentPage = 1;
       let paginationData = { page: 1, totalPages: 1, total: 0 };
@@ -239,9 +256,10 @@ export const prerender = false;
         }
         
         const html = [`<table><thead><tr>
-          <th>Name</th><th>Contact</th><th>Service</th><th>Date/Time</th><th>Method</th><th>Status</th><th>Source</th><th>Created</th><th>Actions</th>
+          <th>Appt ID</th><th>Name</th><th>Contact</th><th>Service</th><th>Date/Time</th><th>Method</th><th>Status</th><th>Source</th><th>Created</th><th>Actions</th>
         </tr></thead><tbody>`,
           ...rows.map(r => `<tr>
+            <td>${r.customer_appointment_id || ''}</td>
             <td>${r.name}</td>
             <td>
               <div>${r.email}</div>
@@ -276,17 +294,14 @@ export const prerender = false;
           });
         });
         document.querySelectorAll('[data-email-id]').forEach(el=>{
-          el.addEventListener('click', async (e)=>{
+          el.addEventListener('click', (e)=>{
             e.preventDefault();
             const id = el.getAttribute('data-email-id') || '';
             const status = (document.querySelector(`select[data-id="${id}"]`) as HTMLSelectElement | null)?.value || 'pending';
             const row = rows.find(r=>r.id===id);
             if (!row) return;
-            const confirmed = window.confirm(`Send email to ${row.email} for status: ${status.toUpperCase()}?`);
-            if (!confirmed) return;
-            const res = await fetch('/api/admin/appointments', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ action:'email', id, status }) });
-            const j = await res.json();
-            alert(j.ok ? 'Email sent' : 'Email failed');
+            // Open confirm modal instead of window.confirm
+            openEmailConfirm({ id, status, row });
           });
         });
         document.querySelectorAll('a.btn-sm[href^="/admin/whatsapp"]').forEach(a=>{
@@ -341,6 +356,38 @@ export const prerender = false;
       }
 
       // Modal handlers
+      // Email confirmation context and handlers
+  type EmailContext = {
+    id: string;
+    status: string;
+    row: { email: string; name: string; service: string; customer_appointment_id?: string };
+  };
+  let emailContext: EmailContext = { id: '', status: 'pending', row: { email: '', name: '', service: '' } };
+      function openEmailConfirm(ctx) {
+        emailContext = ctx;
+        const modal = document.getElementById('emailConfirmModal');
+        const body = document.getElementById('emailConfirmBody');
+        if (body) body.innerHTML = `
+          <div style="display:grid;grid-template-columns:160px 1fr;gap:10px;color:#e5e7eb">
+            <div class="muted" style="color:#94a3b8">Recipient</div><div>${ctx.row.email}</div>
+            <div class="muted" style="color:#94a3b8">Name</div><div>${ctx.row.name}</div>
+            <div class="muted" style="color:#94a3b8">Service</div><div>${ctx.row.service}</div>
+            <div class="muted" style="color:#94a3b8">Status</div><div>${ctx.status}</div>
+            <div class="muted" style="color:#94a3b8">Appointment ID</div><div>${ctx.row.customer_appointment_id || '(not set)'}</div>
+          </div>`;
+        modal?.classList.add('active');
+      }
+      function closeEmailConfirm(){ document.getElementById('emailConfirmModal')?.classList.remove('active'); }
+      document.getElementById('emailConfirmCancel')?.addEventListener('click', closeEmailConfirm);
+      document.getElementById('emailConfirmCancel2')?.addEventListener('click', closeEmailConfirm);
+      document.getElementById('emailConfirmSend')?.addEventListener('click', async ()=>{
+        const { id, status, row } = emailContext;
+        const res = await fetch('/api/admin/appointments', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ action:'email', id, status }) });
+        const j = await res.json();
+        closeEmailConfirm();
+        if (j.ok) window.AdminNotify?.success('Email sent', `To ${row.email}`);
+        else window.AdminNotify?.error('Email failed', j.error || 'Unknown error');
+      });
       document.getElementById('addAppointmentBtn')?.addEventListener('click', () => {
         document.getElementById('addModal')?.classList.add('active');
       });
@@ -362,12 +409,12 @@ export const prerender = false;
         });
         const json = await res.json();
         if (json.ok) {
-          alert('Appointment created successfully!');
+          window.AdminNotify?.success('Appointment created');
           document.getElementById('addModal')?.classList.remove('active');
           form.reset();
           loadPage(1);
         } else {
-          alert('Failed to create appointment: ' + (json.error || 'Unknown error'));
+          window.AdminNotify?.error('Create failed', json.error || 'Unknown error');
         }
       });
 

@@ -22,6 +22,7 @@ export const prerender = false;
           <a class="active" href="/admin/contacts">Contacts</a>
           <a href="/admin/calendar">Calendar</a>
           <a href="/admin/activity-log">Activity Log</a>
+          <a href="/admin/tools/follow-hub/insights">Follow Hub – Insights</a>
           <a href="/admin/templates/email">Email Templates</a>
           <a href="/admin/templates/whatsapp">WhatsApp Templates</a>
           <a href="/admin/settings">Settings</a>
@@ -85,9 +86,37 @@ export const prerender = false;
     </div>
 
     <script>
+      type Contact = {
+        id: string;
+        name: string;
+        email: string;
+        phone: string | null;
+        subject: string;
+        message: string;
+        status: string;
+        priority: string;
+        created_at: string;
+      };
+
+      const isContact = (v: unknown): v is Contact => {
+        if (!v || typeof v !== 'object') return false;
+        const o = v as Record<string, unknown>;
+        return (
+          typeof o.id === 'string' &&
+          typeof o.name === 'string' &&
+          typeof o.email === 'string' &&
+          (typeof o.phone === 'string' || o.phone === null || typeof o.phone === 'undefined') &&
+          typeof o.subject === 'string' &&
+          typeof o.message === 'string' &&
+          typeof o.status === 'string' &&
+          typeof o.priority === 'string' &&
+          typeof o.created_at === 'string'
+        );
+      };
+
       let currentPage = 1;
       let paginationData = { page: 1, totalPages: 1, total: 0 };
-      let allData = [];
+      let allData: Contact[] = [];
 
       function formatWaPhone(input){
         const digits = String(input||'').replace(/\D/g,'');
@@ -96,11 +125,12 @@ export const prerender = false;
         return digits;
       }
 
-      async function fetchData(page = 1) {
+      async function fetchData(page = 1): Promise<Contact[]> {
         const res = await fetch(`/api/admin/contacts?page=${page}&limit=20`, { credentials: 'include' });
         const json = await res.json();
         paginationData = json.pagination || { page: 1, totalPages: 1, total: 0 };
-        return json?.data || [];
+        const raw = Array.isArray(json?.data) ? (json.data as unknown[]) : [];
+        return raw.filter(isContact);
       }
 
       function renderPagination() {
@@ -121,17 +151,22 @@ export const prerender = false;
         html += `<button ${currentPage === paginationData.totalPages ? 'disabled' : ''} id="nextPage">Next ›</button>`;
         html += `<span style="margin-left:12px; color:#666;">Page ${currentPage} of ${paginationData.totalPages} (${paginationData.total} total)</span>`;
         html += '</div>';
-        pagEl.innerHTML = html;
+        if (pagEl) pagEl.innerHTML = html;
         
         document.getElementById('prevPage')?.addEventListener('click', () => { if (currentPage > 1) loadPage(currentPage - 1); });
         document.getElementById('nextPage')?.addEventListener('click', () => { if (currentPage < paginationData.totalPages) loadPage(currentPage + 1); });
         document.querySelectorAll('[data-page]').forEach(btn => {
-          btn.addEventListener('click', () => loadPage(parseInt(btn.getAttribute('data-page'))));
+          btn.addEventListener('click', () => {
+            const val = btn.getAttribute('data-page');
+            const num = val ? parseInt(val, 10) : NaN;
+            if (!Number.isNaN(num)) loadPage(num);
+          });
         });
       }
 
-      function render(rows) {
+      function render(rows: Contact[]) {
         const wrap = document.getElementById('tableWrap');
+        if (!wrap) return;
         if (!rows.length) { wrap.innerHTML = '<p class="muted">No messages yet.</p>'; return; }
         const html = [`<table><thead><tr>
           <th>Name</th><th>Contact</th><th>Subject</th><th>Message</th><th>Status</th><th>Priority</th><th>Created</th><th>Actions</th>
@@ -159,7 +194,7 @@ export const prerender = false;
             <td class="muted">${new Date(r.created_at).toLocaleString()}</td>
             <td class="actions">
               <a class="btn-sm" href="mailto:${r.email}?subject=Re:%20${encodeURIComponent(r.subject)}">Reply</a>
-              ${r.phone ? `<a class=\"btn-sm\" target=\"_blank\" href=\"${wa}\">WhatsApp</a>` : ''}
+              ${r.phone ? `<a class="btn-sm" target="_blank" href="${wa}">WhatsApp</a>` : ''}
               <a class="btn-sm" href="#" data-notes-id="${r.id}" style="color:#f59e0b">📝 Notes</a>
             </td>
           </tr>`;
@@ -170,8 +205,10 @@ export const prerender = false;
         // Status update handlers
         document.querySelectorAll('.statusSel').forEach(el => {
           el.addEventListener('change', async (e) => {
-            const id = e.target.getAttribute('data-id');
-            const status = e.target.value;
+            const target = e.target as HTMLSelectElement | null;
+            if (!target) return;
+            const id = target.getAttribute('data-id');
+            const status = target.value;
             const res = await fetch('/api/admin/contacts', {
               method: 'PUT',
               headers: { 'Content-Type': 'application/json' },
@@ -190,8 +227,10 @@ export const prerender = false;
         // Priority update handlers
         document.querySelectorAll('.prioritySel').forEach(el => {
           el.addEventListener('change', async (e) => {
-            const id = e.target.getAttribute('data-id');
-            const priority = e.target.value;
+            const target = e.target as HTMLSelectElement | null;
+            if (!target) return;
+            const id = target.getAttribute('data-id');
+            const priority = target.value;
             const res = await fetch('/api/admin/contacts', {
               method: 'PUT',
               headers: { 'Content-Type': 'application/json' },
@@ -207,10 +246,13 @@ export const prerender = false;
         });
       }
 
-      function applyFilters(all) {
-        const q = document.getElementById('search').value.toLowerCase();
-        const s = document.getElementById('statusFilter').value;
-        const p = document.getElementById('priorityFilter').value;
+      function applyFilters(all: Contact[]): Contact[] {
+        const searchEl = document.getElementById('search') as HTMLInputElement | null;
+        const statusEl = document.getElementById('statusFilter') as HTMLSelectElement | null;
+        const priorityEl = document.getElementById('priorityFilter') as HTMLSelectElement | null;
+        const q = (searchEl?.value || '').toLowerCase();
+        const s = statusEl?.value || '';
+        const p = priorityEl?.value || '';
         return all.filter(r => (
           (!q || (r.name+" "+r.email+" "+r.subject+" "+(r.message||'')).toLowerCase().includes(q)) &&
           (!s || (r.status||'new') === s) &&
@@ -226,21 +268,23 @@ export const prerender = false;
       }
 
       // Export handler
-      document.getElementById('exportBtn').addEventListener('click', () => {
+      document.getElementById('exportBtn')?.addEventListener('click', () => {
         window.open('/api/admin/export?type=contacts&format=csv', '_blank');
       });
 
       // Notes modal handlers
-      let currentNotesEntityId = null;
+      let currentNotesEntityId: string | null = null;
       let currentNotesEntityType = 'contact';
       
-      document.getElementById('closeNotesModal').addEventListener('click', () => {
-        document.getElementById('notesModal').classList.remove('active');
+      document.getElementById('closeNotesModal')?.addEventListener('click', () => {
+        const notesModal = document.getElementById('notesModal');
+        notesModal?.classList.remove('active');
       });
       
-      document.getElementById('saveNoteBtn').addEventListener('click', async () => {
+      document.getElementById('saveNoteBtn')?.addEventListener('click', async () => {
         if (!currentNotesEntityId) return;
-        const noteText = document.getElementById('newNote').value.trim();
+        const newNoteEl = document.getElementById('newNote') as HTMLTextAreaElement | null;
+        const noteText = (newNoteEl?.value || '').trim();
         if (!noteText) return;
         
         const res = await fetch('/api/admin/notes', {
@@ -250,7 +294,7 @@ export const prerender = false;
         });
         const json = await res.json();
         if (json.ok) {
-          document.getElementById('newNote').value = '';
+          if (newNoteEl) newNoteEl.value = '';
           loadNotes(currentNotesEntityId, currentNotesEntityType);
         }
       });
@@ -263,7 +307,7 @@ export const prerender = false;
         
         const notesList = document.getElementById('notesList');
         const notes = notesRes.data || [];
-        notesList.innerHTML = notes.length ? notes.map(n => `
+        if (notesList) notesList.innerHTML = notes.length ? notes.map(n => `
           <div style="padding:12px;margin-bottom:8px;background:#f9fafb;border-radius:6px;border-left:3px solid #667eea">
             <div style="font-size:12px;color:#6b7280;margin-bottom:4px">${new Date(n.created_at).toLocaleString()}</div>
             <div style="color:#111827">${n.note_text}</div>
@@ -272,7 +316,7 @@ export const prerender = false;
         
         const emailList = document.getElementById('emailHistoryList');
         const emails = emailRes.data || [];
-        emailList.innerHTML = emails.length ? emails.map(e => `
+        if (emailList) emailList.innerHTML = emails.length ? emails.map(e => `
           <div style="padding:8px;margin-bottom:6px;background:#f9fafb;border-radius:6px;font-size:13px">
             <div style="font-weight:600;color:#111827">${e.subject}</div>
             <div style="color:#6b7280;font-size:11px">${new Date(e.sent_at).toLocaleString()} - ${e.status}</div>
@@ -281,20 +325,25 @@ export const prerender = false;
       }
       
       document.addEventListener('click', async (e) => {
-        const notesBtn = e.target.closest('[data-notes-id]');
+        const target = e.target as Element | null;
+        const notesBtn = target?.closest('[data-notes-id]') as Element | null;
         if (notesBtn) {
           e.preventDefault();
           currentNotesEntityId = notesBtn.getAttribute('data-notes-id');
           currentNotesEntityType = 'contact';
-          document.getElementById('notesModal').classList.add('active');
+          const notesModal = document.getElementById('notesModal');
+          notesModal?.classList.add('active');
           await loadNotes(currentNotesEntityId, currentNotesEntityType);
         }
       });
 
       // Filter handlers
-      document.getElementById('search').addEventListener('input', () => render(applyFilters(allData)));
-      document.getElementById('statusFilter').addEventListener('change', () => render(applyFilters(allData)));
-      document.getElementById('priorityFilter').addEventListener('change', () => render(applyFilters(allData)));
+      const searchEl = document.getElementById('search');
+      searchEl?.addEventListener('input', () => render(applyFilters(allData)));
+      const statusFilterEl = document.getElementById('statusFilter');
+      statusFilterEl?.addEventListener('change', () => render(applyFilters(allData)));
+      const priorityFilterEl = document.getElementById('priorityFilter');
+      priorityFilterEl?.addEventListener('change', () => render(applyFilters(allData)));
 
       // Initial load
       loadPage(1);
@@ -309,7 +358,7 @@ export const prerender = false;
         sidebar?.classList.add('active');
         backdrop?.classList.add('active');
         toggleBtn?.classList.add('active');
-        toggleBtn.innerHTML = '✕';
+        if (toggleBtn) toggleBtn.innerHTML = '✕';
         isOpen = true;
       }
       
@@ -317,7 +366,7 @@ export const prerender = false;
         sidebar?.classList.remove('active');
         backdrop?.classList.remove('active');
         toggleBtn?.classList.remove('active');
-        toggleBtn.innerHTML = '☰';
+        if (toggleBtn) toggleBtn.innerHTML = '☰';
         isOpen = false;
       }
       

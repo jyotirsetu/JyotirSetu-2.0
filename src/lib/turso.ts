@@ -26,11 +26,13 @@ export async function ensureAppointmentsTable() {
       message TEXT,
       service_details TEXT,
       source TEXT NOT NULL DEFAULT 'system',
+      customer_appointment_id TEXT,
       created_at TEXT NOT NULL
     );
   `);
-  try { await client.execute(`ALTER TABLE appointments ADD COLUMN status TEXT NOT NULL DEFAULT 'pending'`); } catch {}
-  try { await client.execute(`ALTER TABLE appointments ADD COLUMN source TEXT NOT NULL DEFAULT 'system'`); } catch {}
+  try { await client.execute(`ALTER TABLE appointments ADD COLUMN status TEXT NOT NULL DEFAULT 'pending'`); } catch { /* column may already exist */ }
+  try { await client.execute(`ALTER TABLE appointments ADD COLUMN source TEXT NOT NULL DEFAULT 'system'`); } catch { /* column may already exist */ }
+  try { await client.execute(`ALTER TABLE appointments ADD COLUMN customer_appointment_id TEXT`); } catch { /* column may already exist */ }
 }
 
 export async function ensureContactsTable() {
@@ -113,6 +115,44 @@ export async function ensureNotesTable() {
       note_text TEXT NOT NULL,
       created_by TEXT NOT NULL DEFAULT 'admin',
       created_at TEXT NOT NULL
+    );
+  `);
+}
+
+export async function ensureFollowHubEventsTable() {
+  const client = await getTursoClient();
+  await client.execute(`
+    CREATE TABLE IF NOT EXISTS follow_hub_events (
+      id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+      created_at TIMESTAMP DEFAULT current_timestamp,
+      event_type TEXT,
+      source TEXT,
+      medium TEXT,
+      campaign TEXT,
+      device TEXT,
+      platform TEXT,
+      user_agent TEXT,
+      ip_address TEXT,
+      primary_cta_shown TEXT,
+      cta_clicked TEXT,
+      cta_variant TEXT,
+      page_url TEXT,
+      utm_query TEXT,
+      extra JSON
+    );
+  `);
+  await client.execute(`
+    CREATE INDEX IF NOT EXISTS idx_follow_hub_events_created_at ON follow_hub_events(created_at);
+  `);
+}
+
+export async function ensureFollowHubSettingsTable() {
+  const client = await getTursoClient();
+  await client.execute(`
+    CREATE TABLE IF NOT EXISTS follow_hub_settings (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL,
+      updated_at TEXT NOT NULL
     );
   `);
 }

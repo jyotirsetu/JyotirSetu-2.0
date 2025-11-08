@@ -39,7 +39,7 @@ export const POST: APIRoute = async ({ request }) => {
       time: z.string().min(1),
       consultation_method: z.string().default('call'),
       message: z.string().optional(),
-      service_details: z.record(z.any()).optional(),
+      service_details: z.record(z.unknown()).optional(),
     });
     const parsed = Schema.safeParse(appointmentData);
     if (!parsed.success) {
@@ -61,20 +61,31 @@ export const POST: APIRoute = async ({ request }) => {
     }
     try {
       await ensureAppointmentsTable();
-    } catch (e: any) {
-      return new Response(JSON.stringify({ success: false, message: 'Failed to create appointment', debug: isDev ? { stage: 'ensure-table', error: e?.message } : undefined }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'unknown';
+      return new Response(JSON.stringify({ success: false, message: 'Failed to create appointment', debug: isDev ? { stage: 'ensure-table', error: msg } : undefined }), { status: 500, headers: { 'Content-Type': 'application/json' } });
     }
     let client;
     try {
       client = await getTursoClient();
-    } catch (e: any) {
-      return new Response(JSON.stringify({ success: false, message: 'Failed to create appointment', debug: isDev ? { stage: 'client-init', error: e?.message } : undefined }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'unknown';
+      return new Response(JSON.stringify({ success: false, message: 'Failed to create appointment', debug: isDev ? { stage: 'client-init', error: msg } : undefined }), { status: 500, headers: { 'Content-Type': 'application/json' } });
     }
-    const id = (globalThis as any)?.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const id = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
     const createdAt = new Date().toISOString();
     const serviceDetails = parsed.data.service_details ? JSON.stringify(parsed.data.service_details) : null;
-    const insertSql = `INSERT INTO appointments (id, name, email, phone, service, date, time, consultation_method, message, service_details, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    // Generate customer-facing Appointment ID (YYYYMMDD + 3-digit)
+    const makePublicId = (dateStr: string): string => {
+      try {
+        const yyyymmdd = String(dateStr || '').replace(/-/g, '');
+        const rand = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+        return `${yyyymmdd}${rand}`;
+      } catch { return `${Date.now()}`; }
+    };
+    const publicId = makePublicId(String(parsed.data.date));
+    const insertSql = `INSERT INTO appointments (id, name, email, phone, service, date, time, consultation_method, status, message, service_details, source, customer_appointment_id, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
     console.log('🗄️ Inserting appointment into Turso...');
     try {
       await client.execute({
@@ -88,13 +99,17 @@ export const POST: APIRoute = async ({ request }) => {
           parsed.data.date,
           parsed.data.time,
           parsed.data.consultation_method || 'call',
+          'pending',
           parsed.data.message || null,
           serviceDetails,
+          'system',
+          publicId,
           createdAt,
         ]
       });
-    } catch (e: any) {
-      return new Response(JSON.stringify({ success: false, message: 'Failed to create appointment', debug: isDev ? { stage: 'db-insert', error: e?.message } : undefined }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'unknown';
+      return new Response(JSON.stringify({ success: false, message: 'Failed to create appointment', debug: isDev ? { stage: 'db-insert', error: msg } : undefined }), { status: 500, headers: { 'Content-Type': 'application/json' } });
     }
     const newAppointment = { id, ...parsed.data, created_at: createdAt };
 
@@ -103,7 +118,8 @@ export const POST: APIRoute = async ({ request }) => {
     // Send confirmation email (don't fail if email fails)
     let emailSent = false;
     try {
-      emailSent = await emailService.sendConfirmationEmail(parsed.data);
+      // Pass the same publicId to ensure email and admin show identical Appointment ID
+      emailSent = await emailService.sendConfirmationEmail({ ...parsed.data, public_id: publicId });
       console.log('📧 Appointment email service result:', emailSent);
     } catch (emailError) {
       console.warn('⚠️ Appointment email service failed, but continuing:', emailError);
@@ -124,12 +140,12 @@ export const POST: APIRoute = async ({ request }) => {
         'Content-Type': 'application/json'
       }
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Appointment form creation error:', error);
     const isDev = import.meta.env.MODE !== 'production';
     // Return more specific error message
     let errorMessage = 'Failed to create appointment';
-    const msg = (error?.message || '').toString().toLowerCase();
+    const msg = error instanceof Error ? String(error.message || '').toLowerCase() : '';
     if (msg.includes('connection') || msg.includes('network')) {
       errorMessage = 'Database connection failed. Please check Turso URL/token.';
     } else if (msg.includes('validation')) {
@@ -140,7 +156,7 @@ export const POST: APIRoute = async ({ request }) => {
     return new Response(JSON.stringify({
       success: false,
       message: errorMessage,
-      debug: isDev ? { error: error?.message, stack: error?.stack } : undefined
+      debug: isDev && error instanceof Error ? { error: error.message, stack: error.stack } : undefined
     }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }

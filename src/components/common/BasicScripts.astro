@@ -9,6 +9,22 @@ import { UI } from 'astrowind:config';
 
   window.basic_script = true;
 
+  // Ensure mobile menu/header never stays expanded across loads or navigation
+  function resetMobileMenu() {
+    const toggleBtn = document.querySelector('[data-aw-toggle-menu]');
+    toggleBtn?.classList.remove('expanded');
+
+    document.body.classList.remove('overflow-hidden');
+
+    const header = document.getElementById('header');
+    header?.classList.remove('h-screen');
+    header?.classList.remove('expanded');
+    header?.classList.remove('bg-page');
+
+    document.querySelector('#header nav')?.classList.add('hidden');
+    document.querySelector('#header > div > div:last-child')?.classList.add('hidden');
+  }
+
   function applyTheme(theme) {
     if (theme === 'dark') {
       document.documentElement.classList.add('dark');
@@ -43,6 +59,9 @@ import { UI } from 'astrowind:config';
   const onLoad = function () {
     let lastKnownScrollPosition = window.scrollY;
     let ticking = true;
+
+    // Defensive: ensure header is not expanded on initial load
+    resetMobileMenu();
 
     attachEvent('#header nav', 'click', function () {
       document.querySelector('[data-aw-toggle-menu]')?.classList.remove('expanded');
@@ -110,13 +129,7 @@ import { UI } from 'astrowind:config';
 
     const screenSize = window.matchMedia('(max-width: 767px)');
     screenSize.addEventListener('change', function () {
-      document.querySelector('[data-aw-toggle-menu]')?.classList.remove('expanded');
-      document.body.classList.remove('overflow-hidden');
-      document.getElementById('header')?.classList.remove('h-screen');
-      document.getElementById('header')?.classList.remove('expanded');
-      document.getElementById('header')?.classList.remove('bg-page');
-      document.querySelector('#header nav')?.classList.add('hidden');
-      document.querySelector('#header > div > div:last-child')?.classList.add('hidden');
+      resetMobileMenu();
     });
 
     function applyHeaderStylesOnScroll() {
@@ -144,14 +157,7 @@ import { UI } from 'astrowind:config';
   };
   const onPageShow = function () {
     document.documentElement.classList.add('motion-safe:scroll-smooth');
-    const elem = document.querySelector('[data-aw-toggle-menu]');
-    if (elem) {
-      elem.classList.remove('expanded');
-    }
-    document.body.classList.remove('overflow-hidden');
-    document.getElementById('header')?.classList.remove('h-screen');
-    document.getElementById('header')?.classList.remove('expanded');
-    document.querySelector('#header nav')?.classList.add('hidden');
+    resetMobileMenu();
   };
 
   window.onload = onLoad;
@@ -159,6 +165,7 @@ import { UI } from 'astrowind:config';
 
   document.addEventListener('astro:after-swap', () => {
     initTheme();
+    resetMobileMenu();
     onLoad();
     onPageShow();
   });

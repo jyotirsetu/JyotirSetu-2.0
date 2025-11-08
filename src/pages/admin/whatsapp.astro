@@ -71,10 +71,11 @@ export const prerender = false;
 
         let dbTemplates = [];
         const fallback = [
-          { key:'pending', text:'Hello {name}, your appointment request for {service} is received and pending confirmation. We will contact you shortly. – JyotirSetu' },
-          { key:'confirmed', text:'Hello {name}, your appointment for {service} is CONFIRMED. Date/Time: {date} {time}. – JyotirSetu' },
-          { key:'rescheduled', text:'Hello {name}, your appointment for {service} has been RESCHEDULED. New Date/Time: {date} {time}. – JyotirSetu' },
-          { key:'cancelled', text:'Hello {name}, your appointment for {service} has been CANCELLED. Reply here to book a new slot. – JyotirSetu' },
+          { key:'pending', text:'🕐 Hi {name}, your appointment request for {service} is pending. ID: {appointment_id}. We’ll confirm soon. Follow Hub: https://follow.jyotirsetu.com' },
+          { key:'confirmed', text:'✅ Confirmed: {service} on {date} at {time} ({method}). ID: {appointment_id}. Details: https://follow.jyotirsetu.com' },
+          { key:'rescheduled', text:'🔁 Rescheduled: {service}. New {date} {time} ({method}). ID: {appointment_id}. Details: https://follow.jyotirsetu.com' },
+          { key:'cancelled_user', text:'❌ Cancelled as requested: {service}. ID: {appointment_id}. Book again anytime: https://follow.jyotirsetu.com' },
+          { key:'cancelled_provider', text:'⚠️ Cancelled by provider: {service}. ID: {appointment_id}. We’ll offer alternate slots shortly. Updates: https://follow.jyotirsetu.com' }
         ];
 
         async function loadTemplates(){
@@ -86,10 +87,16 @@ export const prerender = false;
         }
 
         function render(){
-          const p = { name:nameInput.value, phone:phoneInput.value, service:serviceInput.value, status:statusSelect.value };
+          const p = { name:nameInput.value, phone:phoneInput.value, service:serviceInput.value, status:statusSelect.value, appointment_id: (qs.get('id')||'') };
           const list = (dbTemplates.length ? dbTemplates : fallback);
           const html = list.map(t=>{
-            const base = (t.text||'').replaceAll('{name}', p.name).replaceAll('{service}', p.service).replaceAll('{status}', p.status).replaceAll('{date}', '').replaceAll('{time}', '');
+            const base = (t.text||'')
+              .replaceAll('{name}', p.name)
+              .replaceAll('{service}', p.service)
+              .replaceAll('{status}', p.status)
+              .replaceAll('{date}', '')
+              .replaceAll('{time}', '')
+              .replaceAll('{appointment_id}', p.appointment_id||'');
             const link = `https://wa.me/${encodeURIComponent(formatWaPhone(p.phone))}?text=${encodeURIComponent(base)}`;
             const title = (t.key||'').charAt(0).toUpperCase() + (t.key||'').slice(1);
             return `<div class="card"><strong>${title||'Template'}</strong><p class="muted" style="margin:8px 0 12px">${base}</p><a class="btn-sm" href="${link}" target="_blank">Open in WhatsApp</a></div>`;
@@ -120,7 +127,7 @@ export const prerender = false;
         sidebar?.classList.add('active');
         backdrop?.classList.add('active');
         toggleBtn?.classList.add('active');
-        toggleBtn.innerHTML = '✕';
+        if (toggleBtn) toggleBtn.innerHTML = '✕';
         isOpen = true;
       }
       
@@ -128,7 +135,7 @@ export const prerender = false;
         sidebar?.classList.remove('active');
         backdrop?.classList.remove('active');
         toggleBtn?.classList.remove('active');
-        toggleBtn.innerHTML = '☰';
+        if (toggleBtn) toggleBtn.innerHTML = '☰';
         isOpen = false;
       }
       

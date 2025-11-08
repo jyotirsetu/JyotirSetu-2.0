@@ -9,6 +9,7 @@ export const prerender = false;
     <title>Calendar – Admin</title>
 <link rel="stylesheet" href="/admin.css?v=20251108" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <script src="/js/admin-notify.js" defer></script>
     <style>
       .calendar-container { background: var(--panel); border-radius: 12px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
       [data-theme="dark"] .calendar-container { box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
@@ -47,6 +48,7 @@ export const prerender = false;
           <a href="/admin/contacts">Contacts</a>
           <a class="active" href="/admin/calendar">Calendar</a>
           <a href="/admin/activity-log">Activity Log</a>
+          <a href="/admin/tools/follow-hub/insights">Follow Hub – Insights</a>
           <a href="/admin/templates/email">Email Templates</a>
           <a href="/admin/templates/whatsapp">WhatsApp Templates</a>
           <a href="/admin/settings">Settings</a>
@@ -62,13 +64,18 @@ export const prerender = false;
         <div class="calendar-container">
           <div class="calendar-header">
             <div class="calendar-nav">
-              <button id="prevMonth">← Previous</button>
+              <button id="prevMonth">◀</button>
               <h2 id="currentMonth" style="margin:0;min-width:200px;text-align:center"></h2>
-              <button id="nextMonth">Next →</button>
+              <button id="nextMonth">▶</button>
+              <button id="todayBtn" class="btn" style="margin-left:8px">Today</button>
             </div>
-            <div style="display: flex; gap: 8px;">
-              <button id="todayBtn" class="btn-primary">Today</button>
-              <a href="/api/admin/logout" class="pill">Logout</a>
+            <div class="calendar-controls">
+              <input class="input" id="searchAppt" placeholder="Search" style="max-width:220px" />
+              <div class="btn-group">
+                <button class="btn" id="monthViewBtn">Month view</button>
+                <button class="btn" id="weekViewBtn">Week view</button>
+              </div>
+              <button class="btn" id="addEventBtn">+ Add event</button>
             </div>
           </div>
           <div class="calendar-grid" id="calendarGrid"></div>
@@ -78,18 +85,29 @@ export const prerender = false;
 
     <script>
       let currentDate = new Date();
-      /** @type {Appointment[]} */
-      let appointments = [];
+      type Appointment = {
+        id: string;
+        name: string;
+        service: string;
+        date: string;
+        time: string;
+        status: string;
+      };
 
-      /**
-       * @typedef {object} Appointment
-       * @property {string} id
-       * @property {string} name
-       * @property {string} service
-       * @property {string} date
-       * @property {string} time
-       * @property {string} status
-       */
+      let appointments: Appointment[] = [];
+
+      const isAppointment = (v: unknown): v is Appointment => {
+        if (!v || typeof v !== 'object') return false;
+        const obj = v as Record<string, unknown>;
+        return (
+          typeof obj.id === 'string' &&
+          typeof obj.name === 'string' &&
+          typeof obj.service === 'string' &&
+          typeof obj.date === 'string' &&
+          typeof obj.time === 'string' &&
+          typeof obj.status === 'string'
+        );
+      };
 
       const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
       const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -97,7 +115,8 @@ export const prerender = false;
       async function loadAppointments() {
         const res = await fetch('/api/admin/appointments?page=1&limit=1000', { credentials: 'include' });
         const json = await res.json();
-        appointments = json?.data || [];
+        const raw = Array.isArray(json?.data) ? (json.data as unknown[]) : [];
+        appointments = raw.filter(isAppointment);
         renderCalendar();
       }
 
@@ -163,6 +182,19 @@ export const prerender = false;
         renderCalendar();
       });
 
+      // View toggles (week view stub)
+      document.getElementById('monthViewBtn')?.addEventListener('click', () => {
+        window.AdminNotify?.info('Month view', 'Already in month view');
+      });
+      document.getElementById('weekViewBtn')?.addEventListener('click', () => {
+        window.AdminNotify?.info('Week view', 'Week view will be added soon');
+      });
+
+      // Add event stub
+      document.getElementById('addEventBtn')?.addEventListener('click', () => {
+        window.AdminNotify?.info('Add event', 'Quick add coming soon');
+      });
+
       loadAppointments();
       setInterval(loadAppointments, 60000); // Refresh every minute
 
@@ -202,6 +234,19 @@ export const prerender = false;
       
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && isOpen) closeSidebar();
+      });
+
+      // Search appointments in the rendered month
+      document.getElementById('searchAppt')?.addEventListener('input', (e) => {
+        const target = e.target as HTMLInputElement | null;
+        const q = (target?.value || '').toLowerCase();
+        const gridEl = document.getElementById('calendarGrid');
+        if (!gridEl) return;
+        gridEl.querySelectorAll('.appointment-item').forEach(el => {
+          const item = el as HTMLElement;
+          const text = (item.getAttribute('title') || item.textContent || '').toLowerCase();
+          item.style.opacity = text.includes(q) ? '1' : '0.35';
+        });
       });
     </script>
   </body>
