@@ -27,15 +27,12 @@ export default defineConfig({
   output: 'server',
   adapter: vercel({
     webAnalytics: { enabled: true },
-    speedInsights: { enabled: true },
   }),
   build: {
     format: 'file',
     assets: '_astro',
   },
-  prerender: {
-    default: false,
-  },
+  // prerender removed; handled by SSR/output and route-level settings if needed
 
   integrations: [
     tailwind({

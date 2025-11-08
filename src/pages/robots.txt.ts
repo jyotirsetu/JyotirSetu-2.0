@@ -5,11 +5,13 @@ Allow: /
 Disallow: /admin
 Disallow: /admin/
 Disallow: /admin/*
+Disallow: /admin/login
 Disallow: /api/
 Disallow: /api/admin/
 Disallow: /api/admin/*
 
 Sitemap: ${sitemapURL.href}
+Sitemap: https://follow.jyotirsetu.com/sitemap.xml
 `;
 
 export const GET: APIRoute = ({ site }) => {
