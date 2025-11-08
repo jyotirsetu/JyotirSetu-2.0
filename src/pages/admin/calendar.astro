@@ -1,0 +1,206 @@
+---
+export const prerender = false;
+---
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Calendar – Admin</title>
+    <link rel="stylesheet" href="/admin.css" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <style>
+      .calendar-container { background: var(--panel); border-radius: 12px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+      [data-theme="dark"] .calendar-container { box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+      .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding: 0 20px; }
+      .calendar-nav { display: flex; gap: 12px; align-items: center; }
+      .calendar-nav button { background: linear-gradient(135deg, var(--panel-2), var(--panel)); border: 1px solid var(--border); color: var(--text); padding: 8px 16px; border-radius: 8px; cursor: pointer; transition: all 0.2s ease; font-weight: 500; }
+      .calendar-nav button:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+      .calendar-nav h2 { margin: 0; font-size: 24px; font-weight: 600; }
+      .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; background: var(--border); border: 2px solid var(--border); border-radius: 8px; overflow: hidden; padding: 0; }
+      .calendar-day-header { background: linear-gradient(135deg, var(--panel-2), var(--panel)); padding: 12px; text-align: center; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); }
+      .calendar-day { min-height: 100px; background: var(--panel); padding: 12px; cursor: pointer; transition: all 0.2s ease; position: relative; }
+      .calendar-day:hover { background: var(--panel-2); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+      [data-theme="dark"] .calendar-day:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+      .calendar-day.other-month { opacity: 0.4; background: var(--panel-2); }
+      .calendar-day.today { background: linear-gradient(135deg, #0ea5e9, #0284c7); color: white; font-weight: bold; box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3); }
+      .calendar-day.selected { background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; font-weight: bold; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3); }
+      .day-number { font-weight: 700; margin-bottom: 8px; font-size: 14px; }
+      .appointment-item { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #0ea5e9; padding: 6px 8px; margin: 4px 0; border-radius: 6px; font-size: 12px; color: #1e293b; transition: all 0.2s ease; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      [data-theme="dark"] .appointment-item { background: linear-gradient(135deg, #1e293b, #334155); color: #e2e8f0; border-color: #38bdf8; }
+      .appointment-item:hover { transform: translateX(2px); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+      .appointment-item.pending { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; }
+      .appointment-item.confirmed { background: linear-gradient(135deg, #22c55e, #16a34a); color: white; }
+      .appointment-item.cancelled { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
+      .appointment-item.rescheduled { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; }
+    </style>
+  </head>
+  <body>
+    <button class="sidebar-toggle" aria-label="Open Admin Menu" id="sidebarToggle">☰</button>
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+    <div class="layout">
+      <aside class="sidebar" id="adminSidebar">
+        <div class="logo"><span class="brand-dot"></span> <span>JyotirSetu Admin</span></div>
+        <nav class="nav">
+          <a href="/admin/dashboard">Dashboard</a>
+          <a href="/admin/appointments">Appointments</a>
+          <a href="/admin/contacts">Contacts</a>
+          <a class="active" href="/admin/calendar">Calendar</a>
+          <a href="/admin/activity-log">Activity Log</a>
+          <a href="/admin/templates/email">Email Templates</a>
+          <a href="/admin/templates/whatsapp">WhatsApp Templates</a>
+          <a href="/admin/settings">Settings</a>
+        </nav>
+      </aside>
+      <section class="content">
+        <div class="topbar">
+          <strong>Calendar View</strong>
+          <div style="display:flex; gap:8px; align-items:center">
+            <a href="/api/admin/logout" class="pill">Logout</a>
+          </div>
+        </div>
+        <div class="calendar-container">
+          <div class="calendar-header">
+            <div class="calendar-nav">
+              <button id="prevMonth">← Previous</button>
+              <h2 id="currentMonth" style="margin:0;min-width:200px;text-align:center"></h2>
+              <button id="nextMonth">Next →</button>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button id="todayBtn" class="btn-primary">Today</button>
+              <a href="/api/admin/logout" class="pill">Logout</a>
+            </div>
+          </div>
+          <div class="calendar-grid" id="calendarGrid"></div>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      let currentDate = new Date();
+      /** @type {Appointment[]} */
+      let appointments = [];
+
+      /**
+       * @typedef {object} Appointment
+       * @property {string} id
+       * @property {string} name
+       * @property {string} service
+       * @property {string} date
+       * @property {string} time
+       * @property {string} status
+       */
+
+      const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+      async function loadAppointments() {
+        const res = await fetch('/api/admin/appointments?page=1&limit=1000', { credentials: 'include' });
+        const json = await res.json();
+        appointments = json?.data || [];
+        renderCalendar();
+      }
+
+      function renderCalendar() {
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth();
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+        const startDate = new Date(firstDay);
+        startDate.setDate(startDate.getDate() - startDate.getDay());
+        
+        document.getElementById('currentMonth').textContent = `${monthNames[month]} ${year}`;
+        
+        let html = '';
+        dayNames.forEach(day => {
+          html += `<div class="calendar-day-header">${day}</div>`;
+        });
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        for (let i = 0; i < 42; i++) {
+          const date = new Date(startDate);
+          date.setDate(startDate.getDate() + i);
+          const dateStr = date.toISOString().split('T')[0];
+          const isOtherMonth = date.getMonth() !== month;
+          const isToday = date.getTime() === today.getTime();
+          
+          const dayAppointments = appointments.filter(a => {
+            const apptDate = a.date ? new Date(a.date).toISOString().split('T')[0] : null;
+            return apptDate === dateStr;
+          });
+
+          html += `<div class="calendar-day ${isOtherMonth ? 'other-month' : ''} ${isToday ? 'today' : ''}">
+            <div class="day-number">${date.getDate()}</div>
+            ${dayAppointments.slice(0, 3).map(a => `
+              <div class="appointment-item ${a.status}" title="${a.name} - ${a.service} - ${a.time}">
+                ${a.time ? a.time.split('-')[0] : ''} ${a.name}
+              </div>
+            `).join('')}
+            ${dayAppointments.length > 3 ? `<div style="font-size:10px;color:var(--muted);margin-top:4px">+${dayAppointments.length - 3} more</div>` : ''}
+          </div>`;
+        }
+
+        document.getElementById('calendarGrid').innerHTML = html;
+      }
+
+      document.getElementById('prevMonth').addEventListener('click', () => {
+        currentDate.setMonth(currentDate.getMonth() - 1);
+        renderCalendar();
+      });
+
+      document.getElementById('nextMonth').addEventListener('click', () => {
+        currentDate.setMonth(currentDate.getMonth() + 1);
+        renderCalendar();
+      });
+
+      document.getElementById('todayBtn').addEventListener('click', () => {
+        currentDate = new Date();
+        renderCalendar();
+      });
+
+      loadAppointments();
+      setInterval(loadAppointments, 60000); // Refresh every minute
+
+      // Mobile drawer
+      const sidebar = document.getElementById('adminSidebar');
+      const backdrop = document.getElementById('sidebarBackdrop');
+      const toggleBtn = document.getElementById('sidebarToggle');
+      let isOpen = false;
+      
+      function openSidebar() {
+        sidebar?.classList.add('active');
+        backdrop?.classList.add('active');
+        toggleBtn?.classList.add('active');
+        toggleBtn.innerHTML = '✕';
+        isOpen = true;
+      }
+      
+      function closeSidebar() {
+        sidebar?.classList.remove('active');
+        backdrop?.classList.remove('active');
+        toggleBtn?.classList.remove('active');
+        toggleBtn.innerHTML = '☰';
+        isOpen = false;
+      }
+      
+      toggleBtn?.addEventListener('click', () => {
+        if (isOpen) closeSidebar();
+        else openSidebar();
+      });
+      
+      backdrop?.addEventListener('click', closeSidebar);
+      sidebar?.querySelectorAll('a').forEach(a => {
+        a.addEventListener('click', () => {
+          if (window.innerWidth <= 900) closeSidebar();
+        });
+      });
+      
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && isOpen) closeSidebar();
+      });
+    </script>
+  </body>
+</html>
+
+

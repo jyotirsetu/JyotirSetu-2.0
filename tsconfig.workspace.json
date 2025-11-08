@@ -1,0 +1,25 @@
+{
+  "extends": "./tsconfig.json",
+  "exclude": [
+    "dist/", 
+    ".vercel/", 
+    "node_modules/", 
+    "**/.vercel/**", 
+    "**/dist/**", 
+    ".vercel/output/**", 
+    ".vercel/output/functions/**", 
+    ".vercel/output/functions/_render.func/**", 
+    "**/.vercel/output/**", 
+    "**/.vercel/output/functions/**", 
+    "**/.vercel/output/functions/_render.func/**", 
+    "**/functions/**", 
+    "**/output/**",
+    "**/.vercel/**/*",
+    "**/.vercel/output/**/*",
+    "**/.vercel/output/functions/**/*",
+    "**/.vercel/output/functions/_render.func/**/*",
+    "**/.vercel/output/functions/_render.func/src/**",
+    "**/.vercel/output/functions/_render.func/src/pages/**",
+    "**/.vercel/output/functions/_render.func/src/pages/homes/**"
+  ]
+}

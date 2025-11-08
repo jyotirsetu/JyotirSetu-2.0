@@ -15,7 +15,7 @@ export interface AppointmentData {
   time: string;
   consultation_method: string;
   message?: string;
-  service_details?: Record<string, any>;
+  service_details?: Record<string, unknown>;
 }
 
 export interface ContactData {
@@ -24,6 +24,11 @@ export interface ContactData {
   phone?: string;
   subject: string;
   message: string;
+}
+
+export interface ZohoAccount {
+  accountId: string;
+  status: string;
 }
 
 export class EmailService {
@@ -89,7 +94,7 @@ export class EmailService {
       throw new Error(`Zoho accounts error: ${err}`);
     }
     const json = await res.json();
-    const account = json.data?.find((a: any) => a.status === 'active') || json.data?.[0];
+    const account = json.data?.find((a: ZohoAccount) => a.status === 'active') || json.data?.[0];
     if (!account?.accountId) throw new Error('No Zoho Mail account found');
     return String(account.accountId);
   }
@@ -115,20 +120,20 @@ export class EmailService {
       headers: {
         'Reply-To': this.toAdmin,
       },
-    } as any;
+    };
 
     const endpoint = this.mailChannelsWorkerUrl || 'https://api.mailchannels.net/tx/v1/send';
     const res = await fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
-    });
+      });
     if (!res.ok) {
       const text = await res.text();
       console.error('MailChannels send error:', text);
-      return false;
-    }
-    return true;
+        return false;
+      }
+      return true;
   }
 
   private async sendViaSmtp(to: string, subject: string, html: string): Promise<boolean> {
@@ -142,11 +147,9 @@ export class EmailService {
       secure: this.smtpSecure,
       auth: { user: this.smtpUser, pass: this.smtpPass },
     });
-    // Ensure plain from address
-    const match = /<([^>]+)>/.exec(this.fromEmail);
-    const fromPlain = match ? match[1] : this.fromEmail;
+    // Use display name if provided in env (e.g., "JyotirSetu Astrology <noreply@jyotirsetu.com>")
     const info = await transporter.sendMail({
-      from: fromPlain,
+      from: this.fromEmail,
       to,
       bcc: this.toAdmin,
       subject,
@@ -176,13 +179,13 @@ export class EmailService {
       ...(this.toAdmin ? { bccAddress: this.toAdmin } : {}),
     };
     const res = await fetch(`https://mail.zoho.${this.region}/api/accounts/${accountId}/messages`, {
-      method: 'POST',
-      headers: {
+        method: 'POST',
+        headers: {
         'Authorization': `Zoho-oauthtoken ${accessToken}`,
-        'Content-Type': 'application/json',
-      },
+          'Content-Type': 'application/json',
+        },
       body: JSON.stringify(payload),
-    });
+      });
     if (!res.ok) {
       const err = await res.text();
       console.error('Zoho send error:', err);
@@ -203,24 +206,115 @@ export class EmailService {
       return await this.sendViaZoho(contactData.email, 'Thank you for contacting JyotirSetu - We\'ll be in touch soon!', emailHtml);
     } catch (error) {
       console.error('Error sending contact confirmation email:', error);
-      return false;
-    }
+        return false;
+      }
   }
 
   async sendConfirmationEmail(appointmentData: AppointmentData): Promise<boolean> {
     try {
       const emailHtml = this.generateConfirmationEmailHTML(appointmentData);
+      const subject = 'Appointment Request Confirmed - JyotirSetu';
       if (this.smtpHost) {
-        return await this.sendViaSmtp(appointmentData.email, 'Appointment Request Confirmed - JyotirSetu', emailHtml);
+        return await this.sendViaSmtp(appointmentData.email, subject, emailHtml);
       }
       if (this.useMailChannels) {
-        return await this.sendViaMailChannels(appointmentData.email, 'Appointment Request Confirmed - JyotirSetu', emailHtml);
+        return await this.sendViaMailChannels(appointmentData.email, subject, emailHtml);
       }
-      return await this.sendViaZoho(appointmentData.email, 'Appointment Request Confirmed - JyotirSetu', emailHtml);
+      return await this.sendViaZoho(appointmentData.email, subject, emailHtml);
     } catch (error) {
       console.error('Error sending confirmation email:', error);
       return false;
     }
+  }
+
+  async sendAppointmentStatusEmail(appointmentData: AppointmentData, status: string): Promise<boolean> {
+    try {
+      const emailHtml = this.generateStatusEmailHTML(appointmentData, status);
+      const statusSubjects: Record<string, string> = {
+        pending: 'Appointment Request Received - JyotirSetu',
+        confirmed: 'Appointment Confirmed - JyotirSetu',
+        rescheduled: 'Appointment Rescheduled - JyotirSetu',
+        cancelled: 'Appointment Cancelled - JyotirSetu',
+      };
+      const subject = statusSubjects[status.toLowerCase()] || `Appointment ${status} - JyotirSetu`;
+
+      if (this.smtpHost) {
+        return await this.sendViaSmtp(appointmentData.email, subject, emailHtml);
+      }
+      if (this.useMailChannels) {
+        return await this.sendViaMailChannels(appointmentData.email, subject, emailHtml);
+      }
+      return await this.sendViaZoho(appointmentData.email, subject, emailHtml);
+    } catch (error) {
+      console.error('Error sending status email:', error);
+      return false;
+    }
+  }
+
+  private generateStatusEmailHTML(data: AppointmentData, status: string): string {
+    const statusInfo: Record<string, { title: string; message: string; color: string }> = {
+      'pending': { title: 'Appointment Request Received', message: 'We have received your appointment request and it is pending confirmation.', color: '#f59e0b' },
+      'confirmed': { title: 'Appointment Confirmed', message: 'Your appointment has been confirmed!', color: '#22c55e' },
+      'rescheduled': { title: 'Appointment Rescheduled', message: 'Your appointment has been rescheduled.', color: '#3b82f6' },
+      'cancelled': { title: 'Appointment Cancelled', message: 'Your appointment has been cancelled.', color: '#ef4444' }
+    };
+    const info = statusInfo[status.toLowerCase()] || { title: `Appointment ${status}`, message: `Your appointment status is ${status}.`, color: '#667eea' };
+    
+    return `
+    <!DOCTYPE html>
+    <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>${info.title} - JyotirSetu</title>
+        <style>
+          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 650px; margin: 0 auto; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+          .container { background: white; border-radius: 20px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15); overflow: hidden; padding: 40px 30px; }
+          .header { text-align: center; margin-bottom: 30px; }
+          .status-badge { display: inline-block; padding: 12px 24px; border-radius: 50px; background: ${info.color}; color: white; font-weight: 600; font-size: 18px; margin-bottom: 20px; }
+          .details { background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 20px 0; }
+          .detail-row { margin: 12px 0; display: flex; justify-content: space-between; }
+          .detail-label { font-weight: 600; color: #666; }
+          .detail-value { color: #333; }
+          .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <div class="status-badge">${info.title}</div>
+            <p>${info.message}</p>
+          </div>
+          <div class="details">
+            <div class="detail-row">
+              <span class="detail-label">Name:</span>
+              <span class="detail-value">${data.name}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Service:</span>
+              <span class="detail-value">${data.service}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Date:</span>
+              <span class="detail-value">${data.date}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Time:</span>
+              <span class="detail-value">${data.time}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Method:</span>
+              <span class="detail-value">${data.consultation_method}</span>
+            </div>
+          </div>
+          <div class="footer">
+            <p>Thank you for choosing JyotirSetu!</p>
+            <p>If you have any questions, please contact us.</p>
+          </div>
+        </div>
+      </body>
+    </html>
+    `;
   }
 
   private generateContactConfirmationEmailHTML(data: ContactData): string {

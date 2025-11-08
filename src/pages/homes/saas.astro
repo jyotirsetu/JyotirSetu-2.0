@@ -1,0 +1,293 @@
+---
+import Layout from '~/layouts/PageLayout.astro';
+
+import Header from '~/components/widgets/Header.astro';
+import Hero2 from '~/components/widgets/Hero2.astro';
+import Features from '~/components/widgets/Features.astro';
+import Steps2 from '~/components/widgets/Steps2.astro';
+import Content from '~/components/widgets/Content.astro';
+
+import { headerData } from '~/navigation';
+import FAQs from '~/components/widgets/FAQs.astro';
+
+const metadata = {
+  title: 'JyotirSetu SaaS Platform – Astrology Technology Solutions',
+  description: 'Professional astrology SaaS platform by JyotirSetu. Advanced technology solutions for astrology consultations, chart analysis, and cosmic guidance.',
+};
+---
+
+<Layout metadata={metadata}>
+  <Fragment slot="header">
+    <Header
+      {...headerData}
+      actions={[
+        {
+          variant: 'secondary',
+          text: 'Login',
+          href: '/admin',
+        },
+        {
+          variant: 'primary',
+          text: 'Book Consultation',
+          href: '/ScheduleAppointmentJyotirSetu',
+        },
+      ]}
+      isSticky
+    />
+  </Fragment>
+
+  <!-- Hero2 Widget ******************* -->
+
+  <Hero2
+    tagline="JyotirSetu SaaS Platform"
+    actions={[
+      { variant: 'primary', text: 'Start Free Trial', href: '/ScheduleAppointmentJyotirSetu' },
+      { text: 'Learn more', href: '#features' },
+    ]}
+    image={{
+      src: '~/assets/images/2hero-image.png',
+      alt: 'JyotirSetu SaaS Platform',
+    }}
+  >
+    <Fragment slot="title">
+      Transform your astrology practice with <br /> JyotirSetu's <span class="text-accent dark:text-white">SaaS Platform</span><br
+      />
+    </Fragment>
+
+    <Fragment slot="subtitle">
+      <span class="hidden sm:inline">
+        Elevate your astrology consultations with <span class="font-semibold">JyotirSetu</span>'s advanced SaaS solutions.</span
+      >
+      Seamlessly integrate cutting-edge technology with ancient Vedic wisdom to provide accurate, personalized cosmic guidance.
+    </Fragment>
+  </Hero2>
+
+  <!-- Features Widget *************** -->
+
+  <Features
+    id="features"
+    title="Why choose JyotirSetu SaaS?"
+    subtitle="Each of the following features enhances your astrology practice with cutting-edge technology."
+    columns={2}
+    items={[
+      {
+        title: 'Advanced Chart Analysis Engine',
+        description:
+          'Our proprietary algorithms provide accurate birth chart calculations, planetary positions, and transit analysis with precision that matches traditional Vedic calculations.',
+        icon: 'tabler:chart-dots',
+      },
+      {
+        title: 'AI-Powered Consultation Tools',
+        description: `Leverage artificial intelligence to enhance your readings with intelligent pattern recognition, personalized insights, and automated report generation.`,
+        icon: 'tabler:brain',
+      },
+      {
+        title: 'Comprehensive Client Management',
+        description:
+          'Streamline your practice with integrated client profiles, appointment scheduling, consultation history, and follow-up tracking all in one platform.',
+        icon: 'tabler:users',
+      },
+      {
+        title: 'Multi-Modal Reading Support',
+        description: `Support for Vedic Astrology, Palmistry, Numerology, and Tarot readings with specialized tools and templates for each modality.`,
+        icon: 'tabler:hand-finger',
+      },
+      {
+        title: 'Real-time Collaboration Features',
+        description: `Conduct virtual consultations with screen sharing, interactive charts, and real-time note-taking capabilities for enhanced client engagement.`,
+        icon: 'tabler:video',
+      },
+      {
+        title: 'Secure & Compliant Platform',
+        description: `Enterprise-grade security with data encryption, GDPR compliance, and secure payment processing to protect both you and your clients.`,
+        icon: 'tabler:shield-check',
+      },
+    ]}
+  />
+
+  <!-- Content Widget **************** -->
+
+  <Content
+    title="Use cases"
+    subtitle="Discover how JyotirSetu's SaaS platform serves as the ideal solution for various astrology practices, providing tailored solutions to drive success."
+    isReversed
+    items={[
+      {
+        title: 'Description:',
+        description:
+          'Are you an aspiring astrologer looking to establish your practice? JyotirSetu SaaS propels your success. Our platform forges a seamless digital presence, attracting clients and building credibility from day one. Advanced technology and traditional wisdom ensure accurate readings, leaving lasting impressions. Countless practitioners leverage JyotirSetu to kickstart their journey and resonate with seekers.',
+      },
+      {
+        title: 'Benefits:',
+        description: `Allow new astrologers to quickly establish professional practices without investing extensive time and resources. <br /> Make a memorable first impression with advanced chart analysis and personalized insights that highlight your unique expertise. <br /> Ensures your consultations are accurate and work seamlessly across all devices. <br /> Engage potential clients with interactive charts, clear interpretations, and intuitive consultation tools.`,
+      },
+    ]}
+    image={{
+      src: '~/assets/images/2hero-image.png',
+      alt: 'Astrology Practice Image',
+    }}
+  >
+    <Fragment slot="content">
+      <h3 class="text-2xl font-bold tracking-tight dark:text-white sm:text-3xl mb-2">
+        Astrology practice success: <br /><span class="text-2xl">Launching with JyotirSetu</span>
+      </h3>
+    </Fragment>
+
+    <Fragment slot="bg">
+      <div class="absolute inset-0 bg-blue-50 dark:bg-transparent"></div>
+    </Fragment>
+  </Content>
+
+  <!-- Content Widget **************** -->
+
+  <Content
+    isAfterContent={true}
+    items={[
+      {
+        title: 'Description:',
+        description: `For established astrology practices, user experience is key. JyotirSetu SaaS enhances showcasing your expertise intuitively. The platform's advanced technology and traditional wisdom integration guarantees user-friendly experience, mirroring your consultation's efficiency. Customize your practice to communicate value and solutions for your clients.`,
+      },
+      {
+        title: 'Benefits:',
+        description: `Ensuring a cohesive and client-centric design for your astrology practice. <br /> Effectively communicate complex astrological concepts through visual charts, animations, and interactive elements. <br /> Prioritize client needs and concerns through well-structured consultation flows and clear interpretations. <br /> Encourage clients to take action with strategically placed booking options and follow-up tools. <br /> Ensures your practice works seamlessly across all devices and platforms.`,
+      },
+    ]}
+    image={{
+      src: '~/assets/images/2hero-image.png',
+      alt: 'Established Astrology Practice Image',
+    }}
+  >
+    <Fragment slot="content">
+      <h3 class="text-2xl font-bold tracking-tight dark:text-white sm:text-3xl mb-2">
+        Established practice enhancement: <br /><span class="text-2xl">Streamlining client experience</span>
+      </h3>
+    </Fragment>
+
+    <Fragment slot="bg">
+      <div class="absolute inset-0 bg-blue-50 dark:bg-transparent"></div>
+    </Fragment>
+  </Content>
+
+  <!-- Content Widget **************** -->
+
+  <Content
+    isReversed
+    isAfterContent={true}
+    items={[
+      {
+        title: 'Description:',
+        description: `Your astrology expertise is your masterpiece, and JyotirSetu SaaS is your canvas. Whether you're a Vedic astrologer, palmist, numerologist, or any other cosmic guidance professional, JyotirSetu empowers you to showcase your knowledge with elegance and sophistication. Tailored to highlight your specialized skills, JyotirSetu's platform offers a visually immersive experience that lets your expertise shine.`,
+      },
+      {
+        title: 'Benefits:',
+        description: `Serve as a captivating backdrop to showcase your astrological expertise, capturing attention and leaving a lasting impression. <br /> Tailor your practice to reflect your unique approach and cosmic vision. <br /> Prioritizes accuracy, allowing you to present your readings in high-detail charts and interpretations that draw clients into your insights. <br /> Enables seamless consultation flow for effortless client exploration and understanding.`,
+      },
+    ]}
+    image={{
+      src: '~/assets/images/2hero-image.png',
+      alt: 'Astrology Expertise Image',
+    }}
+  >
+    <Fragment slot="content">
+      <h3 class="text-2xl font-bold tracking-tight dark:text-white sm:text-3xl mb-2">
+        Astrology expertise showcase: <br /><span class="text-2xl">Highlighting your cosmic knowledge</span>
+      </h3>
+    </Fragment>
+
+    <Fragment slot="bg">
+      <div class="absolute inset-0 bg-blue-50 dark:bg-transparent"></div>
+    </Fragment>
+  </Content>
+
+  <!-- Content Widget **************** -->
+
+  <Content
+    items={[
+      {
+        title: 'Description:',
+        description: `For astrology consultancies, a well-crafted digital presence can be a game-changer. JyotirSetu SaaS empowers astrology practices to not only establish a credible online presence but also convert seekers into loyal clients. The platform's thoughtful design and optimization features ensure that your practice doesn't just attract attention but also guides clients through a seamless consultation journey, ultimately leading to meaningful connections.`,
+      },
+      {
+        title: 'Benefits:',
+        description: `Present your astrology practice with a professional and polished platform that instills confidence and trust among clients. <br /> Strategically placed booking options, user-friendly consultation tools, and optimized layouts work together to drive client engagement and conversions. <br /> Ensure a smooth consultation experience, reducing client anxiety and encouraging deeper engagement with cosmic guidance.`,
+      },
+    ]}
+    image={{
+      src: '~/assets/images/2hero-image.png',
+      alt: 'Astrology Consultancy Image',
+    }}
+  >
+    <Fragment slot="content">
+      <h3 class="text-2xl font-bold tracking-tight dark:text-white sm:text-3xl mb-2">
+        Astrology consultancy growth: <br /><span class="text-2xl">Converting seekers into clients</span>
+      </h3>
+    </Fragment>
+
+    <Fragment slot="bg">
+      <div class="absolute inset-0 bg-blue-50 dark:bg-transparent"></div>
+    </Fragment>
+  </Content>
+
+
+  <!-- FAQs Widget ******************* -->
+
+  <FAQs
+    title="Frequently Asked Questions"
+    items={[
+      {
+        title: 'Is JyotirSetu SaaS compatible with traditional Vedic astrology calculations?',
+        description:
+          'Yes, JyotirSetu SaaS is designed to be fully compatible with traditional Vedic astrology calculations. Our platform uses authentic algorithms that match traditional methods while providing modern convenience and accuracy.',
+        icon: 'tabler:chevrons-right',
+      },
+      {
+        title: 'Can I use JyotirSetu SaaS for both personal consultations and commercial astrology practice?',
+        description: `Certainly! JyotirSetu SaaS is versatile and can be used for a wide range of astrology practices, including both personal consultations and commercial endeavors. Whether you're building a professional astrology practice, launching a cosmic guidance service, or creating a specialized consultation platform, JyotirSetu has you covered.`,
+        icon: 'tabler:chevrons-right',
+      },
+      {
+        title: 'What level of astrology knowledge is required to use JyotirSetu SaaS?',
+        description:
+          'While some familiarity with astrology concepts is helpful, the user-friendly interface and guided features allow those with limited technical experience to conduct professional consultations. For more advanced practitioners, JyotirSetu offers extensive customization and advanced analysis capabilities.',
+        icon: 'tabler:chevrons-right',
+      },
+      {
+        title: 'Is customer support available for JyotirSetu SaaS users seeking guidance?',
+        description: `Absolutely, our dedicated customer support team is here to assist you with any questions or challenges you may encounter. Feel free to reach out to us through our support channels, and we'll be happy to provide the help you need for your astrology practice.`,
+        icon: 'tabler:chevrons-right',
+      },
+    ]}
+  >
+    <Fragment slot="bg">
+      <div class="absolute inset-0 bg-blue-50 dark:bg-transparent"></div>
+    </Fragment>
+  </FAQs>
+
+  <!-- Steps2 Widget ****************** -->
+
+  <Steps2
+    title="Reach out to us"
+    subtitle="Have questions about JyotirSetu SaaS? Feel free to contact us using the form below. We're here to help!"
+    callToAction={{
+      text: 'Contact us',
+      href: '/contact',
+    }}
+    items={[
+      {
+        title: 'Email us',
+        description: 'support@jyotirsetu.com',
+        icon: 'tabler:mail',
+      },
+      {
+        title: 'Call us',
+        description: '+91 (XXX) XXX-XXXX',
+        icon: 'tabler:headset',
+      },
+      {
+        title: 'Book consultation',
+        description: 'Schedule your reading',
+        icon: 'tabler:calendar',
+      },
+    ]}
+  />
+</Layout>

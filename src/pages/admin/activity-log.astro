@@ -1,0 +1,167 @@
+---
+export const prerender = false;
+---
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Activity Log – Admin</title>
+    <link rel="stylesheet" href="/admin.css" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+  </head>
+  <body>
+    <button class="sidebar-toggle" aria-label="Open Admin Menu" id="sidebarToggle">☰</button>
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+    <div class="layout">
+      <aside class="sidebar" id="adminSidebar">
+        <div class="logo"><span class="brand-dot"></span> <span>JyotirSetu Admin</span></div>
+        <nav class="nav">
+          <a href="/admin/dashboard">Dashboard</a>
+          <a href="/admin/appointments">Appointments</a>
+          <a href="/admin/contacts">Contacts</a>
+          <a href="/admin/calendar">Calendar</a>
+          <a class="active" href="/admin/activity-log">Activity Log</a>
+          <a href="/admin/templates/email">Email Templates</a>
+          <a href="/admin/templates/whatsapp">WhatsApp Templates</a>
+          <a href="/admin/settings">Settings</a>
+        </nav>
+      </aside>
+      <section class="content">
+        <div class="topbar">
+          <strong>Activity Log</strong>
+          <div style="display:flex; gap:8px; align-items:center">
+            <button class="btn-sm" id="refreshBtn" style="background:#667eea;color:white;border:none;padding:6px 12px;border-radius:6px;cursor:pointer">🔄 Refresh</button>
+            <a href="/api/admin/logout" class="pill">Logout</a>
+          </div>
+        </div>
+        <div class="toolbar">
+          <select class="select" id="actionFilter">
+            <option value="">All actions</option>
+            <option>appointment_created</option>
+            <option>status_updated</option>
+            <option>email_sent</option>
+            <option>contact_created</option>
+            <option>note_created</option>
+          </select>
+          <select class="select" id="entityFilter">
+            <option value="">All entities</option>
+            <option>appointment</option>
+            <option>contact</option>
+            <option>note</option>
+          </select>
+        </div>
+        <div style="padding:0 20px 20px">
+          <div id="logWrap"></div>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      async function loadActivityLog() {
+        const res = await fetch('/api/admin/activity-log?limit=200', { credentials: 'include' });
+        const json = await res.json();
+        return json?.data || [];
+      }
+
+      function render(logs) {
+        const wrap = document.getElementById('logWrap') as HTMLElement | null;
+        if (!wrap) return;
+        if (!logs.length) {
+          wrap.innerHTML = '<p class="muted">No activity yet.</p>';
+          return;
+        }
+        
+        const actionFilterEl = document.getElementById('actionFilter') as HTMLSelectElement | null;
+        const entityFilterEl = document.getElementById('entityFilter') as HTMLSelectElement | null;
+        const actionFilter = actionFilterEl?.value || '';
+        const entityFilter = entityFilterEl?.value || '';
+        const filtered = logs.filter(l => {
+          return (!actionFilter || l.action === actionFilter) &&
+                 (!entityFilter || l.entity_type === entityFilter);
+        });
+
+        const html = filtered.map(l => {
+          const actionIcon = {
+            'appointment_created': '📅',
+            'status_updated': '🔄',
+            'email_sent': '📧',
+            'contact_created': '💬',
+            'note_created': '📝',
+            'note_deleted': '🗑️',
+            'contact_deleted': '🗑️'
+          }[l.action] || '⚡';
+          
+          return `<div style="padding:12px;margin-bottom:8px;background:linear-gradient(180deg,var(--panel),var(--panel-2));border:1px solid var(--border);border-radius:8px">
+            <div style="display:flex;gap:12px;align-items:start">
+              <span style="font-size:20px">${actionIcon}</span>
+              <div style="flex:1">
+                <div style="font-weight:600;margin-bottom:4px">${l.action.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</div>
+                <div class="muted" style="font-size:12px;margin-bottom:4px">${l.entity_type}${(l.appointment_name || l.contact_name || l.appointment_email || l.contact_email) ? ` – ${l.appointment_name || l.contact_name || l.appointment_email || l.contact_email}` : ''}</div>
+                ${l.details ? `<div style="font-size:13px;color:var(--muted);margin-top:4px">${l.details}</div>` : ''}
+                <div style="font-size:11px;color:var(--muted);margin-top:6px">${new Date(l.created_at).toLocaleString()}</div>
+              </div>
+            </div>
+          </div>`;
+        }).join('');
+        
+        wrap.innerHTML = html || '<p class="muted">No matching activity.</p>';
+      }
+
+      let allLogs = [];
+      
+      async function refresh() {
+        allLogs = await loadActivityLog();
+        render(allLogs);
+      }
+
+      document.getElementById('refreshBtn')?.addEventListener('click', refresh);
+      document.getElementById('actionFilter')?.addEventListener('change', () => render(allLogs));
+      document.getElementById('entityFilter')?.addEventListener('change', () => render(allLogs));
+
+      refresh();
+
+      // Auto-refresh every 30 seconds
+      setInterval(refresh, 30000);
+
+      // Mobile drawer
+      const sidebar = document.getElementById('adminSidebar');
+      const backdrop = document.getElementById('sidebarBackdrop');
+      const toggleBtn = document.getElementById('sidebarToggle') as HTMLButtonElement | null;
+      let isOpen = false;
+      
+      function openSidebar() {
+        sidebar?.classList.add('active');
+        backdrop?.classList.add('active');
+        toggleBtn?.classList.add('active');
+        if (toggleBtn) toggleBtn.innerHTML = '✕';
+        isOpen = true;
+      }
+      
+      function closeSidebar() {
+        sidebar?.classList.remove('active');
+        backdrop?.classList.remove('active');
+        toggleBtn?.classList.remove('active');
+        if (toggleBtn) toggleBtn.innerHTML = '☰';
+        isOpen = false;
+      }
+      
+      toggleBtn?.addEventListener('click', () => {
+        if (isOpen) closeSidebar();
+        else openSidebar();
+      });
+      
+      backdrop?.addEventListener('click', closeSidebar);
+      sidebar?.querySelectorAll('a').forEach(a => {
+        a.addEventListener('click', () => {
+          if (window.innerWidth <= 900) closeSidebar();
+        });
+      });
+      
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && isOpen) closeSidebar();
+      });
+    </script>
+  </body>
+</html>
+
+

@@ -1,0 +1,271 @@
+---
+export const prerender = false;
+---
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard – JyotirSetu</title>
+    <link rel="stylesheet" href="/admin.css" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <style>
+      .dashboard-hero { background: linear-gradient(135deg, rgba(124,58,237,0.15), rgba(34,211,238,0.15)); border-radius: 16px; padding: 32px; margin-bottom: 24px; border: 1px solid var(--border); }
+      .dashboard-hero h1 { margin: 0 0 8px; font-size: 28px; font-weight: 800; }
+      .dashboard-hero p { margin: 0; color: var(--muted); font-size: 14px; }
+      .stat-card { background: linear-gradient(180deg, var(--panel), var(--panel-2)); border: 1px solid var(--border); border-radius: 14px; padding: 20px; transition: transform 0.2s, box-shadow 0.2s; }
+      .stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+      .stat-card .icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 12px; }
+      .stat-card.appointments .icon { background: linear-gradient(135deg, rgba(124,58,237,0.2), rgba(124,58,237,0.1)); }
+      .stat-card.contacts .icon { background: linear-gradient(135deg, rgba(34,211,238,0.2), rgba(34,211,238,0.1)); }
+      .stat-card.recent .icon { background: linear-gradient(135deg, rgba(34,197,94,0.2), rgba(34,197,94,0.1)); }
+      .stat-card.pending .icon { background: linear-gradient(135deg, rgba(245,158,11,0.2), rgba(245,158,11,0.1)); }
+      .stat-card.delivery .icon { background: linear-gradient(135deg, rgba(22,163,74,0.2), rgba(22,163,74,0.1)); }
+      .stat-label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+      .stat-value { font-size: 32px; font-weight: 800; margin-bottom: 4px; }
+      .stat-change { font-size: 11px; color: var(--muted); }
+      .quick-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 24px; }
+      .action-card { background: linear-gradient(180deg, var(--panel), var(--panel-2)); border: 1px solid var(--border); border-radius: 14px; padding: 20px; text-decoration: none; color: inherit; display: block; transition: all 0.2s; }
+      .action-card:hover { border-color: var(--brand); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(124,58,237,0.2); }
+      .action-card strong { display: block; margin-bottom: 6px; font-size: 16px; }
+      .action-card .muted { font-size: 13px; }
+      .action-card .arrow { float: right; font-size: 20px; opacity: 0.5; }
+    </style>
+  </head>
+  <body>
+    <button class="sidebar-toggle" aria-label="Open Admin Menu" id="sidebarToggle">☰</button>
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+    <div class="layout">
+      <aside class="sidebar" id="adminSidebar">
+        <div class="logo"><span class="brand-dot"></span> <span>JyotirSetu Admin</span></div>
+        <nav class="nav">
+          <a class="active" href="/admin/dashboard">Dashboard</a>
+          <a href="/admin/appointments">Appointments</a>
+          <a href="/admin/contacts">Contacts</a>
+          <a href="/admin/calendar">Calendar</a>
+          <a href="/admin/activity-log">Activity Log</a>
+          <a href="/admin/templates/email">Email Templates</a>
+          <a href="/admin/templates/whatsapp">WhatsApp Templates</a>
+          <a href="/admin/settings">Settings</a>
+        </nav>
+      </aside>
+      <section class="content">
+        <div class="topbar">
+          <strong>Dashboard</strong>
+          <div style="display:flex; gap:8px; align-items:center">
+            <a href="/admin/login" class="pill">Switch account</a>
+            <a href="/api/admin/logout" class="pill">Logout</a>
+          </div>
+        </div>
+        <div style="padding: 20px;">
+          <div class="dashboard-hero">
+            <h1>Welcome to JyotirSetu Admin</h1>
+            <p>Manage appointments, contacts, and templates from one central dashboard</p>
+          </div>
+          
+          <div class="cards">
+            <div class="stat-card appointments">
+              <div class="icon">📅</div>
+              <div class="stat-label">Total Appointments</div>
+              <div class="stat-value" id="stat-appointments">—</div>
+              <div class="stat-change">All time</div>
+            </div>
+            <div class="stat-card contacts">
+              <div class="icon">💬</div>
+              <div class="stat-label">New Contacts</div>
+              <div class="stat-value" id="stat-contacts">—</div>
+              <div class="stat-change">Messages received</div>
+            </div>
+            <div class="stat-card recent">
+              <div class="icon">🕐</div>
+              <div class="stat-label">Last 24 Hours</div>
+              <div class="stat-value" id="stat-24h">—</div>
+              <div class="stat-change">Recent appointments</div>
+            </div>
+            <div class="stat-card pending">
+              <div class="icon">⏳</div>
+              <div class="stat-label">Pending Action</div>
+              <div class="stat-value" id="stat-pending">—</div>
+              <div class="stat-change">Requires attention</div>
+            </div>
+            <div class="stat-card delivery">
+              <div class="icon">✅</div>
+              <div class="stat-label">Email Status</div>
+              <div class="stat-value">OK</div>
+              <div class="stat-change">All systems operational</div>
+            </div>
+        </div>
+
+          <div class="quick-actions">
+            <a class="action-card" href="/admin/appointments">
+              <strong>Manage Appointments <span class="arrow">→</span></strong>
+              <p class="muted">Review, filter, and contact clients</p>
+            </a>
+            <a class="action-card" href="/admin/contacts">
+              <strong>View Contacts <span class="arrow">→</span></strong>
+              <p class="muted">Reply to messages and track status</p>
+            </a>
+            <a class="action-card" href="/admin/templates/email">
+              <strong>Email Templates <span class="arrow">→</span></strong>
+              <p class="muted">Customize email templates</p>
+            </a>
+            <a class="action-card" href="/admin/templates/whatsapp">
+              <strong>WhatsApp Templates <span class="arrow">→</span></strong>
+              <p class="muted">Manage WhatsApp messages</p>
+            </a>
+          </div>
+
+          <div style="margin-top:24px">
+            <div class="stat-card" style="padding:16px">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                <div style="display:flex;align-items:center;gap:8px"><span class="icon" style="width:32px;height:32px;font-size:18px">🕘</span><strong>Recent Activity</strong></div>
+                <a class="pill" href="/admin/activity-log">View all</a>
+              </div>
+              <div id="recentActivityList" class="muted" style="font-size:13px"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      async function loadStats(){
+        try{
+          const [a,c] = await Promise.all([
+            fetch('/api/admin/appointments?page=1&limit=1000').then(r=>r.json()).catch(()=>({data:[]})),
+            fetch('/api/admin/contacts').then(r=>r.json()).catch(()=>({data:[]}))
+          ]);
+          const appts = a.data||[];
+          const apptEl = document.getElementById('stat-appointments');
+          if (apptEl) apptEl.textContent = String(appts.length);
+          const contactsEl = document.getElementById('stat-contacts');
+          if (contactsEl) contactsEl.textContent = String((c.data||[]).length);
+          const now = Date.now();
+          const last24 = appts.filter(x=>{
+            const t = new Date(x.created_at).getTime();
+            return !isNaN(t) && (now - t) <= 24*60*60*1000;
+          }).length;
+          const pending = appts.filter(x=>String(x.status||'').toLowerCase()==='pending').length;
+          const last24El = document.getElementById('stat-24h');
+          if (last24El) last24El.textContent = String(last24);
+          const pendingEl = document.getElementById('stat-pending');
+          if (pendingEl) pendingEl.textContent = String(pending);
+        }catch(e){ console.warn('Failed to load stats', e); }
+      }
+      loadStats();
+
+      async function loadRecentActivity(){
+        try{
+          const res = await fetch('/api/admin/activity-log?limit=10', { credentials: 'include' });
+          const json = await res.json();
+          const logs = json.data||[];
+          const list = document.getElementById('recentActivityList');
+          if(!list) return;
+          if(!logs.length){ list.textContent = 'No recent activity'; return; }
+          list.innerHTML = logs.map(l=>{
+            const actionText = String(l.action||'').replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+            const when = new Date(l.created_at).toLocaleString();
+            const nameOrEmail = l.appointment_name || l.contact_name || l.appointment_email || l.contact_email || '';
+            const details = nameOrEmail ? ` – ${nameOrEmail}` : '';
+            return `<div style="padding:8px 0;border-bottom:1px solid var(--border)"><span style="color:#111827">${actionText}</span>${details}<div style="font-size:11px;color:var(--muted)">${when}</div></div>`;
+          }).slice(0,6).join('');
+        }catch{
+          const list = document.getElementById('recentActivityList');
+          if(list) list.textContent = 'Failed to load activity';
+        }
+      }
+      loadRecentActivity();
+
+      // Initialize notifications
+      if (typeof window !== 'undefined' && 'Notification' in window) {
+        if (Notification.permission === 'default') {
+          Notification.requestPermission();
+        }
+        
+        let lastApptsCount = 0;
+        let lastContactsCount = 0;
+        
+        async function checkForUpdates() {
+          try {
+            const settings = JSON.parse(localStorage.getItem('adminSettings') || '{}');
+            if (settings.browserNotifications === false) return;
+            
+            const [apptsRes, contactsRes] = await Promise.all([
+              fetch('/api/admin/appointments?page=1&limit=1').then(r => r.json()).catch(() => ({ pagination: { total: 0 } })),
+              fetch('/api/admin/contacts?page=1&limit=1').then(r => r.json()).catch(() => ({ pagination: { total: 0 } }))
+            ]);
+            
+            const apptsCount = apptsRes.pagination?.total || 0;
+            const contactsCount = contactsRes.pagination?.total || 0;
+            
+            if (lastApptsCount > 0 && apptsCount > lastApptsCount && settings.notifyNewAppointment !== false) {
+              new Notification('New Appointment!', {
+                body: `You have ${apptsCount - lastApptsCount} new appointment(s)`,
+                icon: '/favicon.ico',
+                tag: 'new-appointment'
+              });
+            }
+            
+            if (lastContactsCount > 0 && contactsCount > lastContactsCount && settings.notifyNewContact !== false) {
+              new Notification('New Contact Message!', {
+                body: `You have ${contactsCount - lastContactsCount} new contact message(s)`,
+                icon: '/favicon.ico',
+                tag: 'new-contact'
+              });
+            }
+            
+            lastApptsCount = apptsCount;
+            lastContactsCount = contactsCount;
+          } catch (e) {
+            console.error('Notification check failed:', e);
+          }
+        }
+        
+        // Initial check after 5 seconds
+        setTimeout(() => {
+          checkForUpdates();
+          // Then check every 30 seconds
+          setInterval(checkForUpdates, 30000);
+        }, 5000);
+      }
+
+      // Mobile drawer with animated hamburger
+      const sidebar = document.getElementById('adminSidebar');
+      const backdrop = document.getElementById('sidebarBackdrop');
+      const toggleBtn = document.getElementById('sidebarToggle') as HTMLButtonElement | null;
+      let isOpen = false;
+      
+      function openSidebar() {
+        sidebar?.classList.add('active');
+        backdrop?.classList.add('active');
+        toggleBtn?.classList.add('active');
+        if (toggleBtn) toggleBtn.innerHTML = '✕';
+        isOpen = true;
+      }
+      
+      function closeSidebar() {
+        sidebar?.classList.remove('active');
+        backdrop?.classList.remove('active');
+        toggleBtn?.classList.remove('active');
+        if (toggleBtn) toggleBtn.innerHTML = '☰';
+        isOpen = false;
+      }
+      
+      toggleBtn?.addEventListener('click', () => {
+        if (isOpen) closeSidebar();
+        else openSidebar();
+      });
+      
+      backdrop?.addEventListener('click', closeSidebar);
+      sidebar?.querySelectorAll('a').forEach(a => {
+        a.addEventListener('click', () => {
+          if (window.innerWidth <= 900) closeSidebar();
+        });
+      });
+      
+      // Close on escape key
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && isOpen) closeSidebar();
+      });
+    </script>
+  </body>
+</html>

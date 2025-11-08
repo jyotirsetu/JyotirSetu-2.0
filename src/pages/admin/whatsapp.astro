@@ -1,0 +1,153 @@
+---
+export const prerender = false;
+---
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WhatsApp Templates – Admin</title>
+    <link rel="stylesheet" href="/admin.css" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+  </head>
+  <body>
+    <button class="sidebar-toggle" aria-label="Open Admin Menu" id="sidebarToggle">☰</button>
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+    <div class="layout">
+      <aside class="sidebar" id="adminSidebar">
+        <div class="logo"><span class="brand-dot"></span> <span>JyotirSetu Admin</span></div>
+        <nav class="nav">
+          <a href="/admin/dashboard">Dashboard</a>
+          <a href="/admin/appointments">Appointments</a>
+          <a href="/admin/contacts">Contacts</a>
+          <a href="/admin/calendar">Calendar</a>
+          <a href="/admin/activity-log">Activity Log</a>
+          <a href="/admin/templates/email">Email Templates</a>
+          <a href="/admin/templates/whatsapp">WhatsApp Templates</a>
+          <a class="active" href="/admin/whatsapp">WhatsApp</a>
+          <a href="/admin/settings">Settings</a>
+        </nav>
+      </aside>
+      <section class="content">
+        <div class="topbar">
+          <strong>WhatsApp Templates</strong>
+          <div style="display:flex; gap:8px; align-items:center">
+            <span class="pill">Personalize and copy</span>
+            <a href="/api/admin/logout" class="pill">Logout</a>
+          </div>
+        </div>
+        <div class="toolbar">
+          <input class="input" id="waName" placeholder="Name" />
+          <input class="input" id="waPhone" placeholder="Phone (digits only)" />
+          <input class="input" id="waService" placeholder="Service" />
+          <select class="select" id="waStatus">
+            <option>pending</option>
+            <option>confirmed</option>
+            <option>rescheduled</option>
+            <option>cancelled</option>
+          </select>
+        </div>
+        <div class="cards" id="templates"></div>
+      </section>
+    </div>
+
+    <script is:inline>
+      if (typeof window !== 'undefined') {
+        function formatWaPhone(input){
+          const digits = String(input||'').replace(/\D/g,'');
+          if (digits.startsWith('91')) return digits;
+          if (digits.length === 10) return '91'+digits;
+          return digits;
+        }
+        const nameInput = document.getElementById('waName');
+        const phoneInput = document.getElementById('waPhone');
+        const serviceInput = document.getElementById('waService');
+        const statusSelect = document.getElementById('waStatus');
+        const qs = new URLSearchParams(window.location.search);
+        nameInput.value = qs.get('name')||'';
+        phoneInput.value = qs.get('phone')||'';
+        serviceInput.value = qs.get('service')||'';
+        statusSelect.value = qs.get('status')||'pending';
+
+        let dbTemplates = [];
+        const fallback = [
+          { key:'pending', text:'Hello {name}, your appointment request for {service} is received and pending confirmation. We will contact you shortly. – JyotirSetu' },
+          { key:'confirmed', text:'Hello {name}, your appointment for {service} is CONFIRMED. Date/Time: {date} {time}. – JyotirSetu' },
+          { key:'rescheduled', text:'Hello {name}, your appointment for {service} has been RESCHEDULED. New Date/Time: {date} {time}. – JyotirSetu' },
+          { key:'cancelled', text:'Hello {name}, your appointment for {service} has been CANCELLED. Reply here to book a new slot. – JyotirSetu' },
+        ];
+
+        async function loadTemplates(){
+          try{
+            const res = await fetch('/api/admin/templates?type=whatsapp', { credentials: 'include' });
+            const j = await res.json();
+            dbTemplates = Array.isArray(j.data) ? j.data : [];
+          }catch{ dbTemplates = []; }
+        }
+
+        function render(){
+          const p = { name:nameInput.value, phone:phoneInput.value, service:serviceInput.value, status:statusSelect.value };
+          const list = (dbTemplates.length ? dbTemplates : fallback);
+          const html = list.map(t=>{
+            const base = (t.text||'').replaceAll('{name}', p.name).replaceAll('{service}', p.service).replaceAll('{status}', p.status).replaceAll('{date}', '').replaceAll('{time}', '');
+            const link = `https://wa.me/${encodeURIComponent(formatWaPhone(p.phone))}?text=${encodeURIComponent(base)}`;
+            const title = (t.key||'').charAt(0).toUpperCase() + (t.key||'').slice(1);
+            return `<div class="card"><strong>${title||'Template'}</strong><p class="muted" style="margin:8px 0 12px">${base}</p><a class="btn-sm" href="${link}" target="_blank">Open in WhatsApp</a></div>`;
+          }).join('');
+          document.getElementById('templates').innerHTML = html;
+        }
+
+        (async () => {
+          await loadTemplates();
+          render();
+          ['input','change'].forEach(ev=>{
+            nameInput.addEventListener(ev, render);
+            phoneInput.addEventListener(ev, render);
+            serviceInput.addEventListener(ev, render);
+            statusSelect.addEventListener(ev, render);
+          });
+        })();
+      }
+    </script>
+    <script>
+      // Mobile drawer with animated hamburger
+      const sidebar = document.getElementById('adminSidebar');
+      const backdrop = document.getElementById('sidebarBackdrop');
+      const toggleBtn = document.getElementById('sidebarToggle');
+      let isOpen = false;
+      
+      function openSidebar() {
+        sidebar?.classList.add('active');
+        backdrop?.classList.add('active');
+        toggleBtn?.classList.add('active');
+        toggleBtn.innerHTML = '✕';
+        isOpen = true;
+      }
+      
+      function closeSidebar() {
+        sidebar?.classList.remove('active');
+        backdrop?.classList.remove('active');
+        toggleBtn?.classList.remove('active');
+        toggleBtn.innerHTML = '☰';
+        isOpen = false;
+      }
+      
+      toggleBtn?.addEventListener('click', () => {
+        if (isOpen) closeSidebar();
+        else openSidebar();
+      });
+      
+      backdrop?.addEventListener('click', closeSidebar);
+      sidebar?.querySelectorAll('a').forEach(a => {
+        a.addEventListener('click', () => {
+          if (window.innerWidth <= 900) closeSidebar();
+        });
+      });
+      
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && isOpen) closeSidebar();
+      });
+    </script>
+  </body>
+</html>
+
+

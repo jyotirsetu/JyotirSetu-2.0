@@ -1,0 +1,444 @@
+---
+import '~/assets/styles/tailwind.css';
+import '~/assets/styles/custom.css';
+
+import { I18N } from 'astrowind:config';
+
+import CommonMeta from '~/components/common/CommonMeta.astro';
+import Favicons from '~/components/Favicons.astro';
+import CustomStyles from '~/components/CustomStyles.astro';
+import ApplyColorMode from '~/components/common/ApplyColorMode.astro';
+import Metadata from '~/components/common/Metadata.astro';
+import SiteVerification from '~/components/common/SiteVerification.astro';
+import Analytics from '~/components/common/Analytics.astro';
+import BasicScripts from '~/components/common/BasicScripts.astro';
+
+// Comment the line below to disable View Transitions
+import { ClientRouter } from 'astro:transitions';
+
+import type { MetaData as MetaDataType } from '~/types';
+
+export interface Props {
+  metadata?: MetaDataType;
+}
+
+const { metadata = {} } = Astro.props;
+const { language, textDirection } = I18N;
+---
+
+<!doctype html>
+<html lang={language} dir={textDirection} class="2xl:text-[20px]">
+  <head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-EQGNCD55GL"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-EQGNCD55GL');
+<!-- Event snippet for Book appointment (2) conversion page -->
+  gtag('event', 'conversion', {
+      'send_to': 'AW-17506750409/QnhGCP-qiaEbEMmf75tB',
+  });
+</script>
+    <CommonMeta />
+    <Favicons />
+    <CustomStyles />
+    <ApplyColorMode />
+    <Metadata {...metadata} />
+
+<!-- Paste JSON-LD FAQ here -->
+<script type="application/ld+json" is:inline>
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://www.jyotirsetu.com/#website",
+      "url": "https://www.jyotirsetu.com/",
+      "name": "JyotirSetu",
+      "description": "JyotirSetu offers personalized astrology consultations, Kundli readings, Dosha remedies, gemstone guidance, and more to help you align with your life's purpose.",
+      "publisher": {
+        "@id": "https://www.jyotirsetu.com/#organization"
+      },
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://www.jyotirsetu.com/?s={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    },
+    {
+      "@type": "Organization",
+      "@id": "https://www.jyotirsetu.com/#organization",
+      "name": "JyotirSetu",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://www.jyotirsetu.com/JyotirSetu%20Full%20Logo%20Transparent.png",
+        "width": 250,
+        "height": 60
+      },
+      "sameAs": [
+        "https://www.facebook.com/jyotirsetu",
+        "https://www.instagram.com/jyotirsetu"
+      ]
+    },
+    {
+      "@type": "Person",
+      "@id": "https://www.jyotirsetu.com/#punita-sharma",
+      "name": "Punita Sharma",
+      "image": "https://ik.imagekit.io/37za8gbvl/Astrologer_PunitaSharma.jpg?updatedAt=1757195629463&tr=w-400%2Ch-400%2Cc-maintain_ratio%2Cfo-auto",
+      "jobTitle": "Astrologer",
+      "worksFor": {
+        "@id": "https://www.jyotirsetu.com/#organization"
+      },
+      "description": "Punita Sharma is an experienced astrologer providing personalized Jyotish consultations, Kundli readings, Dosha remedies, and spiritual guidance to clients seeking clarity and direction in life."
+    },
+    {
+      "@type": "WebPage",
+      "@id": "https://www.jyotirsetu.com/#homepage",
+      "url": "https://www.jyotirsetu.com/",
+      "name": "JyotirSetu - Astrology Consultations",
+      "isPartOf": {
+        "@id": "https://www.jyotirsetu.com/#website"
+      },
+      "primaryImageOfPage": {
+        "@type": "ImageObject",
+        "url": "https://github.com/jyotirsetu/JyotirSetu-2.0/raw/main/screenshots/homepage.png",
+        "width": 1200,
+        "height": 630
+      },
+      "inLanguage": "en",
+      "description": "JyotirSetu offers expert astrology services including Kundli analysis, Dosha remedies, gemstone consultations, and personalized spiritual guidance."
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://www.jyotirsetu.com/#faq",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What information do I need to provide for a precise Kundli reading?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "To ensure accuracy, please share your exact date, time, and place of birth. Even small discrepancies can affect the birth chart’s interpretation and timing of insights."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How does Jyotish (Vedic astrology) differ from Western astrology?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Jyotish is based on the sidereal zodiac, focusing on the moon sign and nakshatras, rather than the sun sign. Its core lies in timing via dashas and planetary periods, believed to offer deeper, culturally anchored insights."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What types of readings and services do you offer?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "We provide Kundli Analysis, Dosha Identification & Remedies, Matchmaking (Kundli Milan), Gemstone Consultation, Numerology, Career & Finance Insights, Palmistry, Spiritual Guidance, and more."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Why consult JyotirSetu for your astrology needs?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Our experienced astrologers offer personalized guidance using chart-specific insights, practical remedies, and spiritual counseling—helping you make informed decisions rather than vague predictions."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can astrology predict the future with certainty?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Astrology highlights patterns and potential timings—yes—but doesn’t override free will. It’s a guiding tool, not a deterministic script."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What is a Dosha, and how can you help?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Doshas—like Mangal, Kaal Sarp, and Pitru Dosha—are imbalances in your planetary configuration. JyotirSetu analyzes these and offers tailored, practical remedies aligned with Vedic tradition."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How do gemstones work in astrology?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Gemstones act as vibrational amplifiers to strengthen planetary energies. We suggest precise gems after chart analysis to enhance balance and well-being."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How can astrology support my career and financial decisions?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "By examining relevant houses and planetary placements, we provide clarity on strengths, timing, and optimal paths—helping you navigate professional and financial transitions with confidence."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "I don’t know my exact birth time. Can I still get insights?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Partial readings are possible, but accuracy improves exponentially with a precise birth time. Astrologers may use rectification techniques to estimate your correct chart when needed."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What benefits do I gain from a consultation with JyotirSetu?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "You’ll receive clarity, greater self-awareness, timing guidance, and actionable solutions—helping you align with your life’s purpose and cosmic rhythm."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How secure and private are your consultations and data?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "We uphold full confidentiality. Discussions are private, and personal details remain encrypted and are accessible only to your astrologer."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How do I book, and what is the process?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Booking is simple: choose your consultation type, fill in your birth details, schedule your slot, and you’ll receive confirmation with all required instructions."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Are the remedies and guidance you offer safe and practical?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes—our suggested remedies are grounded in classical texts and designed to be practical, easy to follow, and safe for daily use."
+          }
+        }
+      ]
+    }
+  ]
+}
+</script>
+
+    <SiteVerification />
+    <Analytics />
+
+    <!-- Preload critical CSS to prevent FOUC -->
+    <!-- CSS preload removed to prevent 404 errors in production -->
+
+    <!-- Comment the line below to disable View Transitions -->
+    <ClientRouter fallback="swap" />
+  </head>
+
+  <body class="antialiased text-default bg-page tracking-tight">
+    <slot />
+
+    <BasicScripts />
+    
+    <!-- Enhanced Cache Manager -->
+    <script is:inline>
+      // Comprehensive Cache Manager for JyotirSetu
+      (function() {
+        'use strict';
+        
+        const CACHE_VERSION = 'v2.1';
+        const CACHE_KEY = 'jyotirsetu-cache-version';
+        
+        // Clear all types of cache
+        async function clearAllCaches() {
+          try {
+            // Clear Service Worker caches
+            if ('caches' in window) {
+              const cacheNames = await caches.keys();
+              await Promise.all(
+                cacheNames.map(cacheName => {
+                  console.log('Clearing cache:', cacheName);
+                  return caches.delete(cacheName);
+                })
+              );
+            }
+            
+            // Clear localStorage form data
+            const keysToRemove = [];
+            for (let i = 0; i < localStorage.length; i++) {
+              const key = localStorage.key(i);
+              if (key && (key.includes('form') || key.includes('appointment'))) {
+                keysToRemove.push(key);
+              }
+            }
+            keysToRemove.forEach(key => localStorage.removeItem(key));
+            
+            // Clear sessionStorage
+            sessionStorage.clear();
+            
+            console.log('All caches cleared successfully');
+            return true;
+          } catch (error) {
+            console.error('Error clearing caches:', error);
+            return false;
+          }
+        }
+        
+        // Check if cache needs to be cleared
+        function shouldClearCache() {
+          const storedVersion = localStorage.getItem(CACHE_KEY);
+          return storedVersion !== CACHE_VERSION;
+        }
+        
+        // Clear cache on page refresh (selective clearing)
+        function handlePageRefresh() {
+          // Check if this is a refresh (not initial load)
+          if (performance.navigation && performance.navigation.type === 1) {
+            console.log('Page refresh detected - clearing selective caches');
+            clearSelectiveCaches();
+          }
+        }
+        
+        // Clear only problematic caches, keep performance caches
+        async function clearSelectiveCaches() {
+          try {
+            if ('caches' in window) {
+              const cacheNames = await caches.keys();
+              // Only clear HTML and API caches, keep static asset caches
+              const cachesToClear = cacheNames.filter(name => 
+                name.includes('html') || 
+                name.includes('api') || 
+                name.includes('jyotirsetu-v') // Clear main cache but keep static cache
+              );
+              
+              await Promise.all(
+                cachesToClear.map(cacheName => {
+                  console.log('Clearing selective cache:', cacheName);
+                  return caches.delete(cacheName);
+                })
+              );
+            }
+            
+            // Clear form-related storage
+            const keysToRemove = [];
+            for (let i = 0; i < localStorage.length; i++) {
+              const key = localStorage.key(i);
+              if (key && (key.includes('form') || key.includes('appointment'))) {
+                keysToRemove.push(key);
+              }
+            }
+            keysToRemove.forEach(key => localStorage.removeItem(key));
+            
+            // Clear sessionStorage
+            sessionStorage.clear();
+            
+            console.log('Selective caches cleared successfully');
+            return true;
+          } catch (error) {
+            console.error('Error clearing selective caches:', error);
+            return false;
+          }
+        }
+        
+        // Initialize cache management
+        async function initializeCacheManager() {
+          // Clear cache if version mismatch
+          if (shouldClearCache()) {
+            console.log('Version mismatch detected, clearing cache...');
+            await clearAllCaches();
+            localStorage.setItem(CACHE_KEY, CACHE_VERSION);
+          }
+          
+          // Handle page refresh
+          handlePageRefresh();
+          
+          // Add cache clear button for development
+          if (window.location.hostname === 'localhost' || window.location.hostname.includes('localhost')) {
+            addCacheClearButton();
+          }
+        }
+        
+        // Add cache clear button for development
+        function addCacheClearButton() {
+          const button = document.createElement('button');
+          button.textContent = '🗑️ Clear Cache';
+          button.style.cssText = `
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 9999;
+            background: #ff4444;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+          `;
+          
+          button.onclick = async () => {
+            button.textContent = 'Clearing...';
+            button.disabled = true;
+            await clearSelectiveCaches();
+            button.textContent = '✅ Cleared';
+            setTimeout(() => {
+              button.textContent = '🗑️ Clear Cache';
+              button.disabled = false;
+            }, 2000);
+          };
+          
+          document.body.appendChild(button);
+        }
+        
+        // Enhanced fetch with cache busting
+        function createCacheBustingFetch() {
+          const originalFetch = window.fetch;
+          window.fetch = function(url, options = {}) {
+            // Add cache busting for API calls
+            if (typeof url === 'string' && url.includes('/api/')) {
+              options.cache = 'no-cache';
+              options.headers = {
+                ...options.headers,
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0'
+              };
+            }
+            return originalFetch(url, options);
+          };
+        }
+        
+        // Initialize when DOM is ready
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', initializeCacheManager);
+        } else {
+          initializeCacheManager();
+        }
+        
+        // Set up cache busting fetch
+        createCacheBustingFetch();
+        
+        // Export for manual use
+        window.JyotirSetuCacheManager = {
+          clearAllCaches,
+          shouldClearCache,
+          CACHE_VERSION
+        };
+        
+      })();
+    </script>
+    
+    <!-- Service Worker Unregistration Script -->
+    <script is:inline>
+      // Unregister any existing service workers to prevent caching issues
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          registrations.forEach(function(registration) {
+            registration.unregister();
+            console.log('Service Worker unregistered');
+          });
+        });
+      }
+    </script>
+  </body>
+</html>

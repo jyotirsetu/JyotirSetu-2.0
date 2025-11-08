@@ -1,0 +1,489 @@
+---
+export const prerender = false;
+---
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Appointments – Admin</title>
+    <link rel="stylesheet" href="/admin.css" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <style>
+      .modal { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.7); z-index:1000; align-items:center; justify-content:center; }
+      .modal.active { display:flex; }
+      .modal-content { background:#ffffff; padding:28px; border-radius:12px; max-width:600px; width:90%; max-height:90vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.4); }
+      .modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; border-bottom:1px solid #e5e7eb; padding-bottom:16px; }
+      .modal-header h3 { margin:0; font-size:20px; font-weight:700; color:#111827; }
+      .close-btn { background:none; border:none; font-size:28px; cursor:pointer; padding:0; width:32px; height:32px; color:#6b7280; line-height:1; }
+      .close-btn:hover { color:#111827; }
+      .form-group { margin-bottom:20px; }
+      .form-group label { display:block; margin-bottom:8px; font-weight:600; font-size:14px; color:#374151; }
+      .form-group .input, .form-group .select { width:100%; padding:10px 12px; border:1px solid #d1d5db; border-radius:8px; background:#ffffff; color:#111827; font-size:14px; }
+      .form-group .input:focus, .form-group .select:focus { outline:none; border-color:#667eea; box-shadow:0 0 0 3px rgba(102,126,234,0.1); }
+      .form-group .input::placeholder { color:#9ca3af; }
+      .form-group textarea.input { resize:vertical; min-height:80px; font-family:inherit; }
+      .pagination { display:flex; gap:8px; align-items:center; justify-content:center; margin:20px 0; }
+      .pagination button { padding:8px 12px; border:1px solid #d1d5db; background:#ffffff; color:#374151; cursor:pointer; border-radius:6px; font-size:14px; }
+      .pagination button:hover:not(:disabled) { background:#f3f4f6; border-color:#9ca3af; }
+      .pagination button:disabled { opacity:0.5; cursor:not-allowed; }
+      .pagination button.active { background:#667eea; color:#ffffff; border-color:#667eea; }
+      .pagination span { margin-left:12px; color:#6b7280; font-size:14px; }
+      .source-tag { display:inline-block; padding:3px 10px; border-radius:6px; font-size:11px; font-weight:600; text-transform:uppercase; }
+      .source-tag.manual { background:#fef3c7; color:#92400e; }
+      .source-tag.system { background:#dbeafe; color:#1e40af; }
+    </style>
+  </head>
+  <body>
+    <button class="sidebar-toggle" aria-label="Open Admin Menu" id="sidebarToggle">☰</button>
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+    <div class="layout">
+      <aside class="sidebar" id="adminSidebar">
+        <div class="logo"><span class="brand-dot"></span> <span>JyotirSetu Admin</span></div>
+        <nav class="nav">
+          <a href="/admin/dashboard">Dashboard</a>
+          <a class="active" href="/admin/appointments">Appointments</a>
+          <a href="/admin/contacts">Contacts</a>
+          <a href="/admin/calendar">Calendar</a>
+          <a href="/admin/activity-log">Activity Log</a>
+          <a href="/admin/templates/email">Email Templates</a>
+          <a href="/admin/templates/whatsapp">WhatsApp Templates</a>
+          <a href="/admin/settings">Settings</a>
+        </nav>
+      </aside>
+      <section class="content">
+        <div class="topbar">
+          <strong>Appointments</strong>
+          <div style="display:flex; gap:8px; align-items:center">
+            <button class="btn" id="addAppointmentBtn" style="background:#667eea; color:white; border:none;">+ Add Appointment</button>
+            <button class="btn-sm" id="exportBtn" style="background:#22c55e; color:white; border:none;">📥 Export CSV</button>
+            <span class="pill">Manage and contact clients</span>
+            <a href="/api/admin/logout" class="pill">Logout</a>
+          </div>
+        </div>
+        <div class="toolbar">
+          <input class="input" id="search" placeholder="Search name, email, phone" />
+          <select class="select" id="serviceFilter">
+            <option value="">All services</option>
+          </select>
+          <select class="select" id="sourceFilter">
+            <option value="">All sources</option>
+            <option value="system">System</option>
+            <option value="manual">Manual</option>
+          </select>
+        </div>
+        <div style="padding:0 20px 20px">
+          <div id="tableWrap"></div>
+          <div id="pagination"></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Add Appointment Modal -->
+    <div class="modal" id="addModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Add New Appointment</h3>
+          <button class="close-btn" id="closeModal">&times;</button>
+        </div>
+        <form id="addForm">
+          <div class="form-group">
+            <label>Name *</label>
+            <input class="input" name="name" required />
+          </div>
+          <div class="form-group">
+            <label>Email *</label>
+            <input class="input" type="email" name="email" required />
+          </div>
+          <div class="form-group">
+            <label>Phone *</label>
+            <input class="input" name="phone" required />
+          </div>
+          <div class="form-group">
+            <label>Service *</label>
+            <select class="select" name="service" required>
+              <option value="">Choose your service...</option>
+              <option value="🔮 Astrology">🔮 Astrology</option>
+              <option value="💎 Gemstone Consultation">💎 Gemstone Consultation</option>
+              <option value="✋ Palmistry">✋ Palmistry</option>
+              <option value="🔢 Numerology">🔢 Numerology</option>
+              <option value="💼 Career & Finance">💼 Career & Finance</option>
+              <option value="💕 Matchmaking">💕 Matchmaking</option>
+              <option value="📚 Study / Education">📚 Study / Education</option>
+              <option value="🏢 Corporate Consultation">🏢 Corporate Consultation</option>
+              <option value="✨ Other Reason">✨ Other Reason</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Date *</label>
+            <input class="input" type="date" name="date" required />
+          </div>
+          <div class="form-group">
+            <label>Time *</label>
+            <input class="input" type="time" name="time" required />
+          </div>
+          <div class="form-group">
+            <label>Consultation Method *</label>
+            <select class="select" name="consultation_method" required>
+              <option value="">Select method</option>
+              <option>In-Person</option>
+              <option>Video Call</option>
+              <option>Phone Call</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Status</label>
+            <select class="select" name="status">
+              <option value="pending">Pending</option>
+              <option value="confirmed">Confirmed</option>
+              <option value="rescheduled">Rescheduled</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Message (Optional)</label>
+            <textarea class="input" name="message" rows="3"></textarea>
+          </div>
+          <div style="display:flex; gap:12px; justify-content:flex-end; margin-top:24px; padding-top:20px; border-top:1px solid #e5e7eb;">
+            <button type="button" class="btn" id="cancelBtn" style="background:#f3f4f6; color:#374151; border:1px solid #d1d5db; padding:10px 20px; border-radius:8px; font-weight:600; cursor:pointer;">Cancel</button>
+            <button type="submit" class="btn" style="background:#667eea; color:#ffffff; border:none; padding:10px 20px; border-radius:8px; font-weight:600; cursor:pointer; box-shadow:0 2px 4px rgba(102,126,234,0.3);">Create Appointment</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Notes Modal -->
+    <div class="modal" id="notesModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Notes & History</h3>
+          <button class="close-btn" id="closeNotesModal">&times;</button>
+        </div>
+        <div id="notesContent">
+          <div style="margin-bottom:20px">
+            <label style="display:block;margin-bottom:8px;font-weight:600;color:#374151">Add Note</label>
+            <textarea id="newNote" class="input" rows="3" placeholder="Enter your note here..."></textarea>
+            <button class="btn" id="saveNoteBtn" style="margin-top:8px;background:#667eea;color:white;border:none;padding:8px 16px;border-radius:6px;cursor:pointer">Save Note</button>
+          </div>
+          <div>
+            <strong style="color:#374151;display:block;margin-bottom:12px">Notes History</strong>
+            <div id="notesList" style="max-height:300px;overflow-y:auto"></div>
+          </div>
+          <div style="margin-top:20px;border-top:1px solid #e5e7eb;padding-top:20px">
+            <strong style="color:#374151;display:block;margin-bottom:12px">Email History</strong>
+            <div id="emailHistoryList" style="max-height:200px;overflow-y:auto"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let currentPage = 1;
+      let paginationData = { page: 1, totalPages: 1, total: 0 };
+      let allData = [];
+
+      function formatWaPhone(input){
+        const digits = String(input||'').replace(/\D/g,'');
+        if (digits.startsWith('91')) return digits;
+        if (digits.length === 10) return '91'+digits;
+        return digits;
+      }
+
+      async function fetchData(page = 1) {
+        const res = await fetch(`/api/admin/appointments?page=${page}&limit=20`, { credentials: 'include' });
+        const json = await res.json();
+        paginationData = json.pagination || { page: 1, totalPages: 1, total: 0 };
+        return json?.data || [];
+      }
+
+      function renderPagination() {
+        const pagEl = document.getElementById('pagination') as HTMLElement | null;
+        if (!pagEl) return;
+        if (paginationData.totalPages <= 1) {
+          pagEl.innerHTML = '';
+          return;
+        }
+        let html = '<div class="pagination">';
+        html += `<button ${currentPage === 1 ? 'disabled' : ''} id="prevPage">‹ Prev</button>`;
+        for (let i = 1; i <= paginationData.totalPages; i++) {
+          if (i === 1 || i === paginationData.totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+            html += `<button class="${i === currentPage ? 'active' : ''}" data-page="${i}">${i}</button>`;
+          } else if (i === currentPage - 3 || i === currentPage + 3) {
+            html += `<span>...</span>`;
+          }
+        }
+        html += `<button ${currentPage === paginationData.totalPages ? 'disabled' : ''} id="nextPage">Next ›</button>`;
+        html += `<span style="margin-left:12px; color:#666;">Page ${currentPage} of ${paginationData.totalPages} (${paginationData.total} total)</span>`;
+        html += '</div>';
+        pagEl.innerHTML = html;
+        
+        document.getElementById('prevPage')?.addEventListener('click', () => { if (currentPage > 1) loadPage(currentPage - 1); });
+        document.getElementById('nextPage')?.addEventListener('click', () => { if (currentPage < paginationData.totalPages) loadPage(currentPage + 1); });
+        document.querySelectorAll('[data-page]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const p = btn.getAttribute('data-page');
+            if (p) loadPage(parseInt(p));
+          });
+        });
+      }
+
+      function render(rows) {
+        const wrap = document.getElementById('tableWrap') as HTMLElement | null;
+        if (!wrap) return;
+        if (!rows.length) { wrap.innerHTML = '<p class="muted">No appointments found.</p>'; return; }
+        const uniqueServices = Array.from(new Set(rows.map(r => r.service))).filter(Boolean);
+        const serviceFilter = document.getElementById('serviceFilter') as HTMLSelectElement | null;
+        const currentService = serviceFilter?.value || '';
+        if (serviceFilter) {
+          serviceFilter.innerHTML = '<option value="">All services</option>' + uniqueServices.map(s => `<option ${s === currentService ? 'selected' : ''}>${s}</option>`).join('');
+        }
+        
+        const html = [`<table><thead><tr>
+          <th>Name</th><th>Contact</th><th>Service</th><th>Date/Time</th><th>Method</th><th>Status</th><th>Source</th><th>Created</th><th>Actions</th>
+        </tr></thead><tbody>`,
+          ...rows.map(r => `<tr>
+            <td>${r.name}</td>
+            <td>
+              <div>${r.email}</div>
+              <div class="muted">${r.phone}</div>
+            </td>
+            <td><span class="pill">${r.service}</span></td>
+            <td>${r.date} ${r.time}</td>
+            <td>${r.consultation_method}</td>
+            <td>
+              <select data-id="${r.id}" class="select statusSel">
+                ${['pending','confirmed','rescheduled','cancelled'].map(s=>`<option ${r.status===s?'selected':''}>${s}</option>`).join('')}
+              </select>
+            </td>
+            <td><span class="source-tag ${r.source||'system'}">${r.source||'system'}</span></td>
+            <td class="muted">${new Date(r.created_at).toLocaleString()}</td>
+            <td class="actions">
+              <a class="btn-sm" href="/admin/whatsapp?id=${encodeURIComponent(r.id)}&name=${encodeURIComponent(r.name)}&phone=${encodeURIComponent(r.phone)}&service=${encodeURIComponent(r.service)}&status=${encodeURIComponent(r.status||'pending')}" target="_blank">WhatsApp</a>
+              <a class="btn-sm" href="#" data-email-id="${r.id}">Send Email</a>
+              <a class="btn-sm" href="#" data-notes-id="${r.id}" style="color:#f59e0b">📝 Notes</a>
+            </td>
+          </tr>`),
+        '</tbody></table>'].join('');
+        if (wrap) wrap.innerHTML = html;
+        
+        document.querySelectorAll('.statusSel').forEach(el=>{
+          el.addEventListener('change', async (e)=>{
+            const target = e.target as HTMLSelectElement | null;
+            const id = target?.getAttribute('data-id') || '';
+            const status = target?.value || 'pending';
+            await fetch('/api/admin/appointments', { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ id, status }) });
+            loadPage(currentPage);
+          });
+        });
+        document.querySelectorAll('[data-email-id]').forEach(el=>{
+          el.addEventListener('click', async (e)=>{
+            e.preventDefault();
+            const id = el.getAttribute('data-email-id') || '';
+            const status = (document.querySelector(`select[data-id="${id}"]`) as HTMLSelectElement | null)?.value || 'pending';
+            const row = rows.find(r=>r.id===id);
+            if (!row) return;
+            const confirmed = window.confirm(`Send email to ${row.email} for status: ${status.toUpperCase()}?`);
+            if (!confirmed) return;
+            const res = await fetch('/api/admin/appointments', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ action:'email', id, status }) });
+            const j = await res.json();
+            alert(j.ok ? 'Email sent' : 'Email failed');
+          });
+        });
+        document.querySelectorAll('a.btn-sm[href^="/admin/whatsapp"]').forEach(a=>{
+          a.addEventListener('click', async (e)=>{
+            e.preventDefault();
+            const href = a.getAttribute('href') || '';
+            if (!href) return;
+            const url = new URL(href, location.origin);
+            const params = Object.fromEntries(url.searchParams.entries());
+            const res = await fetch('/api/admin/templates?type=whatsapp');
+            const tpl = await res.json();
+            const m = (tpl.data||[]).find(x=>x.key===params.status);
+            const text = (m?.text||`Hello {name}, your appointment for {service} is {status}.`).replaceAll('{name}', params.name).replaceAll('{service}', params.service).replaceAll('{status}', params.status);
+            const link = `https://wa.me/${encodeURIComponent(formatWaPhone(params.phone))}?text=${encodeURIComponent(text)}`;
+            // Log WhatsApp send to activity log
+            try {
+              await fetch('/api/admin/activity', {
+                method:'POST',
+                headers:{'Content-Type':'application/json'},
+                body: JSON.stringify({
+                  action: 'whatsapp_sent',
+                  entity_type: 'appointment',
+                  entity_id: params.id || null,
+                  details: `WhatsApp sent to ${params.name} (${params.phone}) for ${params.service} – ${params.status}`
+                })
+              });
+            } catch (err) { console.warn('Failed to log WhatsApp send', err); }
+            window.open(link, '_blank');
+          });
+        });
+      }
+
+      function applyFilters(all) {
+        const qEl = document.getElementById('search') as HTMLInputElement | null;
+        const sEl = document.getElementById('serviceFilter') as HTMLSelectElement | null;
+        const srcEl = document.getElementById('sourceFilter') as HTMLSelectElement | null;
+        const q = (qEl?.value || '').toLowerCase();
+        const s = sEl?.value || '';
+        const src = srcEl?.value || '';
+        return all.filter(r => (
+          (!q || (r.name+" "+r.email+" "+r.phone).toLowerCase().includes(q)) &&
+          (!s || r.service === s) &&
+          (!src || (r.source||'system') === src)
+        ));
+      }
+
+      async function loadPage(page) {
+        currentPage = page;
+        allData = await fetchData(page);
+        render(applyFilters(allData));
+        renderPagination();
+      }
+
+      // Modal handlers
+      document.getElementById('addAppointmentBtn')?.addEventListener('click', () => {
+        document.getElementById('addModal')?.classList.add('active');
+      });
+      document.getElementById('closeModal')?.addEventListener('click', () => {
+        document.getElementById('addModal')?.classList.remove('active');
+      });
+      document.getElementById('cancelBtn')?.addEventListener('click', () => {
+        document.getElementById('addModal')?.classList.remove('active');
+      });
+      document.getElementById('addForm')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const form = e.target as HTMLFormElement;
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+        const res = await fetch('/api/admin/appointments', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'create', ...data })
+        });
+        const json = await res.json();
+        if (json.ok) {
+          alert('Appointment created successfully!');
+          document.getElementById('addModal')?.classList.remove('active');
+          form.reset();
+          loadPage(1);
+        } else {
+          alert('Failed to create appointment: ' + (json.error || 'Unknown error'));
+        }
+      });
+
+      // Export handler
+      document.getElementById('exportBtn')?.addEventListener('click', () => {
+        window.open('/api/admin/export?type=appointments&format=csv', '_blank');
+      });
+
+      // Notes modal handlers
+      let currentNotesEntityId: string | null = null;
+      let currentNotesEntityType = 'appointment';
+      
+      document.getElementById('closeNotesModal')?.addEventListener('click', () => {
+        document.getElementById('notesModal')?.classList.remove('active');
+      });
+      
+      document.getElementById('saveNoteBtn')?.addEventListener('click', async () => {
+        if (!currentNotesEntityId) return;
+        const noteInput = document.getElementById('newNote') as HTMLInputElement | null;
+        const noteText = (noteInput?.value || '').trim();
+        if (!noteText) return;
+        
+        const res = await fetch('/api/admin/notes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ entity_type: currentNotesEntityType, entity_id: currentNotesEntityId, note_text: noteText })
+        });
+        const json = await res.json();
+        if (json.ok) {
+          if (noteInput) noteInput.value = '';
+          loadNotes(currentNotesEntityId, currentNotesEntityType);
+        }
+      });
+      
+      async function loadNotes(entityId, entityType) {
+        const [notesRes, emailRes] = await Promise.all([
+          fetch(`/api/admin/notes?entity_type=${entityType}&entity_id=${entityId}`).then(r => r.json()),
+          fetch(`/api/admin/email-history?related_id=${entityId}&related_type=${entityType}`).then(r => r.json())
+        ]);
+        
+        const notesList = document.getElementById('notesList');
+        const notes = notesRes.data || [];
+        if (notesList) notesList.innerHTML = notes.length ? notes.map(n => `
+          <div style="padding:12px;margin-bottom:8px;background:#f9fafb;border-radius:6px;border-left:3px solid #667eea">
+            <div style="font-size:12px;color:#6b7280;margin-bottom:4px">${new Date(n.created_at).toLocaleString()}</div>
+            <div style="color:#111827">${n.note_text}</div>
+          </div>
+        `).join('') : '<p style="color:#9ca3af;font-size:14px">No notes yet</p>';
+        
+        const emailList = document.getElementById('emailHistoryList');
+        const emails = emailRes.data || [];
+        if (emailList) emailList.innerHTML = emails.length ? emails.map(e => `
+          <div style="padding:8px;margin-bottom:6px;background:#f9fafb;border-radius:6px;font-size:13px">
+            <div style="font-weight:600;color:#111827">${e.subject}</div>
+            <div style="color:#6b7280;font-size:11px">${new Date(e.sent_at).toLocaleString()} - ${e.status}</div>
+          </div>
+        `).join('') : '<p style="color:#9ca3af;font-size:14px">No emails sent</p>';
+      }
+      
+      // Notes button handlers
+      document.addEventListener('click', async (e) => {
+        const tgt = e.target as HTMLElement | null;
+        const notesBtn = tgt?.closest('[data-notes-id]') as HTMLElement | null;
+        if (notesBtn) {
+          e.preventDefault();
+          currentNotesEntityId = notesBtn.getAttribute('data-notes-id');
+          currentNotesEntityType = 'appointment';
+          document.getElementById('notesModal')?.classList.add('active');
+          await loadNotes(currentNotesEntityId, currentNotesEntityType);
+        }
+      });
+
+      // Filter handlers
+      document.getElementById('search')?.addEventListener('input', () => render(applyFilters(allData)));
+      document.getElementById('serviceFilter')?.addEventListener('change', () => render(applyFilters(allData)));
+      document.getElementById('sourceFilter')?.addEventListener('change', () => render(applyFilters(allData)));
+
+      // Initial load
+      loadPage(1);
+
+      // Mobile drawer with animated hamburger
+      const sidebar = document.getElementById('adminSidebar');
+      const backdrop = document.getElementById('sidebarBackdrop');
+      const toggleBtn = document.getElementById('sidebarToggle') as HTMLButtonElement | null;
+      let isOpen = false;
+      
+      function openSidebar() {
+        sidebar?.classList.add('active');
+        backdrop?.classList.add('active');
+        toggleBtn?.classList.add('active');
+        if (toggleBtn) toggleBtn.innerHTML = '✕';
+        isOpen = true;
+      }
+      
+      function closeSidebar() {
+        sidebar?.classList.remove('active');
+        backdrop?.classList.remove('active');
+        toggleBtn?.classList.remove('active');
+        if (toggleBtn) toggleBtn.innerHTML = '☰';
+        isOpen = false;
+      }
+      
+      toggleBtn?.addEventListener('click', () => {
+        if (isOpen) closeSidebar();
+        else openSidebar();
+      });
+      
+      backdrop?.addEventListener('click', closeSidebar);
+      sidebar?.querySelectorAll('a').forEach(a => {
+        a.addEventListener('click', () => {
+          if (window.innerWidth <= 900) closeSidebar();
+        });
+      });
+      
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && isOpen) closeSidebar();
+      });
+    </script>
+  </body>
+</html>

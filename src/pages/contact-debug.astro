@@ -1,0 +1,188 @@
+---
+export const prerender = false;
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Form Debug - JyotirSetu</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; }
+        .form-group { margin: 15px 0; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, textarea, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
+        button { background: #007bff; color: white; padding: 12px 24px; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .result { margin-top: 20px; padding: 15px; border-radius: 4px; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .debug { background: #f8f9fa; color: #495057; border: 1px solid #dee2e6; }
+    </style>
+</head>
+<body>
+    <h1>🐛 Contact Form Debug</h1>
+    <p>This page helps debug the contact form submission issue.</p>
+    
+    <div id="debugInfo" class="result debug" style="display: none;"></div>
+    
+    <form id="contactForm">
+        <div class="form-group">
+            <label for="fullName">Full Name:</label>
+            <input type="text" id="fullName" name="fullName" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="phone">Phone:</label>
+            <input type="tel" id="phone" name="phone">
+        </div>
+        
+        <div class="form-group">
+            <label for="queryType">Query Type:</label>
+            <select id="queryType" name="queryType" required>
+                <option value="">Select query type</option>
+                <option value="general">General Inquiry</option>
+                <option value="astrology">Astrology Query</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="message">Message:</label>
+            <textarea id="message" name="message" required></textarea>
+        </div>
+        
+        <button type="submit">Send Message</button>
+    </form>
+    
+    <div id="result" class="result" style="display: none;"></div>
+
+    <script>
+        // Debug information
+        document.addEventListener('DOMContentLoaded', function() {
+            const debugDiv = document.getElementById('debugInfo');
+            const form = document.getElementById('contactForm');
+            
+            debugDiv.style.display = 'block';
+            debugDiv.innerHTML = `
+                <h3>🔍 Debug Information:</h3>
+                <p><strong>Form found:</strong> ${form ? '✅ Yes' : '❌ No'}</p>
+                <p><strong>Form ID:</strong> ${form ? form.id : 'N/A'}</p>
+                <p><strong>Submit button found:</strong> ${form ? (form.querySelector('button[type="submit"]') ? '✅ Yes' : '❌ No') : 'N/A'}</p>
+                <p><strong>Current time:</strong> ${new Date().toLocaleString()}</p>
+            `;
+        });
+
+        // Form submission handler
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('contactForm');
+            
+            if (form) {
+                console.log('✅ Contact form found and event listener attached');
+                
+                form.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    console.log('📝 Form submit event triggered');
+                    
+                    // Basic validation
+                    const requiredFields = form.querySelectorAll('[required]');
+                    let isValid = true;
+                    
+                    requiredFields.forEach(function(field) {
+                        if (field instanceof HTMLInputElement || 
+                            field instanceof HTMLSelectElement || 
+                            field instanceof HTMLTextAreaElement) {
+                            if (!field.value || !field.value.trim()) {
+                                field.classList.add('border-red-500');
+                                isValid = false;
+                            } else {
+                                field.classList.remove('border-red-500');
+                            }
+                        }
+                    });
+                    
+                    if (isValid) {
+                        console.log('✅ Form validation passed');
+                        
+                        // Collect form data
+                        const formData = new FormData(form);
+                        const contactData = {
+                            name: formData.get('fullName'),
+                            email: formData.get('email'),
+                            phone: formData.get('phone'),
+                            subject: formData.get('queryType'),
+                            message: formData.get('message')
+                        };
+                        
+                        console.log('📊 Form data collected:', contactData);
+                        
+                        // Show loading state
+                        const submitBtn = form.querySelector('button[type="submit"]');
+                        const originalText = submitBtn.innerHTML;
+                        submitBtn.innerHTML = '⏳ Sending...';
+                        submitBtn.disabled = true;
+                        
+                        const resultDiv = document.getElementById('result');
+                        resultDiv.style.display = 'block';
+                        resultDiv.textContent = 'Sending message...';
+                        resultDiv.className = 'result';
+                        
+                        try {
+                            console.log('🚀 Sending request to /api/contact');
+                            const response = await fetch('/api/contact', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify(contactData)
+                            });
+                            
+                            console.log('📡 Response received:', response.status, response.statusText);
+                            
+                            const result = await response.json();
+                            console.log('📄 Response data:', result);
+                            
+                            if (response.ok && result.success) {
+                                resultDiv.className = 'result success';
+                                resultDiv.innerHTML = `
+                                    <h3>✅ Message Sent Successfully!</h3>
+                                    <p><strong>Message:</strong> ${result.message}</p>
+                                    <p><strong>ID:</strong> ${result.data?.id || 'N/A'}</p>
+                                `;
+                                form.reset();
+                            } else {
+                                resultDiv.className = 'result error';
+                                resultDiv.innerHTML = `
+                                    <h3>❌ Message Failed</h3>
+                                    <p><strong>Error:</strong> ${result.message || 'Unknown error'}</p>
+                                `;
+                            }
+                        } catch (error) {
+                            console.error('❌ Network error:', error);
+                            resultDiv.className = 'result error';
+                            resultDiv.innerHTML = `
+                                <h3>❌ Network Error</h3>
+                                <p><strong>Error:</strong> ${error.message}</p>
+                            `;
+                        } finally {
+                            // Reset button
+                            submitBtn.innerHTML = originalText;
+                            submitBtn.disabled = false;
+                        }
+                    } else {
+                        console.log('❌ Form validation failed');
+                        alert('Please fill in all required fields.');
+                    }
+                });
+            } else {
+                console.error('❌ Contact form not found!');
+            }
+        });
+    </script>
+</body>
+</html>

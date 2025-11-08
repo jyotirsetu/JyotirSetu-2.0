@@ -1,0 +1,21 @@
+---
+import { GoogleAnalytics } from '@astrolib/analytics';
+import { ANALYTICS } from 'astrowind:config';
+import VercelAnalytics from '@vercel/analytics/astro';
+import SpeedInsights from '@vercel/speed-insights/astro';
+---
+
+{
+  ANALYTICS?.vendors?.googleAnalytics?.id ? (
+    <GoogleAnalytics
+      id={String(ANALYTICS.vendors.googleAnalytics.id)}
+      partytown={ANALYTICS?.vendors?.googleAnalytics?.partytown}
+    />
+  ) : null
+}
+
+<!-- Vercel Analytics -->
+<VercelAnalytics />
+
+<!-- Vercel Speed Insights -->
+<SpeedInsights />

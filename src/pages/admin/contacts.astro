@@ -1,0 +1,340 @@
+---
+export const prerender = false;
+---
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Contacts – Admin</title>
+    <link rel="stylesheet" href="/admin.css" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+  </head>
+  <body>
+    <button class="sidebar-toggle" aria-label="Open Admin Menu" id="sidebarToggle">☰</button>
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+    <div class="layout">
+      <aside class="sidebar" id="adminSidebar">
+        <div class="logo"><span class="brand-dot"></span> <span>JyotirSetu Admin</span></div>
+        <nav class="nav">
+          <a href="/admin/dashboard">Dashboard</a>
+          <a href="/admin/appointments">Appointments</a>
+          <a class="active" href="/admin/contacts">Contacts</a>
+          <a href="/admin/calendar">Calendar</a>
+          <a href="/admin/activity-log">Activity Log</a>
+          <a href="/admin/templates/email">Email Templates</a>
+          <a href="/admin/templates/whatsapp">WhatsApp Templates</a>
+          <a href="/admin/settings">Settings</a>
+        </nav>
+      </aside>
+      <section class="content">
+        <div class="topbar">
+          <strong>Contacts</strong>
+          <div style="display:flex; gap:8px; align-items:center">
+            <button class="btn-sm" id="exportBtn" style="background:#22c55e; color:white; border:none;">📥 Export CSV</button>
+            <span class="pill">Reply and track status</span>
+            <a href="/api/admin/logout" class="pill">Logout</a>
+          </div>
+        </div>
+        <div class="toolbar">
+          <input class="input" id="search" placeholder="Search name, email, subject" />
+          <select class="select" id="statusFilter">
+            <option value="">All status</option>
+            <option>new</option>
+            <option>read</option>
+            <option>replied</option>
+            <option>closed</option>
+          </select>
+          <select class="select" id="priorityFilter">
+            <option value="">All priorities</option>
+            <option>normal</option>
+            <option>high</option>
+            <option>urgent</option>
+          </select>
+        </div>
+        <div style="padding:0 20px 20px">
+          <div id="tableWrap"></div>
+          <div id="pagination"></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Notes Modal -->
+    <div class="modal" id="notesModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Notes & History</h3>
+          <button class="close-btn" id="closeNotesModal">&times;</button>
+        </div>
+        <div id="notesContent">
+          <div style="margin-bottom:20px">
+            <label style="display:block;margin-bottom:8px;font-weight:600;color:#374151">Add Note</label>
+            <textarea id="newNote" class="input" rows="3" placeholder="Enter your note here..."></textarea>
+            <button class="btn" id="saveNoteBtn" style="margin-top:8px;background:#667eea;color:white;border:none;padding:8px 16px;border-radius:6px;cursor:pointer">Save Note</button>
+          </div>
+          <div>
+            <strong style="color:#374151;display:block;margin-bottom:12px">Notes History</strong>
+            <div id="notesList" style="max-height:300px;overflow-y:auto"></div>
+          </div>
+          <div style="margin-top:20px;border-top:1px solid #e5e7eb;padding-top:20px">
+            <strong style="color:#374151;display:block;margin-bottom:12px">Email History</strong>
+            <div id="emailHistoryList" style="max-height:200px;overflow-y:auto"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let currentPage = 1;
+      let paginationData = { page: 1, totalPages: 1, total: 0 };
+      let allData = [];
+
+      function formatWaPhone(input){
+        const digits = String(input||'').replace(/\D/g,'');
+        if (digits.startsWith('91')) return digits;
+        if (digits.length === 10) return '91'+digits;
+        return digits;
+      }
+
+      async function fetchData(page = 1) {
+        const res = await fetch(`/api/admin/contacts?page=${page}&limit=20`, { credentials: 'include' });
+        const json = await res.json();
+        paginationData = json.pagination || { page: 1, totalPages: 1, total: 0 };
+        return json?.data || [];
+      }
+
+      function renderPagination() {
+        const pagEl = document.getElementById('pagination');
+        if (paginationData.totalPages <= 1) {
+          pagEl.innerHTML = '';
+          return;
+        }
+        let html = '<div class="pagination">';
+        html += `<button ${currentPage === 1 ? 'disabled' : ''} id="prevPage">‹ Prev</button>`;
+        for (let i = 1; i <= paginationData.totalPages; i++) {
+          if (i === 1 || i === paginationData.totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+            html += `<button class="${i === currentPage ? 'active' : ''}" data-page="${i}">${i}</button>`;
+          } else if (i === currentPage - 3 || i === currentPage + 3) {
+            html += `<span>...</span>`;
+          }
+        }
+        html += `<button ${currentPage === paginationData.totalPages ? 'disabled' : ''} id="nextPage">Next ›</button>`;
+        html += `<span style="margin-left:12px; color:#666;">Page ${currentPage} of ${paginationData.totalPages} (${paginationData.total} total)</span>`;
+        html += '</div>';
+        pagEl.innerHTML = html;
+        
+        document.getElementById('prevPage')?.addEventListener('click', () => { if (currentPage > 1) loadPage(currentPage - 1); });
+        document.getElementById('nextPage')?.addEventListener('click', () => { if (currentPage < paginationData.totalPages) loadPage(currentPage + 1); });
+        document.querySelectorAll('[data-page]').forEach(btn => {
+          btn.addEventListener('click', () => loadPage(parseInt(btn.getAttribute('data-page'))));
+        });
+      }
+
+      function render(rows) {
+        const wrap = document.getElementById('tableWrap');
+        if (!rows.length) { wrap.innerHTML = '<p class="muted">No messages yet.</p>'; return; }
+        const html = [`<table><thead><tr>
+          <th>Name</th><th>Contact</th><th>Subject</th><th>Message</th><th>Status</th><th>Priority</th><th>Created</th><th>Actions</th>
+        </tr></thead><tbody>`,
+          ...rows.map(r => {
+            const wa = r.phone ? `https://wa.me/${encodeURIComponent(formatWaPhone(r.phone))}?text=${encodeURIComponent('Hello ' + r.name + ', this is JyotirSetu regarding your message: ' + r.subject)}` : '';
+            return `<tr>
+            <td>${r.name}</td>
+            <td>
+              <div>${r.email}</div>
+              <div class="muted">${r.phone || ''}</div>
+            </td>
+            <td>${r.subject}</td>
+            <td class="muted">${(r.message || '').slice(0,120)}${(r.message || '').length > 120 ? '...' : ''}</td>
+            <td>
+              <select data-id="${r.id}" data-field="status" class="select statusSel">
+                ${['new','read','replied','closed'].map(s=>`<option ${(r.status||'new')===s?'selected':''}>${s}</option>`).join('')}
+              </select>
+            </td>
+            <td>
+              <select data-id="${r.id}" data-field="priority" class="select prioritySel">
+                ${['normal','high','urgent'].map(p=>`<option ${(r.priority||'normal')===p?'selected':''}>${p}</option>`).join('')}
+              </select>
+            </td>
+            <td class="muted">${new Date(r.created_at).toLocaleString()}</td>
+            <td class="actions">
+              <a class="btn-sm" href="mailto:${r.email}?subject=Re:%20${encodeURIComponent(r.subject)}">Reply</a>
+              ${r.phone ? `<a class=\"btn-sm\" target=\"_blank\" href=\"${wa}\">WhatsApp</a>` : ''}
+              <a class="btn-sm" href="#" data-notes-id="${r.id}" style="color:#f59e0b">📝 Notes</a>
+            </td>
+          </tr>`;
+          }),
+        '</tbody></table>'].join('');
+        wrap.innerHTML = html;
+        
+        // Status update handlers
+        document.querySelectorAll('.statusSel').forEach(el => {
+          el.addEventListener('change', async (e) => {
+            const id = e.target.getAttribute('data-id');
+            const status = e.target.value;
+            const res = await fetch('/api/admin/contacts', {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ id, status })
+            });
+            const json = await res.json();
+            if (json.ok) {
+              // Update local data
+              const row = allData.find(r => r.id === id);
+              if (row) row.status = status;
+              render(applyFilters(allData));
+            }
+          });
+        });
+        
+        // Priority update handlers
+        document.querySelectorAll('.prioritySel').forEach(el => {
+          el.addEventListener('change', async (e) => {
+            const id = e.target.getAttribute('data-id');
+            const priority = e.target.value;
+            const res = await fetch('/api/admin/contacts', {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ id, priority })
+            });
+            const json = await res.json();
+            if (json.ok) {
+              const row = allData.find(r => r.id === id);
+              if (row) row.priority = priority;
+              render(applyFilters(allData));
+            }
+          });
+        });
+      }
+
+      function applyFilters(all) {
+        const q = document.getElementById('search').value.toLowerCase();
+        const s = document.getElementById('statusFilter').value;
+        const p = document.getElementById('priorityFilter').value;
+        return all.filter(r => (
+          (!q || (r.name+" "+r.email+" "+r.subject+" "+(r.message||'')).toLowerCase().includes(q)) &&
+          (!s || (r.status||'new') === s) &&
+          (!p || (r.priority||'normal') === p)
+        ));
+      }
+
+      async function loadPage(page) {
+        currentPage = page;
+        allData = await fetchData(page);
+        render(applyFilters(allData));
+        renderPagination();
+      }
+
+      // Export handler
+      document.getElementById('exportBtn').addEventListener('click', () => {
+        window.open('/api/admin/export?type=contacts&format=csv', '_blank');
+      });
+
+      // Notes modal handlers
+      let currentNotesEntityId = null;
+      let currentNotesEntityType = 'contact';
+      
+      document.getElementById('closeNotesModal').addEventListener('click', () => {
+        document.getElementById('notesModal').classList.remove('active');
+      });
+      
+      document.getElementById('saveNoteBtn').addEventListener('click', async () => {
+        if (!currentNotesEntityId) return;
+        const noteText = document.getElementById('newNote').value.trim();
+        if (!noteText) return;
+        
+        const res = await fetch('/api/admin/notes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ entity_type: currentNotesEntityType, entity_id: currentNotesEntityId, note_text: noteText })
+        });
+        const json = await res.json();
+        if (json.ok) {
+          document.getElementById('newNote').value = '';
+          loadNotes(currentNotesEntityId, currentNotesEntityType);
+        }
+      });
+      
+      async function loadNotes(entityId, entityType) {
+        const [notesRes, emailRes] = await Promise.all([
+          fetch(`/api/admin/notes?entity_type=${entityType}&entity_id=${entityId}`).then(r => r.json()),
+          fetch(`/api/admin/email-history?related_id=${entityId}&related_type=${entityType}`).then(r => r.json())
+        ]);
+        
+        const notesList = document.getElementById('notesList');
+        const notes = notesRes.data || [];
+        notesList.innerHTML = notes.length ? notes.map(n => `
+          <div style="padding:12px;margin-bottom:8px;background:#f9fafb;border-radius:6px;border-left:3px solid #667eea">
+            <div style="font-size:12px;color:#6b7280;margin-bottom:4px">${new Date(n.created_at).toLocaleString()}</div>
+            <div style="color:#111827">${n.note_text}</div>
+          </div>
+        `).join('') : '<p style="color:#9ca3af;font-size:14px">No notes yet</p>';
+        
+        const emailList = document.getElementById('emailHistoryList');
+        const emails = emailRes.data || [];
+        emailList.innerHTML = emails.length ? emails.map(e => `
+          <div style="padding:8px;margin-bottom:6px;background:#f9fafb;border-radius:6px;font-size:13px">
+            <div style="font-weight:600;color:#111827">${e.subject}</div>
+            <div style="color:#6b7280;font-size:11px">${new Date(e.sent_at).toLocaleString()} - ${e.status}</div>
+          </div>
+        `).join('') : '<p style="color:#9ca3af;font-size:14px">No emails sent</p>';
+      }
+      
+      document.addEventListener('click', async (e) => {
+        const notesBtn = e.target.closest('[data-notes-id]');
+        if (notesBtn) {
+          e.preventDefault();
+          currentNotesEntityId = notesBtn.getAttribute('data-notes-id');
+          currentNotesEntityType = 'contact';
+          document.getElementById('notesModal').classList.add('active');
+          await loadNotes(currentNotesEntityId, currentNotesEntityType);
+        }
+      });
+
+      // Filter handlers
+      document.getElementById('search').addEventListener('input', () => render(applyFilters(allData)));
+      document.getElementById('statusFilter').addEventListener('change', () => render(applyFilters(allData)));
+      document.getElementById('priorityFilter').addEventListener('change', () => render(applyFilters(allData)));
+
+      // Initial load
+      loadPage(1);
+
+      // Mobile drawer with animated hamburger
+      const sidebar = document.getElementById('adminSidebar');
+      const backdrop = document.getElementById('sidebarBackdrop');
+      const toggleBtn = document.getElementById('sidebarToggle');
+      let isOpen = false;
+      
+      function openSidebar() {
+        sidebar?.classList.add('active');
+        backdrop?.classList.add('active');
+        toggleBtn?.classList.add('active');
+        toggleBtn.innerHTML = '✕';
+        isOpen = true;
+      }
+      
+      function closeSidebar() {
+        sidebar?.classList.remove('active');
+        backdrop?.classList.remove('active');
+        toggleBtn?.classList.remove('active');
+        toggleBtn.innerHTML = '☰';
+        isOpen = false;
+      }
+      
+      toggleBtn?.addEventListener('click', () => {
+        if (isOpen) closeSidebar();
+        else openSidebar();
+      });
+      
+      backdrop?.addEventListener('click', closeSidebar);
+      sidebar?.querySelectorAll('a').forEach(a => {
+        a.addEventListener('click', () => {
+          if (window.innerWidth <= 900) closeSidebar();
+        });
+      });
+      
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && isOpen) closeSidebar();
+      });
+    </script>
+  </body>
+</html>
