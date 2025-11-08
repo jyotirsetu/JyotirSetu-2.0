@@ -45,6 +45,8 @@ export default defineConfig({
       filter: (page) => {
         // Exclude admin pages (private)
         if (page.includes('/admin')) return false;
+        // Exclude API routes (non-indexable)
+        if (page.includes('/api/')) return false;
         
         // Exclude blog and template demo pages (not used)
         if (page.includes('/blog') || 
@@ -70,6 +72,8 @@ export default defineConfig({
       customPages: [
         'https://www.blog.jyotirsetu.com',
         'https://www.blog.jyotirsetu.com/blog',
+        // Follow hub standalone site
+        'https://follow.jyotirsetu.com/'
       ]
     }),
     mdx(),
