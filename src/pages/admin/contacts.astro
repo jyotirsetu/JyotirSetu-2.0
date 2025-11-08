@@ -7,7 +7,7 @@ export const prerender = false;
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Contacts – Admin</title>
-    <link rel="stylesheet" href="/admin.css" />
+<link rel="stylesheet" href="/admin.css?v=20251108" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
   </head>
   <body>
@@ -106,7 +106,7 @@ export const prerender = false;
       function renderPagination() {
         const pagEl = document.getElementById('pagination');
         if (paginationData.totalPages <= 1) {
-          pagEl.innerHTML = '';
+          if (pagEl) pagEl.innerHTML = '';
           return;
         }
         let html = '<div class="pagination">';

@@ -117,6 +117,41 @@ The admin dashboard requires a Turso database:
 - [ ] Email sending works (if configured)
 - [ ] Favicon displays correctly
 
+## Admin Theme Checklist
+
+- [ ] `/public/admin.css` exists and is deployed
+- [ ] Each admin page includes `<link rel="stylesheet" href="/admin.css?v=YYYYMMDD">`
+- [ ] Cached CSS is invalidated via version query (`?v=`) after updates
+- [ ] GitHub Actions deploys from `main` (merge feature branches before release)
+- [ ] Hosting platform (e.g., Vercel) includes `public/` assets in build output
+- [ ] No 404s for `/admin.css` or `/favicon.ico` in the Network tab
+
+## Monitoring CSS Loading Errors
+
+- Use browser DevTools Network panel to verify `/admin.css` status (200/304, not 404).
+- In production, consider adding error reporting (e.g., Sentry) to capture resource load failures.
+- Optional (dev-only): add a small script to log missing styles by checking a known computed style.
+  ```html
+  <!-- Example dev-only snippet for troubleshooting -->
+  <script>
+    if (location.hostname === 'localhost') {
+      const styleApplied = getComputedStyle(document.body).backgroundColor;
+      if (!styleApplied || styleApplied === 'rgba(0, 0, 0, 0)') {
+        console.warn('admin.css may not be applied. Check <link> href and Network tab.');
+      }
+      window.addEventListener('error', (e) => {
+        console.error('Resource load error:', e);
+      }, true);
+    }
+  </script>
+  ```
+
+## Branches and CI
+
+- CI triggers only on `main` for push and pull_request. Merge feature branches into `main` to build and deploy.
+- Ensure `npm run build` succeeds and includes `public/` assets.
+- If using Vercel, verify the connected branch is `main` or your production branch.
+
 ## Security Notes
 
 1. **Never commit** `.env` files or credentials
