@@ -4,8 +4,6 @@ import { getTursoClient } from '../../lib/turso';
 export const prerender = false;
 
 export const GET: APIRoute = async () => {
-  const mode = ((import.meta.env && import.meta.env.MODE) || process.env.NODE_ENV || 'development');
-  const isDev = mode !== 'production';
   const envUrl = (((import.meta.env && import.meta.env.TURSO_DATABASE_URL) || process.env.TURSO_DATABASE_URL) || '').toString().trim();
   const envToken = (((import.meta.env && import.meta.env.TURSO_AUTH_TOKEN) || process.env.TURSO_AUTH_TOKEN) || '').toString().trim();
   const hasUrl = Boolean(envUrl);
@@ -36,7 +34,7 @@ export const GET: APIRoute = async () => {
   }
 
   try {
-    const client = getTursoClient();
+    const client = await getTursoClient();
     const res = await client.execute('SELECT 1 AS ok');
     return new Response(
       JSON.stringify({
@@ -49,7 +47,8 @@ export const GET: APIRoute = async () => {
       }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
-  } catch (e: any) {
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : 'unknown';
     return new Response(
       JSON.stringify({
         ok: false,
@@ -57,7 +56,7 @@ export const GET: APIRoute = async () => {
         hasUrl,
         hasToken,
         urlHostMasked: mask(envUrl),
-        error: e?.message || 'unknown',
+        error: msg,
       }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );

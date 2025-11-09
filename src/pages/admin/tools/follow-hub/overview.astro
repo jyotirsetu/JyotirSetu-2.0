@@ -1,5 +1,6 @@
 ---
 export const prerender = false;
+import Favicons from '~/components/Favicons.astro';
 ---
 <!DOCTYPE html>
 <html lang="en">
@@ -7,7 +8,7 @@ export const prerender = false;
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Follow Hub – Overview</title>
-    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <Favicons />
     <style>
       :root{ --bg:#0b1020; --card:rgba(255,255,255,0.08); --border:rgba(255,255,255,0.15); --fg:#cfe8ea; --muted:#8bb0b3; --teal:#2ad1b2; --gold:#f1c40f; --blue:#3498db; --pink:#ff6fb3; --red:#e74c3c; --gray:#95a5a6; }
       html,body{height:100%;}

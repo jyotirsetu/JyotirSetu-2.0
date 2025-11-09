@@ -1,5 +1,6 @@
 ---
 export const prerender = false;
+import Favicons from '~/components/Favicons.astro';
 ---
 <!DOCTYPE html>
 <html lang="en">
@@ -8,7 +9,7 @@ export const prerender = false;
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Follow Hub – Redirect</title>
     <link rel="stylesheet" href="/admin.css?v=20251108" />
-    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <Favicons />
     <meta http-equiv="refresh" content="0;url=/admin/tools/follow-hub/overview" />
   </head>
   <body>

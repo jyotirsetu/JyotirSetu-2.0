@@ -29,19 +29,23 @@ const { language, textDirection } = I18N;
 <!doctype html>
 <html lang={language} dir={textDirection} class="2xl:text-[20px]">
   <head>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-EQGNCD55GL"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(...args){
-    window.dataLayer!.push(args);
-  }
-  gtag('js', new Date());
-  gtag('config', 'G-EQGNCD55GL');
-  gtag('event', 'conversion', {
-      'send_to': 'AW-17506750409/QnhGCP-qiaEbEMmf75tB',
-  });
-</script>
+{import.meta.env.PROD && (
+  <>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-EQGNCD55GL"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(...args){
+        window.dataLayer!.push(args);
+      }
+      gtag('js', new Date());
+      gtag('config', 'G-EQGNCD55GL');
+      gtag('event', 'conversion', {
+          'send_to': 'AW-17506750409/QnhGCP-qiaEbEMmf75tB',
+      });
+    </script>
+  </>
+)}
     <CommonMeta />
     <Favicons />
     <CustomStyles />
@@ -226,7 +230,7 @@ const { language, textDirection } = I18N;
 </script>
 
     <SiteVerification />
-    <Analytics />
+    {import.meta.env.PROD && <Analytics />}
 
     <!-- Preload critical CSS to prevent FOUC -->
     <!-- CSS preload removed to prevent 404 errors in production -->

@@ -1,5 +1,6 @@
 ---
 export const prerender = false;
+import Favicons from '~/components/Favicons.astro';
 ---
 <!DOCTYPE html>
 <html lang="en">
@@ -8,7 +9,7 @@ export const prerender = false;
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Calendar – Admin</title>
 <link rel="stylesheet" href="/admin.css?v=20251108" />
-    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+<Favicons />
     <script src="/js/admin-notify.js" defer></script>
     <style>
       .calendar-container { background: var(--panel); border-radius: 12px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }

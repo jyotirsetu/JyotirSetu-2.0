@@ -1,57 +1,52 @@
 import type { APIRoute } from 'astro';
 import { emailService } from '~/lib/email-service';
 
+export const prerender = false;
+
 export const POST: APIRoute = async ({ request }) => {
   try {
-    // Test appointment data
+    const body = await request.json().catch(() => ({}));
+    const toEmail = String(body?.email || '').trim();
+
+    // Basic validation; allow fallback if no email provided
+    const recipient = /\S+@\S+\.\S+/.test(toEmail) ? toEmail : 'guidance@jyotirsetu.com';
+
     const testAppointmentData = {
-      name: 'Akansh Test',
-      email: 'akansh.pcj@gmail.com',
-      phone: '9876543210',
+      name: 'Admin Test',
+      email: recipient,
+      phone: '9999999999',
       service: 'kundli-analysis',
-      date: '2025-01-30',
+      date: new Date().toISOString().slice(0, 10),
       time: '10:00 AM',
       consultation_method: 'Video Call',
-      message: 'This is a test appointment to verify email functionality.',
+      message: 'Test email triggered from Admin Settings.',
       service_details: {
-        birth_date: '1990-01-01',
-        birth_time: '10:30 AM',
-        birth_place: 'Delhi, India',
-        gender: 'Male'
+        note: 'Admin test email'
       }
     };
-    
+
     console.log('🧪 Sending test confirmation email to:', testAppointmentData.email);
-    
-    // Send test confirmation email
+
     const emailSent = await emailService.sendConfirmationEmail(testAppointmentData);
-    
-    if (emailSent) {
-      console.log('✅ Test confirmation email sent successfully');
-      return new Response(JSON.stringify({
-        success: true,
-        message: 'Test confirmation email sent successfully to akansh.pcj@gmail.com'
-      }), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    } else {
-      console.error('❌ Failed to send test confirmation email');
-      return new Response(JSON.stringify({
-        success: false,
-        message: 'Failed to send test confirmation email'
-      }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
-  } catch (error) {
+
+    return new Response(JSON.stringify({
+      ok: emailSent,
+      to: testAppointmentData.email,
+      message: emailSent ? 'Test email accepted by provider' : 'Email provider returned an error (see server logs)'
+    }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  } catch (error: unknown) {
+    const message = (error && typeof error === 'object' && 'message' in error)
+      ? String((error as { message?: unknown }).message ?? 'Internal server error')
+      : 'Internal server error';
     console.error('❌ Error in test-email API:', error);
     return new Response(JSON.stringify({
-      success: false,
-      message: 'Internal server error: ' + error.message
+      ok: false,
+      error: message
     }), {
-      status: 500,
+      status: 200,
       headers: { 'Content-Type': 'application/json' }
     });
   }

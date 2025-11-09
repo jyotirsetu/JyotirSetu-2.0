@@ -1,5 +1,6 @@
 ---
 export const prerender = false;
+import Favicons from '~/components/Favicons.astro';
 ---
 <!DOCTYPE html>
 <html lang="en">
@@ -8,7 +9,7 @@ export const prerender = false;
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Admin Dashboard – JyotirSetu</title>
 <link rel="stylesheet" href="/admin.css?v=20251108" />
-    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <Favicons />
     <style>
       .dashboard-hero { background: linear-gradient(135deg, rgba(124,58,237,0.15), rgba(34,211,238,0.15)); border-radius: 16px; padding: 32px; margin-bottom: 24px; border: 1px solid var(--border); }
       .dashboard-hero h1 { margin: 0 0 8px; font-size: 28px; font-weight: 800; }

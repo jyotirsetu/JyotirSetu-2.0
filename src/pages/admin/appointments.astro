@@ -1,5 +1,6 @@
 ---
 export const prerender = false;
+import Favicons from '~/components/Favicons.astro';
 ---
 <!DOCTYPE html>
 <html lang="en">
@@ -8,7 +9,7 @@ export const prerender = false;
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Appointments – Admin</title>
 <link rel="stylesheet" href="/admin.css?v=20251108" />
-    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <Favicons />
     <script src="/js/admin-notify.js" defer></script>
     <style>
       .modal { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(2,6,23,0.6); z-index:1000; align-items:center; justify-content:center; }

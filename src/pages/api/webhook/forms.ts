@@ -1,6 +1,31 @@
 import type { APIRoute } from 'astro';
 import { supabase } from '~/lib/supabase';
 
+type AppointmentData = {
+  form_type: 'appointment';
+  name: string;
+  email: string;
+  phone?: string;
+  service: string;
+  preferred_date: string;
+  preferred_time: string;
+  message?: string;
+};
+
+type ContactData = {
+  form_type: 'contact';
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+};
+
+type NewsletterData = {
+  form_type: 'newsletter';
+  email: string;
+  name?: string;
+};
+
 // This API route should be server-side rendered
 export const prerender = false;
 
@@ -13,15 +38,15 @@ export const POST: APIRoute = async ({ request }) => {
     // Handle different form types
     switch (data.form_type) {
       case 'appointment':
-        await handleAppointmentSubmission(data);
+        await handleAppointmentSubmission(data as AppointmentData);
         break;
         
       case 'contact':
-        await handleContactSubmission(data);
+        await handleContactSubmission(data as ContactData);
         break;
         
       case 'newsletter':
-        await handleNewsletterSubscription(data);
+        await handleNewsletterSubscription(data as NewsletterData);
         break;
         
       default:
@@ -29,19 +54,20 @@ export const POST: APIRoute = async ({ request }) => {
     }
     
     return new Response('OK', { status: 200 });
-  } catch (error) {
-    console.error('❌ Form webhook error:', error);
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error('❌ Form webhook error:', msg);
     return new Response('Error', { status: 500 });
   }
 };
 
 // Handle appointment form submission
-async function handleAppointmentSubmission(data: any) {
+async function handleAppointmentSubmission(data: AppointmentData) {
   console.log('📅 New appointment submission:', data);
   
   try {
     // Store appointment in database
-    const { data: appointment, error } = await supabase
+    const { error } = await supabase
       .from('appointments')
       .insert({
         name: data.name,
@@ -68,18 +94,19 @@ async function handleAppointmentSubmission(data: any) {
     // Send notification to admin
     await sendAdminNotification(data);
     
-  } catch (error) {
-    console.error('Error handling appointment:', error);
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error('Error handling appointment:', msg);
   }
 }
 
 // Handle contact form submission
-async function handleContactSubmission(data: any) {
+async function handleContactSubmission(data: ContactData) {
   console.log('📞 New contact submission:', data);
   
   try {
     // Store contact message in database
-    const { data: contact, error } = await supabase
+    const { error } = await supabase
       .from('contact_messages')
       .insert({
         name: data.name,
@@ -103,18 +130,19 @@ async function handleContactSubmission(data: any) {
     // Send notification to admin
     await sendAdminNotification(data);
     
-  } catch (error) {
-    console.error('Error handling contact:', error);
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error('Error handling contact:', msg);
   }
 }
 
 // Handle newsletter subscription
-async function handleNewsletterSubscription(data: any) {
+async function handleNewsletterSubscription(data: NewsletterData) {
   console.log('📧 New newsletter subscription:', data);
   
   try {
     // Store newsletter subscription in database
-    const { data: subscription, error } = await supabase
+    const { error } = await supabase
       .from('newsletter_subscribers')
       .insert({
         email: data.email,
@@ -133,141 +161,57 @@ async function handleNewsletterSubscription(data: any) {
     // Send welcome email
     await sendNewsletterWelcome(data);
     
-  } catch (error) {
-    console.error('Error handling newsletter subscription:', error);
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error('Error handling newsletter subscription:', msg);
   }
 }
 
 // Send appointment confirmation email
-async function sendAppointmentConfirmation(data: any) {
+async function sendAppointmentConfirmation(data: AppointmentData) {
   try {
-    const confirmationEmail = {
-      to: data.email,
-      subject: 'Appointment Confirmation - JyotirSetu',
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 10px; text-align: center; margin-bottom: 20px;">
-            <img src="https://www.jyotirsetu.com/src/assets/images/JyotirSetu%20Full%20Logo%20Transparent.png" alt="JyotirSetu Logo" style="max-width: 200px; height: auto;" />
-          </div>
-          
-          <h2>Appointment Confirmation</h2>
-          
-          <p>Dear ${data.name},</p>
-          
-          <p>Thank you for booking an appointment with JyotirSetu. We have received your request and will contact you soon to confirm the details.</p>
-          
-          <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
-            <h3>Appointment Details:</h3>
-            <p><strong>Service:</strong> ${data.service}</p>
-            <p><strong>Preferred Date:</strong> ${data.preferred_date}</p>
-            <p><strong>Preferred Time:</strong> ${data.preferred_time}</p>
-            <p><strong>Message:</strong> ${data.message || 'No additional message'}</p>
-          </div>
-          
-          <p>We will contact you within 24 hours to confirm your appointment.</p>
-          
-          <p>Best regards,<br>JyotirSetu Team</p>
-        </div>
-      `
-    };
-    
+    // Integrate your email service here using data
     // You can use your email service here
     console.log('📧 Sending appointment confirmation to:', data.email);
     
-  } catch (error) {
-    console.error('Error sending appointment confirmation:', error);
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error('Error sending appointment confirmation:', msg);
   }
 }
 
 // Send contact auto-reply
-async function sendContactAutoReply(data: any) {
+async function sendContactAutoReply(data: ContactData) {
   try {
-    const autoReplyEmail = {
-      to: data.email,
-      subject: 'Thank you for contacting JyotirSetu',
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 10px; text-align: center; margin-bottom: 20px;">
-            <img src="https://www.jyotirsetu.com/src/assets/images/JyotirSetu%20Full%20Logo%20Transparent.png" alt="JyotirSetu Logo" style="max-width: 200px; height: auto;" />
-          </div>
-          
-          <h2>Thank you for contacting us!</h2>
-          
-          <p>Dear ${data.name},</p>
-          
-          <p>We have received your message and will get back to you within 24 hours.</p>
-          
-          <p>Best regards,<br>JyotirSetu Team</p>
-        </div>
-      `
-    };
-    
+    // Integrate your email service here using data
     console.log('📧 Sending auto-reply to:', data.email);
     
-  } catch (error) {
-    console.error('Error sending auto-reply:', error);
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error('Error sending auto-reply:', msg);
   }
 }
 
 // Send newsletter welcome email
-async function sendNewsletterWelcome(data: any) {
+async function sendNewsletterWelcome(data: NewsletterData) {
   try {
-    const welcomeEmail = {
-      to: data.email,
-      subject: 'Welcome to JyotirSetu Newsletter!',
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 10px; text-align: center; margin-bottom: 20px;">
-            <img src="https://www.jyotirsetu.com/src/assets/images/JyotirSetu%20Full%20Logo%20Transparent.png" alt="JyotirSetu Logo" style="max-width: 200px; height: auto;" />
-          </div>
-          
-          <h2>Welcome to JyotirSetu Newsletter!</h2>
-          
-          <p>Dear ${data.name || 'Friend'},</p>
-          
-          <p>Thank you for subscribing to our newsletter. You will now receive:</p>
-          
-          <ul>
-            <li>Weekly astrology insights</li>
-            <li>Special offers and discounts</li>
-            <li>Important festival dates</li>
-            <li>Expert advice from our astrologers</li>
-          </ul>
-          
-          <p>Best regards,<br>JyotirSetu Team</p>
-        </div>
-      `
-    };
-    
+    // Integrate your email service here using data
     console.log('📧 Sending welcome email to:', data.email);
     
-  } catch (error) {
-    console.error('Error sending welcome email:', error);
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error('Error sending welcome email:', msg);
   }
 }
 
 // Send admin notification
-async function sendAdminNotification(data: any) {
+async function sendAdminNotification(_data: AppointmentData | ContactData | NewsletterData) {
   try {
-    const adminEmail = {
-      to: 'jyotirsetu@gmail.com',
-      subject: `New ${data.form_type} submission - JyotirSetu`,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2>New ${data.form_type} submission</h2>
-          
-          <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px;">
-            <pre>${JSON.stringify(data, null, 2)}</pre>
-          </div>
-          
-          <p>Please check your admin panel for more details.</p>
-        </div>
-      `
-    };
-    
+    // Integrate your email service here using data
     console.log('📧 Sending admin notification');
     
-  } catch (error) {
-    console.error('Error sending admin notification:', error);
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error('Error sending admin notification:', msg);
   }
 }
