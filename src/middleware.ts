@@ -16,7 +16,17 @@ export const onRequest = defineMiddleware(async (context, next) => {
     const cookie = request.headers.get('cookie') || '';
     const match = /admin_session=([^;]+)/.exec(cookie || '');
     const token = match?.[1];
-    const secret = (import.meta.env && (import.meta.env.SESSION_SECRET as any)) || (process as any)?.env?.SESSION_SECRET;
+    function getEnvString(key: string): string | undefined {
+      const importMetaEnv = (import.meta as unknown as { env?: Record<string, unknown> }).env;
+      const processEnv = (typeof process !== 'undefined'
+        ? (process as unknown as { env?: Record<string, unknown> }).env
+        : undefined);
+      const raw = importMetaEnv?.[key] ?? processEnv?.[key];
+      if (typeof raw === 'string') return raw;
+      if (raw == null) return undefined;
+      try { return String(raw); } catch { return undefined; }
+    }
+    const secret = getEnvString('SESSION_SECRET');
     if (!token || !secret) {
       return redirect('/admin/login');
     }

@@ -197,5 +197,56 @@ import Favicons from '~/components/Favicons.astro';
         });
       })();
     </script>
+    <script>
+      // Minimal inline fallback: if external insights script is unavailable, define a lightweight loader
+      (function(){
+        function minimalLoad(){
+          try{
+            const qs=function(id){return document.getElementById(id);};
+            const p=new URLSearchParams();
+            ['from','to','source','device'].forEach(function(k){
+              const el = qs(k) as HTMLInputElement | HTMLSelectElement | null;
+              const v = (el?.value) || '';
+              if(v) p.set(k,v);
+            });
+            const url='/api/admin/follow-hub/insights'+(p.toString()?('?'+p.toString()):'');
+            fetch(url, { headers:{ 'Accept':'application/json' } })
+              .then(function(res){ return res.json(); })
+              .then(function(j){
+                const totalsEl=qs('totals');
+                if(!j||!j.ok){ if(totalsEl) totalsEl.textContent='No data'; return; }
+                const t=(j.data&&j.data.totals)||{};
+                if(totalsEl) totalsEl.textContent='Views '+(t.views||0)+', Clicks '+(t.clicks||0)+', CTR '+(t.ctr||0)+'%';
+                const daily=(j.data&&j.data.daily)||[];
+                const last7=daily.slice(Math.max(0, daily.length-7));
+                const v7=last7.reduce(function(a,b){return a+Number(b.views||0);},0);
+                const c7=last7.reduce(function(a,b){return a+Number(b.clicks||0);},0);
+                const ctr7=v7?(((c7/v7)*100).toFixed(2)):'0.00';
+                const last7El=qs('last7'); if(last7El) last7El.textContent='Views '+v7+', Clicks '+c7+', CTR '+ctr7+'%';
+                const win = window as unknown as { Chart?: new (ctx: HTMLCanvasElement, config: unknown) => unknown };
+                if (win.Chart){
+                  const canvas = qs('chart') as HTMLCanvasElement | null; if(canvas){
+                    const labels=daily.map(function(d){return d.day||d.date||'';});
+                    const views=daily.map(function(d){return Number(d.views||0);});
+                    const clicks=daily.map(function(d){return Number(d.clicks||0);});
+                    try{ new win.Chart(canvas, { type:'line', data:{ labels:labels, datasets:[ {label:'Views', data:views, borderColor:'#2ad1b2', backgroundColor:'rgba(42,209,178,0.25)', tension:0.3}, {label:'Clicks', data:clicks, borderColor:'#e74c3c', backgroundColor:'rgba(231,76,60,0.25)', tension:0.3} ] }, options:{ responsive:false } }); }catch{ /* ignore chart errors */ }
+                  }
+                }
+                const render=function(el, rows, key){ if(!el) return; el.innerHTML=(rows||[]).map(function(r){ const name=r[key]||'—'; const v=Number(r.views||0); const c=Number(r.clicks||0); return '<div>'+name+' · views '+v+', clicks '+c+'</div>';}).join('')||'—'; };
+                render(qs('devices'), j.data&&j.data.devices, 'device');
+                render(qs('sources'), j.data&&j.data.sources, 'source');
+              })
+              .catch(function(){ const totalsEl=qs('totals'); if(totalsEl) totalsEl.textContent='No data (network error)'; });
+          }catch{ /* ignore */ }
+        }
+        function ensure(){
+          if(window.__followHubInsightsLoaded && typeof window.FollowHubInsightsLoad==='function') return;
+          window.FollowHubInsightsLoad = minimalLoad;
+          minimalLoad();
+        }
+        // If the external script failed to attach a loader, provide the minimal fallback soon after DOM ready
+        setTimeout(ensure, 1500);
+      })();
+    </script>
   </body>
  </html>

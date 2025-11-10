@@ -4,8 +4,6 @@ import { emailService } from '../../lib/email-service';
 export const prerender = false;
 
 export const GET: APIRoute = async () => {
-  const mode = ((import.meta.env && import.meta.env.MODE) || process.env.NODE_ENV || 'development');
-  const isDev = mode !== 'production';
   const mcEnabled = ((import.meta.env && import.meta.env.MAILCHANNELS_ENABLED) || process.env.MAILCHANNELS_ENABLED || 'false').toString().toLowerCase() === 'true';
   const clientId = (import.meta.env && import.meta.env.ZOHO_CLIENT_ID) || process.env.ZOHO_CLIENT_ID;
   const clientSecret = (import.meta.env && import.meta.env.ZOHO_CLIENT_SECRET) || process.env.ZOHO_CLIENT_SECRET;
@@ -32,8 +30,9 @@ export const GET: APIRoute = async () => {
       message: 'If you received this, Zoho OAuth and sending are working.',
     });
     return new Response(JSON.stringify({ ok, stage: 'send' }), { status: 200, headers: { 'Content-Type': 'application/json' } });
-  } catch (e: any) {
-    return new Response(JSON.stringify({ ok: false, stage: 'send', error: e?.message || 'unknown' }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e);
+    return new Response(JSON.stringify({ ok: false, stage: 'send', error: msg }), { status: 200, headers: { 'Content-Type': 'application/json' } });
   }
 };
 

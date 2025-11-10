@@ -36,11 +36,12 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     // Save contact data to database
+    const subjectSafe = contactData.subject ?? '';
     const newContact: NewContact = await supabaseDataService.createContact({
       name: contactData.name,
       email: contactData.email,
       phone: contactData.phone,
-      subject: contactData.subject,
+      subject: subjectSafe,
       message: contactData.message,
       status: 'new',
       priority: 'normal'
@@ -51,7 +52,12 @@ export const POST: APIRoute = async ({ request }) => {
     // Send confirmation email (don't fail if email fails)
     let emailSent = false;
     try {
-      emailSent = await emailService.sendContactConfirmationEmail(contactData);
+      emailSent = await emailService.sendContactConfirmationEmail({
+        name: contactData.name,
+        email: contactData.email,
+        subject: subjectSafe,
+        message: contactData.message,
+      });
       console.log('📧 Email service result:', emailSent);
     } catch (emailError) {
       console.warn('⚠️ Email service failed, but continuing:', emailError);
@@ -71,7 +77,7 @@ export const POST: APIRoute = async ({ request }) => {
       status: 200,
       headers: { 'Content-Type': 'application/json' }
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('❌ Error in contact API:', error);
     return new Response(JSON.stringify({
       success: false,

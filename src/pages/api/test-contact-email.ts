@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { emailService } from '~/lib/email-service';
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request: _request }) => {
   try {
     // Test contact data
     const testContactData = {
@@ -36,11 +36,12 @@ export const POST: APIRoute = async ({ request }) => {
         headers: { 'Content-Type': 'application/json' }
       });
     }
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('❌ Error in test-contact-email API:', error);
+    const message = error instanceof Error ? error.message : String(error);
     return new Response(JSON.stringify({
       success: false,
-      message: 'Internal server error: ' + error.message
+      message: 'Internal server error: ' + message
     }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }

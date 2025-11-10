@@ -11,6 +11,34 @@ import Favicons from '~/components/Favicons.astro';
 <link rel="stylesheet" href="/admin.css?v=20251108" />
 <Favicons />
     <script src="/js/admin-notify.js" defer></script>
+    <script>
+      (function(){
+        function defineFallback(){
+          try{
+            if(window.AdminNotify) return;
+            window.AdminNotify = {
+              success:function(msg, detail){ console.log('SUCCESS:', detail? (msg+': '+detail) : msg); },
+              error:function(msg, detail){ console.error('ERROR:', detail? (msg+': '+detail) : msg); },
+              info:function(msg, detail){ console.log('INFO:', detail? (msg+': '+detail) : msg); }
+            };
+          }catch{/* ignore */}
+        }
+        function reinject(){
+          try{
+            const s = document.createElement('script');
+            s.src = '/js/admin-notify.js?v=' + Date.now();
+            s.defer = true;
+            s.onload = function(){ if(!window.AdminNotify) defineFallback(); };
+            s.onerror = function(){ defineFallback(); };
+            document.head.appendChild(s);
+          }catch{ defineFallback(); }
+        }
+        if(!window.AdminNotify){
+          if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', reinject); } else { reinject(); }
+          setTimeout(function(){ if(!window.AdminNotify) defineFallback(); }, 1500);
+        }
+      })();
+    </script>
     <style>
       .template-editor { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
       .template-preview { background: #f0f9ff; border: 1px solid #0ea5e9; border-radius: 12px; padding: 16px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #1e293b; }

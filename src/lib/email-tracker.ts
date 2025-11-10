@@ -33,7 +33,7 @@ export async function getEmailHistory(relatedId?: string, relatedType?: string, 
     await ensureEmailHistoryTable();
     const client = await getTursoClient();
     let sql = `SELECT * FROM email_history`;
-    const args: any[] = [];
+    const args: Array<string | number> = [];
     
     if (relatedId && relatedType) {
       sql += ` WHERE related_id = ? AND related_type = ?`;

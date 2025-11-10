@@ -7,10 +7,17 @@ export const POST: APIRoute = async ({ request }) => {
   try {
     await ensureContactsTable();
     const client = await getTursoClient();
-    const contactData = await request.json();
+    interface ContactBody {
+      name: string;
+      email: string;
+      subject: string;
+      message: string;
+      phone?: string;
+    }
+    const contactData = (await request.json()) as Partial<ContactBody>;
 
     const required = ['name', 'email', 'subject', 'message'];
-    for (const field of required) {
+    for (const field of required as Array<keyof ContactBody>) {
       if (!contactData[field]) {
         return new Response(JSON.stringify({ success: false, message: `${field} is required` }), {
           status: 400,
@@ -26,11 +33,11 @@ export const POST: APIRoute = async ({ request }) => {
             VALUES (?, ?, ?, ?, ?, ?, 'new', 'normal', ?)` ,
       args: [
         id,
-        contactData.name,
-        contactData.email,
+        contactData.name!,
+        contactData.email!,
         contactData.phone || '',
-        contactData.subject,
-        contactData.message,
+        contactData.subject!,
+        contactData.message!,
         now
       ]
     });
@@ -45,10 +52,11 @@ export const POST: APIRoute = async ({ request }) => {
       status: 201,
       headers: { 'Content-Type': 'application/json' }
     });
-  } catch (e: any) {
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : String(e);
     return new Response(JSON.stringify({
       success: false,
-      message: e.message || 'failed',
+      message,
     }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }

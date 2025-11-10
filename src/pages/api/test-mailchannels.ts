@@ -4,8 +4,10 @@ export const prerender = false;
 
 function getEnv(name: string): string | undefined {
   // Prefer import.meta.env in Astro, fallback to process.env
-  // eslint-disable-next-line no-undef
-  return (import.meta.env as any)?.[name] ?? process?.env?.[name];
+  const metaEnv = (import.meta as unknown as { env?: Record<string, unknown> }).env;
+  const fromImportMeta = typeof metaEnv?.[name] === 'string' ? (metaEnv?.[name] as string) : undefined;
+  const fromProcess = typeof process !== 'undefined' ? process.env?.[name] : undefined;
+  return (fromImportMeta ?? fromProcess) ?? undefined;
 }
 
 export const GET: APIRoute = async () => {
@@ -42,8 +44,9 @@ export const GET: APIRoute = async () => {
     });
     const text = await res.text();
     return new Response(JSON.stringify({ ok: res.ok, status: res.status, body: text }), { status: 200, headers: { 'Content-Type': 'application/json' } });
-  } catch (e: any) {
-    return new Response(JSON.stringify({ ok: false, stage: 'fetch', error: e?.message || 'unknown' }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e);
+    return new Response(JSON.stringify({ ok: false, stage: 'fetch', error: msg }), { status: 200, headers: { 'Content-Type': 'application/json' } });
   }
 };
 

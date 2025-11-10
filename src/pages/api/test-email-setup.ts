@@ -20,10 +20,11 @@ export const GET: APIRoute = async () => {
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
     return new Response(JSON.stringify({
       success: false,
       message: 'Error checking email configuration',
-      error: error.message
+      error: message
     }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
@@ -75,10 +76,11 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
   } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
     return new Response(JSON.stringify({
       success: false,
       message: 'Error sending test email',
-      error: error.message
+      error: message
     }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }

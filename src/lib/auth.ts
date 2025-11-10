@@ -1,4 +1,4 @@
-export async function signSession(payload: Record<string, any>, secret: string): Promise<string> {
+export async function signSession(payload: Record<string, unknown>, secret: string): Promise<string> {
   const encoder = new TextEncoder();
   const data = encoder.encode(JSON.stringify(payload));
   const key = await crypto.subtle.importKey(
@@ -14,7 +14,7 @@ export async function signSession(payload: Record<string, any>, secret: string):
   return `${dataB64}.${sigB64}`;
 }
 
-export async function verifySession(token: string, secret: string): Promise<Record<string, any> | null> {
+export async function verifySession(token: string, secret: string): Promise<Record<string, unknown> | null> {
   const [dataB64, sigB64] = token.split('.');
   if (!dataB64 || !sigB64) return null;
   const decoder = new TextDecoder();

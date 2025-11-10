@@ -15,7 +15,7 @@ export const GET: APIRoute = async ({ request }) => {
     }
     
     const client = await getTursoClient();
-    let rows: any[] = [];
+    let rows: Array<Record<string, unknown>> = [];
     let filename = '';
     
     if (type === 'appointments') {
@@ -25,10 +25,13 @@ export const GET: APIRoute = async ({ request }) => {
               FROM appointments ORDER BY datetime(created_at) DESC`,
         args: []
       });
-      rows = res.rows.map((r: any) => ({
-        ...r,
-        service_details: r.service_details ? JSON.parse(r.service_details) : null,
-      }));
+      rows = res.rows.map((r) => {
+        const row = r as Record<string, unknown>;
+        return {
+          ...row,
+          service_details: typeof row.service_details === 'string' ? JSON.parse(row.service_details as string) : row.service_details ?? null,
+        };
+      });
       filename = `appointments_${new Date().toISOString().split('T')[0]}.csv`;
     } else {
       await ensureContactsTable();
@@ -37,7 +40,7 @@ export const GET: APIRoute = async ({ request }) => {
               FROM contacts ORDER BY datetime(created_at) DESC`,
         args: []
       });
-      rows = res.rows;
+      rows = res.rows as Array<Record<string, unknown>>;
       filename = `contacts_${new Date().toISOString().split('T')[0]}.csv`;
     }
     
@@ -68,8 +71,13 @@ export const GET: APIRoute = async ({ request }) => {
     }
     
     return new Response(JSON.stringify({ ok: false, error: 'Unsupported format' }), { status: 400 });
-  } catch (e: any) {
-    return new Response(JSON.stringify({ ok: false, error: e?.message || 'failed' }), { headers: { 'Content-Type': 'application/json' }, status: 500 });
+  } catch (error: unknown) {
+    const message = (() => {
+      if (error instanceof Error) return error.message;
+      if (typeof error === 'string') return error;
+      try { return JSON.stringify(error); } catch { return 'failed'; }
+    })();
+    return new Response(JSON.stringify({ ok: false, error: message }), { headers: { 'Content-Type': 'application/json' }, status: 500 });
   }
 };
 

@@ -11,8 +11,9 @@ export const GET: APIRoute = async ({ request }) => {
     const log = await getActivityLog(limit);
     
     return new Response(JSON.stringify({ ok: true, data: log }), { headers: { 'Content-Type': 'application/json' } });
-  } catch (e: any) {
-    return new Response(JSON.stringify({ ok: false, error: e?.message || 'failed' }), { headers: { 'Content-Type': 'application/json' }, status: 500 });
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e);
+    return new Response(JSON.stringify({ ok: false, error: msg }), { headers: { 'Content-Type': 'application/json' }, status: 500 });
   }
 };
 

@@ -29,7 +29,7 @@ export const POST: APIRoute = async ({ request }) => {
         headers: { 'Content-Type': 'application/json' }
       });
     }
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('❌ Error in send-contact-confirmation API:', error);
     return new Response(JSON.stringify({
       success: false,

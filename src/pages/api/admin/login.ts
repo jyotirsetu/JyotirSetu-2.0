@@ -3,14 +3,21 @@ import { signSession } from '../../../lib/auth';
 
 export const prerender = false;
 
-export const POST: APIRoute = async ({ request, redirect }) => {
+export const POST: APIRoute = async ({ request }) => {
   const form = await request.formData();
   const username = String(form.get('username') || '').trim();
   const password = String(form.get('password') || '').trim();
 
-  const expectedUser = (import.meta.env as any)?.ADMIN_USERNAME || (process as any)?.env?.ADMIN_USERNAME || 'admin';
-  const expectedPass = (import.meta.env as any)?.ADMIN_PASSWORD || (process as any)?.env?.ADMIN_PASSWORD || 'admin123';
-  const secret = (import.meta.env as any)?.SESSION_SECRET || (process as any)?.env?.SESSION_SECRET || 'change-me';
+  const metaEnv = (import.meta as unknown as { env?: Record<string, unknown> }).env;
+  const getEnv = (name: string): string | undefined => {
+    const fromImportMeta = typeof metaEnv?.[name] === 'string' ? (metaEnv?.[name] as string) : undefined;
+    const fromProcess = typeof process !== 'undefined' ? process.env?.[name] : undefined;
+    return (fromImportMeta ?? fromProcess) ?? undefined;
+  };
+
+  const expectedUser = getEnv('ADMIN_USERNAME') || 'admin';
+  const expectedPass = getEnv('ADMIN_PASSWORD') || 'admin123';
+  const secret = getEnv('SESSION_SECRET') || 'change-me';
 
   if (username !== expectedUser || password !== expectedPass) {
     return new Response('Unauthorized', { status: 401 });
