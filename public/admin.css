@@ -203,8 +203,10 @@ a:hover { color: var(--text); opacity: 0.9; }
 h1, h2, h3 { color: var(--text); }
 
 /* Auth (login) */
-.auth-wrap { display:flex; align-items:center; justify-content:center; min-height:100vh; background: radial-gradient(circle at 20% 10%, #102040, var(--bg)); }
-.auth-card { width:min(420px,92vw); background: var(--card); border:1px solid var(--border); border-radius:16px; padding:24px; color:var(--text); }
+.auth-wrap { display:flex; align-items:center; justify-content:center; min-height:100vh; background: radial-gradient(circle at 20% 10%, #102040, var(--bg)); position: relative; overflow: hidden; }
+/* Brand animated background for login: subtle, centered, responsive size */
+.auth-wrap::before { content:""; position: absolute; inset: 0; pointer-events: none; background-image: url('/JyotirSetu-Logo-Animation.gif'); background-repeat: no-repeat; background-position: center; /* +40% presence while remaining responsive */ background-size: clamp(784px, 84vw, 1400px); opacity: 0.28; /* keep it subtle under the card */ }
+.auth-card { width:min(420px,92vw); background: var(--card); border:1px solid var(--border); border-radius:16px; padding:24px; color:var(--text); position: relative; z-index: 1; }
 .auth-card .brand { display:flex; align-items:center; gap:8px; font-weight:700; margin-bottom:8px; color:var(--text); }
 .auth-card .title { margin:8px 0 4px; }
 .auth-card .subtitle { margin:0 0 12px; color:var(--muted); }
