@@ -73,4 +73,22 @@ export const DELETE: APIRoute = async ({ request }) => {
   }
 };
 
+export const PUT: APIRoute = async ({ request }) => {
+  try {
+    const body = await request.json();
+    const id = String(body?.id || '').trim();
+    const note_text = String(body?.note_text || '').trim();
+    if (!id || !note_text) {
+      return new Response(JSON.stringify({ ok: false, error: 'id and note_text required' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+    }
+    await ensureNotesTable();
+    const client = await getTursoClient();
+    await client.execute({ sql: `UPDATE notes SET note_text = ? WHERE id = ?`, args: [note_text, id] });
+    await logActivity('note_updated', 'note', id, `Note updated: ${note_text.slice(0,50)}`);
+    return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json' } });
+  } catch (e) {
+    return new Response(JSON.stringify({ ok: false, error: e instanceof Error ? e.message : String(e) }), { headers: { 'Content-Type': 'application/json' }, status: 500 });
+  }
+};
+
 

@@ -35,8 +35,10 @@ export const prerender = false;
       </div>
     </div>
     <script>
+      // Use the main site API when running on the follow subdomain
+      const API_BASE = (location.hostname.includes('follow.jyotirsetu.com')) ? 'https://www.jyotirsetu.com' : '';
       const links = {
-        whatsapp: 'https://wa.me/919876543210',
+        whatsapp: 'https://wa.me/919266991298',
         google_review: 'https://g.page/r/YourGoogleReview',
         facebook: 'https://facebook.com/yourpage',
         instagram: 'https://instagram.com/yourhandle',
@@ -51,7 +53,7 @@ export const prerender = false;
         return window.followVariant==='B' ? 'google_review' : 'whatsapp';
       }
       async function fetchVariant(){
-        try { const res = await fetch('/api/follow-hub/variant'); const j = await res.json(); if(j.ok) return j.value; } catch { /* ignore fetch variant errors */ }
+        try { const res = await fetch(API_BASE + '/api/follow-hub/variant'); const j = await res.json(); if(j.ok) return j.value; } catch { /* ignore fetch variant errors */ }
         return 'A';
       }
       function ctaLabel(key){
@@ -86,7 +88,7 @@ export const prerender = false;
             utm_query: location.search,
             extra
           };
-          await fetch('/api/follow-hub/event', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+          await fetch(API_BASE + '/api/follow-hub/event', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
         } catch { /* ignore log errors */ }
       }
       (async function(){
@@ -99,7 +101,7 @@ export const prerender = false;
           btn.addEventListener('click', ()=>{ log('cta_click', { cta_clicked: primary }); });
         }
         const qrBtn = document.getElementById('qrBtn') as HTMLAnchorElement | null;
-        if(qrBtn){ qrBtn.href = '/api/follow-hub/qr?text=' + encodeURIComponent(location.href) + '&size=400'; }
+        if(qrBtn){ qrBtn.href = API_BASE + '/api/follow-hub/qr?text=' + encodeURIComponent(location.href) + '&size=400'; }
         await log('page_view', { primary_cta_shown: primary });
         const list = document.getElementById('list');
         const keys = ['whatsapp','google_review','facebook','instagram','youtube'] as const;

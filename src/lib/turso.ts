@@ -90,6 +90,25 @@ export async function ensureEmailHistoryTable() {
   `);
 }
 
+export async function ensureWhatsAppHistoryTable() {
+  const client = await getTursoClient();
+  await client.execute(`
+    CREATE TABLE IF NOT EXISTS whatsapp_history (
+      id TEXT PRIMARY KEY,
+      recipient_phone TEXT NOT NULL,
+      recipient_name TEXT,
+      message TEXT NOT NULL,
+      type TEXT NOT NULL,
+      related_id TEXT,
+      related_type TEXT,
+      status TEXT NOT NULL DEFAULT 'sent',
+      sent_at TEXT NOT NULL,
+      opened_at TEXT,
+      error_message TEXT
+    );
+  `);
+}
+
 export async function ensureActivityLogTable() {
   const client = await getTursoClient();
   await client.execute(`
