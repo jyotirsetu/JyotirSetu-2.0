@@ -75,9 +75,12 @@ jspm_packages/
 
 # Gatsby files
 .cache/
-public
+public/*
 !public/admin.css
 !public/.gitkeep
+#! Ensure JS assets under public/js are tracked
+!public/js/
+!public/js/**
 
 # Storybook build outputs
 .out
