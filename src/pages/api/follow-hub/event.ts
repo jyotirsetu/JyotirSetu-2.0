@@ -5,18 +5,34 @@ export const prerender = false;
 
 const ALLOWED_EVENTS = new Set(['page_view', 'cta_impression', 'cta_click', 'share']);
 
-function getCorsOrigin() {
-  const origin = import.meta.env?.FOLLOW_HUB_ORIGIN ?? process.env?.FOLLOW_HUB_ORIGIN ?? 'https://follow.jyotirsetu.com';
-  return String(origin);
+function getAllowedOrigins(): string[] {
+  const primary = (import.meta.env?.FOLLOW_HUB_ORIGIN ?? process.env?.FOLLOW_HUB_ORIGIN ?? 'https://follow.jyotirsetu.com').toString();
+  const extraRaw = (import.meta.env?.FOLLOW_HUB_EXTRA_ORIGINS ?? process.env?.FOLLOW_HUB_EXTRA_ORIGINS ?? '').toString();
+  const extras = extraRaw.split(',').map(s => s.trim()).filter(Boolean);
+  const defaults = [
+    'https://www.follow.jyotirsetu.com',
+    'http://follow.jyotirsetu.com',
+    'http://www.follow.jyotirsetu.com',
+    // Allow main site to log events when needed
+    'https://www.jyotirsetu.com',
+    'https://jyotirsetu.com',
+    'http://www.jyotirsetu.com',
+    'http://jyotirsetu.com'
+  ];
+  const set = new Set([primary, ...defaults, ...extras]);
+  return Array.from(set);
 }
 
-function corsHeaders() {
-  const origin = getCorsOrigin();
+function corsHeaders(request?: Request) {
+  const allowed = getAllowedOrigins();
+  const reqOrigin = request?.headers?.get('origin') || request?.headers?.get('Origin') || '';
+  const origin = allowed.includes(String(reqOrigin)) ? String(reqOrigin) : allowed[0];
   return {
     'Access-Control-Allow-Origin': origin,
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
-    'Access-Control-Max-Age': '86400'
+    'Access-Control-Max-Age': '86400',
+    'Vary': 'Origin'
   } as Record<string, string>;
 }
 
@@ -77,13 +93,13 @@ export const POST: APIRoute = async ({ request }) => {
       args: [id, event_type, source || null, medium || null, campaign || null, device || null, platform || null, user_agent || null, ip_address || null, primary_cta_shown || null, cta_clicked || null, cta_variant || null, page_url || null, utm_query || null, extra || null]
     });
 
-    return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json', ...corsHeaders() } });
+    return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json', ...corsHeaders(request) } });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : 'unknown';
-    return new Response(JSON.stringify({ ok: false, error: msg }), { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders() } });
+    return new Response(JSON.stringify({ ok: false, error: msg }), { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders(request) } });
   }
 };
 
-export const OPTIONS: APIRoute = async () => {
-  return new Response(null, { status: 204, headers: { ...corsHeaders() } });
+export const OPTIONS: APIRoute = async ({ request }) => {
+  return new Response(null, { status: 204, headers: { ...corsHeaders(request) } });
 };

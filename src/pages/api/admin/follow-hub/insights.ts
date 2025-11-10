@@ -15,8 +15,23 @@ export const GET: APIRoute = async ({ request }) => {
     const client = await getTursoClient();
     const filters: string[] = [];
     const args: (string | number | boolean | bigint | null)[] = [];
-    if (from) { filters.push(`datetime(created_at) >= datetime(?)`); args.push(from); }
-    if (to) { filters.push(`datetime(created_at) <= datetime(?)`); args.push(to); }
+    // Accept date-only values and compare against created_at reliably
+    if (from) {
+      if (from.length === 10) { // YYYY-MM-DD
+        filters.push(`date(created_at) >= date(?)`);
+      } else {
+        filters.push(`created_at >= ?`);
+      }
+      args.push(from);
+    }
+    if (to) {
+      if (to.length === 10) { // YYYY-MM-DD
+        filters.push(`date(created_at) <= date(?)`);
+      } else {
+        filters.push(`created_at <= ?`);
+      }
+      args.push(to);
+    }
     if (source) { filters.push(`source = ?`); args.push(source); }
     if (device) { filters.push(`device = ?`); args.push(device); }
     const where = filters.length ? `WHERE ${filters.join(' AND ')}` : '';

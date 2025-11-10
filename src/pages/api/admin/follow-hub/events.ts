@@ -17,8 +17,16 @@ export const GET: APIRoute = async ({ request }) => {
     const client = await getTursoClient();
     const filters: string[] = [];
     const args: (string | number | boolean | bigint | null)[] = [];
-    if (from) { filters.push(`datetime(created_at) >= datetime(?)`); args.push(from); }
-    if (to) { filters.push(`datetime(created_at) <= datetime(?)`); args.push(to); }
+    if (from) {
+      if (from.length === 10) { filters.push(`date(created_at) >= date(?)`); }
+      else { filters.push(`created_at >= ?`); }
+      args.push(from);
+    }
+    if (to) {
+      if (to.length === 10) { filters.push(`date(created_at) <= date(?)`); }
+      else { filters.push(`created_at <= ?`); }
+      args.push(to);
+    }
     if (source) { filters.push(`source = ?`); args.push(source); }
     if (device) { filters.push(`device = ?`); args.push(device); }
     const where = filters.length ? `WHERE ${filters.join(' AND ')}` : '';
@@ -29,7 +37,7 @@ export const GET: APIRoute = async ({ request }) => {
                    substr(ip_address, 1, 3) || '***' AS ip_masked,
                    CASE WHEN user_agent IS NULL THEN NULL ELSE 'UA-' || substr(hex(randomblob(4)),1,8) END AS ua_masked
             FROM follow_hub_events ${where}
-            ORDER BY datetime(created_at) DESC LIMIT ? OFFSET ?`,
+            ORDER BY created_at DESC LIMIT ? OFFSET ?`,
       args: [...args, limit, offset]
     });
     return new Response(JSON.stringify({ ok: true, data: res.rows }), { headers: { 'Content-Type': 'application/json' } });
