@@ -73,8 +73,8 @@ export class EmailService {
     // Prefer configured URL; then legacy known-good path; finally site assets path (avoid constant truthiness in || chains)
     const logoFallbacks = [
       configuredLogo,
-      'https://www.jyotirsetu.com/JyotirSetu%20Full%20Logo%20Transparent.png',
       `${siteUrl}/assets/images/Jyotirsetu-logo.png`,
+      'https://follow.jyotirsetu.com/JyotirSetu%20Full%20Logo%20Transparent.png',
     ];
     this.logoUrl = (logoFallbacks.find(v => !!v) as string);
   }
@@ -506,10 +506,13 @@ export class EmailService {
             z-index: 1;
           }
           .logo-image {
-            max-width: 200px;
+            max-width: 220px;
             height: auto;
             filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
             transition: transform 0.3s ease;
+            background:#ffffff;
+            border-radius:12px;
+            padding:8px;
           }
           .logo-image:hover {
             transform: scale(1.05);
@@ -841,11 +844,14 @@ export class EmailService {
                 position: relative;
                 z-index: 1;
             }
-            .logo-image {
-                max-width: 200px;
+          .logo-image {
+                max-width: 220px;
                 height: auto;
                 filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
                 transition: transform 0.3s ease;
+                background:#ffffff;
+                border-radius:12px;
+                padding:8px;
             }
             .logo-image:hover {
                 transform: scale(1.05);

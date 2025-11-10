@@ -341,7 +341,7 @@ import Favicons from '~/components/Favicons.astro';
             <td><span class="source-tag ${r.source||'system'}">${r.source||'system'}</span></td>
             <td class="muted">${new Date(r.created_at).toLocaleString()}</td>
             <td class="actions">
-              <a class="btn-sm" href="/admin/whatsapp?id=${encodeURIComponent(r.id)}&name=${encodeURIComponent(r.name)}&phone=${encodeURIComponent(r.phone)}&service=${encodeURIComponent(r.service)}&status=${encodeURIComponent(r.status||'pending')}" target="_blank">WhatsApp</a>
+              <a class="btn-sm" href="/admin/whatsapp?id=${encodeURIComponent(r.id)}&name=${encodeURIComponent(r.name)}&phone=${encodeURIComponent(r.phone)}&service=${encodeURIComponent(r.service)}&status=${encodeURIComponent(r.status||'pending')}&date=${encodeURIComponent(r.date)}&time=${encodeURIComponent(r.time)}&method=${encodeURIComponent(r.consultation_method)}&appointment_id=${encodeURIComponent(r.customer_appointment_id||r.id)}" target="_blank">WhatsApp</a>
               <a class="btn-sm" href="#" data-email-id="${r.id}">Send Email</a>
               <a class="btn-sm" href="#" data-notes-id="${r.id}" style="color:#f59e0b">📝 Notes</a>
             </td>
@@ -379,7 +379,16 @@ import Favicons from '~/components/Favicons.astro';
             const res = await fetch('/api/admin/templates?type=whatsapp');
             const tpl = await res.json();
             const m = (tpl.data||[]).find(x=>x.key===params.status);
-            const text = (m?.text||`Hello {name}, your appointment for {service} is {status}.`).replaceAll('{name}', params.name).replaceAll('{service}', params.service).replaceAll('{status}', params.status);
+            // Substitute all supported variables from params
+            const base = (m?.text||`Hello {name}, your appointment for {service} is {status}.`)
+              .replaceAll('{name}', params.name || '')
+              .replaceAll('{service}', params.service || '')
+              .replaceAll('{status}', params.status || '')
+              .replaceAll('{date}', params.date || '')
+              .replaceAll('{time}', params.time || '')
+              .replaceAll('{method}', params.method || '')
+              .replaceAll('{appointment_id}', params.appointment_id || (params.id||''));
+            const text = base;
             const link = `https://wa.me/${encodeURIComponent(formatWaPhone(params.phone))}?text=${encodeURIComponent(text)}`;
             // Log WhatsApp send to activity log
             try {
@@ -391,6 +400,20 @@ import Favicons from '~/components/Favicons.astro';
                   entity_type: 'appointment',
                   entity_id: params.id || null,
                   details: `WhatsApp sent to ${params.name} (${params.phone}) for ${params.service} – ${params.status}`
+                })
+              });
+              // Also record WhatsApp history for notes modal
+              await fetch('/api/admin/whatsapp-history', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  recipient_phone: formatWaPhone(params.phone||''),
+                  recipient_name: params.name || null,
+                  message: text,
+                  type: 'appointment',
+                  related_id: params.id || null,
+                  related_type: 'appointment',
+                  status: 'sent'
                 })
               });
             } catch (err) { console.warn('Failed to log WhatsApp send', err); }
