@@ -38,10 +38,12 @@ function corsHeaders(request?: Request) {
 
 function getIp(request: Request): string {
   const h = request.headers;
+  // Try multiple headers across platforms (Vercel, Node, proxies)
+  const vercel = h.get('x-vercel-ip') || h.get('X-Vercel-IP') || '';
   const forwarded = h.get('x-forwarded-for') || h.get('X-Forwarded-For') || '';
   const cfip = h.get('cf-connecting-ip') || h.get('CF-Connecting-IP') || '';
   const real = h.get('x-real-ip') || h.get('X-Real-IP') || '';
-  const ip = (cfip || forwarded.split(',')[0] || real || '').trim();
+  const ip = (vercel || cfip || forwarded.split(',')[0] || real || '').trim();
   return ip || 'unknown';
 }
 
@@ -76,14 +78,17 @@ export const POST: APIRoute = async ({ request }) => {
     // Rate-limit: 10 req/min per IP
     await ensureFollowHubEventsTable();
     const client = await getTursoClient();
-    const rateRes = await client.execute({
-      sql: `SELECT COUNT(*) AS cnt FROM follow_hub_events WHERE ip_address = ? AND datetime(created_at) >= datetime('now', '-1 minute')`,
-      args: [ip_address]
-    });
-    const t = (rateRes.rows?.[0] ?? {}) as Record<string, unknown>;
-    const count = Number((t as Record<string, unknown>).cnt ?? 0);
-    if (count >= 10) {
-      return new Response(JSON.stringify({ ok: false, error: 'rate_limited' }), { status: 429 });
+    // Rate-limit only when IP is known to avoid false-global throttling in serverless
+    if (ip_address && ip_address !== 'unknown') {
+      const rateRes = await client.execute({
+        sql: `SELECT COUNT(*) AS cnt FROM follow_hub_events WHERE ip_address = ? AND datetime(created_at) >= datetime('now', '-1 minute')`,
+        args: [ip_address]
+      });
+      const t = (rateRes.rows?.[0] ?? {}) as Record<string, unknown>;
+      const count = Number((t as Record<string, unknown>).cnt ?? 0);
+      if (count >= 10) {
+        return new Response(JSON.stringify({ ok: false, error: 'rate_limited' }), { status: 429, headers: { 'Content-Type': 'application/json', ...corsHeaders(request) } });
+      }
     }
 
     const id = Math.random().toString(36).slice(2);
