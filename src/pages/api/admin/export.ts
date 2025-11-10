@@ -21,17 +21,25 @@ export const GET: APIRoute = async ({ request }) => {
     if (type === 'appointments') {
       await ensureAppointmentsTable();
       const res = await client.execute({
-        sql: `SELECT id, name, email, phone, service, date, time, consultation_method, status, message, source, created_at
+        sql: `SELECT customer_appointment_id, name, email, phone, service, date, time, consultation_method, status, message, source, created_at
               FROM appointments ORDER BY datetime(created_at) DESC`,
         args: []
       });
-      rows = res.rows.map((r) => {
-        const row = r as Record<string, unknown>;
-        return {
-          ...row,
-          service_details: typeof row.service_details === 'string' ? JSON.parse(row.service_details as string) : row.service_details ?? null,
-        };
-      });
+      // Map to a clean CSV shape with human-friendly Appt ID first
+      rows = (res.rows as Array<Record<string, unknown>>).map((row) => ({
+        appt_id: row.customer_appointment_id ?? '',
+        name: row.name ?? '',
+        email: row.email ?? '',
+        phone: row.phone ?? '',
+        service: row.service ?? '',
+        date: row.date ?? '',
+        time: row.time ?? '',
+        consultation_method: row.consultation_method ?? '',
+        status: row.status ?? '',
+        message: row.message ?? '',
+        source: row.source ?? '',
+        created_at: row.created_at ?? ''
+      }));
       filename = `appointments_${new Date().toISOString().split('T')[0]}.csv`;
     } else {
       await ensureContactsTable();

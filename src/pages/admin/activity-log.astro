@@ -73,6 +73,23 @@ import Favicons from '~/components/Favicons.astro';
           wrap.innerHTML = '<p class="muted">No activity yet.</p>';
           return;
         }
+        function formatIndiaTime(ts){
+          try{
+            let d: Date;
+            if (typeof ts === 'string') {
+              const s = ts.trim();
+              // Handle SQLite current_timestamp (UTC, no timezone)
+              if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(\.\d+)?$/.test(s)) {
+                d = new Date(s.replace(' ', 'T') + 'Z');
+              } else {
+                d = new Date(s);
+              }
+            } else {
+              d = new Date(ts as unknown as number);
+            }
+            return d.toLocaleString('en-IN', { timeZone:'Asia/Kolkata', year:'numeric', month:'short', day:'2-digit', hour:'2-digit', minute:'2-digit', hour12:true });
+          }catch{ return String(ts||''); }
+        }
         
         const actionFilterEl = document.getElementById('actionFilter') as HTMLSelectElement | null;
         const entityFilterEl = document.getElementById('entityFilter') as HTMLSelectElement | null;
@@ -101,7 +118,7 @@ import Favicons from '~/components/Favicons.astro';
                 <div style="font-weight:600;margin-bottom:4px">${l.action.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</div>
                 <div class="muted" style="font-size:12px;margin-bottom:4px">${l.entity_type}${(l.appointment_name || l.contact_name || l.appointment_email || l.contact_email) ? ` – ${l.appointment_name || l.contact_name || l.appointment_email || l.contact_email}` : ''}</div>
                 ${l.details ? `<div style="font-size:13px;color:var(--muted);margin-top:4px">${l.details}</div>` : ''}
-                <div style="font-size:11px;color:var(--muted);margin-top:6px">${new Date(l.created_at).toLocaleString()}</div>
+                <div style="font-size:11px;color:var(--muted);margin-top:6px">${formatIndiaTime(l.created_at)}</div>
               </div>
             </div>
           </div>`;

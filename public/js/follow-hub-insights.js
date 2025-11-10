@@ -31,6 +31,28 @@ function renderSourceBars(el, rows){
   }).join('') || '—';
 }
 let chartInstance = null;
+function formatIndiaTime(ts){
+  try{
+    let d;
+    if (typeof ts === 'string') {
+      const s = ts.trim();
+      const hasTZ = /[zZ]|[+-]\d{2}:?\d{2}$/.test(s);
+      const spaceNoTZ = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(\.\d+)?$/.test(s);
+      const tNoTZ = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?$/.test(s);
+      // Normalize common SQLite/Turso forms that are UTC but lack timezone info
+      if (!hasTZ && (spaceNoTZ || tNoTZ)) {
+        const iso = (spaceNoTZ ? s.replace(' ', 'T') : s) + 'Z';
+        d = new Date(iso);
+      } else {
+        d = new Date(s);
+      }
+    } else {
+      d = new Date(ts);
+    }
+    return d.toLocaleString('en-IN', { timeZone:'Asia/Kolkata', year:'numeric', month:'short', day:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:true });
+  }
+  catch{ return String(ts||''); }
+}
 function drawChartJS(canvas, daily){
   if(typeof Chart === 'undefined' || !canvas){ return; }
   const labels = (daily||[]).map(d=>d.day||d.date||'');
@@ -145,7 +167,7 @@ async function load(){
   const ct3 = ev.headers.get('Content-Type')||''; if(!ev.ok || !ct3.includes('application/json')){ qs('tbody').innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--muted)">No events (auth or filter)</td></tr>`; lastRows=0; updatePageInfo(); return; }
   const ej = await ev.json(); const rows = ej.data||[];
   qs('tbody').innerHTML = (rows.length?rows.map(r=>`<tr>
-    <td>${r.created_at?.replace('T',' ').slice(0,19)}</td>
+    <td>${formatIndiaTime(r.created_at)}</td>
     <td>${r.event_type||''}</td>
     <td>${r.primary_cta_shown||''}</td>
     <td>${r.cta_clicked||''}</td>
@@ -167,15 +189,20 @@ window.addEventListener('DOMContentLoaded', ()=>{
     // Prefill filters for last 30 days if empty
     const fromEl = qs('from'); const toEl = qs('to');
     const today = new Date(); const start = new Date(); start.setDate(today.getDate()-30);
-    const fmt = (d)=>d.toISOString().slice(0,10);
-    if(fromEl && !fromEl.value) fromEl.value = fmt(start);
-    if(toEl && !toEl.value) toEl.value = fmt(today);
+    const fmtIndiaDate = (d)=>{
+      try{
+        // en-CA locale yields YYYY-MM-DD; force Asia/Kolkata timezone
+        return d.toLocaleDateString('en-CA', { timeZone:'Asia/Kolkata' });
+      }catch{ return d.toISOString().slice(0,10); }
+    };
+    if(fromEl && !fromEl.value) fromEl.value = fmtIndiaDate(start);
+    if(toEl && !toEl.value) toEl.value = fmtIndiaDate(today);
     load();
     qs('apply')?.addEventListener('click', ()=>{ page=0; load(); });
     qs('exportCsv')?.addEventListener('click', async ()=>{
       const q = params(); const res = await fetch('/api/admin/follow-hub/events' + (q?('?'+q):'')); const j = await res.json(); const rows = j.data||[];
       const csv = ['time,type,cta_shown,cta_clicked,variant,source,device,ip_masked'].concat(
-        rows.map(r => [r.created_at, r.event_type, r.primary_cta_shown, r.cta_clicked, r.cta_variant, r.source, r.device, r.ip_masked].map(x => '"' + String(x||'').replace(/"/g,'""') + '"').join(','))
+        rows.map(r => [formatIndiaTime(r.created_at), r.event_type, r.primary_cta_shown, r.cta_clicked, r.cta_variant, r.source, r.device, r.ip_masked].map(x => '"' + String(x||'').replace(/"/g,'""') + '"').join(','))
       ).join('\n');
       const blob = new Blob([csv], { type: 'text/csv' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'follow-hub-' + new Date().toISOString().slice(0,10) + '.csv'; a.click();
     });

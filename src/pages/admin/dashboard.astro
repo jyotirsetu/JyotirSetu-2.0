@@ -123,7 +123,15 @@ import Favicons from '~/components/Favicons.astro';
                 <div style="display:flex;align-items:center;gap:8px"><span class="icon" style="width:32px;height:32px;font-size:18px">🕘</span><strong>Recent Activity</strong></div>
                 <a class="pill" href="/admin/activity-log">View all</a>
               </div>
-              <div id="recentActivityList" class="muted" style="font-size:13px"></div>
+              <style>
+                .activity-list{display:flex;flex-direction:column;gap:6px}
+                .activity-item{display:flex;justify-content:space-between;align-items:flex-start;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:rgba(255,255,255,0.05)}
+                .activity-left{display:flex;flex-direction:column;gap:4px;min-width:0}
+                .activity-title{color:#ffffff;font-weight:600;letter-spacing:0.2px}
+                .activity-details{color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+                .activity-time{color:var(--muted);font-size:12px;margin-left:12px;white-space:nowrap}
+              </style>
+              <div id="recentActivityList" class="activity-list"></div>
             </div>
           </div>
         </div>
@@ -156,6 +164,23 @@ import Favicons from '~/components/Favicons.astro';
       }
       loadStats();
 
+      function formatIndiaTime(ts){
+        try{
+          let d;
+          if (typeof ts === 'string') {
+            const s = ts.trim();
+            // Normalize SQLite UTC string (no timezone) to proper UTC
+            if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(\.\d+)?$/.test(s)) {
+              d = new Date(s.replace(' ', 'T') + 'Z');
+            } else {
+              d = new Date(s);
+            }
+          } else {
+            d = new Date(ts);
+          }
+          return d.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', year:'numeric', month:'short', day:'2-digit', hour:'2-digit', minute:'2-digit', hour12:true });
+        }catch{ return String(ts||''); }
+      }
       async function loadRecentActivity(){
         try{
           const res = await fetch('/api/admin/activity-log?limit=10', { credentials: 'include' });
@@ -163,17 +188,36 @@ import Favicons from '~/components/Favicons.astro';
           const logs = json.data||[];
           const list = document.getElementById('recentActivityList');
           if(!list) return;
-          if(!logs.length){ list.textContent = 'No recent activity'; return; }
-          list.innerHTML = logs.map(l=>{
+          if(!logs.length){ list.innerHTML = '<div class="activity-item"><div class="activity-left"><div class="activity-title">No recent activity</div></div></div>'; return; }
+          const iconForAction = (a)=>({
+            'appointment_created':'📅',
+            'status_updated':'🔄',
+            'email_sent':'📧',
+            'contact_created':'💬',
+            'note_created':'📝',
+            'note_deleted':'🗑️',
+            'contact_deleted':'🗑️'
+          })[String(a||'').toLowerCase()] || '⚡';
+          list.innerHTML = logs.slice(0,6).map(l=>{
             const actionText = String(l.action||'').replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
-            const when = new Date(l.created_at).toLocaleString();
+            const when = formatIndiaTime(l.created_at);
             const nameOrEmail = l.appointment_name || l.contact_name || l.appointment_email || l.contact_email || '';
-            const details = nameOrEmail ? ` – ${nameOrEmail}` : '';
-            return `<div style="padding:8px 0;border-bottom:1px solid var(--border)"><span style="color:#111827">${actionText}</span>${details}<div style="font-size:11px;color:var(--muted)">${when}</div></div>`;
-          }).slice(0,6).join('');
+            const subtitle = `${String(l.entity_type||'').toLowerCase()}${nameOrEmail?` – ${nameOrEmail}`:''}`;
+            const details = l.details || '';
+            const icon = iconForAction(l.action);
+            return `<div class="activity-item" style="gap:12px">
+              <div style="font-size:18px;line-height:1.2">${icon}</div>
+              <div class="activity-left">
+                <div class="activity-title">${actionText}</div>
+                ${subtitle?`<div class="activity-details">${subtitle}</div>`:''}
+                ${details?`<div class="activity-details">${details}</div>`:''}
+              </div>
+              <div class="activity-time">${when}</div>
+            </div>`;
+          }).join('');
         }catch{
           const list = document.getElementById('recentActivityList');
-          if(list) list.textContent = 'Failed to load activity';
+          if(list) list.innerHTML = '<div class="activity-item"><div class="activity-left"><div class="activity-title">Failed to load activity</div></div></div>';
         }
       }
       loadRecentActivity();

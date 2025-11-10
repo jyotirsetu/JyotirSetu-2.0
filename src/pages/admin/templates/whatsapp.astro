@@ -483,7 +483,9 @@ import Favicons from '~/components/Favicons.astro';
                 status: 'sent'
               })
             });
-          } catch (err) { /* non-blocking */ }
+          } catch (e) {
+            console.warn('Failed to record WhatsApp test history', e);
+          }
           const url = 'https://wa.me/' + phone.replace(/\D/g, '') + '?text=' + encodeURIComponent(message);
           window.open(url, '_blank');
         }

@@ -612,7 +612,9 @@ import Favicons from '~/components/Favicons.astro';
             (document.getElementById('noteEditModal') as HTMLElement).style.display = 'none';
             await loadNotes(currentNotesEntityId, currentNotesEntityType);
           }
-        } catch {}
+        } catch (e) {
+          console.warn('Failed to update note text', e);
+        }
       });
 
       // Delete modal actions
@@ -629,7 +631,9 @@ import Favicons from '~/components/Favicons.astro';
             (document.getElementById('noteDeleteModal') as HTMLElement).style.display = 'none';
             await loadNotes(currentNotesEntityId, currentNotesEntityType);
           }
-        } catch {}
+        } catch (e) {
+          console.warn('Failed to delete note', e);
+        }
       });
 
       // Filter handlers

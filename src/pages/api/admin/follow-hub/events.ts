@@ -32,7 +32,9 @@ export const GET: APIRoute = async ({ request }) => {
     const where = filters.length ? `WHERE ${filters.join(' AND ')}` : '';
 
     const res = await client.execute({
-      sql: `SELECT id, created_at, event_type, source, medium, campaign, device, platform,
+      sql: `SELECT id,
+                   strftime('%Y-%m-%dT%H:%M:%SZ', created_at) AS created_at,
+                   event_type, source, medium, campaign, device, platform,
                    primary_cta_shown, cta_clicked, cta_variant, page_url, utm_query,
                    substr(ip_address, 1, 3) || '***' AS ip_masked,
                    CASE WHEN user_agent IS NULL THEN NULL ELSE 'UA-' || substr(hex(randomblob(4)),1,8) END AS ua_masked
