@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { getTursoClient, ensureAppointmentsTable } from '../../../lib/turso';
+import { getTursoClient, ensureAppointmentsTable, ensureEmailHistoryTable } from '../../../lib/turso';
 import { emailService } from '../../../lib/email-service';
 import { logActivity } from '../../../lib/activity-logger';
 import { logEmail } from '../../../lib/email-tracker';
@@ -171,6 +171,25 @@ export const POST: APIRoute = async ({ request }) => {
         html?: string;
       });
       let subjectUsed = String(subject || `Appointment ${status}`);
+
+      // Duplicate suppression: if a recent email was sent for this appointment, skip sending
+      try {
+        await ensureEmailHistoryTable();
+        const dupRes = await client.execute({
+          sql: `SELECT sent_at FROM email_history WHERE related_id = ? AND related_type = 'appointment' AND type = 'appointment_status' AND status = 'sent' ORDER BY datetime(sent_at) DESC LIMIT 1`,
+          args: [String(id)]
+        });
+        const last = dupRes.rows?.[0] as unknown as { sent_at?: string } | undefined;
+        const lastSentAt = last?.sent_at ? new Date(String(last.sent_at)).getTime() : 0;
+        const now = Date.now();
+        const recentWindowMs = 8000; // 8 seconds window
+        if (lastSentAt && (now - lastSentAt) < recentWindowMs) {
+          await logActivity('email_duplicate_suppressed', 'appointment', id, `Duplicate email suppressed for ${row.name} (${row.email})`);
+          return new Response(JSON.stringify({ ok: true, duplicate: true }), { headers: { 'Content-Type': 'application/json' } });
+        }
+      } catch {
+        // If suppression check fails, proceed with sending
+      }
       let ok = false;
       if (html) {
         ok = await emailService.sendAppointmentCustomEmail({

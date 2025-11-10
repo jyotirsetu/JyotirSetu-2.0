@@ -70,13 +70,92 @@ export class EmailService {
     const siteUrlRaw = (import.meta.env.SITE_URL || process.env.SITE_URL || 'https://www.jyotirsetu.com').toString();
     const siteUrl = siteUrlRaw.replace(/\/$/, '');
     const configuredLogo = (import.meta.env.EMAIL_LOGO_URL || process.env.EMAIL_LOGO_URL || '').toString().trim();
-    // Prefer configured URL; then legacy known-good path; finally site assets path (avoid constant truthiness in || chains)
-    const logoFallbacks = [
-      configuredLogo,
-      `${siteUrl}/assets/images/Jyotirsetu-logo.png`,
-      'https://follow.jyotirsetu.com/JyotirSetu%20Full%20Logo%20Transparent.png',
-    ];
-    this.logoUrl = (logoFallbacks.find(v => !!v) as string);
+    // Allow env override, else use the requested asset by default
+    if (configuredLogo) {
+      // Accept absolute or relative URLs; normalize relative to siteUrl
+      this.logoUrl = configuredLogo.startsWith('http')
+        ? configuredLogo
+        : `${siteUrl}${configuredLogo.startsWith('/') ? '' : '/'}${configuredLogo}`;
+    } else {
+      this.logoUrl = `${siteUrl}/assets/images/JyotirSetu%20Astrology%20Text.png`;
+    }
+  }
+
+  private resolvedLogoUrl?: string;
+
+  // Replace occurrences of the known logo URL in img tags with a new, validated URL
+  private replaceLogoUrlInHtml(html: string, newUrl: string): string {
+    try {
+      const pattern = new RegExp(
+        String(this.logoUrl).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+        'g'
+      );
+      return html.replace(pattern, newUrl);
+    } catch {
+      return html;
+    }
+  }
+
+  // Validate candidate URLs (configured → site asset → follow hub) and cache the first accessible
+  private async getResolvedLogoUrl(): Promise<string> {
+    if (this.resolvedLogoUrl) return this.resolvedLogoUrl;
+    const siteUrlRaw = (import.meta.env.SITE_URL || process.env.SITE_URL || 'https://www.jyotirsetu.com').toString();
+    const siteUrl = siteUrlRaw.replace(/\/$/, '');
+    const configuredLogo = (import.meta.env.EMAIL_LOGO_URL || process.env.EMAIL_LOGO_URL || '').toString().trim();
+    const preferredLogo = `${siteUrl}/assets/images/JyotirSetu%20Astrology%20Text.png`;
+    const candidates = [preferredLogo, configuredLogo, `${siteUrl}/assets/images/Jyotirsetu-logo.png`].filter(Boolean);
+    for (const url of candidates) {
+      if (await this.isImageReachable(url)) {
+        this.resolvedLogoUrl = url;
+        return url;
+      }
+    }
+    // Fallback to whatever is set, even if not validated
+    this.resolvedLogoUrl = this.logoUrl;
+    return this.logoUrl;
+  }
+
+  private async isImageReachable(url: string): Promise<boolean> {
+    try {
+      const ac = new AbortController();
+      const t = setTimeout(() => ac.abort(), 4000);
+      const res = await fetch(url, { method: 'HEAD', signal: ac.signal });
+      clearTimeout(t);
+      if (!res.ok) return false;
+      const ct = String(res.headers.get('content-type') || '').toLowerCase();
+      return ct.includes('image');
+    } catch {
+      return false;
+    }
+  }
+
+  private async getLogoBuffer(): Promise<Buffer | null> {
+    try {
+      const fs = await import('node:fs/promises');
+      const tryRead = async (url: URL): Promise<Buffer | null> => {
+        try {
+          const buf = await fs.readFile(url);
+          return Buffer.from(buf);
+        } catch {
+          return null;
+        }
+      };
+
+      // Prefer the requested header image; fall back to existing logos
+      const primaryUrl = new URL('../assets/images/JyotirSetu Astrology Text.png', import.meta.url);
+      const fallbackUrl = new URL('../assets/images/Jyotirsetu-logo.png', import.meta.url);
+      const fallbackUrl2 = new URL('../assets/images/JyotirSetu Full Logo Transparent.png', import.meta.url);
+      const publicPrimary = new URL('../public/assets/images/JyotirSetu Astrology Text.png', import.meta.url);
+
+      const candidates = [primaryUrl, fallbackUrl, fallbackUrl2, publicPrimary];
+      for (const u of candidates) {
+        const b = await tryRead(u);
+        if (b) return b;
+      }
+      return null;
+    } catch {
+      return null;
+    }
   }
 
   private async loadEmailTemplate(key: string): Promise<{ subject: string; html: string } | null> {
@@ -131,9 +210,9 @@ export class EmailService {
         <div class="container">
           <div class="header">
             <div class="logo-container" style="text-align:center;">
-              <img src="${this.logoUrl}" alt="JyotirSetu Logo" class="logo-image" style="display:block;margin:0 auto;border:0;outline:none;text-decoration:none;" width="160" />
+              <img src="${this.logoUrl}" alt="JyotirSetu Logo" class="logo-image" style="display:block;margin:0 auto;border:0;outline:none;text-decoration:none;" width="220" />
             </div>
-            <div style="margin-top:8px; font-weight:700; letter-spacing:0.5px;">JyotirSetu Astrology</div>
+            <div style="margin-top:8px; font-weight:700; letter-spacing:0.5px;">By Astrologer Punita Sharma</div>
           </div>
           <div class="content">${innerHtml}</div>
           <div class="footer">
@@ -227,13 +306,46 @@ export class EmailService {
       secure: this.smtpSecure,
       auth: { user: this.smtpUser, pass: this.smtpPass },
     });
+    // Embed logo as CID attachment to avoid remote image blocking
+    let htmlWithCid = html;
+    let attachments: Array<{ filename: string; content: Buffer; cid: string }> = [];
+    try {
+      // First try to read the logo directly from the repo (local asset)
+      const logoBuf = await this.getLogoBuffer();
+      if (logoBuf) {
+        // Replace occurrences of the logo URL with cid reference
+        const srcPattern = new RegExp(
+          String(this.logoUrl).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+          'g'
+        );
+        htmlWithCid = htmlWithCid.replace(srcPattern, 'cid:js-logo');
+        attachments = [{ filename: 'logo.png', content: logoBuf, cid: 'js-logo' }];
+      } else {
+        // Fallback: fetch a validated remote logo URL
+        const resolvedLogoUrl = await this.getResolvedLogoUrl().catch(() => this.logoUrl);
+        const res = await fetch(resolvedLogoUrl);
+        if (res.ok) {
+          const buf = Buffer.from(await res.arrayBuffer());
+          const srcPattern = new RegExp(
+            String(this.logoUrl).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+            'g'
+          );
+          htmlWithCid = htmlWithCid.replace(srcPattern, 'cid:js-logo');
+          attachments = [{ filename: 'logo.png', content: buf, cid: 'js-logo' }];
+        }
+      }
+    } catch {
+      // If everything fails, fall back to original HTML without CID replacement
+      htmlWithCid = html;
+    }
     // Use display name if provided in env (e.g., "JyotirSetu Astrology <noreply@jyotirsetu.com>")
     const info = await transporter.sendMail({
       from: this.fromEmail,
       to,
       bcc: this.toAdmin,
       subject,
-      html,
+      html: htmlWithCid,
+      attachments,
       replyTo: this.toAdmin,
     });
     return Boolean(info?.messageId);
@@ -248,11 +360,14 @@ export class EmailService {
       return match ? match[1] : s;
     };
     const fromPlain = extractEmail(this.fromEmail);
+    // Ensure logo URL is reachable to avoid broken image in Zoho emails
+    const finalLogo = await this.getResolvedLogoUrl().catch(() => this.logoUrl);
+    const safeHtml = this.replaceLogoUrlInHtml(html, finalLogo);
     const payload = {
       fromAddress: fromPlain,
       toAddress: to,
       subject,
-      content: html,
+      content: safeHtml,
       mailFormat: 'html',
       askReceipt: false,
       // Optionally BCC admin for delivery visibility
@@ -281,7 +396,10 @@ export class EmailService {
         return await this.sendViaSmtp(contactData.email, 'Thank you for contacting JyotirSetu - We\'ll be in touch soon!', emailHtml);
       }
       if (this.useMailChannels) {
-        return await this.sendViaMailChannels(contactData.email, 'Thank you for contacting JyotirSetu - We\'ll be in touch soon!', emailHtml);
+        // Ensure a reachable logo URL is used for MailChannels (no CID support)
+        const finalLogo = await this.getResolvedLogoUrl().catch(() => this.logoUrl);
+        const safeHtml = this.replaceLogoUrlInHtml(emailHtml, finalLogo);
+        return await this.sendViaMailChannels(contactData.email, 'Thank you for contacting JyotirSetu - We\'ll be in touch soon!', safeHtml);
       }
       return await this.sendViaZoho(contactData.email, 'Thank you for contacting JyotirSetu - We\'ll be in touch soon!', emailHtml);
     } catch (error) {
@@ -298,7 +416,10 @@ export class EmailService {
         return await this.sendViaSmtp(appointmentData.email, subject, emailHtml);
       }
       if (this.useMailChannels) {
-        return await this.sendViaMailChannels(appointmentData.email, subject, emailHtml);
+        // Validate and inject accessible logo URL for MailChannels
+        const finalLogo = await this.getResolvedLogoUrl().catch(() => this.logoUrl);
+        const safeHtml = this.replaceLogoUrlInHtml(emailHtml, finalLogo);
+        return await this.sendViaMailChannels(appointmentData.email, subject, safeHtml);
       }
       return await this.sendViaZoho(appointmentData.email, subject, emailHtml);
     } catch (error) {
@@ -334,7 +455,9 @@ export class EmailService {
         return await this.sendViaSmtp(appointmentData.email, subject, emailHtml);
       }
       if (this.useMailChannels) {
-        return await this.sendViaMailChannels(appointmentData.email, subject, emailHtml);
+        const finalLogo = await this.getResolvedLogoUrl().catch(() => this.logoUrl);
+        const safeHtml = this.replaceLogoUrlInHtml(emailHtml, finalLogo);
+        return await this.sendViaMailChannels(appointmentData.email, subject, safeHtml);
       }
       return await this.sendViaZoho(appointmentData.email, subject, emailHtml);
     } catch (error) {
@@ -351,7 +474,11 @@ export class EmailService {
       const replaced = this.replaceVars((tpl?.html || ''), appointmentData, extras, key);
       const html = this.wrapBranded(subject, replaced);
       if (this.smtpHost) return await this.sendViaSmtp(appointmentData.email, subject, html);
-      if (this.useMailChannels) return await this.sendViaMailChannels(appointmentData.email, subject, html);
+      if (this.useMailChannels) {
+        const finalLogo = await this.getResolvedLogoUrl().catch(() => this.logoUrl);
+        const safeHtml = this.replaceLogoUrlInHtml(html, finalLogo);
+        return await this.sendViaMailChannels(appointmentData.email, subject, safeHtml);
+      }
       return await this.sendViaZoho(appointmentData.email, subject, html);
     } catch (error) {
       console.error('Error sending template email:', error);
@@ -364,7 +491,11 @@ export class EmailService {
       const replaced = this.replaceVars(innerHtml || '', appointmentData, extras);
       const html = this.wrapBranded(subject || 'Appointment Update - JyotirSetu', replaced);
       if (this.smtpHost) return await this.sendViaSmtp(appointmentData.email, subject, html);
-      if (this.useMailChannels) return await this.sendViaMailChannels(appointmentData.email, subject, html);
+      if (this.useMailChannels) {
+        const finalLogo = await this.getResolvedLogoUrl().catch(() => this.logoUrl);
+        const safeHtml = this.replaceLogoUrlInHtml(html, finalLogo);
+        return await this.sendViaMailChannels(appointmentData.email, subject, safeHtml);
+      }
       return await this.sendViaZoho(appointmentData.email, subject, html);
     } catch (error) {
       console.error('Error sending custom appointment email:', error);

@@ -468,13 +468,34 @@ import Favicons from '~/components/Favicons.astro';
       function closeEmailConfirm(){ document.getElementById('emailConfirmModal')?.classList.remove('active'); }
       document.getElementById('emailConfirmCancel')?.addEventListener('click', closeEmailConfirm);
       document.getElementById('emailConfirmCancel2')?.addEventListener('click', closeEmailConfirm);
+      let emailSending = false;
       document.getElementById('emailConfirmSend')?.addEventListener('click', async ()=>{
-        const { id, status, row } = emailContext;
-        const res = await fetch('/api/admin/appointments', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ action:'email', id, status }) });
-        const j = await res.json();
-        closeEmailConfirm();
-        if (j.ok) window.AdminNotify?.success('Email sent', `To ${row.email}`);
-        else window.AdminNotify?.error('Email failed', j.error || 'Unknown error');
+        if (emailSending) return;
+        emailSending = true;
+        const btn = document.getElementById('emailConfirmSend') as HTMLButtonElement | null;
+        const originalText = btn?.innerText || 'Send Email';
+        if (btn) { btn.disabled = true; btn.innerText = 'Sending…'; btn.setAttribute('aria-busy', 'true'); }
+        try {
+          const { id, status, row } = emailContext;
+          const res = await fetch('/api/admin/appointments', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ action:'email', id, status }) });
+          const j = await res.json();
+          if (j.ok) {
+            if (j.duplicate) {
+              window.AdminNotify?.info?.('Already sending', 'Duplicate click suppressed');
+            } else {
+              window.AdminNotify?.success('Email sent', `To ${row.email}`);
+            }
+          } else {
+            window.AdminNotify?.error('Email failed', j.error || 'Unknown error');
+          }
+        } catch (e) {
+          const msg = (e && typeof e === 'object' && 'message' in e) ? (e as Error).message : 'Network error';
+          window.AdminNotify?.error('Email failed', String(msg));
+        } finally {
+          emailSending = false;
+          if (btn) { btn.disabled = false; btn.innerText = originalText; btn.removeAttribute('aria-busy'); }
+          closeEmailConfirm();
+        }
       });
       document.getElementById('addAppointmentBtn')?.addEventListener('click', () => {
         document.getElementById('addModal')?.classList.add('active');
