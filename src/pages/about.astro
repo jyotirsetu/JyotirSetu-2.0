@@ -7,6 +7,8 @@ import Hero from '~/components/widgets/Hero.astro';
 import Stats from '~/components/widgets/Stats.astro';
 import Steps2 from '~/components/widgets/Steps2.astro';
 import Layout from '~/layouts/PageLayout.astro';
+import jyotirLogo from '~/assets/images/JyotirSetu Full Logo Transparent.png';
+const jyotirLogoUrl = typeof jyotirLogo === 'string' ? jyotirLogo : (jyotirLogo?.src ?? '');
 
 const metadata = {
   title: 'About JyotirSetu Astrology – Expert Astrologer Punita Sharma',
@@ -33,7 +35,7 @@ const metadata = {
     <div slot="image">
       <div class="relative m-auto max-w-4xl">
         <img
-          src="/JyotirSetu Full Logo Transparent.png"
+          src={jyotirLogoUrl}
           alt="JyotirSetu Astrology Logo"
           class="mx-auto w-auto h-auto max-h-96 object-contain"
           style="max-width: 100%; height: auto;"

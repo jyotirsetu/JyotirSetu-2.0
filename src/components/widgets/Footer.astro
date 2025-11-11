@@ -2,6 +2,8 @@
 import { Icon } from 'astro-icon/components';
 import { SITE } from 'astrowind:config';
 import { getHomePermalink } from '~/utils/permalinks';
+import jyotirLogo from '~/assets/images/JyotirSetu Full Logo Transparent.png';
+const jyotirLogoUrl = typeof jyotirLogo === 'string' ? jyotirLogo : (jyotirLogo?.src ?? '');
 
 interface Link {
   text?: string;
@@ -40,9 +42,9 @@ const { socialLinks = [], theme = 'light' } = Astro.props;
           <div class="flex justify-center mb-2">
             <a href="/" class="relative group block">
               <img
-                src="/JyotirSetu Full Logo Transparent.png"
+                src={jyotirLogoUrl}
                 alt="JyotirSetu Logo"
-                class="w-28 h-28 rounded-full object-cover shadow-lg transition-all duration-300 border-2 border-white/20 backdrop-blur-sm"
+                class="w-28 h-28 object-contain shadow-lg transition-all duration-300"
                 loading="lazy"
                 width={112}
                 height={112}
@@ -263,9 +265,9 @@ const { socialLinks = [], theme = 'light' } = Astro.props;
           <div class="mb-6">
             <div class="flex items-center mb-6">
               <img
-                src="/JyotirSetu Full Logo Transparent.png"
+                src={jyotirLogoUrl}
                 alt="JyotirSetu Logo"
-                class="w-32 h-32 rounded-full object-cover shadow-lg mr-4"
+                class="w-32 h-32 object-contain shadow-lg mr-4"
                 loading="lazy"
                 width={128}
                 height={128}
