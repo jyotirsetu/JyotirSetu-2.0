@@ -23,22 +23,37 @@ export const GET: APIRoute = async ({ request }) => {
     const page = Math.max(1, parseInt(url.searchParams.get('page') || '1', 10));
     const limit = Math.min(100, Math.max(10, parseInt(url.searchParams.get('limit') || '20', 10)));
     const offset = (page - 1) * limit;
+    const from = url.searchParams.get('from');
+    const to = url.searchParams.get('to');
     
     const client = await getTursoClient();
+    const filters: string[] = [];
+    const argsBase: (string | number | boolean | bigint | null)[] = [];
+    if (from) {
+      if (from.length === 10) { filters.push(`date(created_at) >= date(?)`); }
+      else { filters.push(`created_at >= ?`); }
+      argsBase.push(from);
+    }
+    if (to) {
+      if (to.length === 10) { filters.push(`date(created_at) <= date(?)`); }
+      else { filters.push(`created_at <= ?`); }
+      argsBase.push(to);
+    }
+    const where = filters.length ? `WHERE ${filters.join(' AND ')}` : '';
     const [dataRes, countRes] = await Promise.all([
       client.execute({
         sql: `SELECT id, name, email, phone, subject, message, status, priority, created_at
-              FROM contacts ORDER BY datetime(created_at) DESC LIMIT ? OFFSET ?`,
-        args: [limit, offset]
+              FROM contacts ${where} ORDER BY datetime(created_at) DESC LIMIT ? OFFSET ?`,
+        args: [...argsBase, limit, offset]
       }),
       client.execute({
-        sql: `SELECT COUNT(*) as total FROM contacts`,
-        args: []
+        sql: `SELECT COUNT(*) as total FROM contacts ${where}`,
+        args: argsBase
       })
     ]);
     
     const rows = (dataRes.rows || []) as unknown as Contact[];
-    const total = (countRes.rows[0] as { total: number })?.total || 0;
+    const total = (countRes.rows[0] as unknown as { total?: number })?.total ?? 0;
     
     return new Response(JSON.stringify({ 
       ok: true, 
@@ -67,13 +82,13 @@ export const PUT: APIRoute = async ({ request }) => {
     
     if (status) {
       const oldRes = await client.execute({ sql: `SELECT status FROM contacts WHERE id = ?`, args: [String(id)] });
-      const oldStatus = (oldRes.rows[0] as { status: string })?.status;
+      const oldStatus = (oldRes.rows[0] as unknown as { status?: string })?.status;
       await client.execute({ sql: `UPDATE contacts SET status = ? WHERE id = ?`, args: [String(status), String(id)] });
       await logActivity('status_updated', 'contact', id, `Status changed from ${oldStatus} to ${status}`);
     }
     if (priority) {
       const oldRes = await client.execute({ sql: `SELECT priority FROM contacts WHERE id = ?`, args: [String(id)] });
-      const oldPriority = (oldRes.rows[0] as { priority: string })?.priority;
+      const oldPriority = (oldRes.rows[0] as unknown as { priority?: string })?.priority;
       await client.execute({ sql: `UPDATE contacts SET priority = ? WHERE id = ?`, args: [String(priority), String(id)] });
       await logActivity('priority_updated', 'contact', id, `Priority changed from ${oldPriority} to ${priority}`);
     }

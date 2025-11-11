@@ -198,21 +198,31 @@ export class EmailService {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>${subject}</title>
         <style>
-          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 650px; margin: 0 auto; padding: 20px; background: #f6f7fb; }
-          .container { background: white; border-radius: 16px; box-shadow: 0 12px 28px rgba(0,0,0,0.12); overflow: hidden; }
-          .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 28px 20px; text-align: center; color: white; }
-          .content { padding: 24px; }
-          .footer { padding: 16px 24px; border-top: 1px solid #eee; color: #666; font-size: 13px; text-align: center; }
+          /* Base */
+          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.65; color: #0f172a; max-width: 720px; margin: 0 auto; padding: 24px; background: #f6f7fb; }
+          .container { background: #ffffff; border-radius: 18px; box-shadow: 0 14px 32px rgba(17,24,39,0.12); overflow: hidden; border: 1px solid #e5e7eb; }
+          /* Header */
+          .header { background: linear-gradient(135deg, #3f51b5 0%, #764ba2 100%); padding: 30px 22px; text-align: center; color: #fff; position: relative; }
+          .header::after { content:''; position:absolute; inset:auto 0 0 0; height:3px; background: linear-gradient(90deg, rgba(255,255,255,0.3), rgba(255,255,255,0.1), rgba(255,255,255,0.3)); }
+          .logo-container { text-align:center; }
+          .logo-image { display:block; margin:0 auto; border:0; outline:none; text-decoration:none; width:220px; max-width:80%; background:#ffffff; border-radius:12px; padding:8px; box-shadow: 0 6px 16px rgba(0,0,0,0.12); }
+          .tagline { margin-top:10px; font-weight:600; letter-spacing:0.4px; opacity:0.9; }
+          /* Content */
+          .content { padding: 26px; }
+          .section-title { font-size:18px; color:#0f172a; margin:0 0 12px; }
+          .card { border:1px solid #e5e7eb; border-radius:14px; padding:16px; background:#f9fafb; }
+          /* Footer */
+          .footer { padding: 18px 24px; border-top: 1px solid #e5e7eb; color: #334155; font-size: 13px; text-align: center; background:#fafafa; }
           .cta-link { display:inline-block; margin-top: 8px; color:#4f46e5; text-decoration:none; font-weight:600; }
         </style>
       </head>
       <body>
         <div class="container">
           <div class="header">
-            <div class="logo-container" style="text-align:center;">
-              <img src="${this.logoUrl}" alt="JyotirSetu Logo" class="logo-image" style="display:block;margin:0 auto;border:0;outline:none;text-decoration:none;" width="220" />
+            <div class="logo-container">
+              <img src="${this.logoUrl}" alt="JyotirSetu Logo" class="logo-image" />
             </div>
-            <div style="margin-top:8px; font-weight:700; letter-spacing:0.5px;">By Astrologer Punita Sharma</div>
+            <div class="tagline">Expert Astrological Consultations by Punita Sharma</div>
           </div>
           <div class="content">${innerHtml}</div>
           <div class="footer">
@@ -391,7 +401,7 @@ export class EmailService {
 
   async sendContactConfirmationEmail(contactData: ContactData): Promise<boolean> {
     try {
-      const emailHtml = this.generateContactConfirmationEmailHTML(contactData);
+      const emailHtml = this.generateContactConfirmationEmailHTMLBranded(contactData);
       if (this.smtpHost) {
         return await this.sendViaSmtp(contactData.email, 'Thank you for contacting JyotirSetu - We\'ll be in touch soon!', emailHtml);
       }
@@ -410,7 +420,7 @@ export class EmailService {
 
   async sendConfirmationEmail(appointmentData: AppointmentData): Promise<boolean> {
     try {
-      const emailHtml = this.generateConfirmationEmailHTML(appointmentData);
+      const emailHtml = this.generateAppointmentEmailHTMLV2(appointmentData);
       const subject = 'Appointment Request Confirmed - JyotirSetu';
       if (this.smtpHost) {
         return await this.sendViaSmtp(appointmentData.email, subject, emailHtml);
@@ -426,6 +436,128 @@ export class EmailService {
       console.error('Error sending confirmation email:', error);
       return false;
     }
+  }
+
+  async sendNewsletterWelcomeEmail(newsletterData: { name?: string; email: string }): Promise<boolean> {
+    try {
+      const emailHtml = this.generateNewsletterWelcomeEmailHTML(newsletterData);
+      const subject = 'Welcome to Daily Astro Tips – JyotirSetu';
+      if (this.smtpHost) {
+        return await this.sendViaSmtp(newsletterData.email, subject, emailHtml);
+      }
+      if (this.useMailChannels) {
+        const finalLogo = await this.getResolvedLogoUrl().catch(() => this.logoUrl);
+        const safeHtml = this.replaceLogoUrlInHtml(emailHtml, finalLogo);
+        return await this.sendViaMailChannels(newsletterData.email, subject, safeHtml);
+      }
+      return await this.sendViaZoho(newsletterData.email, subject, emailHtml);
+    } catch (error) {
+      console.error('Error sending newsletter welcome email:', error);
+      return false;
+    }
+  }
+
+  private generateNewsletterWelcomeEmailHTML(newsletterData: { name?: string; email: string }): string {
+    const name = (newsletterData.name || 'Friend').toString();
+    return `<!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Welcome – Daily Astro Tips</title>
+      <style>
+        /* Base */
+        body { margin:0; padding:0; background:#f5f7fb; color:#0f172a; font-family: Inter, Segoe UI, Arial, sans-serif; }
+        a { color:#4f46e5; text-decoration:none; }
+        /* Layout (email-safe tables) */
+        .outer { width:100%; background:#f5f7fb; }
+        .wrap { width:100%; max-width:680px; margin:0 auto; }
+        .card { background:#ffffff; border:1px solid #e5e7eb; border-radius:16px; overflow:hidden; box-shadow:0 8px 24px rgba(2,6,23,0.08); }
+        /* Header */
+        .hdr { background:linear-gradient(135deg,#4f46e5,#0ea5e9); color:#ffffff; padding:28px 24px; text-align:center; }
+        .brand { display:inline-flex; align-items:center; gap:12px; }
+        .brand img { width:40px; height:40px; border-radius:10px; background:#ffffff; }
+        .brand .title { font-size:16px; font-weight:700; letter-spacing:0.2px; }
+        .brand .sub { font-size:13px; opacity:0.9; }
+        /* Content */
+        .content { padding:28px 24px; }
+        .h1 { font-size:22px; margin:0 0 8px; font-weight:800; color:#0f172a; }
+        .lead { margin:8px 0 14px; line-height:1.7; color:#334155; }
+        .divider { height:1px; background:#e2e8f0; margin:18px 0; }
+        .benefits { background:#f8fafc; border:1px solid #e5e7eb; border-radius:14px; padding:14px 16px; }
+        .benefits h3 { margin:0 0 6px; font-size:15px; color:#0f172a; }
+        .benefits ul { margin:8px 0 0 18px; padding:0; color:#1f2937; }
+        .benefits li { margin:6px 0; }
+        .cta { display:inline-block; background:#4f46e5; color:#ffffff; padding:12px 18px; border-radius:10px; font-weight:600; box-shadow:0 8px 20px rgba(79,70,229,0.35); }
+        .subnote { font-size:13px; color:#6b7280; margin-top:16px; }
+        /* Footer */
+        .footer { padding:20px 24px; text-align:center; color:#64748b; font-size:13px; }
+        .links { margin-top:6px; }
+        .links a { color:#0ea5e9; font-weight:600; }
+        /* Preheader */
+        .preheader { display:none; max-height:0; overflow:hidden; mso-hide:all; font-size:1px; line-height:1px; color:#f5f7fb; }
+      </style>
+    </head>
+    <body>
+      <div class="preheader">You're in! Daily Astro Tips start soon + Your free guide</div>
+      <table class="outer" role="presentation" cellpadding="0" cellspacing="0">
+        <tr><td>
+          <table class="wrap" role="presentation" cellpadding="0" cellspacing="0">
+            <tr><td>
+              <div class="card">
+                <!-- Header -->
+                <div class="hdr">
+                  <span class="brand">
+                    <img src="${this.logoUrl}" alt="JyotirSetu" />
+                    <span>
+                      <span class="title">JyotirSetu</span><br/>
+                      <span class="sub">Bridge to Cosmic Light</span>
+                    </span>
+                  </span>
+                </div>
+
+                <!-- Body -->
+                <div class="content">
+                  <h1 class="h1">Welcome, ${name}! 🌟</h1>
+                  <p class="lead">
+                    You're all set to receive <strong>Daily Astro Tips</strong> curated by <strong>Punita Sharma</strong>.
+                    Expect refined guidance, actionable remedies, and uplifting affirmations to align with planetary energies.
+                  </p>
+                  <div class="benefits">
+                    <h3>What you'll receive</h3>
+                    <ul>
+                      <li>Daily insights tailored to the cosmic climate</li>
+                      <li>Remedies and affirmations for clarity and balance</li>
+                      <li>Occasional deep-dive guides and exclusive resources</li>
+                    </ul>
+                  </div>
+
+                  <div class="divider"></div>
+
+                  <p class="lead" style="margin-top:0;">
+                    Bonus: your <strong>Dosha Balancing Guide</strong> is available in our resources.
+                  </p>
+                  <a class="cta" href="https://www.jyotirsetu.com/resources" target="_blank" rel="noopener">Explore Free Resources</a>
+
+                  <p class="subnote">If this wasn’t you, or you prefer not to receive daily tips, you can unsubscribe anytime by replying to this email.</p>
+                </div>
+
+                <!-- Footer -->
+                <div class="footer">
+                  <div><strong>JyotirSetu</strong> — Expert Astrological Consultations</div>
+                  <div class="links">
+                    <a href="mailto:guidance@jyotirsetu.com" target="_blank">guidance@jyotirsetu.com</a> •
+                    <a href="https://www.jyotirsetu.com" target="_blank" rel="noopener">www.jyotirsetu.com</a> •
+                    <a href="https://follow.jyotirsetu.com" target="_blank" rel="noopener">Follow Hub</a>
+                  </div>
+                </div>
+              </div>
+            </td></tr>
+          </table>
+        </td></tr>
+      </table>
+    </body>
+    </html>`;
   }
 
   async sendAppointmentStatusEmail(appointmentData: AppointmentData, status: string): Promise<boolean> {
@@ -572,6 +704,169 @@ export class EmailService {
       </body>
     </html>
     `;
+  }
+
+  // New V2 layout for ScheduleAppointment confirmations with clearer sections and friendly labels
+  private generateAppointmentEmailHTMLV2(data: AppointmentData): string {
+    const prettyService = String(data.service || '').replace(/^[\s\n]+|[\s\n]+$/g, '').replace(/-/g, ' ');
+    const serviceName = prettyService ? prettyService.replace(/\b\w/g, (l) => l.toUpperCase()) : 'Consultation';
+    const appointmentId = String(data.public_id || '').trim() || `${String(data.date || '').replace(/-/g, '')}${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`;
+    const preferredDate = (() => {
+      try {
+        return new Date(String(data.date)).toLocaleDateString('en-US', {
+          weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
+        });
+      } catch { return String(data.date || ''); }
+    })();
+    const bookingDate = new Date().toLocaleDateString('en-US', {
+      weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
+    });
+    const bookingTime = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+    const msg = (String(data.message || '').trim() || 'No');
+
+    // Map corporate service details to friendly labels if present
+    const sd = (data.service_details || {}) as Record<string, unknown>;
+    const labelMap: Record<string, string> = {
+      companyName: 'CompanyName',
+      businessType: 'BusinessType',
+      employeeCount: 'EmployeeCount',
+      concernArea: 'ConcernArea',
+      // Career & Finance
+      currentProfession: 'Current Profession',
+      financialConcerns: 'Financial Concerns',
+      // Study / Education
+      futureGoal: 'Future Goal',
+      subjectTitle: 'Subject Title',
+      detailedConcern: 'Detailed Concern',
+      // Relationship / Marriage
+      specificFocusArea: 'Specific Focus Area',
+      person1Name: 'Your Full Name',
+      person1Gender: 'Your Gender',
+      person1DOB: 'Your Date of Birth',
+      person1TOB: 'Your Time of Birth',
+      person1POB: 'Your Place of Birth',
+      person2Name: "Partner's Full Name",
+      person2Gender: "Partner's Gender",
+      person2DOB: "Partner's Date of Birth",
+      person2TOB: "Partner's Time of Birth",
+      person2POB: "Partner's Place of Birth",
+    };
+    const serviceDetailsHtml = Object.keys(sd).length
+      ? Object.entries(sd).map(([key, value]) => {
+          const label = labelMap[key] || key.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
+          return `<div><strong>${label}:</strong> ${String(value ?? '')}</div>`;
+        }).join('')
+      : '';
+
+    // Build the content sections exactly as requested, wrapped in the branded shell
+    const inner = `
+      <div style="font-family:'Segoe UI',Tahoma,Verdana,sans-serif;color:#1f2937">
+        <h2 style="margin:0 0 12px;font-size:20px;color:#111827;text-align:center">Appointment Confirmed</h2>
+        <div style="border:1px solid #e5e7eb;border-radius:14px;padding:18px;background:#f9fafb">
+          <div style="margin-bottom:10px"><strong>Service:</strong><br/> 🔮 ${serviceName}</div>
+          <div style="margin-bottom:10px"><strong>Preferred Date:</strong><br/> ${preferredDate}</div>
+          <div style="margin-bottom:10px"><strong>Preferred Time:</strong><br/> ${String(data.time || '')}</div>
+          <div style="margin-bottom:10px"><strong>Consultation Method:</strong><br/> ${String(data.consultation_method || '')}</div>
+          <div style="margin-bottom:10px"><strong>Contact Number:</strong><br/> ${String(data.phone || '')}</div>
+          <div style="margin-bottom:10px"><strong>Your Message:</strong><br/> ${msg}</div>
+          ${serviceDetailsHtml ? `<div style="margin-top:12px"><strong>Service Details:</strong><br/>${serviceDetailsHtml}</div>` : ''}
+        </div>
+
+        <div style="margin-top:16px;border:1px solid #d1fae5;background:#ecfeff;border-radius:14px;padding:16px">
+          <h3 style="margin:0 0 10px;font-size:16px;color:#0f766e">🔄 What Happens Next?</h3>
+          <ul style="margin:0;padding-left:18px;color:#0f172a">
+            <li><strong>Within 24 hours:</strong> Our team will contact you to confirm your appointment details</li>
+            <li><strong>Payment:</strong> We'll discuss consultation fees and payment options</li>
+            <li><strong>Preparation:</strong> You'll receive guidance on how to prepare for your consultation</li>
+            <li><strong>Consultation:</strong> Your personalized astrological session with expert guidance</li>
+          </ul>
+        </div>
+
+        <div style="margin-top:16px;border:1px solid #93c5fd;background:#eff6ff;border-radius:14px;padding:16px">
+          <h3 style="margin:0 0 10px;font-size:16px;color:#1e40af">📋 Important Information</h3>
+          <p style="margin:6px 0"><strong>⏰ Appointment ID:</strong> ${appointmentId}</p>
+          <p style="margin:6px 0"><strong>📅 Booking Date:</strong> ${bookingDate}</p>
+          <p style="margin:6px 0"><strong>⏱️ Booking Time:</strong> ${bookingTime}</p>
+          <p style="margin:6px 0"><strong>🔮 Consultation Duration:</strong> 45-60 minutes</p>
+          <p style="margin:6px 0"><strong>💰 Consultation Fee:</strong> Will be discussed during confirmation call</p>
+        </div>
+
+        <div style="margin-top:16px;border:1px solid #f59e0b;background:#fff7ed;border-radius:14px;padding:16px">
+          <h3 style="margin:0 0 10px;font-size:16px;color:#92400e">🌟 What to Expect During Your Consultation</h3>
+          <p style="margin:6px 0"><strong>🔍 Analysis:</strong> Deep dive into your birth chart and planetary positions</p>
+          <p style="margin:6px 0"><strong>💡 Insights:</strong> Personalized guidance based on your unique astrological profile</p>
+          <p style="margin:6px 0"><strong>🎯 Solutions:</strong> Practical remedies and recommendations for your life challenges</p>
+          <p style="margin:6px 0"><strong>📝 Report:</strong> Detailed written summary of your consultation (if requested)</p>
+          <p style="margin:6px 0"><strong>🔄 Follow-up:</strong> Post-consultation support and guidance</p>
+        </div>
+
+        <div style="margin-top:16px;border:1px solid #fde68a;background:#fffbeb;border-radius:14px;padding:16px;text-align:center">
+          <h3 style="margin:0 0 10px;font-size:16px;color:#78350f">📞 Need Immediate Assistance?</h3>
+          <p style="margin:8px 0">If you have any questions or need to make changes to your appointment, feel free to reach out:</p>
+          <div style="margin-top:8px">
+            <a href="https://wa.me/919266991298?text=Hello%20JyotirSetu,%20I%20have%20a%20question%20about%20my%20appointment" style="display:inline-block;margin:4px 8px;padding:10px 16px;border-radius:9999px;background:#25d366;color:#fff;text-decoration:none;font-weight:600">💬 WhatsApp Us</a>
+            <a href="mailto:guidance@jyotirsetu.com" style="display:inline-block;margin:4px 8px;padding:10px 16px;border-radius:9999px;background:#667eea;color:#fff;text-decoration:none;font-weight:600">📧 Email Us</a>
+          </div>
+        </div>
+
+        <p style="text-align:center;margin:18px 0;color:#4b5563"><em>We look forward to guiding you on your cosmic journey!</em></p>
+
+        <div style="text-align:center;color:#111827;margin-top:8px">
+          <div><strong>JyotirSetu</strong> - Bridge to Cosmic Light</div>
+          <div>Expert Astrological Consultations by Punita Sharma</div>
+          <div>📧 guidance@jyotirsetu.com | 🌐 www.jyotirsetu.com</div>
+        </div>
+      </div>
+    `;
+
+    // Use our branded wrapper to keep header/logo consistent and reliable
+    return this.wrapBranded('Appointment Request Confirmed - JyotirSetu', inner);
+  }
+
+  // Branded, professional layout for contact form confirmations using the unified wrapper
+  private generateContactConfirmationEmailHTMLBranded(data: ContactData): string {
+    const inner = `
+      <div style="font-family:'Segoe UI',Tahoma,Verdana,sans-serif;color:#1f2937">
+        <h2 style="margin:0 0 12px;font-size:20px;color:#111827;text-align:center">Message Received</h2>
+        <div style="border:1px solid #e5e7eb;border-radius:14px;padding:18px;background:#f9fafb">
+          <div style="margin-bottom:10px"><strong>Name:</strong><br/> ${String(data.name || '')}</div>
+          <div style="margin-bottom:10px"><strong>Email:</strong><br/> ${String(data.email || '')}</div>
+          ${data.phone ? `<div style="margin-bottom:10px"><strong>Phone:</strong><br/> ${String(data.phone)}</div>` : ''}
+          <div style="margin-bottom:10px"><strong>Subject:</strong><br/> ${String(data.subject || 'General Query')}</div>
+          <div style="margin-bottom:10px"><strong>Your Message:</strong><br/>
+            <div style="margin-top:6px;padding:12px;background:#ffffff;border:1px solid #e5e7eb;border-radius:10px;color:#374151">${String(data.message || '')}</div>
+          </div>
+        </div>
+
+        <div style="margin-top:16px;border:1px solid #d1fae5;background:#ecfeff;border-radius:14px;padding:16px">
+          <h3 style="margin:0 0 10px;font-size:16px;color:#0f766e">🔄 What Happens Next?</h3>
+          <ul style="margin:0;padding-left:18px;color:#0f172a">
+            <li><strong>Within 24 hours:</strong> We’ll reply with guidance or next steps</li>
+            <li><strong>Urgent queries:</strong> Reach us instantly on WhatsApp</li>
+            <li><strong>Booking:</strong> If you want a session, we’ll share slots and fees</li>
+          </ul>
+        </div>
+
+        <div style="margin-top:16px;border:1px solid #fde68a;background:#fffbeb;border-radius:14px;padding:16px;text-align:center">
+          <h3 style="margin:0 0 10px;font-size:16px;color:#78350f">📞 Quick Contact</h3>
+          <div style="margin-top:8px">
+            <a href="https://wa.me/919266991298?text=Hello%20JyotirSetu,%20I%20have%20a%20question" style="display:inline-block;margin:4px 8px;padding:10px 16px;border-radius:9999px;background:#25d366;color:#fff;text-decoration:none;font-weight:600">💬 WhatsApp Us</a>
+            <a href="mailto:guidance@jyotirsetu.com" style="display:inline-block;margin:4px 8px;padding:10px 16px;border-radius:9999px;background:#667eea;color:#fff;text-decoration:none;font-weight:600">📧 Email Us</a>
+            <a href="https://www.jyotirsetu.com/ScheduleAppointmentJyotirSetu#appointment-form" style="display:inline-block;margin:4px 8px;padding:10px 16px;border-radius:9999px;background:#3f51b5;color:#fff;text-decoration:none;font-weight:600">📅 Book a Consultation</a>
+          </div>
+        </div>
+
+        <p style="text-align:center;margin:18px 0;color:#4b5563"><em>We appreciate your trust in JyotirSetu.</em></p>
+
+        <div style="text-align:center;color:#111827;margin-top:8px">
+          <div><strong>JyotirSetu</strong> - Bridge to Cosmic Light</div>
+          <div>Expert Astrological Consultations by Punita Sharma</div>
+          <div>📧 guidance@jyotirsetu.com | 🌐 www.jyotirsetu.com</div>
+        </div>
+      </div>
+    `;
+    return this.wrapBranded("We Received Your Message - JyotirSetu", inner);
   }
 
   private generateContactConfirmationEmailHTML(data: ContactData): string {

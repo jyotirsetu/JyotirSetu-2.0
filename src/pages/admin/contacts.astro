@@ -21,6 +21,7 @@ import Favicons from '~/components/Favicons.astro';
           <a href="/admin/dashboard">Dashboard</a>
           <a href="/admin/appointments">Appointments</a>
           <a class="active" href="/admin/contacts">Contacts</a>
+          <a href="/admin/newsletter">Newsletter</a>
           <a href="/admin/calendar">Calendar</a>
           <a href="/admin/activity-log">Activity Log</a>
           <a href="/admin/tools/follow-hub/insights">Follow Hub – Insights</a>
@@ -33,13 +34,14 @@ import Favicons from '~/components/Favicons.astro';
         <div class="topbar">
           <strong>Contacts</strong>
           <div style="display:flex; gap:8px; align-items:center">
+            <button class="btn-sm" id="columnsBtn" style="background:#0ea5e9; color:white; border:none;">☰ Columns</button>
             <button class="btn-sm" id="exportBtn" style="background:#22c55e; color:white; border:none;">📥 Export CSV</button>
             <span class="pill">Reply and track status</span>
             <a href="/api/admin/logout" class="pill">Logout</a>
           </div>
         </div>
-        <div class="toolbar">
-          <input class="input" id="search" placeholder="Search name, email, subject" />
+        <div class="toolbar toolbar-card">
+          <input class="input" id="search" placeholder="Search name, email, subject" style="width:220px" />
           <select class="select" id="statusFilter">
             <option value="">All status</option>
             <option>new</option>
@@ -47,13 +49,31 @@ import Favicons from '~/components/Favicons.astro';
             <option>replied</option>
             <option>closed</option>
           </select>
+          <!-- View controls placed next to All status (row 1) -->
+          <input class="input" id="viewName" placeholder="View name" style="width:140px" />
+          <button class="btn-sm" id="saveViewBtn" style="background:#10b981; color:#fff; border:none">Save View</button>
+          <button class="btn-sm" id="deleteViewBtn" style="background:#ef4444; color:#fff; border:none">Delete View</button>
           <select class="select" id="priorityFilter">
             <option value="">All priorities</option>
             <option>normal</option>
             <option>high</option>
             <option>urgent</option>
           </select>
+          <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap">
+            <span class="muted" style="color:#6b7280">Date range:</span>
+            <input class="input" type="date" id="fromDate" placeholder="From" />
+            <input class="input" type="date" id="toDate" placeholder="To" />
+            <button class="btn-sm" id="presetToday" style="background:#f3f4f6; color:#374151; border:1px solid #d1d5db">Today</button>
+            <button class="btn-sm" id="preset7" style="background:#f3f4f6; color:#374151; border:1px solid #d1d5db">Last 7 days</button>
+            <button class="btn-sm" id="preset30" style="background:#f3f4f6; color:#374151; border:1px solid #d1d5db">Last 30 days</button>
+            <button class="btn-sm" id="presetMonth" style="background:#f3f4f6; color:#374151; border:1px solid #d1d5db">This month</button>
+            <button class="btn-sm" id="clearDates" style="background:#fee2e2; color:#991b1b; border:1px solid #fecaca">Clear</button>
+            <select class="select" id="savedViews" style="min-width:180px">
+              <option value="">Saved views…</option>
+            </select>
+          </div>
         </div>
+        <div id="activeChips" style="display:flex; gap:8px; flex-wrap:wrap"></div>
         <div style="padding:0 20px 20px">
           <div id="tableWrap"></div>
           <div id="pagination"></div>
@@ -163,7 +183,12 @@ import Favicons from '~/components/Favicons.astro';
       }
 
       async function fetchData(page = 1): Promise<Contact[]> {
-        const res = await fetch(`/api/admin/contacts?page=${page}&limit=20`, { credentials: 'include' });
+        const fromEl = document.getElementById('fromDate') as HTMLInputElement | null;
+        const toEl = document.getElementById('toDate') as HTMLInputElement | null;
+        const params = new URLSearchParams({ page: String(page), limit: '20' });
+        if (fromEl?.value) params.set('from', fromEl.value);
+        if (toEl?.value) params.set('to', toEl.value);
+        const res = await fetch(`/api/admin/contacts?${params.toString()}`, { credentials: 'include' });
         const json = await res.json();
         paginationData = json.pagination || { page: 1, totalPages: 1, total: 0 };
         const raw = Array.isArray(json?.data) ? (json.data as unknown[]) : [];
@@ -303,10 +328,57 @@ import Favicons from '~/components/Favicons.astro';
         render(applyFilters(allData));
         renderPagination();
       }
+      // Expose for other script blocks on the page
+      (window as unknown as { loadPage?: (p?: number)=>void }).loadPage = loadPage;
 
-      // Export handler
+      // Export handler (with columns)
+      function getSelectedColumns(): string[] {
+        const saved = localStorage.getItem('contacts_export_fields');
+        const defaultCols = ['id','name','email','phone','subject','message','status','priority','created_at'];
+        try {
+          const parsed = saved ? JSON.parse(saved) : null;
+          if (Array.isArray(parsed) && parsed.length) return parsed;
+        } catch (e) { console.debug('Failed to parse export fields for contacts', e); }
+        return defaultCols;
+      }
       document.getElementById('exportBtn')?.addEventListener('click', () => {
-        window.open('/api/admin/export?type=contacts&format=csv', '_blank');
+        const fromEl = document.getElementById('fromDate') as HTMLInputElement | null;
+        const toEl = document.getElementById('toDate') as HTMLInputElement | null;
+        const params = new URLSearchParams({ type: 'contacts', format: 'csv' });
+        if (fromEl?.value) params.set('from', fromEl.value);
+        if (toEl?.value) params.set('to', toEl.value);
+        const fields = getSelectedColumns();
+        if (fields && fields.length) params.set('fields', fields.join(','));
+        window.open(`/api/admin/export?${params.toString()}`, '_blank');
+      });
+
+      // Columns modal
+      const allColumns = ['id','name','email','phone','subject','message','status','priority','created_at'];
+      function renderColumnsModal(){
+        const list = document.getElementById('columnsList');
+        const chosen = new Set(getSelectedColumns());
+        if (!list) return;
+        list.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">${allColumns.map(k=>`
+          <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" value="${k}" ${chosen.has(k)?'checked':''} /> <span>${k}</span></label>
+        `).join('')}</div>`;
+      }
+      document.getElementById('columnsBtn')?.addEventListener('click', () => {
+        renderColumnsModal();
+        document.getElementById('columnsModal')?.classList.add('active');
+      });
+      document.getElementById('columnsClose')?.addEventListener('click', () => {
+        document.getElementById('columnsModal')?.classList.remove('active');
+      });
+      document.getElementById('columnsSave')?.addEventListener('click', () => {
+        const boxes = document.querySelectorAll('#columnsList input[type="checkbox"]') as unknown as HTMLInputElement[];
+        const chosen = Array.from(boxes).filter(b=>b.checked).map(b=>b.value);
+        if (!chosen.length) {
+          window.AdminNotify?.error?.('Select at least one column');
+          return;
+        }
+        localStorage.setItem('contacts_export_fields', JSON.stringify(chosen));
+        window.AdminNotify?.success?.('Export columns saved');
+        document.getElementById('columnsModal')?.classList.remove('active');
       });
 
       // Notes modal handlers
@@ -465,8 +537,119 @@ import Favicons from '~/components/Favicons.astro';
       const priorityFilterEl = document.getElementById('priorityFilter');
       priorityFilterEl?.addEventListener('change', () => render(applyFilters(allData)));
 
+      // Date range change triggers data reload from server
+      document.getElementById('fromDate')?.addEventListener('change', () => loadPage(1));
+      document.getElementById('toDate')?.addEventListener('change', () => loadPage(1));
+
+      // Quick date presets
+      function formatDate(d: Date){ return d.toISOString().slice(0,10); }
+      document.getElementById('presetToday')?.addEventListener('click', () => {
+        const today = new Date();
+        (document.getElementById('fromDate') as HTMLInputElement | null)?.setAttribute('value', formatDate(today));
+        (document.getElementById('toDate') as HTMLInputElement | null)?.setAttribute('value', formatDate(today));
+        (document.getElementById('fromDate') as HTMLInputElement | null)?.dispatchEvent(new Event('change'));
+      });
+      document.getElementById('preset7')?.addEventListener('click', () => {
+        const end = new Date();
+        const start = new Date(); start.setDate(end.getDate()-6);
+        (document.getElementById('fromDate') as HTMLInputElement | null)?.setAttribute('value', formatDate(start));
+        (document.getElementById('toDate') as HTMLInputElement | null)?.setAttribute('value', formatDate(end));
+        (document.getElementById('fromDate') as HTMLInputElement | null)?.dispatchEvent(new Event('change'));
+      });
+      document.getElementById('presetMonth')?.addEventListener('click', () => {
+        const now = new Date();
+        const start = new Date(now.getFullYear(), now.getMonth(), 1);
+        const end = new Date(now.getFullYear(), now.getMonth()+1, 0);
+        (document.getElementById('fromDate') as HTMLInputElement | null)?.setAttribute('value', formatDate(start));
+        (document.getElementById('toDate') as HTMLInputElement | null)?.setAttribute('value', formatDate(end));
+        (document.getElementById('fromDate') as HTMLInputElement | null)?.dispatchEvent(new Event('change'));
+      });
+      document.getElementById('clearDates')?.addEventListener('click', () => {
+        const f = document.getElementById('fromDate') as HTMLInputElement | null;
+        const t = document.getElementById('toDate') as HTMLInputElement | null;
+        if (f) { f.value = ''; }
+        if (t) { t.value = ''; }
+        loadPage(1);
+      });
+
       // Initial load
       loadPage(1);
+
+      // Saved views
+      function collectFilters(){
+        const f = (document.getElementById('fromDate') as HTMLInputElement | null)?.value || '';
+        const t = (document.getElementById('toDate') as HTMLInputElement | null)?.value || '';
+        const s = (document.getElementById('statusFilter') as HTMLSelectElement | null)?.value || '';
+        const p = (document.getElementById('priorityFilter') as HTMLSelectElement | null)?.value || '';
+        const q = (document.getElementById('search') as HTMLInputElement | null)?.value || '';
+        const colsSaved = localStorage.getItem('contacts_export_fields');
+        const columns = colsSaved ? JSON.parse(colsSaved) : undefined;
+        return { from: f, to: t, status: s, priority: p, search: q, columns };
+      }
+      async function loadViews(){
+        try {
+          if (document.visibilityState === 'hidden') return; // don't start fetch if page is hiding/unloading
+          const res = await fetch('/api/admin/views?page=contacts', { keepalive: true });
+          const j = await res.json();
+          const sel = document.getElementById('savedViews') as HTMLSelectElement | null;
+          if (!sel) return;
+          const opts = (j?.data||[]).map(v=>`<option value="${v.id}">${v.name}</option>`).join('');
+          sel.innerHTML = `<option value="">Saved views…</option>${opts}`;
+        } catch(e){
+          const msg = e instanceof Error ? e.message : String(e);
+          if (msg.includes('ERR_ABORTED')) return;
+          console.debug('loadViews error', e);
+        }
+      }
+      function applyView(filters){
+        try {
+          const f = filters || {}; const setVal = (id, val)=>{ const el = document.getElementById(id); if (el instanceof HTMLInputElement || el instanceof HTMLSelectElement) { el.value = String(val||''); } };
+          setVal('fromDate', f.from||'');
+          setVal('toDate', f.to||'');
+          setVal('statusFilter', f.status||'');
+          setVal('priorityFilter', f.priority||'');
+          setVal('search', f.search||'');
+          if (Array.isArray(f.columns) && f.columns.length) localStorage.setItem('contacts_export_fields', JSON.stringify(f.columns));
+          loadPage(1);
+        } catch(e){ console.debug('applyView error', e); }
+      }
+      document.getElementById('savedViews')?.addEventListener('change', async (e)=>{
+        const sel = e.target as HTMLSelectElement;
+        const id = sel.value || '';
+        if (!id) return;
+        try {
+          const res = await fetch('/api/admin/views?page=contacts');
+          const j = await res.json();
+          const v = (j?.data||[]).find((x)=>x.id===id);
+          if (v && v.filters) {
+            const filters = JSON.parse(v.filters);
+            applyView(filters);
+          }
+        } catch(e){ console.debug('savedViews change error', e); }
+      });
+      document.getElementById('saveViewBtn')?.addEventListener('click', async ()=>{
+        const name = (document.getElementById('viewName') as HTMLInputElement | null)?.value || '';
+        if (!name.trim()) { window.AdminNotify?.error?.('Enter a view name'); return; }
+        try {
+          const filters = collectFilters();
+          const res = await fetch('/api/admin/views', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ page:'contacts', name, filters }) });
+          const j = await res.json();
+          if (j.ok) { window.AdminNotify?.success?.('View saved'); (document.getElementById('viewName') as HTMLInputElement | null)!.value=''; await loadViews(); }
+          else { window.AdminNotify?.error?.('Save failed', j.error||''); }
+        } catch(e){ window.AdminNotify?.error?.('Save failed'); console.debug('saveViewBtn error', e); }
+      });
+      document.getElementById('deleteViewBtn')?.addEventListener('click', async ()=>{
+        const sel = document.getElementById('savedViews') as HTMLSelectElement | null;
+        const id = sel?.value || '';
+        if (!id) { window.AdminNotify?.error?.('Choose a view to delete'); return; }
+        try {
+          const res = await fetch('/api/admin/views?id='+encodeURIComponent(id), { method:'DELETE' });
+          const j = await res.json();
+          if (j.ok) { window.AdminNotify?.success?.('View deleted'); await loadViews(); }
+          else { window.AdminNotify?.error?.('Delete failed', j.error||''); }
+        } catch(e){ window.AdminNotify?.error?.('Delete failed'); console.debug('deleteViewBtn error', e); }
+      });
+      loadViews();
 
       // Mobile drawer with animated hamburger
       const sidebar = document.getElementById('adminSidebar');
@@ -505,6 +688,87 @@ import Favicons from '~/components/Favicons.astro';
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && isOpen) closeSidebar();
       });
+    </script>
+    <!-- Export Columns Modal -->
+    <div class="modal" id="columnsModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Choose Export Columns</h3>
+          <button class="close-btn" id="columnsClose">&times;</button>
+        </div>
+        <div id="columnsList"></div>
+        <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:16px">
+          <button class="btn" id="columnsSave" style="background:#667eea; color:white; border:none; padding:8px 16px; border-radius:6px">Save</button>
+        </div>
+      </div>
+    </div>
+    <script>
+      // Convenience: normalize invalid date ranges and render chips
+      function normalizeDateRange(){
+        const fromEl = document.getElementById('fromDate');
+        const toEl = document.getElementById('toDate');
+        const f = (fromEl instanceof HTMLInputElement) ? (fromEl.value || '') : '';
+        const t = (toEl instanceof HTMLInputElement) ? (toEl.value || '') : '';
+        if (f && t && f > t) {
+          if (toEl && (toEl instanceof HTMLInputElement)) toEl.value = f;
+          window.AdminNotify?.info?.('Adjusted date range: To matched From');
+        }
+      }
+      function renderActiveChips(){
+        const chipsEl = document.getElementById('activeChips'); if (!chipsEl) return;
+        const stEl = document.getElementById('statusFilter');
+        const pEl = document.getElementById('priorityFilter');
+        const qEl = document.getElementById('search');
+        const fromEl = document.getElementById('fromDate');
+        const toEl = document.getElementById('toDate');
+        const st = (stEl instanceof HTMLSelectElement) ? (stEl.value || '') : '';
+        const p = (pEl instanceof HTMLSelectElement) ? (pEl.value || '') : '';
+        const q = (qEl instanceof HTMLInputElement) ? (qEl.value || '') : '';
+        const f = (fromEl instanceof HTMLInputElement) ? (fromEl.value || '') : '';
+        const t = (toEl instanceof HTMLInputElement) ? (toEl.value || '') : '';
+        const chips: { key: string; label: string }[] = [];
+        if (q) chips.push({ key:'search', label:`Search: ${q}` });
+        if (st) chips.push({ key:'statusFilter', label:`Status: ${st}` });
+        if (p) chips.push({ key:'priorityFilter', label:`Priority: ${p}` });
+        if (f) chips.push({ key:'fromDate', label:`From: ${f}` });
+        if (t) chips.push({ key:'toDate', label:`To: ${t}` });
+        const hasAny = chips.length > 0;
+        chipsEl.innerHTML = hasAny 
+          ? chips.map(c=>`<button class="pill" data-clear="${c.key}">${c.label} ✕</button>`).join('') + 
+            `<button class="pill" data-clear="__all__">Clear all ✕</button>`
+          : '';
+        chipsEl.querySelectorAll('[data-clear]').forEach(btn=>{
+          btn.addEventListener('click', (e)=>{
+            const key = (e.currentTarget as HTMLElement).getAttribute('data-clear') || '';
+            if (!key) return;
+            if (key === '__all__') {
+              ['search','statusFilter','priorityFilter','fromDate','toDate'].forEach(id=>{ const el = document.getElementById(id); if (el instanceof HTMLInputElement || el instanceof HTMLSelectElement) { el.value = ''; } });
+            } else {
+              const el = document.getElementById(key); if (el instanceof HTMLInputElement || el instanceof HTMLSelectElement) { el.value = ''; }
+            }
+            (window as unknown as { loadPage?: (p?: number)=>void }).loadPage?.(1);
+            renderActiveChips();
+          });
+        });
+      }
+      // Date inputs: validate and reload
+      document.getElementById('fromDate')?.addEventListener('change', ()=>{ normalizeDateRange(); (window as unknown as { loadPage?: (p?: number)=>void }).loadPage?.(1); renderActiveChips(); });
+      document.getElementById('toDate')?.addEventListener('change', ()=>{ normalizeDateRange(); (window as unknown as { loadPage?: (p?: number)=>void }).loadPage?.(1); renderActiveChips(); });
+      // Preset: Last 30 days
+      document.getElementById('preset30')?.addEventListener('click', ()=>{
+        const fromEl = document.getElementById('fromDate');
+        const toEl = document.getElementById('toDate');
+        const d = new Date(); const to = d.toISOString().slice(0,10);
+        d.setDate(d.getDate()-30); const from = d.toISOString().slice(0,10);
+        if (fromEl instanceof HTMLInputElement) fromEl.value = from; if (toEl instanceof HTMLInputElement) toEl.value = to;
+        (window as unknown as { loadPage?: (p?: number)=>void }).loadPage?.(1); renderActiveChips();
+      });
+      // Other filters: update chips on change
+      ['statusFilter','priorityFilter'].forEach(id=>{
+        document.getElementById(id)?.addEventListener('change', ()=>{ renderActiveChips(); });
+      });
+      { const se = document.getElementById('search'); if (se instanceof HTMLInputElement) se.addEventListener('input', ()=>{ renderActiveChips(); }); }
+      renderActiveChips();
     </script>
   </body>
 </html>

@@ -11,34 +11,7 @@ import Favicons from '~/components/Favicons.astro';
 <link rel="stylesheet" href="/admin.css?v=20251108" />
     <Favicons />
     <script src="/js/admin-notify.js" defer></script>
-    <script>
-      (function(){
-        function defineFallback(){
-          try{
-            if(window.AdminNotify) return;
-            window.AdminNotify = {
-              success:function(msg, detail){ console.log('SUCCESS:', detail? (msg+': '+detail) : msg); },
-              error:function(msg, detail){ console.error('ERROR:', detail? (msg+': '+detail) : msg); },
-              info:function(msg, detail){ console.log('INFO:', detail? (msg+': '+detail) : msg); }
-            };
-          }catch{/* ignore */}
-        }
-        function reinject(){
-          try{
-            const s = document.createElement('script');
-            s.src = '/js/admin-notify.js?v=' + Date.now();
-            s.defer = true;
-            s.onload = function(){ if(!window.AdminNotify) defineFallback(); };
-            s.onerror = function(){ defineFallback(); };
-            document.head.appendChild(s);
-          }catch{ defineFallback(); }
-        }
-        if(!window.AdminNotify){
-          if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', reinject); } else { reinject(); }
-          setTimeout(function(){ if(!window.AdminNotify) defineFallback(); }, 1500);
-        }
-      })();
-    </script>
+    
     <style>
       .modal { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(2,6,23,0.6); z-index:1000; align-items:center; justify-content:center; }
       .modal.active { display:flex; }
@@ -62,6 +35,12 @@ import Favicons from '~/components/Favicons.astro';
       .source-tag { display:inline-block; padding:3px 10px; border-radius:6px; font-size:11px; font-weight:600; text-transform:uppercase; }
       .source-tag.manual { background:#fef3c7; color:#92400e; }
       .source-tag.system { background:#dbeafe; color:#1e40af; }
+      /* Loading overlay */
+      #loadingOverlay { display:none; position:fixed; inset:0; background:rgba(2,6,23,0.6); backdrop-filter:saturate(120%) blur(2px); z-index:999; align-items:center; justify-content:center; }
+      #loadingOverlay.active { display:flex; }
+      .spinner { width:44px; height:44px; border-radius:50%; border:3px solid #3b82f6; border-top-color:transparent; animation: spin 0.9s linear infinite; }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      .spinner-label { margin-top:10px; color:#cbd5e1; font-size:14px; }
     </style>
   </head>
   <body>
@@ -74,6 +53,7 @@ import Favicons from '~/components/Favicons.astro';
           <a href="/admin/dashboard">Dashboard</a>
           <a class="active" href="/admin/appointments">Appointments</a>
           <a href="/admin/contacts">Contacts</a>
+          <a href="/admin/newsletter">Newsletter</a>
           <a href="/admin/calendar">Calendar</a>
           <a href="/admin/activity-log">Activity Log</a>
           <a href="/admin/tools/follow-hub/insights">Follow Hub – Insights</a>
@@ -87,13 +67,14 @@ import Favicons from '~/components/Favicons.astro';
           <strong>Appointments</strong>
           <div style="display:flex; gap:8px; align-items:center">
             <button class="btn" id="addAppointmentBtn" style="background:#667eea; color:white; border:none;">+ Add Appointment</button>
+            <button class="btn-sm" id="columnsBtn" style="background:#0ea5e9; color:white; border:none;">☰ Columns</button>
             <button class="btn-sm" id="exportBtn" style="background:#22c55e; color:white; border:none;">📥 Export CSV</button>
             <span class="pill">Manage and contact clients</span>
             <a href="/api/admin/logout" class="pill">Logout</a>
           </div>
         </div>
-        <div class="toolbar">
-          <input class="input" id="search" placeholder="Search name, email, phone" />
+        <div class="toolbar toolbar-card">
+          <input class="input" id="search" placeholder="Search name, email, phone" style="width:220px" />
           <select class="select" id="serviceFilter">
             <option value="">All services</option>
           </select>
@@ -102,9 +83,43 @@ import Favicons from '~/components/Favicons.astro';
             <option value="system">System</option>
             <option value="manual">Manual</option>
           </select>
+          <select class="select" id="statusFilter">
+            <option value="">All status</option>
+            <option>pending</option>
+            <option>confirmed</option>
+            <option>rescheduled</option>
+            <option>cancelled</option>
+            <option>scheduled</option>
+          </select>
+          <!-- Moved view controls alongside All status (row 1) -->
+          <input class="input" id="viewName" placeholder="View name" style="width:140px" />
+          <button class="btn-sm" id="saveViewBtn" style="background:#10b981; color:#fff; border:none">Save View</button>
+          <button class="btn-sm" id="deleteViewBtn" style="background:#ef4444; color:#fff; border:none">Delete View</button>
+          <button class="btn-sm" id="refreshBtn" style="background:#3b82f6; color:#fff; border:none">Refresh</button>
+
+          <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap">
+            <span class="muted" style="color:#6b7280">Date range:</span>
+            <input class="input" type="date" id="fromDate" placeholder="From" />
+            <input class="input" type="date" id="toDate" placeholder="To" />
+            <button class="btn-sm" id="presetToday" style="background:#f3f4f6; color:#374151; border:1px solid #d1d5db">Today</button>
+            <button class="btn-sm" id="preset7" style="background:#f3f4f6; color:#374151; border:1px solid #d1d5db">Last 7 days</button>
+            <button class="btn-sm" id="preset30" style="background:#f3f4f6; color:#374151; border:1px solid #d1d5db">Last 30 days</button>
+            <button class="btn-sm" id="presetMonth" style="background:#f3f4f6; color:#374151; border:1px solid #d1d5db">This month</button>
+            <button class="btn-sm" id="clearDates" style="background:#fee2e2; color:#991b1b; border:1px solid #fecaca">Clear</button>
+            <select class="select" id="savedViews" style="min-width:180px">
+              <option value="">Saved views…</option>
+            </select>
+          </div>
         </div>
+        <div id="activeChips" style="display:flex; gap:8px; flex-wrap:wrap"></div>
         <div style="padding:0 20px 20px">
           <div id="tableWrap"></div>
+          <div id="loadingOverlay" aria-live="polite" aria-busy="false">
+            <div style="display:flex; flex-direction:column; align-items:center; gap:8px">
+              <div class="spinner" role="status" aria-label="Loading"></div>
+              <div class="spinner-label">Loading appointments…</div>
+            </div>
+          </div>
           <div id="pagination"></div>
         </div>
       </section>
@@ -259,6 +274,20 @@ import Favicons from '~/components/Favicons.astro';
       </div>
     </div>
 
+    <!-- Export Columns Modal -->
+    <div class="modal" id="columnsModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Choose Export Columns</h3>
+          <button class="close-btn" id="columnsClose">&times;</button>
+        </div>
+        <div id="columnsList"></div>
+        <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:16px">
+          <button class="btn" id="columnsSave" style="background:#667eea; color:white; border:none; padding:8px 16px; border-radius:6px">Save</button>
+        </div>
+      </div>
+    </div>
+
     <script>
       let currentPage = 1;
       let paginationData = { page: 1, totalPages: 1, total: 0 };
@@ -272,10 +301,32 @@ import Favicons from '~/components/Favicons.astro';
       }
 
       async function fetchData(page = 1) {
-        const res = await fetch(`/api/admin/appointments?page=${page}&limit=20`, { credentials: 'include' });
-        const json = await res.json();
-        paginationData = json.pagination || { page: 1, totalPages: 1, total: 0 };
-        return json?.data || [];
+        const fromEl = document.getElementById('fromDate') as HTMLInputElement | null;
+        const toEl = document.getElementById('toDate') as HTMLInputElement | null;
+        const params = new URLSearchParams({ page: String(page), limit: '20' });
+        if (fromEl?.value) params.set('from', fromEl.value);
+        if (toEl?.value) params.set('to', toEl.value);
+        // Avoid starting a network request if we are in the middle of a navigation/unload
+        if (document.visibilityState === 'hidden') {
+          return allData;
+        }
+        try {
+          const res = await fetch(`/api/admin/appointments?${params.toString()}`, { credentials: 'include', keepalive: true });
+          const json = await res.json();
+          paginationData = json.pagination || { page: 1, totalPages: 1, total: 0 };
+          return Array.isArray(json?.data) ? json.data : [];
+        } catch (e) {
+          const msg = e instanceof Error ? e.message : String(e);
+          // Ignore navigation aborts; otherwise show a lightweight notification and keep the UI responsive
+          if (!msg.includes('ERR_ABORTED')) {
+            console.debug('appointments fetch error', e);
+            window.AdminNotify?.error?.('Failed to load appointments', 'Please try Refresh');
+            const wrap = document.getElementById('tableWrap') as HTMLElement | null;
+            if (wrap) wrap.innerHTML = '<p class="muted">Failed to load appointments. Please click Refresh.</p>';
+          }
+          // Preserve previous data to avoid blank UI
+          return allData || [];
+        }
       }
 
       function renderPagination() {
@@ -335,7 +386,7 @@ import Favicons from '~/components/Favicons.astro';
             <td>${r.consultation_method}</td>
             <td>
               <select data-id="${r.id}" class="select statusSel">
-                ${['pending','confirmed','rescheduled','cancelled'].map(s=>`<option ${r.status===s?'selected':''}>${s}</option>`).join('')}
+                ${['pending','confirmed','rescheduled','cancelled','scheduled'].map(s=>`<option ${r.status===s?'selected':''}>${s}</option>`).join('')}
               </select>
             </td>
             <td><span class="source-tag ${r.source||'system'}">${r.source||'system'}</span></td>
@@ -426,21 +477,41 @@ import Favicons from '~/components/Favicons.astro';
         const qEl = document.getElementById('search') as HTMLInputElement | null;
         const sEl = document.getElementById('serviceFilter') as HTMLSelectElement | null;
         const srcEl = document.getElementById('sourceFilter') as HTMLSelectElement | null;
+        const stEl = document.getElementById('statusFilter') as HTMLSelectElement | null;
         const q = (qEl?.value || '').toLowerCase();
         const s = sEl?.value || '';
         const src = srcEl?.value || '';
+        const st = stEl?.value || '';
         return all.filter(r => (
           (!q || (r.name+" "+r.email+" "+r.phone).toLowerCase().includes(q)) &&
           (!s || r.service === s) &&
-          (!src || (r.source||'system') === src)
+          (!src || (r.source||'system') === src) &&
+          (!st || (r.status||'pending') === st)
         ));
       }
 
       async function loadPage(page) {
         currentPage = page;
-        allData = await fetchData(page);
-        render(applyFilters(allData));
-        renderPagination();
+        showLoading(true);
+        try {
+          allData = await fetchData(page);
+          render(applyFilters(allData));
+          renderPagination();
+        } catch (e) {
+          console.debug('loadPage error', e);
+          const wrap = document.getElementById('tableWrap') as HTMLElement | null;
+          if (wrap) wrap.innerHTML = '<p class="muted">Unable to render appointments at the moment.</p>';
+        }
+        showLoading(false);
+      }
+      // Expose for other script blocks on the page
+      (window as unknown as { loadPage?: (p?: number)=>void }).loadPage = loadPage;
+
+      function showLoading(on){
+        const overlay = document.getElementById('loadingOverlay');
+        if (!overlay) return;
+        if (on) { overlay.classList.add('active'); overlay.setAttribute('aria-busy','true'); }
+        else { overlay.classList.remove('active'); overlay.setAttribute('aria-busy','false'); }
       }
 
       // Modal handlers
@@ -527,9 +598,56 @@ import Favicons from '~/components/Favicons.astro';
         }
       });
 
-      // Export handler
+      // Export handler (with columns)
+      function getSelectedColumns(): string[] {
+        const saved = localStorage.getItem('appointments_export_fields');
+        const defaultCols = ['appt_id','name','email','phone','service','date','time','consultation_method','status','message','source','created_at'];
+        try {
+          const parsed = saved ? JSON.parse(saved) : null;
+          if (Array.isArray(parsed) && parsed.length) return parsed;
+        } catch (e) {
+          console.debug('Failed to parse export fields for appointments', e);
+        }
+        return defaultCols;
+      }
       document.getElementById('exportBtn')?.addEventListener('click', () => {
-        window.open('/api/admin/export?type=appointments&format=csv', '_blank');
+        const fromEl = document.getElementById('fromDate') as HTMLInputElement | null;
+        const toEl = document.getElementById('toDate') as HTMLInputElement | null;
+        const params = new URLSearchParams({ type: 'appointments', format: 'csv' });
+        if (fromEl?.value) params.set('from', fromEl.value);
+        if (toEl?.value) params.set('to', toEl.value);
+        const fields = getSelectedColumns();
+        if (fields && fields.length) params.set('fields', fields.join(','));
+        window.open(`/api/admin/export?${params.toString()}`, '_blank');
+      });
+
+      // Columns modal
+      const allColumns = ['appt_id','name','email','phone','service','date','time','consultation_method','status','message','source','created_at'];
+      function renderColumnsModal(){
+        const list = document.getElementById('columnsList');
+        const chosen = new Set(getSelectedColumns());
+        if (!list) return;
+        list.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">${allColumns.map(k=>`
+          <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" value="${k}" ${chosen.has(k)?'checked':''} /> <span>${k}</span></label>
+        `).join('')}</div>`;
+      }
+      document.getElementById('columnsBtn')?.addEventListener('click', () => {
+        renderColumnsModal();
+        document.getElementById('columnsModal')?.classList.add('active');
+      });
+      document.getElementById('columnsClose')?.addEventListener('click', () => {
+        document.getElementById('columnsModal')?.classList.remove('active');
+      });
+      document.getElementById('columnsSave')?.addEventListener('click', () => {
+        const boxes = document.querySelectorAll('#columnsList input[type="checkbox"]') as NodeListOf<HTMLInputElement>;
+        const chosen = Array.from(boxes).filter(b=>b.checked).map(b=>b.value);
+        if (!chosen.length) {
+          window.AdminNotify?.error?.('Select at least one column');
+          return;
+        }
+        localStorage.setItem('appointments_export_fields', JSON.stringify(chosen));
+        window.AdminNotify?.success?.('Export columns saved');
+        document.getElementById('columnsModal')?.classList.remove('active');
       });
 
       // Notes modal handlers
@@ -684,14 +802,149 @@ import Favicons from '~/components/Favicons.astro';
       document.getElementById('search')?.addEventListener('input', () => render(applyFilters(allData)));
       document.getElementById('serviceFilter')?.addEventListener('change', () => render(applyFilters(allData)));
       document.getElementById('sourceFilter')?.addEventListener('change', () => render(applyFilters(allData)));
+      document.getElementById('statusFilter')?.addEventListener('change', () => render(applyFilters(allData)));
+      document.getElementById('fromDate')?.addEventListener('change', () => loadPage(1));
+      document.getElementById('toDate')?.addEventListener('change', () => loadPage(1));
+
+      // Quick date presets
+      function formatDate(d: Date){ return d.toISOString().slice(0,10); }
+      document.getElementById('presetToday')?.addEventListener('click', () => {
+        const today = new Date();
+        const fromEl = document.getElementById('fromDate');
+        const toEl = document.getElementById('toDate');
+        if (fromEl) fromEl.setAttribute('value', formatDate(today));
+        if (toEl) toEl.setAttribute('value', formatDate(today));
+        if (fromEl) fromEl.dispatchEvent(new Event('change'));
+      });
+      document.getElementById('preset7')?.addEventListener('click', () => {
+        const end = new Date();
+        const start = new Date(); start.setDate(end.getDate()-6);
+        const fromEl = document.getElementById('fromDate');
+        const toEl = document.getElementById('toDate');
+        if (fromEl) fromEl.setAttribute('value', formatDate(start));
+        if (toEl) toEl.setAttribute('value', formatDate(end));
+        if (fromEl) fromEl.dispatchEvent(new Event('change'));
+      });
+      document.getElementById('presetMonth')?.addEventListener('click', () => {
+        const now = new Date();
+        const start = new Date(now.getFullYear(), now.getMonth(), 1);
+        const end = new Date(now.getFullYear(), now.getMonth()+1, 0);
+        const fromEl = document.getElementById('fromDate');
+        const toEl = document.getElementById('toDate');
+        if (fromEl) fromEl.setAttribute('value', formatDate(start));
+        if (toEl) toEl.setAttribute('value', formatDate(end));
+        if (fromEl) fromEl.dispatchEvent(new Event('change'));
+      });
+      document.getElementById('clearDates')?.addEventListener('click', () => {
+        const f = document.getElementById('fromDate');
+        const t = document.getElementById('toDate');
+        if (f && (f instanceof HTMLInputElement)) { f.value = ''; }
+        if (t && (t instanceof HTMLInputElement)) { t.value = ''; }
+        loadPage(1);
+      });
+
+      // Manual refresh button
+      document.getElementById('refreshBtn')?.addEventListener('click', () => {
+        loadPage(currentPage || 1);
+      });
 
       // Initial load
       loadPage(1);
 
+      // Saved views
+      function collectFilters(){
+        const fromEl = document.getElementById('fromDate');
+        const toEl = document.getElementById('toDate');
+        const svcEl = document.getElementById('serviceFilter');
+        const srcEl = document.getElementById('sourceFilter');
+        const stEl = document.getElementById('statusFilter');
+        const qEl = document.getElementById('search');
+        const f = (fromEl instanceof HTMLInputElement) ? (fromEl.value || '') : '';
+        const t = (toEl instanceof HTMLInputElement) ? (toEl.value || '') : '';
+        const s = (svcEl instanceof HTMLSelectElement) ? (svcEl.value || '') : '';
+        const src = (srcEl instanceof HTMLSelectElement) ? (srcEl.value || '') : '';
+        const st = (stEl instanceof HTMLSelectElement) ? (stEl.value || '') : '';
+        const q = (qEl instanceof HTMLInputElement) ? (qEl.value || '') : '';
+        const colsSaved = localStorage.getItem('appointments_export_fields');
+        const columns = colsSaved ? JSON.parse(colsSaved) : undefined;
+        return { from: f, to: t, service: s, source: src, status: st, search: q, columns };
+      }
+      async function loadViews(){
+        try {
+          if (document.visibilityState === 'hidden') return; // don't start fetch if page is hiding/unloading
+          const res = await fetch('/api/admin/views?page=appointments', { keepalive: true });
+          const j = await res.json();
+          const sel = document.getElementById('savedViews');
+          if (!(sel instanceof HTMLSelectElement)) return;
+          const opts = (j?.data||[]).map(v=>`<option value="${v.id}">${v.name}</option>`).join('');
+          sel.innerHTML = `<option value="">Saved views…</option>${opts}`;
+        } catch(e){
+          const msg = e instanceof Error ? e.message : String(e);
+          if (msg.includes('ERR_ABORTED')) return; // Ignore navigation aborts
+          console.debug('loadViews error', e);
+        }
+      }
+      function applyView(filters){
+        try {
+          const f = filters || {}; const setVal = (id, val)=>{ const el = document.getElementById(id); if (el instanceof HTMLInputElement || el instanceof HTMLSelectElement) { el.value = String(val||''); } };
+          setVal('fromDate', f.from||'');
+          setVal('toDate', f.to||'');
+          setVal('serviceFilter', f.service||'');
+          setVal('sourceFilter', f.source||'');
+          setVal('statusFilter', f.status||'');
+          setVal('search', f.search||'');
+          if (Array.isArray(f.columns) && f.columns.length) localStorage.setItem('appointments_export_fields', JSON.stringify(f.columns));
+          (window as unknown as { loadPage?: (p?: number)=>void }).loadPage?.(1);
+        } catch(e){ console.debug('applyView error', e); }
+      }
+      document.getElementById('savedViews')?.addEventListener('change', async ()=>{
+        const selEl = document.getElementById('savedViews');
+        const id = (selEl instanceof HTMLSelectElement) ? (selEl.value || '') : '';
+        if (!id) return;
+        try {
+          if (document.visibilityState === 'hidden') return; // avoid fetch during unload
+          const res = await fetch('/api/admin/views?page=appointments', { keepalive: true });
+          const j = await res.json();
+          const v = (j?.data||[]).find((x)=>x.id===id);
+          if (v && v.filters) {
+            const filters = JSON.parse(v.filters);
+            applyView(filters);
+          }
+        } catch(e){
+          const msg = e instanceof Error ? e.message : String(e);
+          if (msg.includes('ERR_ABORTED')) return; // Ignore navigation aborts
+          console.debug('savedViews change error', e);
+        }
+      });
+      document.getElementById('saveViewBtn')?.addEventListener('click', async ()=>{
+        const vnEl = document.getElementById('viewName');
+        const name = (vnEl instanceof HTMLInputElement) ? (vnEl.value || '') : '';
+        if (!name.trim()) { window.AdminNotify?.error?.('Enter a view name'); return; }
+        try {
+          const filters = collectFilters();
+          const res = await fetch('/api/admin/views', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ page:'appointments', name, filters }) });
+          const j = await res.json();
+          if (j.ok) { window.AdminNotify?.success?.('View saved'); if (vnEl instanceof HTMLInputElement) vnEl.value=''; await loadViews(); }
+          else { window.AdminNotify?.error?.('Save failed', j.error||''); }
+        } catch(e){ window.AdminNotify?.error?.('Save failed'); console.debug('saveViewBtn error', e); }
+      });
+      document.getElementById('deleteViewBtn')?.addEventListener('click', async ()=>{
+        const sel = document.getElementById('savedViews');
+        const id = (sel instanceof HTMLSelectElement) ? (sel.value || '') : '';
+        if (!id) { window.AdminNotify?.error?.('Choose a view to delete'); return; }
+        try {
+          const res = await fetch('/api/admin/views?id='+encodeURIComponent(id), { method:'DELETE' });
+          const j = await res.json();
+          if (j.ok) { window.AdminNotify?.success?.('View deleted'); await loadViews(); }
+          else { window.AdminNotify?.error?.('Delete failed', j.error||''); }
+        } catch(e){ window.AdminNotify?.error?.('Delete failed'); console.debug('deleteViewBtn error', e); }
+      });
+      loadViews();
+
       // Mobile drawer with animated hamburger
       const sidebar = document.getElementById('adminSidebar');
       const backdrop = document.getElementById('sidebarBackdrop');
-      const toggleBtn = document.getElementById('sidebarToggle') as HTMLButtonElement | null;
+      const toggleBtn = document.getElementById('sidebarToggle');
       let isOpen = false;
       
       function openSidebar() {
@@ -725,6 +978,75 @@ import Favicons from '~/components/Favicons.astro';
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && isOpen) closeSidebar();
       });
+    </script>
+    <script>
+      // Convenience: normalize invalid date ranges and render chips
+      function normalizeDateRange(){
+        const fromEl = document.getElementById('fromDate') as HTMLInputElement | null;
+        const toEl = document.getElementById('toDate') as HTMLInputElement | null;
+        const f = fromEl?.value || '';
+        const t = toEl?.value || '';
+        if (f && t && f > t) {
+          // Auto-correct: set `to` = `from`
+          if (toEl) toEl.value = f;
+          window.AdminNotify?.info?.('Adjusted date range: To matched From');
+        }
+      }
+      function renderActiveChips(){
+        const chipsEl = document.getElementById('activeChips'); if (!chipsEl) return;
+        const svcEl = document.getElementById('serviceFilter');
+        const srcEl = document.getElementById('sourceFilter');
+        const stEl = document.getElementById('statusFilter');
+        const fromEl = document.getElementById('fromDate');
+        const toEl = document.getElementById('toDate');
+        const svc = (svcEl instanceof HTMLSelectElement) ? (svcEl.value || '') : '';
+        const src = (srcEl instanceof HTMLSelectElement) ? (srcEl.value || '') : '';
+        const st = (stEl instanceof HTMLSelectElement) ? (stEl.value || '') : '';
+        const f = (fromEl instanceof HTMLInputElement) ? (fromEl.value || '') : '';
+        const t = (toEl instanceof HTMLInputElement) ? (toEl.value || '') : '';
+        const chips: { key: string; label: string }[] = [];
+        if (svc) chips.push({ key:'serviceFilter', label:`Service: ${svc}` });
+        if (src) chips.push({ key:'sourceFilter', label:`Source: ${src}` });
+        if (st) chips.push({ key:'statusFilter', label:`Status: ${st}` });
+        if (f) chips.push({ key:'fromDate', label:`From: ${f}` });
+        if (t) chips.push({ key:'toDate', label:`To: ${t}` });
+        const hasAny = chips.length > 0;
+        chipsEl.innerHTML = hasAny 
+          ? chips.map(c=>`<button class="pill" data-clear="${c.key}">${c.label} ✕</button>`).join('') + 
+            `<button class="pill" data-clear="__all__">Clear all ✕</button>`
+          : '';
+        chipsEl.querySelectorAll('[data-clear]').forEach(btn=>{
+          btn.addEventListener('click', (e)=>{
+            const key = (e.currentTarget as HTMLElement).getAttribute('data-clear') || '';
+            if (!key) return;
+            if (key === '__all__') {
+              ['serviceFilter','sourceFilter','statusFilter','fromDate','toDate'].forEach(id=>{ const el = document.getElementById(id); if (el instanceof HTMLInputElement || el instanceof HTMLSelectElement) { el.value = ''; } });
+            } else {
+              const el = document.getElementById(key); if (el instanceof HTMLInputElement || el instanceof HTMLSelectElement) { el.value = ''; }
+              // If clearing from/to, keep the other intact
+            }
+            (window as unknown as { loadPage?: (p?: number)=>void }).loadPage?.(1);
+            renderActiveChips();
+          });
+        });
+      }
+      // Date inputs: validate and reload
+      document.getElementById('fromDate')?.addEventListener('change', ()=>{ normalizeDateRange(); (window as unknown as { loadPage?: (p?: number)=>void }).loadPage?.(1); renderActiveChips(); });
+      document.getElementById('toDate')?.addEventListener('change', ()=>{ normalizeDateRange(); (window as unknown as { loadPage?: (p?: number)=>void }).loadPage?.(1); renderActiveChips(); });
+      // Preset: Last 30 days
+      document.getElementById('preset30')?.addEventListener('click', ()=>{
+        const fromEl = document.getElementById('fromDate');
+        const toEl = document.getElementById('toDate');
+        const d = new Date(); const to = d.toISOString().slice(0,10);
+        d.setDate(d.getDate()-30); const from = d.toISOString().slice(0,10);
+        if (fromEl instanceof HTMLInputElement) fromEl.value = from; if (toEl instanceof HTMLInputElement) toEl.value = to;
+        (window as unknown as { loadPage?: (p?: number)=>void }).loadPage?.(1); renderActiveChips();
+      });
+      // Other filters: update chips on change
+      ['serviceFilter','sourceFilter','statusFilter'].forEach(id=>{
+        document.getElementById(id)?.addEventListener('change', ()=>{ renderActiveChips(); });
+      });
+      renderActiveChips();
     </script>
   </body>
 </html>

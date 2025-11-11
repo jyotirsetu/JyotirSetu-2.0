@@ -586,7 +586,7 @@ const metadata = {
     // FAQ Toggle Function - Global scope
     const toggleFAQ = function (button: HTMLElement) {
       const content = button.nextElementSibling;
-      const icon = button.querySelector('span:last-child');
+      const icon = button.querySelector('span:last-child') as HTMLElement | null;
       console.log('Icon element:', icon);
 
       if (content && content.classList.contains('hidden')) {
@@ -606,8 +606,8 @@ const metadata = {
       }
     };
 
-    // Make toggleFAQ globally accessible with proper typing
-    (window as Window & { toggleFAQ: (button: HTMLElement) => void }).toggleFAQ = toggleFAQ;
+    // Make toggleFAQ globally accessible with safe typing
+    (window as unknown as { toggleFAQ: (button: HTMLElement) => void }).toggleFAQ = toggleFAQ;
 
     // Show success message
     function showSuccessMessage(message: string) {
@@ -656,10 +656,26 @@ const metadata = {
           data[key] = value.toString();
         }
 
+        // Map form fields to API expected payload
+        const payload = {
+          name: (data.fullName || '').trim(),
+          email: (data.email || '').trim(),
+          subject: (data.queryType ? `Contact: ${data.queryType}` : 'Contact Inquiry'),
+          message: (data.message || '').trim(),
+          phone: (data.phone || '').trim(),
+        };
+
+        // Basic client-side validation to prevent 400s
+        if (!payload.name || !payload.email || !payload.subject || !payload.message) {
+          console.warn('⚠️ Missing required fields for contact submission:', payload);
+          showErrorMessage('Please fill in all required fields.');
+          return;
+        }
+
         const response = await fetch('/api/contact-form', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
+          body: JSON.stringify(payload)
         });
 
         console.log('📡 Contact API response status:', response.status);

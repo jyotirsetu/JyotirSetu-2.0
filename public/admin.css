@@ -184,6 +184,54 @@ th { text-align: left; font-weight: 600; color: var(--text); }
 .topbar { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border); background: linear-gradient(180deg, var(--panel), var(--panel-2)); color: var(--text); }
 .toolbar { display: flex; gap: 8px; padding: 12px 20px; align-items: center; }
 
+/* Toolbar Card: polished, consistent design across admin pages */
+.toolbar-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 16px;
+  box-shadow: 0 10px 28px rgba(0,0,0,0.28);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 12px;
+}
+.toolbar-card .muted { color: var(--muted); font-size: 13px; }
+.toolbar-card .input { min-height: 36px; }
+.toolbar-card .select { min-height: 36px; }
+.toolbar-card .btn-sm { min-height: 34px; }
+.toolbar-card .input[type="date"] { width: 180px; }
+.toolbar-card #search { width: 220px; }
+.toolbar-card #savedViews { min-width: 200px; }
+.toolbar-card #viewName { min-width: 140px; }
+
+/* Active filter chips bar */
+#activeChips {
+  margin: 8px 20px;
+  padding: 8px 10px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+/* Improve readability/contrast for filter chips */
+#activeChips .pill {
+  background: rgba(147, 197, 253, 0.28);
+  border-color: rgba(147, 197, 253, 0.60);
+  color: #eaf8ff;
+  font-weight: 600;
+}
+#activeChips .pill[data-clear="__all__"] {
+  background: rgba(239, 68, 68, 0.28);
+  border-color: rgba(239, 68, 68, 0.60);
+  color: #ffecec;
+  font-weight: 600;
+}
+
+/* Inputs: make placeholders readable in dark theme */
+.input::placeholder {
+  color: #b8d5d8;
+  opacity: 1;
+}
+
 /* Cards and grids */
 .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
 

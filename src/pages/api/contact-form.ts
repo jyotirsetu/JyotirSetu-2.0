@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { ensureContactsTable, getTursoClient } from '../../lib/turso';
+import { emailService } from '../../lib/email-service';
 
 export const prerender = false;
 
@@ -42,12 +43,25 @@ export const POST: APIRoute = async ({ request }) => {
       ]
     });
 
-    // (Optional) insert email sending logic here if needed
+    // Send confirmation email (non-blocking failure)
+    let emailSent = false;
+    try {
+      emailSent = await emailService.sendContactConfirmationEmail({
+        name: contactData.name!,
+        email: contactData.email!,
+        subject: contactData.subject!,
+        message: contactData.message!,
+        phone: contactData.phone || ''
+      });
+    } catch (emailError) {
+      console.warn('Contact-form: email send failed:', emailError);
+    }
 
     return new Response(JSON.stringify({
       success: true,
       message: 'Contact message received',
-      id
+      id,
+      emailSent
     }), {
       status: 201,
       headers: { 'Content-Type': 'application/json' }

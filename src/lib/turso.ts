@@ -52,6 +52,19 @@ export async function ensureContactsTable() {
   `);
 }
 
+export async function ensureNewsletterSubscribersTable() {
+  const client = await getTursoClient();
+  await client.execute(`
+    CREATE TABLE IF NOT EXISTS newsletter_subscribers (
+      id TEXT PRIMARY KEY,
+      name TEXT,
+      email TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'pending',
+      subscribed_at TEXT NOT NULL
+    );
+  `);
+}
+
 export async function ensureTemplatesTables() {
   const client = await getTursoClient();
   await client.execute(`
@@ -173,6 +186,23 @@ export async function ensureFollowHubSettingsTable() {
       value TEXT NOT NULL,
       updated_at TEXT NOT NULL
     );
+  `);
+}
+
+export async function ensureSavedViewsTable() {
+  const client = await getTursoClient();
+  await client.execute(`
+    CREATE TABLE IF NOT EXISTS saved_views (
+      id TEXT PRIMARY KEY,
+      user TEXT NOT NULL DEFAULT 'admin',
+      page TEXT NOT NULL,
+      name TEXT NOT NULL,
+      filters TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    );
+  `);
+  await client.execute(`
+    CREATE INDEX IF NOT EXISTS idx_saved_views_user_page ON saved_views(user, page);
   `);
 }
 

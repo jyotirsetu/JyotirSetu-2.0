@@ -9,7 +9,7 @@
 
   <form 
     id="emailCaptureForm"
-    action="https://formspree.io/f/xnnbgerl" 
+    action="/api/newsletter" 
     method="POST" 
     class="max-w-md mx-auto"
   >
@@ -53,9 +53,11 @@
     </p>
 
     <!-- Success & Error messages -->
-    <p id="formSuccess" class="opacity-0 transition-opacity duration-500 text-green-600 font-semibold mt-4">
-      ✅ Thank you! Your email has been submitted.
-    </p>
+    <div id="formSuccess" class="opacity-0 transition-opacity duration-500 mt-4">
+      <div class="rounded-lg border border-green-200 bg-green-50 p-4 text-green-700 text-sm">
+        ✅ Thank you! You’re subscribed to Daily Astro Tips. Check your inbox for a welcome email.
+      </div>
+    </div>
     <p id="formError" class="opacity-0 transition-opacity duration-500 text-red-600 font-semibold mt-4">
       ❌ Oops! Something went wrong. Please try again.
     </p>
@@ -85,11 +87,16 @@
     const formData = new FormData(form);
     const action = form.action;
 
+    const payload = {
+      name: String(formData.get('name') || ''),
+      email: String(formData.get('email') || ''),
+    };
+
     try {
       const response = await fetch(action, {
         method: 'POST',
-        body: formData,
-        headers: { 'Accept': 'application/json' }
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(payload)
       });
 
       if (response.ok) {

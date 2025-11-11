@@ -30,17 +30,35 @@ export const GET: APIRoute = async ({ request }) => {
     const page = Math.max(1, parseInt(url.searchParams.get('page') || '1', 10));
     const limit = Math.min(100, Math.max(10, parseInt(url.searchParams.get('limit') || '20', 10)));
     const offset = (page - 1) * limit;
+    const from = url.searchParams.get('from');
+    const to = url.searchParams.get('to');
     
     const client = await getTursoClient();
+    const filters: string[] = [];
+    const argsBase: (string | number | boolean | bigint | null)[] = [];
+    // Filter by appointment date rather than created_at for a more intuitive range
+    // When a plain YYYY-MM-DD is provided, use SQLite's date() for proper comparison
+    // When a full timestamp is provided, fallback to string comparison on the `date` column
+    if (from) {
+      if (from.length === 10) { filters.push(`date(date) >= date(?)`); }
+      else { filters.push(`date >= ?`); }
+      argsBase.push(from);
+    }
+    if (to) {
+      if (to.length === 10) { filters.push(`date(date) <= date(?)`); }
+      else { filters.push(`date <= ?`); }
+      argsBase.push(to);
+    }
+    const where = filters.length ? `WHERE ${filters.join(' AND ')}` : '';
     const [dataRes, countRes] = await Promise.all([
       client.execute({
         sql: `SELECT id, name, email, phone, service, date, time, consultation_method, status, message, service_details, source, customer_appointment_id, created_at
-              FROM appointments ORDER BY datetime(created_at) DESC LIMIT ? OFFSET ?`,
-        args: [limit, offset]
+              FROM appointments ${where} ORDER BY datetime(created_at) DESC LIMIT ? OFFSET ?`,
+        args: [...argsBase, limit, offset]
       }),
       client.execute({
-        sql: `SELECT COUNT(*) as total FROM appointments`,
-        args: []
+        sql: `SELECT COUNT(*) as total FROM appointments ${where}`,
+        args: argsBase
       })
     ]);
     

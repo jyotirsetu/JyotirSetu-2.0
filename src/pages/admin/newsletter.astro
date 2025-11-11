@@ -1,0 +1,158 @@
+---
+export const prerender = false;
+import Favicons from '~/components/Favicons.astro';
+---
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Newsletter Subscribers – Admin</title>
+    <link rel="stylesheet" href="/admin.css?v=20251108" />
+    <Favicons />
+    <style>
+      .status { padding:2px 8px; border-radius:999px; font-size:12px; }
+      .status.pending { background: rgba(124,58,237,0.15); color:#93c5fd; }
+      .status.read { background: rgba(34,197,94,0.15); color:#a7f3d0; }
+    </style>
+  </head>
+  <body>
+    <button class="sidebar-toggle" aria-label="Open Admin Menu" id="sidebarToggle">☰</button>
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+    <div class="layout">
+      <aside class="sidebar" id="adminSidebar">
+        <div class="logo"><span class="brand-dot"></span> <span>JyotirSetu Admin</span></div>
+        <nav class="nav">
+          <a href="/admin/dashboard">Dashboard</a>
+          <a href="/admin/appointments">Appointments</a>
+          <a href="/admin/contacts">Contacts</a>
+          <a class="active" href="/admin/newsletter">Newsletter</a>
+          <a href="/admin/calendar">Calendar</a>
+          <a href="/admin/activity-log">Activity Log</a>
+          <a href="/admin/tools/follow-hub/insights">Follow Hub – Insights</a>
+          <a href="/admin/templates/email">Email Templates</a>
+          <a href="/admin/templates/whatsapp">WhatsApp Templates</a>
+          <a href="/admin/settings">Settings</a>
+        </nav>
+      </aside>
+      <section class="content">
+        <div class="topbar">
+          <strong>Newsletter Subscribers</strong>
+          <div style="display:flex; gap:8px; align-items:center">
+            <button class="btn-sm" id="exportBtn" style="background:#22c55e; color:white; border:none;">📥 Export CSV</button>
+            <a href="/api/admin/logout" class="pill">Logout</a>
+          </div>
+        </div>
+        <div class="toolbar toolbar-card">
+          <input class="input" id="search" placeholder="Search name or email" style="width:220px" />
+          <select class="select" id="statusFilter">
+            <option value="">All status</option>
+            <option value="pending">pending</option>
+            <option value="read">read</option>
+          </select>
+          <input class="input" id="fromDate" type="datetime-local" />
+          <input class="input" id="toDate" type="datetime-local" />
+          <button class="btn-sm" id="refreshBtn" style="background:#0ea5e9; color:#fff; border:none;">Refresh</button>
+        </div>
+        <div style="padding: 0 20px 20px;">
+          <div class="card">
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Status</th>
+                  <th>Subscribed</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="rows"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <script is:inline>
+      let allData = [];
+
+      function fmtDate(dt) {
+        try { return new Date(dt).toLocaleString(); } catch { return String(dt || ''); }
+      }
+
+      function renderRows(rows) {
+        const tbody = document.getElementById('rows');
+        if (!tbody) return;
+        tbody.innerHTML = rows.map(r => {
+          const badgeClass = r.status === 'read' ? 'status read' : 'status pending';
+          return `<tr>
+            <td>${(r.name||'').toString()}</td>
+            <td>${r.email}</td>
+            <td><span class="${badgeClass}">${r.status}</span></td>
+            <td>${fmtDate(r.subscribed_at)}</td>
+            <td>
+              <select data-id="${r.id}" class="select statusSel">
+                <option value="pending" ${r.status==='pending'?'selected':''}>pending</option>
+                <option value="read" ${r.status==='read'?'selected':''}>read</option>
+              </select>
+            </td>
+          </tr>`;
+        }).join('');
+
+        [...document.querySelectorAll('.statusSel')].forEach(sel => {
+          sel.addEventListener('change', async (e) => {
+            const id = sel.getAttribute('data-id');
+            const target = e && e.target ? e.target : null;
+            const status = (target && target.value) || 'pending';
+            try {
+              await fetch('/api/admin/newsletter', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id, status })
+              });
+            } catch (err) { console.debug('newsletter status update failed', err); }
+          });
+        });
+      }
+
+      function applyFilters(rows) {
+        const searchEl = document.getElementById('search');
+        const statusEl = document.getElementById('statusFilter');
+        const q = (searchEl && searchEl.value ? searchEl.value.toLowerCase() : '') || '';
+        const status = (statusEl && statusEl.value) || '';
+        return rows.filter(r => (
+          (!q || (r.email||'').toLowerCase().includes(q) || (r.name||'').toLowerCase().includes(q)) &&
+          (!status || r.status === status)
+        ));
+      }
+
+      async function loadPage(page) {
+        const params = new URLSearchParams({ page: String(page), limit: '50' });
+        const fromEl = document.getElementById('fromDate');
+        const toEl = document.getElementById('toDate');
+        if (fromEl?.value) params.set('from', fromEl.value);
+        if (toEl?.value) params.set('to', toEl.value);
+        try {
+          const res = await fetch(`/api/admin/newsletter?${params.toString()}`, { keepalive: true });
+          const json = await res.json();
+          allData = json.data || [];
+          renderRows(applyFilters(allData));
+        } catch (e) { console.debug('failed to load newsletter', e); }
+      }
+
+      document.getElementById('refreshBtn')?.addEventListener('click', () => loadPage(1));
+      document.getElementById('search')?.addEventListener('input', () => renderRows(applyFilters(allData)));
+      document.getElementById('statusFilter')?.addEventListener('change', () => renderRows(applyFilters(allData)));
+      document.getElementById('exportBtn')?.addEventListener('click', () => {
+        const fromEl = document.getElementById('fromDate');
+        const toEl = document.getElementById('toDate');
+        const params = new URLSearchParams({ type: 'newsletter', format: 'csv' });
+        if (fromEl?.value) params.set('from', fromEl.value);
+        if (toEl?.value) params.set('to', toEl.value);
+        window.open(`/api/admin/export?${params.toString()}`, '_blank');
+      });
+
+      loadPage(1);
+    </script>
+  </body>
+</html>

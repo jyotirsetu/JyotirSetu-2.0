@@ -32,6 +32,10 @@ import Favicons from '~/components/Favicons.astro';
       .action-card .muted { font-size: 13px; }
       .action-card .arrow { float: right; font-size: 20px; opacity: 0.5; }
     </style>
+    <style>
+      /* Newsletter stats card style */
+      .stat-card.newsletter .icon { background: linear-gradient(135deg, rgba(14,165,233,0.2), rgba(14,165,233,0.1)); }
+    </style>
   </head>
   <body>
     <button class="sidebar-toggle" aria-label="Open Admin Menu" id="sidebarToggle">☰</button>
@@ -43,6 +47,7 @@ import Favicons from '~/components/Favicons.astro';
           <a class="active" href="/admin/dashboard">Dashboard</a>
           <a href="/admin/appointments">Appointments</a>
           <a href="/admin/contacts">Contacts</a>
+          <a href="/admin/newsletter">Newsletter</a>
           <a href="/admin/calendar">Calendar</a>
           <a href="/admin/activity-log">Activity Log</a>
           <a href="/admin/tools/follow-hub/insights">Follow Hub – Insights</a>
@@ -77,6 +82,12 @@ import Favicons from '~/components/Favicons.astro';
               <div class="stat-label">New Contacts</div>
               <div class="stat-value" id="stat-contacts">—</div>
               <div class="stat-change">Messages received</div>
+            </div>
+            <div class="stat-card newsletter">
+              <div class="icon">📰</div>
+              <div class="stat-label">Newsletter Subscribers</div>
+              <div class="stat-value" id="stat-newsletter">—</div>
+              <div class="stat-change">All time</div>
             </div>
             <div class="stat-card recent">
               <div class="icon">🕐</div>
@@ -141,15 +152,19 @@ import Favicons from '~/components/Favicons.astro';
     <script>
       async function loadStats(){
         try{
-          const [a,c] = await Promise.all([
+          const [a,c,n] = await Promise.all([
             fetch('/api/admin/appointments?page=1&limit=1000').then(r=>r.json()).catch(()=>({data:[]})),
-            fetch('/api/admin/contacts').then(r=>r.json()).catch(()=>({data:[]}))
+            fetch('/api/admin/contacts').then(r=>r.json()).catch(()=>({data:[]})),
+            fetch('/api/admin/newsletter?page=1&limit=1').then(r=>r.json()).catch(()=>({ pagination: { total: 0 } }))
           ]);
           const appts = a.data||[];
           const apptEl = document.getElementById('stat-appointments');
           if (apptEl) apptEl.textContent = String(appts.length);
           const contactsEl = document.getElementById('stat-contacts');
           if (contactsEl) contactsEl.textContent = String((c.data||[]).length);
+          const newsletterEl = document.getElementById('stat-newsletter');
+          const totalNewsletter = (n?.pagination?.total) ?? ((n?.data||[]).length) ?? 0;
+          if (newsletterEl) newsletterEl.textContent = String(totalNewsletter);
           const now = Date.now();
           const last24 = appts.filter(x=>{
             const t = new Date(x.created_at).getTime();

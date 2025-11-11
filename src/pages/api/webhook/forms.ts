@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { supabase } from '~/lib/supabase';
+import { getTursoClient, ensureAppointmentsTable } from '~/lib/turso';
 
 type AppointmentData = {
   form_type: 'appointment';
@@ -66,8 +67,8 @@ async function handleAppointmentSubmission(data: AppointmentData) {
   console.log('📅 New appointment submission:', data);
   
   try {
-    // Store appointment in database
-    const { error } = await supabase
+    // Store appointment in Supabase and return inserted row (including id)
+    const { data: inserted, error } = await supabase
       .from('appointments')
       .insert({
         name: data.name,
@@ -79,14 +80,65 @@ async function handleAppointmentSubmission(data: AppointmentData) {
         message: data.message,
         status: 'pending',
         created_at: new Date().toISOString()
-      });
+      })
+      .select()
+      .single();
     
     if (error) {
       console.error('Error storing appointment:', error);
       return;
     }
     
-    console.log('✅ Appointment stored successfully');
+    console.log('✅ Appointment stored successfully', inserted);
+
+    // Mirror into Turso for admin visibility (source: webhook)
+    try {
+      await ensureAppointmentsTable();
+      const client = await getTursoClient();
+      const makePublicId = (dateStr: string): string => {
+        try {
+          const yyyymmdd = String(dateStr || '').replace(/-/g, '');
+          const rand = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+          return `${yyyymmdd}${rand}`;
+        } catch { return `${Date.now()}`; }
+      };
+      const publicId = makePublicId(String(data.preferred_date));
+
+      await client.execute({
+        sql: `INSERT INTO appointments (id, name, email, phone, service, date, time, consultation_method, status, message, source, customer_appointment_id, created_at)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+              ON CONFLICT(id) DO UPDATE SET 
+                name=excluded.name,
+                email=excluded.email,
+                phone=excluded.phone,
+                service=excluded.service,
+                date=excluded.date,
+                time=excluded.time,
+                consultation_method=excluded.consultation_method,
+                status=excluded.status,
+                message=excluded.message,
+                source='webhook',
+                customer_appointment_id=excluded.customer_appointment_id,
+                created_at=excluded.created_at`,
+        args: [
+          String(inserted?.id || crypto.randomUUID()),
+          String(data.name),
+          String(data.email),
+          String(data.phone || ''),
+          String(data.service),
+          String(data.preferred_date),
+          String(data.preferred_time),
+          'call',
+          'pending',
+          data.message ? String(data.message) : null,
+          'webhook',
+          publicId,
+          new Date().toISOString()
+        ]
+      });
+    } catch (mirrorErr) {
+      console.warn('⚠️ Turso mirror failed (non-blocking):', mirrorErr);
+    }
     
     // Send confirmation email to customer
     await sendAppointmentConfirmation(data);
