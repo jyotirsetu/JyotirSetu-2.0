@@ -1,0 +1,9 @@
+--- a/node_modules/@astrolib/seo/index.ts
++++ b/node_modules/@astrolib/seo/index.ts
+@@ -1,5 +1,5 @@
+ export { default as buildTags } from './src/utils/buildTags';
+ export type { Props } from './src/types';
+-export { default as AstroSeo } from "./src/AstroSeo.astro";
+-export * from "./src/AstroSeo.astro";
++export { default as AstroSeo } from "./lib/AstroSeo";
++export * from "./lib/AstroSeo";

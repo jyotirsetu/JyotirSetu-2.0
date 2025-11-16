@@ -1,0 +1,118 @@
+---
+export const prerender = false;
+---
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Follow JyotirSetu</title>
+    <meta name="description" content="Smart follow hub for JyotirSetu" />
+    <style>
+      :root{ --bg:#0b1020; --card:rgba(255,255,255,0.08); --border:rgba(255,255,255,0.15); --fg:#cfe8ea; --muted:#8bb0b3; --teal:#2ad1b2; --gold:#f1c40f; --blue:#3498db; --pink:#ff6fb3; --red:#e74c3c; --gray:#95a5a6; }
+      html,body{height:100%;}
+      body{margin:0;background:radial-gradient(circle at 20% 10%, #102040, #0b1020); color:var(--fg); font-family:Inter,system-ui,Segoe UI,Arial,sans-serif; display:flex; align-items:center; justify-content:center}
+      .wrap{max-width:560px; width:100%; padding:20px}
+      .card{background:var(--card); border:1px solid var(--border); border-radius:16px; padding:16px}
+      h1{margin:0 0 12px 0}
+      .primary{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px; border-radius:12px; border:1px solid var(--border); background:rgba(255,255,255,0.06)}
+      .cta-btn{flex:1; display:flex; gap:8px; align-items:center; justify-content:center; text-decoration:none; color:var(--fg); padding:12px; border-radius:12px; border:1px solid var(--border)}
+      .list{display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; margin-top:12px}
+      .chip{display:inline-flex; align-items:center; gap:8px; padding:10px; border-radius:12px; border:1px solid var(--border); text-decoration:none; color:var(--fg)}
+      .dot{width:10px; height:10px; border-radius:50%}
+      .teal{background:var(--teal)} .gold{background:var(--gold)} .blue{background:var(--blue)} .pink{background:var(--pink)} .red{background:var(--red)} .gray{background:var(--gray)}
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="card">
+        <h1>Follow JyotirSetu</h1>
+        <div id="primary" class="primary">
+          <a id="primaryBtn" class="cta-btn" href="#">Loading…</a>
+          <a id="qrBtn" class="cta-btn" target="_blank">QR</a>
+        </div>
+        <div class="list" id="list"></div>
+      </div>
+    </div>
+    <script>
+      // Use the main site API when running on the follow subdomain
+      const API_BASE = (location.hostname.includes('follow.jyotirsetu.com')) ? 'https://www.jyotirsetu.com' : '';
+      const links = {
+        whatsapp: 'https://wa.me/919266991298',
+        google_review: 'https://g.page/r/YourGoogleReview',
+        facebook: 'https://facebook.com/yourpage',
+        instagram: 'https://instagram.com/yourhandle',
+        youtube: 'https://youtube.com/@yourchannel'
+      };
+      const device = /Mobile|Android|iPhone|iPad/i.test(navigator.userAgent) ? 'mobile' : 'desktop';
+      const ref = document.referrer.toLowerCase();
+      function pickPrimary(){
+        if (device==='mobile' && ref.includes('whatsapp')) return 'whatsapp';
+        if (device==='desktop' && (ref.includes('google')||ref.includes('gclid'))) return 'google_review';
+        // fallback by variant
+        return window.followVariant==='B' ? 'google_review' : 'whatsapp';
+      }
+      async function fetchVariant(){
+        try { const res = await fetch(API_BASE + '/api/follow-hub/variant'); const j = await res.json(); if(j.ok) return j.value; } catch { /* ignore fetch variant errors */ }
+        return 'A';
+      }
+      function ctaLabel(key){
+        switch(key){
+          case 'whatsapp': return 'WhatsApp';
+          case 'google_review': return 'Google Review';
+          case 'facebook': return 'Facebook';
+          case 'instagram': return 'Instagram';
+          case 'youtube': return 'YouTube';
+          case 'website': return 'Website';
+          default: return key;
+        }
+      }
+      function color(key){
+        switch(key){ case 'whatsapp': return 'teal'; case 'google_review': return 'gold'; case 'facebook': return 'blue'; case 'instagram': return 'pink'; case 'youtube': return 'red'; default: return 'gray'; }
+      }
+      async function log(type, extra){
+        try {
+          const payload = {
+            event_type: type,
+            source: (new URL(location.href)).searchParams.get('utm_source')||null,
+            medium: (new URL(location.href)).searchParams.get('utm_medium')||null,
+            campaign: (new URL(location.href)).searchParams.get('utm_campaign')||null,
+            device,
+            platform: navigator.platform || null,
+            user_agent: navigator.userAgent || null,
+            ip_address: null,
+            primary_cta_shown: extra?.primary_cta_shown||null,
+            cta_clicked: extra?.cta_clicked||null,
+            cta_variant: window.followVariant||null,
+            page_url: location.href,
+            utm_query: location.search,
+            extra
+          };
+          await fetch(API_BASE + '/api/follow-hub/event', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+        } catch { /* ignore log errors */ }
+      }
+      (async function(){
+        window.followVariant = await fetchVariant();
+        const primary = pickPrimary();
+        const btn = document.getElementById('primaryBtn') as HTMLAnchorElement | null;
+        if(btn){
+          btn.textContent = ctaLabel(primary);
+          btn.href = String(links[primary]||'#');
+          btn.addEventListener('click', ()=>{ log('cta_click', { cta_clicked: primary }); });
+        }
+        const qrBtn = document.getElementById('qrBtn') as HTMLAnchorElement | null;
+        if(qrBtn){ qrBtn.href = API_BASE + '/api/follow-hub/qr?text=' + encodeURIComponent(location.href) + '&size=400'; }
+        await log('page_view', { primary_cta_shown: primary });
+        const list = document.getElementById('list');
+        const keys = ['whatsapp','google_review','facebook','instagram','youtube'] as const;
+        if(list){
+          list.innerHTML = keys.map(k => `<a class="chip" data-cta="${k}" href="${String(links[k]||'#')}" target="_blank"><span class="dot ${color(k)}"></span>${ctaLabel(k)}</a>`).join('');
+          list.querySelectorAll('a[data-cta]').forEach(a => {
+            const el = a as HTMLAnchorElement;
+            el.addEventListener('click', ()=>{ const d = (el as HTMLElement).dataset?.cta || ''; log('cta_click', { cta_clicked: d }); });
+          });
+        }
+      })();
+    </script>
+  </body>
+ </html>

@@ -1,0 +1,44 @@
+{
+  "compilerOptions": {
+    "strictNullChecks": true,
+    "allowJs": true,
+    "baseUrl": ".",
+    "skipLibCheck": true,
+    "module": "ES2020",
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "types": ["astro/client"],
+    "typeRoots": ["./node_modules/@types", "./src/types"],
+    "paths": {
+      "~/*": ["src/*"]
+    }
+  },
+  "include": [".astro/types.d.ts", "src/**/*", "src/types/**/*"],
+  "exclude": [
+    "dist/", 
+    ".vercel/", 
+    "node_modules/", 
+    "**/.vercel/**", 
+    "**/dist/**", 
+    ".vercel/output/**", 
+    ".vercel/output/functions/**", 
+    ".vercel/output/functions/_render.func/**", 
+    "**/.vercel/output/**", 
+    "**/.vercel/output/functions/**", 
+    "**/.vercel/output/functions/_render.func/**", 
+    "**/functions/**", 
+    "**/output/**",
+    "**/.vercel/output/functions/_render.func/**",
+    "**/.vercel/output/functions/_render.func/src/**",
+    "**/.vercel/output/functions/_render.func/src/pages/**",
+    "**/.vercel/output/functions/_render.func/src/pages/homes/**",
+    "**/.vercel/**/*",
+    "**/.vercel/output/**/*",
+    "**/.vercel/output/functions/**/*",
+    "**/.vercel/output/functions/_render.func/**/*",
+    "**/.vercel/output/functions/_render.func/src/pages/ScheduleAppointmentJyotirSetu.astro",
+    "src/pages/pricing.astro",
+    "src/pages/services.astro"
+  ]
+}

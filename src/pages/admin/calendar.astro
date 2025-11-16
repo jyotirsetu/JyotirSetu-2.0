@@ -1,0 +1,367 @@
+---
+export const prerender = false;
+import Favicons from '~/components/Favicons.astro';
+---
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Calendar – Admin</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@latest/dist/css/adminlte.min.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/css/all.min.css" />
+<link rel="stylesheet" href="/admin.css?v=20251116" />
+<Favicons />
+    <script src="/js/admin-notify.js" defer></script>
+    <script is:inline>
+      (function(){
+        function defineFallback(){
+          try{
+            if(window.AdminNotify) return;
+            window.AdminNotify = {
+              success:function(msg, detail){ console.log('SUCCESS:', detail? (msg+': '+detail) : msg); },
+              error:function(msg, detail){ console.error('ERROR:', detail? (msg+': '+detail) : msg); },
+              info:function(msg, detail){ console.log('INFO:', detail? (msg+': '+detail) : msg); }
+            };
+          }catch{/* ignore */}
+        }
+        function reinject(){
+          try{
+            const s = document.createElement('script');
+            s.src = '/js/admin-notify.js?v=' + Date.now();
+            s.defer = true;
+            s.onload = function(){ if(!window.AdminNotify) defineFallback(); };
+            s.onerror = function(){ defineFallback(); };
+            document.head.appendChild(s);
+          }catch{ defineFallback(); }
+        }
+        if(!window.AdminNotify){
+          if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', reinject); } else { reinject(); }
+          setTimeout(function(){ if(!window.AdminNotify) defineFallback(); }, 1500);
+        }
+      })();
+    </script>
+    <style>
+      .calendar-container { background: var(--panel); border-radius: 12px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+      [data-theme="dark"] .calendar-container { box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+      .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding: 0 20px; }
+      .calendar-nav { display: flex; gap: 12px; align-items: center; }
+      .calendar-nav button { background: linear-gradient(135deg, var(--panel-2), var(--panel)); border: 1px solid var(--border); color: var(--text); padding: 8px 16px; border-radius: 8px; cursor: pointer; transition: all 0.2s ease; font-weight: 500; }
+      .calendar-nav button:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+      .calendar-nav h2 { margin: 0; font-size: 24px; font-weight: 600; }
+      .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; background: var(--border); border: 2px solid var(--border); border-radius: 8px; overflow: hidden; padding: 0; }
+      .calendar-day-header { background: linear-gradient(135deg, var(--panel-2), var(--panel)); padding: 12px; text-align: center; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); }
+      .calendar-day { min-height: 120px; background: var(--panel); padding: 12px; cursor: pointer; transition: all 0.2s ease; position: relative; }
+      .calendar-day:hover { background: var(--panel-2); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+      [data-theme="dark"] .calendar-day:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+      .calendar-day.other-month { opacity: 0.6; background: var(--panel-2); }
+      .calendar-day.today { background: linear-gradient(135deg, #0ea5e9, #0284c7); color: white; font-weight: bold; box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3); }
+      .calendar-day.selected { background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; font-weight: bold; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3); }
+      .day-number { font-weight: 700; margin-bottom: 8px; font-size: 14px; }
+      .appointment-item { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #93c5fd; padding: 6px 8px; margin: 4px 0; border-radius: 6px; font-size: 12px; color: #1e293b; transition: all 0.2s ease; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      [data-theme="dark"] .appointment-item { background: linear-gradient(135deg, #1e293b, #334155); color: #e2e8f0; border-color: #38bdf8; }
+      .appointment-item:hover { transform: translateX(2px); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+      .appointment-item.pending { background: linear-gradient(135deg, #fde68a, #f59e0b); color: #1f2937; }
+      .appointment-item.confirmed { background: linear-gradient(135deg, #bbf7d0, #22c55e); color: #1f2937; }
+      .appointment-item.cancelled { background: linear-gradient(135deg, #fecaca, #ef4444); color: #1f2937; }
+      .appointment-item.rescheduled { background: linear-gradient(135deg, #bae6fd, #3b82f6); color: #1f2937; }
+      body:not(.dark-mode) .calendar-day { background: #ffffff; }
+      body:not(.dark-mode) .calendar-day:hover { background: #f8fafc; box-shadow: none; }
+      body:not(.dark-mode) .calendar-day-header { color: #6b7280; background: #ffffff; }
+      body:not(.dark-mode) .day-number { color: #374151; }
+    </style>
+  </head>
+  <body class="hold-transition sidebar-mini">
+    <button class="sidebar-toggle" aria-label="Open Admin Menu" id="sidebarToggle">☰</button>
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+    <script is:inline>
+      (function(){
+        function applyTheme(theme){
+          let t = theme;
+          if (t === 'auto') { t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'; }
+          document.body.classList.toggle('dark-mode', t === 'dark');
+        }
+        let theme = 'dark';
+        let collapsed = false;
+        try {
+          const stored = localStorage.getItem('adminSettings');
+          if (stored) {
+            const s = JSON.parse(stored);
+            if (s && typeof s === 'object') {
+              if (s.theme) theme = s.theme;
+              if (s.sidebarCollapsed != null) collapsed = !!s.sidebarCollapsed;
+            }
+          }
+        } catch (e) { console.error('Error loading admin settings:', e); }
+        applyTheme(theme);
+        document.body.classList.toggle('sidebar-collapse', collapsed);
+        try {
+          Promise.all([
+            fetch('/api/admin/preferences?key=theme').then(function(r){return r.json();}),
+            fetch('/api/admin/preferences?key=sidebarCollapsed').then(function(r){return r.json();})
+          ]).then(function(rs){
+            const tr = rs[0], sr = rs[1];
+            if (tr && tr.ok && typeof tr.value === 'string') applyTheme(tr.value);
+            if (sr && sr.ok && sr.value != null) document.body.classList.toggle('sidebar-collapse', sr.value === '1');
+          }).catch(function(err){ console.error('Error syncing preferences:', err); });
+        } catch (e) { console.error('Error syncing preferences:', e); }
+      })();
+    </script>
+    <div class="wrapper">
+      <nav class="main-header navbar navbar-expand navbar-dark">
+        <ul class="navbar-nav">
+          <li class="nav-item"><a class="nav-link" data-widget="pushmenu" href="#" role="button" aria-label="Toggle sidebar"><i class="fas fa-bars"></i></a></li>
+          <li class="nav-item"><a href="/admin/dashboard" class="nav-link">Dashboard</a></li>
+        </ul>
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><button class="btn btn-sm btn-outline-secondary" id="toggleSidebarDesktop">Hide sidebar</button></li>
+          <li class="nav-item"><a href="/api/admin/logout" class="nav-link">Logout</a></li>
+        </ul>
+      </nav>
+      <aside class="main-sidebar sidebar-dark-primary elevation-4" id="adminSidebar">
+        <a href="/admin/dashboard" class="brand-link" style="display:flex;align-items:center;gap:8px">
+          <span class="brand-dot"></span>
+          <span class="brand-text">JyotirSetu Admin</span>
+        </a>
+        <div class="sidebar">
+        <nav class="mt-2">
+          <ul class="nav nav-pills nav-sidebar flex-column" role="menu" data-accordion="false" data-widget="treeview">
+            <li class="nav-item"><a href="/admin/dashboard" class="nav-link"><i class="nav-icon fas fa-gauge"></i><p>Dashboard</p></a></li>
+            <li class="nav-item"><a href="/admin/appointments" class="nav-link"><i class="nav-icon fas fa-calendar-check"></i><p>Appointments</p></a></li>
+            <li class="nav-item"><a href="/admin/contacts" class="nav-link"><i class="nav-icon fas fa-comments"></i><p>Contacts</p></a></li>
+            <li class="nav-item"><a href="/admin/newsletter" class="nav-link"><i class="nav-icon fas fa-envelope-open-text"></i><p>Newsletter</p></a></li>
+            <li class="nav-item"><a href="/admin/calendar" class="nav-link active"><i class="nav-icon fas fa-calendar"></i><p>Calendar</p></a></li>
+            <li class="nav-item"><a href="/admin/activity-log" class="nav-link"><i class="nav-icon fas fa-list"></i><p>Activity Log</p></a></li>
+            <li class="nav-item"><a href="/admin/templates/email" class="nav-link"><i class="nav-icon fas fa-file-alt"></i><p>Email Templates</p></a></li>
+            <li class="nav-item"><a href="/admin/templates/whatsapp" class="nav-link"><i class="nav-icon fas fa-file-alt"></i><p>WhatsApp Templates</p></a></li>
+            <li class="nav-item"><a href="/admin/tools/follow-hub/insights" class="nav-link"><i class="nav-icon fas fa-toolbox"></i><p>Follow Hub – Insights</p></a></li>
+            <li class="nav-item"><a href="/admin/settings" class="nav-link"><i class="nav-icon fas fa-gear"></i><p>Settings</p></a></li>
+          </ul>
+        </nav>
+        </div>
+      </aside>
+      <div class="content-wrapper">
+        <section class="content-header">
+          <div class="container-fluid">
+            <div class="row mb-2">
+              <div class="col-sm-6"><h1>Calendar</h1></div>
+              <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                  <li class="breadcrumb-item"><a href="/admin/dashboard">Home</a></li>
+                  <li class="breadcrumb-item active">Calendar</li>
+                </ol>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section class="content">
+          <div class="container-fluid">
+        <div class="calendar-container">
+          <div class="calendar-header">
+            <div class="calendar-nav">
+              <button id="prevMonth">◀</button>
+              <h2 id="currentMonth" style="margin:0;min-width:200px;text-align:center"></h2>
+              <button id="nextMonth">▶</button>
+              <button id="todayBtn" class="btn" style="margin-left:8px">Today</button>
+            </div>
+            <div class="calendar-controls">
+              <input class="input" id="searchAppt" placeholder="Search" style="max-width:220px" />
+              <div class="btn-group">
+                <button class="btn" id="monthViewBtn">Month view</button>
+                <button class="btn" id="weekViewBtn">Week view</button>
+              </div>
+              <button class="btn" id="toggleSidebarDesktop2">Hide sidebar</button>
+              <button class="btn" id="addEventBtn">+ Add event</button>
+          </div>
+          </div>
+          <div class="calendar-grid" id="calendarGrid"></div>
+        </div>
+          </div>
+        </section>
+      </div>
+<footer class="main-footer"><strong>JyotirSetu Admin</strong><div class="float-end d-none d-sm-inline">AdminLTE theme</div></footer>
+
+    </div>
+
+    <script is:inline>
+      let currentDate = new Date();
+      let appointments = [];
+      function isAppointment(v){
+        if (!v || typeof v !== 'object') return false;
+        const obj = v;
+        return (
+          typeof obj.id === 'string' &&
+          typeof obj.name === 'string' &&
+          typeof obj.service === 'string' &&
+          typeof obj.date === 'string' &&
+          typeof obj.time === 'string' &&
+          typeof obj.status === 'string'
+        );
+      }
+
+      const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+      async function loadAppointments() {
+        const res = await fetch('/api/admin/appointments?page=1&limit=1000', { credentials: 'include' });
+        const json = await res.json();
+        const raw = Array.isArray(json?.data) ? json.data : [];
+        appointments = raw.filter(isAppointment);
+        renderCalendar();
+      }
+
+      function renderCalendar() {
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth();
+        const firstDay = new Date(year, month, 1);
+        // Removed unused lastDay to satisfy linter
+        // const lastDay = new Date(year, month + 1, 0);
+        const startDate = new Date(firstDay);
+        startDate.setDate(startDate.getDate() - startDate.getDay());
+        
+        const currentMonthEl = document.getElementById('currentMonth');
+        if (currentMonthEl) currentMonthEl.textContent = `${monthNames[month]} ${year}`;
+        
+        let html = '';
+        dayNames.forEach(day => {
+          html += `<div class="calendar-day-header">${day}</div>`;
+        });
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        for (let i = 0; i < 42; i++) {
+          const date = new Date(startDate);
+          date.setDate(startDate.getDate() + i);
+          const dateStr = date.toISOString().split('T')[0];
+          const isOtherMonth = date.getMonth() !== month;
+          const isToday = date.getTime() === today.getTime();
+          
+          const dayAppointments = appointments.filter(a => {
+            const apptDate = (a && a['date']) ? new Date(String(a['date'])).toISOString().split('T')[0] : null;
+            return apptDate === dateStr;
+          });
+
+          html += `<div class="calendar-day ${isOtherMonth ? 'other-month' : ''} ${isToday ? 'today' : ''}">
+            <div class="day-number">${date.getDate()}</div>
+            ${dayAppointments.slice(0, 3).map(a => `
+              <div class="appointment-item ${String(a['status']||'')}" title="${String(a['name']||'')} - ${String(a['service']||'')} - ${String(a['time']||'')}">
+                ${a && a['time'] ? String(a['time']).split('-')[0] : ''} ${String(a['name']||'')}
+              </div>
+            `).join('')}
+            ${dayAppointments.length > 3 ? `<div style="font-size:10px;color:var(--muted);margin-top:4px">+${dayAppointments.length - 3} more</div>` : ''}
+          </div>`;
+        }
+
+        const gridEl = document.getElementById('calendarGrid');
+        if (gridEl) gridEl.innerHTML = html;
+      }
+
+      document.getElementById('prevMonth')?.addEventListener('click', () => {
+        currentDate.setMonth(currentDate.getMonth() - 1);
+        renderCalendar();
+      });
+
+      document.getElementById('nextMonth')?.addEventListener('click', () => {
+        currentDate.setMonth(currentDate.getMonth() + 1);
+        renderCalendar();
+      });
+
+      document.getElementById('todayBtn')?.addEventListener('click', () => {
+        currentDate = new Date();
+        renderCalendar();
+      });
+
+      // View toggles (week view stub)
+      document.getElementById('monthViewBtn')?.addEventListener('click', () => {
+        window.AdminNotify?.info('Month view', 'Already in month view');
+      });
+      document.getElementById('weekViewBtn')?.addEventListener('click', () => {
+        window.AdminNotify?.info('Week view', 'Week view will be added soon');
+      });
+
+      // Add event stub
+      document.getElementById('addEventBtn')?.addEventListener('click', () => {
+        window.AdminNotify?.info('Add event', 'Quick add coming soon');
+      });
+
+      const desktopToggle1 = document.getElementById('toggleSidebarDesktop');
+      const desktopToggle2 = document.getElementById('toggleSidebarDesktop2');
+      function syncSidebarBtn(){
+        const collapsed = document.body.classList.contains('sidebar-collapse');
+        const label = collapsed ? 'Show sidebar' : 'Hide sidebar';
+        if (desktopToggle1) desktopToggle1.textContent = label;
+        if (desktopToggle2) desktopToggle2.textContent = label;
+      }
+      async function toggleSidebar(){
+        const collapsed = document.body.classList.toggle('sidebar-collapse');
+        syncSidebarBtn();
+        try{
+          await fetch('/api/admin/preferences', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: 'sidebarCollapsed', value: collapsed ? '1' : '0' }) });
+        }catch(e){ console.error('Error saving sidebarCollapsed:', e); }
+      }
+      desktopToggle1?.addEventListener('click', toggleSidebar);
+      desktopToggle2?.addEventListener('click', toggleSidebar);
+      syncSidebarBtn();
+
+      loadAppointments();
+      setInterval(loadAppointments, 60000); // Refresh every minute
+
+      // Mobile drawer
+      const sidebar = document.getElementById('adminSidebar');
+      const backdrop = document.getElementById('sidebarBackdrop');
+      const toggleBtn = document.getElementById('sidebarToggle');
+      let isOpen = false;
+      
+      function openSidebar() {
+        sidebar?.classList.add('active');
+        backdrop?.classList.add('active');
+        toggleBtn?.classList.add('active');
+        if (toggleBtn) toggleBtn.innerHTML = '✕';
+        isOpen = true;
+      }
+      
+      function closeSidebar() {
+        sidebar?.classList.remove('active');
+        backdrop?.classList.remove('active');
+        toggleBtn?.classList.remove('active');
+        if (toggleBtn) toggleBtn.innerHTML = '☰';
+        isOpen = false;
+      }
+      
+      toggleBtn?.addEventListener('click', () => {
+        if (isOpen) closeSidebar();
+        else openSidebar();
+      });
+      
+      backdrop?.addEventListener('click', closeSidebar);
+      sidebar?.querySelectorAll('a').forEach(a => {
+        a.addEventListener('click', () => {
+          if (window.innerWidth <= 900) closeSidebar();
+        });
+      });
+      
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && isOpen) closeSidebar();
+      });
+
+      // Search appointments in the rendered month
+      document.getElementById('searchAppt')?.addEventListener('input', (e) => {
+        const target = e.target;
+        const q = (target?.value || '').toLowerCase();
+        const gridEl = document.getElementById('calendarGrid');
+        if (!gridEl) return;
+        gridEl.querySelectorAll('.appointment-item').forEach(el => {
+          const item = el;
+          const text = (item.getAttribute('title') || item.textContent || '').toLowerCase();
+          item.style.opacity = text.includes(q) ? '1' : '0.35';
+        });
+      });
+    </script>
+  </body>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/admin-lte@latest/dist/js/adminlte.min.js" defer></script>
+</html>
+
+

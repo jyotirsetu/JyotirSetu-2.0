@@ -1,0 +1,303 @@
+---
+export const prerender = false;
+import Favicons from '~/components/Favicons.astro';
+---
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Follow Hub – Insights</title>
+    <Favicons />
+    <style>
+      .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:12px}
+      .chip{display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:999px; border:1px solid var(--border); margin:6px 6px 0 0; background:rgba(255,255,255,0.05)}
+      .chip .dot{width:8px; height:8px; border-radius:50%}
+      .chip.teal .dot{background:#2ad1b2}
+      .chip.gold .dot{background:#f1c40f}
+      .chip.blue .dot{background:#3498db}
+      .chip.pink .dot{background:#ff6fb3}
+      .chip.red .dot{background:#e74c3c}
+      .chip.gray .dot{background:#95a5a6}
+    </style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@latest/dist/css/adminlte.min.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/css/all.min.css" />
+<link rel="stylesheet" href="/admin.css" />
+  </head>
+  <body class="hold-transition sidebar-mini">
+    <script is:inline>
+      (function(){
+        function applyTheme(theme){
+          let t = theme;
+          if (t === 'auto') { t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'; }
+          document.body.classList.toggle('dark-mode', t === 'dark');
+        }
+        let theme = 'dark';
+        let collapsed = false;
+        try {
+          const stored = localStorage.getItem('adminSettings');
+          if (stored) {
+            const s = JSON.parse(stored);
+            if (s && typeof s === 'object') {
+              if (s.theme) theme = s.theme;
+              if (s.sidebarCollapsed != null) collapsed = !!s.sidebarCollapsed;
+            }
+          }
+        } catch (e) { console.error('Error loading admin settings:', e); }
+        applyTheme(theme);
+        document.body.classList.toggle('sidebar-collapse', collapsed);
+        try {
+          Promise.all([
+            fetch('/api/admin/preferences?key=theme').then(function(r){return r.json();}),
+            fetch('/api/admin/preferences?key=sidebarCollapsed').then(function(r){return r.json();})
+          ]).then(function(rs){
+            const tr = rs[0], sr = rs[1];
+            if (tr && tr.ok && typeof tr.value === 'string') applyTheme(tr.value);
+            if (sr && sr.ok && sr.value != null) document.body.classList.toggle('sidebar-collapse', sr.value === '1');
+          }).catch(function(err){ console.error('Error syncing preferences:', err); });
+        } catch (e) { console.error('Error syncing preferences:', e); }
+      })();
+    </script>
+    <div class="wrapper">
+      <nav class="main-header navbar navbar-expand navbar-dark">
+        <ul class="navbar-nav">
+          <li class="nav-item"><a class="nav-link" data-widget="pushmenu" href="#" role="button" aria-label="Toggle sidebar"><i class="fas fa-bars"></i></a></li>
+          <li class="nav-item"><a href="/admin/dashboard" class="nav-link">Dashboard</a></li>
+        </ul>
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a href="/admin/tools/follow-hub/overview" class="btn btn-sm btn-primary" id="overviewBtn">Overview</a></li>
+          <li class="nav-item"><button class="btn btn-sm btn-outline-secondary" id="toggleSidebarDesktop">Hide sidebar</button></li>
+          <li class="nav-item"><a href="/api/admin/logout" class="nav-link">Logout</a></li>
+        </ul>
+      </nav>
+      <aside class="main-sidebar sidebar-dark-primary elevation-4">
+        <a href="/admin/dashboard" class="brand-link" style="display:flex;align-items:center;gap:8px">
+          <span class="brand-dot"></span>
+          <span class="brand-text">JyotirSetu Admin</span>
+        </a>
+        <div class="sidebar">
+        <nav class="mt-2">
+          <ul class="nav nav-pills nav-sidebar flex-column" role="menu" data-accordion="false" data-widget="treeview">
+            <li class="nav-item"><a href="/admin/dashboard" class="nav-link"><i class="nav-icon fas fa-gauge"></i><p>Dashboard</p></a></li>
+            <li class="nav-item"><a href="/admin/appointments" class="nav-link"><i class="nav-icon fas fa-calendar-check"></i><p>Appointments</p></a></li>
+            <li class="nav-item"><a href="/admin/contacts" class="nav-link"><i class="nav-icon fas fa-comments"></i><p>Contacts</p></a></li>
+            <li class="nav-item"><a href="/admin/calendar" class="nav-link"><i class="nav-icon fas fa-calendar"></i><p>Calendar</p></a></li>
+            <li class="nav-item"><a href="/admin/activity-log" class="nav-link"><i class="nav-icon fas fa-list"></i><p>Activity Log</p></a></li>
+            <li class="nav-item"><a href="/admin/newsletter" class="nav-link"><i class="nav-icon fas fa-envelope-open-text"></i><p>Newsletter</p></a></li>
+            <li class="nav-item"><a href="/admin/tools/follow-hub/insights" class="nav-link active"><i class="nav-icon fas fa-toolbox"></i><p>Follow Hub – Insights</p></a></li>
+            <li class="nav-item"><a href="/admin/templates/email" class="nav-link"><i class="nav-icon fas fa-file-alt"></i><p>Email Templates</p></a></li>
+            <li class="nav-item"><a href="/admin/templates/whatsapp" class="nav-link"><i class="nav-icon fas fa-file-alt"></i><p>WhatsApp Templates</p></a></li>
+            <li class="nav-item"><a href="/admin/settings" class="nav-link"><i class="nav-icon fas fa-gear"></i><p>Settings</p></a></li>
+          </ul>
+        </nav>
+        </div>
+      </aside>
+      <div class="content-wrapper">
+        <section class="content-header">
+          <div class="container-fluid">
+            <div class="row mb-2">
+              <div class="col-sm-6"><h1>Follow Hub – Insights</h1></div>
+              <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                  <li class="breadcrumb-item"><a href="/admin/dashboard">Home</a></li>
+                  <li class="breadcrumb-item active">Insights</li>
+                </ol>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section class="content">
+          <div class="container-fluid">
+        <div class="container">
+          <div class="grid" style="margin-bottom:16px">
+            <div class="card"><strong>Page Views</strong><div id="ovPageViews" style="font-size:24px">–</div></div>
+            <div class="card"><strong>Impressions</strong><div id="ovImpressions" style="font-size:24px">–</div></div>
+            <div class="card"><strong>Clicks</strong><div id="ovClicks" style="font-size:24px">–</div></div>
+            <div class="card"><strong>Shares</strong><div id="ovShares" style="font-size:24px">–</div></div>
+            <div class="card"><strong>CTR</strong><div id="ovCtr" style="font-size:24px">–</div></div>
+          </div>
+          <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-bottom:12px">
+            <label>From <input type="date" id="from" /></label>
+            <label>To <input type="date" id="to" /></label>
+            <label>Source
+              <select id="source">
+                <option value="">All</option>
+                <option value="whatsapp">whatsapp</option>
+                <option value="google">google</option>
+                <option value="instagram">instagram</option>
+                <option value="facebook">facebook</option>
+                <option value="youtube">youtube</option>
+              </select>
+            </label>
+            <label>Device
+              <select id="device">
+                <option value="">All</option>
+                <option>mobile</option>
+                <option>desktop</option>
+                <option>tablet</option>
+              </select>
+            </label>
+            <button id="apply">Apply</button>
+            <button id="exportCsv">Export CSV</button>
+          </div>
+
+          <div class="grid">
+            <div class="card"><strong>Totals</strong><div id="totals">–</div></div>
+            <div class="card"><strong>By Device</strong><div id="devices">–</div></div>
+            <div class="card"><strong>By Source</strong><div id="sources">–</div></div>
+            <div class="card"><strong>A/B Variants</strong><div id="variants">–</div></div>
+          </div>
+
+          <div class="grid" style="margin-top:12px">
+            <div class="card"><strong>Last 7 Days</strong><div id="last7">–</div></div>
+            <div class="card"><strong>Per-Source (mini-bars)</strong><div id="sourceBars">–</div></div>
+          </div>
+
+          <div class="grid" style="margin-top:12px">
+            <div class="card">
+              <strong>Platforms</strong>
+              <div id="platformCards">–</div>
+            </div>
+          </div>
+
+          <h3 style="margin-top:20px">Daily Views vs Clicks</h3>
+          <canvas id="chart" width="900" height="320"></canvas>
+
+          <h3 style="margin-top:20px">Event Log</h3>
+          <div style="overflow:auto">
+            <table>
+              <thead><tr><th>Time</th><th>Type</th><th>CTA Shown</th><th>CTA Clicked</th><th>Variant</th><th>Source</th><th>Device</th><th>IP</th></tr></thead>
+              <tbody id="tbody"></tbody>
+            </table>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
+            <button id="prevPage">Prev</button>
+            <button id="nextPage">Next</button>
+            <span id="pageInfo" style="font-size:12px;color:var(--muted)"></span>
+            <label style="margin-left:auto">Page size
+              <select id="pageSize">
+                <option>25</option>
+                <option selected>50</option>
+                <option>100</option>
+              </select>
+            </label>
+          </div>
+
+          <h3 style="margin-top:20px">Controls</h3>
+          <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap">
+            <label>Variant
+              <select id="variant">
+                <option value="A">A (WhatsApp-first)</option>
+                <option value="B">B (Google-first)</option>
+              </select>
+            </label>
+            <button id="saveVariant">Save variant</button>
+            <span id="variantMsg" style="color:var(--muted)"></span>
+          </div>
+        </div>
+          </div>
+        </section>
+      </div>
+      <footer class="main-footer"><strong>JyotirSetu Admin</strong><div class="float-end d-none d-sm-inline">AdminLTE theme</div></footer>
+    </div>
+
+    <script src="/js/follow-hub-insights.js" defer onload="try{if(window.__followHubInsightsLoaded&&typeof window.FollowHubInsightsLoad==='function'){window.FollowHubInsightsLoad();}}catch{/* ignore onload errors */}"></script>
+    <script is:inline>
+      // Health-check: if external script didn't run, try a cache-busting reload and show a hint
+      (function(){
+        const mark = function(msg){
+          try{
+            const el = document.getElementById('totals');
+            if(!el) return;
+            const t = (el.textContent||'').trim();
+            if(t === '' || t === '–' || t === '-') el.textContent = msg;
+          }catch{/* ignore mark errors */}
+        };
+        function tryTrigger(){
+          if(window.__followHubInsightsLoaded && typeof window.FollowHubInsightsLoad === 'function'){
+            try{ window.FollowHubInsightsLoad(); }catch{/* ignore call errors */}
+            return true;
+          }
+          return false;
+        }
+        document.addEventListener('DOMContentLoaded', function(){
+          // First attempt: trigger load if available
+          if(tryTrigger()) return;
+          // Second attempt: re-inject the external script with cache-buster
+          try{
+            const s = document.createElement('script');
+            s.src = '/js/follow-hub-insights.js?v=' + Date.now();
+            s.defer = true;
+            s.onload = function(){
+              if (!tryTrigger()) { mark('Script loaded but no data'); }
+            };
+            s.onerror = function(){ mark('Script failed to load'); };
+            document.body.appendChild(s);
+          }catch{/* ignore reinject errors */}
+          (function(){
+            const btn = document.getElementById('toggleSidebarDesktop');
+            function sync(){ if(!btn) return; const c=document.body.classList.contains('sidebar-collapse'); btn.textContent = c ? 'Show sidebar' : 'Hide sidebar'; }
+            async function toggle(){ const c=document.body.classList.toggle('sidebar-collapse'); sync(); try{ await fetch('/api/admin/preferences', { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ key:'sidebarCollapsed', value: c ? '1':'0' }) }); }catch(e){ console.error('Error saving sidebarCollapsed:', e); } }
+            btn?.addEventListener('click', toggle);
+            sync();
+          })();
+        });
+      })();
+    </script>
+    <script is:inline>
+      // Minimal inline fallback: if external insights script is unavailable, define a lightweight loader
+      (function(){
+        function minimalLoad(){
+          try{
+            const qs=function(id){return document.getElementById(id);};
+            const p=new URLSearchParams();
+            ['from','to','source','device'].forEach(function(k){
+              const el = qs(k);
+              const v = (el && 'value' in el) ? (el.value || '') : '';
+              if(v) p.set(k,v);
+            });
+            const url='/api/admin/follow-hub/insights'+(p.toString()?('?'+p.toString()):'');
+            fetch(url, { headers:{ 'Accept':'application/json' } })
+              .then(function(res){ return res.json(); })
+              .then(function(j){
+                const totalsEl=qs('totals');
+                if(!j||!j.ok){ if(totalsEl) totalsEl.textContent='No data'; return; }
+                const t=(j.data&&j.data.totals)||{};
+                if(totalsEl) totalsEl.textContent='Views '+(t.views||0)+', Clicks '+(t.clicks||0)+', CTR '+(t.ctr||0)+'%';
+                const daily=(j.data&&j.data.daily)||[];
+                const last7=daily.slice(Math.max(0, daily.length-7));
+                const v7=last7.reduce(function(a,b){return a+Number(b.views||0);},0);
+                const c7=last7.reduce(function(a,b){return a+Number(b.clicks||0);},0);
+                const ctr7=v7?(((c7/v7)*100).toFixed(2)):'0.00';
+                const last7El=qs('last7'); if(last7El) last7El.textContent='Views '+v7+', Clicks '+c7+', CTR '+ctr7+'%';
+                const win = window;
+                if (win.Chart){
+                  const canvas = qs('chart'); if(canvas){
+                    const labels=daily.map(function(d){return d.day||d.date||'';});
+                    const views=daily.map(function(d){return Number(d.views||0);});
+                    const clicks=daily.map(function(d){return Number(d.clicks||0);});
+                    try{ new win.Chart(canvas, { type:'line', data:{ labels:labels, datasets:[ {label:'Views', data:views, borderColor:'#2ad1b2', backgroundColor:'rgba(42,209,178,0.25)', tension:0.3}, {label:'Clicks', data:clicks, borderColor:'#e74c3c', backgroundColor:'rgba(231,76,60,0.25)', tension:0.3} ] }, options:{ responsive:false } }); }catch(e){ console.error('Chart render error:', e); }
+                  }
+                }
+                const render=function(el, rows, key){ if(!el) return; el.innerHTML=(rows||[]).map(function(r){ const name=r[key]||'—'; const v=Number(r.views||0); const c=Number(r.clicks||0); return '<div>'+name+' · views '+v+', clicks '+c+'</div>';}).join('')||'—'; };
+                render(qs('devices'), j.data&&j.data.devices, 'device');
+                render(qs('sources'), j.data&&j.data.sources, 'source');
+              })
+              .catch(function(e){ const totalsEl=qs('totals'); if(totalsEl) totalsEl.textContent='No data (network error)'; console.error('Insights load error:', e); });
+          }catch(e){ console.error('Insights minimalLoad error:', e); }
+        }
+        function ensure(){
+          if(window.__followHubInsightsLoaded && typeof window.FollowHubInsightsLoad==='function') return;
+          window.FollowHubInsightsLoad = minimalLoad;
+          minimalLoad();
+        }
+        // If the external script failed to attach a loader, provide the minimal fallback soon after DOM ready
+        setTimeout(ensure, 1500);
+      })();
+    </script>
+  </body>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/admin-lte@latest/dist/js/adminlte.min.js" defer></script>
+</html>

@@ -1,0 +1,5 @@
+whatsapp page still not loading - whatsapp:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+ and in email page no template is visible, please fix this also please tell me which files i have to upload to git for this dashboard make working and is there any setttings which i have to do in vercel for admin dashboard to keep it private and confidential and also there is not logout button in thee dashboard, and how can we change username and password in the future ?
+
+
+still email template and whatsapp template page is not loading why this error coming again and again please check code and in settings there is option to under eail confrigaration test email - but when i enter emial address there and click on send test diouloge box appear Failed to send test email, and when i switch to light theme the whole admin dshboard is not in readbale condition it should also switch color of font and other thing which suite to light theme please check deeply for email and whatsapp template page loading error 

@@ -1,0 +1,1407 @@
+---
+export const prerender = false;
+import Favicons from '~/components/Favicons.astro';
+---
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Appointments – Admin</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/css/all.min.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@latest/dist/css/adminlte.min.css" />
+<link rel="stylesheet" href="/admin.css?v=20251116" />
+    <Favicons />
+    <script src="/js/admin-notify.js" defer></script>
+    
+    <style>
+      .modal { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(2,6,23,0.6); z-index:1000; align-items:center; justify-content:center; }
+      .modal.active { display:flex; }
+      .modal-content { background:#0f172a; padding:28px; border-radius:16px; max-width:640px; width:90%; max-height:90vh; overflow-y:auto; box-shadow:0 30px 80px rgba(15,23,42,0.8); border:1px solid rgba(148,163,184,0.2); }
+      .modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; border-bottom:1px solid rgba(148,163,184,0.2); padding-bottom:16px; }
+      .modal-header h3 { margin:0; font-size:20px; font-weight:700; color:#e2e8f0; }
+      .close-btn { background:none; border:none; font-size:28px; cursor:pointer; padding:0; width:32px; height:32px; color:#94a3b8; line-height:1; }
+      .close-btn:hover { color:#e2e8f0; }
+      .form-group { margin-bottom:20px; }
+      .form-group label { display:block; margin-bottom:8px; font-weight:600; font-size:14px; color:#94a3b8; }
+      .form-group .input, .form-group .select { width:100%; padding:10px 12px; border:1px solid rgba(148,163,184,0.25); border-radius:8px; background:#0b1220; color:#e5e7eb; font-size:14px; }
+      .form-group .input:focus, .form-group .select:focus { outline:none; border-color:#667eea; box-shadow:0 0 0 3px rgba(102,126,234,0.25); }
+      .form-group .input::placeholder { color:#64748b; }
+      .form-group textarea.input { resize:vertical; min-height:80px; font-family:inherit; }
+      .pagination { display:flex; gap:8px; align-items:center; justify-content:center; margin:20px 0; }
+      .pagination button { padding:8px 12px; border:1px solid #d1d5db; background:#ffffff; color:#374151; cursor:pointer; border-radius:6px; font-size:14px; }
+      .pagination button:hover:not(:disabled) { background:#f3f4f6; border-color:#9ca3af; }
+      .pagination button:disabled { opacity:0.5; cursor:not-allowed; }
+      .pagination button.active { background:#667eea; color:#ffffff; border-color:#667eea; }
+      .pagination span { margin-left:12px; color:#6b7280; font-size:14px; }
+      .source-tag { display:inline-block; padding:3px 10px; border-radius:6px; font-size:11px; font-weight:600; text-transform:uppercase; }
+      .source-tag.manual { background:#fef3c7; color:#92400e; }
+      .source-tag.system { background:#dbeafe; color:#1e40af; }
+      /* Loading overlay */
+      #loadingOverlay { display:none; position:fixed; inset:0; background:rgba(2,6,23,0.6); backdrop-filter:saturate(120%) blur(2px); z-index:999; align-items:center; justify-content:center; }
+      #loadingOverlay.active { display:flex; }
+      .spinner { width:44px; height:44px; border-radius:50%; border:3px solid #3b82f6; border-top-color:transparent; animation: spin 0.9s linear infinite; }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      .spinner-label { margin-top:10px; color:#cbd5e1; font-size:14px; }
+    </style>
+  </head>
+  <body class="hold-transition sidebar-mini">
+    <button class="sidebar-toggle" aria-label="Open Admin Menu" id="sidebarToggle">☰</button>
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+    <script is:inline>
+      (function(){
+        function applyTheme(theme){
+          let t = theme;
+          if (t === 'auto') { t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'; }
+          document.body.classList.toggle('dark-mode', t === 'dark');
+        }
+        let theme = 'dark';
+        let collapsed = false;
+        try {
+          const stored = localStorage.getItem('adminSettings');
+          if (stored) {
+            const s = JSON.parse(stored);
+            if (s && typeof s === 'object') {
+              if (s.theme) theme = s.theme;
+              if (s.sidebarCollapsed != null) collapsed = !!s.sidebarCollapsed;
+            }
+          }
+        } catch (e) { console.error('Error loading admin settings:', e); }
+        applyTheme(theme);
+        document.body.classList.toggle('sidebar-collapse', collapsed);
+        try {
+          Promise.all([
+            fetch('/api/admin/preferences?key=theme').then(function(r){return r.json();}),
+            fetch('/api/admin/preferences?key=sidebarCollapsed').then(function(r){return r.json();})
+          ]).then(function(rs){
+            const tr = rs[0], sr = rs[1];
+            if (tr && tr.ok && typeof tr.value === 'string') applyTheme(tr.value);
+            if (sr && sr.ok && sr.value != null) document.body.classList.toggle('sidebar-collapse', sr.value === '1');
+          }).catch(function(err){ console.error('Error syncing preferences:', err); });
+        } catch (e) { console.error('Error syncing preferences:', e); }
+      })();
+    </script>
+    <div class="wrapper">
+      <nav class="main-header navbar navbar-expand navbar-dark">
+        <ul class="navbar-nav">
+          <li class="nav-item"><a class="nav-link" data-widget="pushmenu" href="#" role="button" aria-label="Toggle sidebar"><i class="fas fa-bars"></i></a></li>
+          <li class="nav-item"><a href="/admin/dashboard" class="nav-link">Dashboard</a></li>
+        </ul>
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><button class="btn btn-sm btn-outline-secondary" id="toggleSidebarDesktop">Hide sidebar</button></li>
+          <li class="nav-item"><a href="/api/admin/logout" class="nav-link">Logout</a></li>
+        </ul>
+      </nav>
+      <aside class="main-sidebar sidebar-dark-primary elevation-4" id="adminSidebar">
+        <a href="/admin/dashboard" class="brand-link" style="display:flex;align-items:center;gap:8px">
+          <span class="brand-dot"></span>
+          <span class="brand-text">JyotirSetu Admin</span>
+        </a>
+        <div class="sidebar">
+        <nav class="mt-2">
+          <ul class="nav nav-pills nav-sidebar flex-column" role="menu" data-accordion="false" data-widget="treeview">
+            <li class="nav-item"><a href="/admin/dashboard" class="nav-link"><i class="nav-icon fas fa-gauge"></i><p>Dashboard</p></a></li>
+            <li class="nav-item"><a href="/admin/appointments" class="nav-link active"><i class="nav-icon fas fa-calendar-check"></i><p>Appointments</p></a></li>
+            <li class="nav-item"><a href="/admin/contacts" class="nav-link"><i class="nav-icon fas fa-comments"></i><p>Contacts</p></a></li>
+            <li class="nav-item"><a href="/admin/newsletter" class="nav-link"><i class="nav-icon fas fa-envelope-open-text"></i><p>Newsletter</p></a></li>
+            <li class="nav-item"><a href="/admin/calendar" class="nav-link"><i class="nav-icon fas fa-calendar"></i><p>Calendar</p></a></li>
+            <li class="nav-item"><a href="/admin/activity-log" class="nav-link"><i class="nav-icon fas fa-list"></i><p>Activity Log</p></a></li>
+            <li class="nav-item"><a href="/admin/templates/email" class="nav-link"><i class="nav-icon fas fa-file-alt"></i><p>Email Templates</p></a></li>
+            <li class="nav-item"><a href="/admin/templates/whatsapp" class="nav-link"><i class="nav-icon fas fa-file-alt"></i><p>WhatsApp Templates</p></a></li>
+            <li class="nav-item"><a href="/admin/tools/follow-hub/insights" class="nav-link"><i class="nav-icon fas fa-toolbox"></i><p>Follow Hub – Insights</p></a></li>
+            <li class="nav-item"><a href="/admin/settings" class="nav-link"><i class="nav-icon fas fa-gear"></i><p>Settings</p></a></li>
+          </ul>
+        </nav>
+        </div>
+      </aside>
+      <div class="content-wrapper">
+        <section class="content-header">
+          <div class="container-fluid">
+            <div class="row mb-2">
+              <div class="col-sm-6"><h1>Appointments</h1></div>
+              <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                  <li class="breadcrumb-item"><a href="/admin/dashboard">Home</a></li>
+                  <li class="breadcrumb-item active">Appointments</li>
+                </ol>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section class="content">
+          <div class="container-fluid">
+            <div class="toolbar toolbar-card">
+              <button class="btn btn-primary" id="addAppointmentBtn">+ Add Appointment</button>
+              <button class="btn btn-sm btn-info" id="columnsBtn">☰ Columns</button>
+              <button class="btn btn-sm btn-success" id="exportBtn">📥 Export CSV</button>
+              <button class="btn btn-sm btn-success" id="waUpcomingBtn">WA Reminders</button>
+              <button class="btn btn-sm btn-warning" id="waFollowupsBtn">WA Follow-ups</button>
+              <span class="pill">Manage and contact clients</span>
+              <a href="/api/admin/logout" class="pill">Logout</a>
+            </div>
+        <div class="toolbar toolbar-card">
+          <input class="input" id="search" placeholder="Search name, email, phone" style="width:220px" />
+          <select class="select" id="serviceFilter">
+            <option value="">All services</option>
+          </select>
+          <select class="select" id="sourceFilter">
+            <option value="">All sources</option>
+            <option value="system">System</option>
+            <option value="manual">Manual</option>
+          </select>
+          <select class="select" id="statusFilter">
+            <option value="">All status</option>
+            <option>pending</option>
+            <option>confirmed</option>
+            <option>rescheduled</option>
+            <option>cancelled</option>
+            <option>scheduled</option>
+          </select>
+          <!-- Moved view controls alongside All status (row 1) -->
+          <input class="input" id="viewName" placeholder="View name" style="width:140px" />
+          <button class="btn-sm" id="saveViewBtn" style="background:#10b981; color:#fff; border:none">Save View</button>
+          <button class="btn-sm" id="deleteViewBtn" style="background:#ef4444; color:#fff; border:none">Delete View</button>
+          <button class="btn-sm" id="refreshBtn" style="background:#3b82f6; color:#fff; border:none">Refresh</button>
+
+          <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap">
+            <span class="muted" style="color:#6b7280">Date range:</span>
+            <input class="input" type="date" id="fromDate" placeholder="From" />
+            <input class="input" type="date" id="toDate" placeholder="To" />
+            <button class="btn-sm" id="presetToday" style="background:#f3f4f6; color:#374151; border:1px solid #d1d5db">Today</button>
+            <button class="btn-sm" id="preset7" style="background:#f3f4f6; color:#374151; border:1px solid #d1d5db">Last 7 days</button>
+            <button class="btn-sm" id="preset30" style="background:#f3f4f6; color:#374151; border:1px solid #d1d5db">Last 30 days</button>
+            <button class="btn-sm" id="presetMonth" style="background:#f3f4f6; color:#374151; border:1px solid #d1d5db">This month</button>
+            <button class="btn-sm" id="clearDates" style="background:#fee2e2; color:#991b1b; border:1px solid #fecaca">Clear</button>
+            <select class="select" id="savedViews" style="min-width:180px">
+              <option value="">Saved views…</option>
+            </select>
+          </div>
+        </div>
+          <div id="activeChips" class="callout callout-info" style="display:flex; gap:8px; flex-wrap:wrap"></div>
+          <div class="container-fluid" style="padding-bottom:20px">
+          <div id="tableWrap"></div>
+          <div id="loadingOverlay" aria-live="polite" aria-busy="false">
+            <div style="display:flex; flex-direction:column; align-items:center; gap:8px">
+              <div class="spinner" role="status" aria-label="Loading"></div>
+              <div class="spinner-label">Loading appointments…</div>
+            </div>
+          </div>
+          <div id="pagination"></div>
+        </div>
+          </div>
+        </section>
+      </div>
+      <footer class="main-footer"><strong>JyotirSetu Admin</strong><div class="float-end d-none d-sm-inline">AdminLTE theme</div></footer>
+    </div>
+
+    <!-- Add Appointment Modal -->
+    <div class="modal" id="addModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Add New Appointment</h3>
+          <button class="close-btn" id="closeModal">&times;</button>
+        </div>
+        <form id="addForm">
+          <div class="form-group">
+            <label>Name *</label>
+            <input class="input" name="name" required />
+          </div>
+          <div class="form-group">
+            <label>Email *</label>
+            <input class="input" type="email" name="email" required />
+          </div>
+          <div class="form-group">
+            <label>Phone *</label>
+            <input class="input" name="phone" required />
+          </div>
+          <div class="form-group">
+            <label>Service *</label>
+            <select class="select" name="service" required>
+              <option value="">Choose your service...</option>
+              <option value="🔮 Astrology">🔮 Astrology</option>
+              <option value="💎 Gemstone Consultation">💎 Gemstone Consultation</option>
+              <option value="✋ Palmistry">✋ Palmistry</option>
+              <option value="🔢 Numerology">🔢 Numerology</option>
+              <option value="💼 Career & Finance">💼 Career & Finance</option>
+              <option value="💕 Matchmaking">💕 Matchmaking</option>
+              <option value="📚 Study / Education">📚 Study / Education</option>
+              <option value="🏢 Corporate Consultation">🏢 Corporate Consultation</option>
+              <option value="✨ Other Reason">✨ Other Reason</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Date *</label>
+            <input class="input" type="date" name="date" required />
+          </div>
+          <div class="form-group">
+            <label>Time *</label>
+            <input class="input" type="time" name="time" required />
+          </div>
+          <div class="form-group">
+            <label>Consultation Method *</label>
+            <select class="select" name="consultation_method" required>
+              <option value="">Select method</option>
+              <option>In-Person</option>
+              <option>Video Call</option>
+              <option>Phone Call</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Status</label>
+            <select class="select" name="status">
+              <option value="pending">Pending</option>
+              <option value="confirmed">Confirmed</option>
+              <option value="rescheduled">Rescheduled</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Message (Optional)</label>
+            <textarea class="input" name="message" rows="3"></textarea>
+          </div>
+          <div style="display:flex; gap:12px; justify-content:flex-end; margin-top:24px; padding-top:20px; border-top:1px solid #e5e7eb;">
+            <button type="button" class="btn" id="cancelBtn" style="background:#f3f4f6; color:#374151; border:1px solid #d1d5db; padding:10px 20px; border-radius:8px; font-weight:600; cursor:pointer;">Cancel</button>
+            <button type="submit" class="btn" style="background:#667eea; color:#ffffff; border:none; padding:10px 20px; border-radius:8px; font-weight:600; cursor:pointer; box-shadow:0 2px 4px rgba(102,126,234,0.3);">Create Appointment</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Notes Modal -->
+    <div class="modal" id="notesModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Notes & History</h3>
+          <button class="close-btn" id="closeNotesModal">&times;</button>
+        </div>
+        <div id="notesContent">
+          <div style="margin-bottom:20px">
+            <label style="display:block;margin-bottom:8px;font-weight:600;color:#374151">Add Note</label>
+            <textarea id="newNote" class="input" rows="3" placeholder="Enter your note here..."></textarea>
+            <button class="btn" id="saveNoteBtn" style="margin-top:8px;background:#667eea;color:white;border:none;padding:8px 16px;border-radius:6px;cursor:pointer">Save Note</button>
+          </div>
+          <div>
+            <strong style="color:#374151;display:block;margin-bottom:12px">Notes History</strong>
+            <div id="notesList" style="max-height:300px;overflow-y:auto"></div>
+          </div>
+          <div style="margin-top:20px;border-top:1px solid #e5e7eb;padding-top:20px">
+            <strong style="color:#374151;display:block;margin-bottom:12px">Email History</strong>
+            <div id="emailHistoryList" style="max-height:200px;overflow-y:auto"></div>
+          </div>
+          <div style="margin-top:20px;border-top:1px solid #e5e7eb;padding-top:20px">
+            <strong style="color:#374151;display:block;margin-bottom:12px">WhatsApp History</strong>
+            <div id="whatsappHistoryList" style="max-height:200px;overflow-y:auto"></div>
+          </div>
+        </div>
+        <!-- Inline Note Edit Modal -->
+        <div class="modal" id="noteEditModal" style="position:fixed;inset:0;display:none">
+          <div class="modal-content" style="max-width:520px">
+            <div class="modal-header">
+              <h3>Edit Note</h3>
+              <button class="close-btn" id="noteEditCancel">&times;</button>
+            </div>
+            <div>
+              <textarea id="noteEditText" class="input" rows="4" placeholder="Edit note..."></textarea>
+              <div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end">
+                <button type="button" class="btn" id="noteEditSave" style="background:#667eea;color:#fff;border:none;padding:8px 16px;border-radius:6px">Save</button>
+                <button type="button" class="btn" id="noteEditCancelBtn" style="background:#1f2937;color:#fff;border:none;padding:8px 16px;border-radius:6px">Cancel</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Note Delete Confirm Modal -->
+        <div class="modal" id="noteDeleteModal" style="position:fixed;inset:0;display:none">
+          <div class="modal-content" style="max-width:420px">
+            <div class="modal-header">
+              <h3>Confirm Delete</h3>
+              <button class="close-btn" id="noteDeleteCancel">&times;</button>
+            </div>
+            <div>
+              <p style="color:#e5e7eb;margin-bottom:12px">Are you sure you want to delete this note?</p>
+              <div style="display:flex;gap:8px;justify-content:flex-end">
+                <button type="button" class="btn" id="noteDeleteConfirmBtn" style="background:#ef4444;color:#fff;border:none;padding:8px 16px;border-radius:6px">Delete</button>
+                <button type="button" class="btn" id="noteDeleteCancelBtn" style="background:#1f2937;color:#fff;border:none;padding:8px 16px;border-radius:6px">Cancel</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Email Confirm Modal -->
+    <div class="modal" id="emailConfirmModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Send Email</h3>
+          <button class="close-btn" id="emailConfirmCancel">&times;</button>
+        </div>
+        <div id="emailConfirmBody"></div>
+        <div style="display:flex; gap:12px; justify-content:flex-end; margin-top:24px; padding-top:20px; border-top:1px solid #e5e7eb;">
+          <button type="button" class="btn" id="emailConfirmCancel2" style="background:#f3f4f6; color:#374151; border:1px solid #d1d5db; padding:10px 20px; border-radius:8px; font-weight:600; cursor:pointer;">Cancel</button>
+          <button type="button" class="btn" id="emailConfirmSend" style="background:#667eea; color:#ffffff; border:none; padding:10px 20px; border-radius:8px; font-weight:600; cursor:pointer; box-shadow:0 2px 4px rgba(102,126,234,0.3);">Send Email</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Export Columns Modal -->
+    <div class="modal" id="columnsModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Choose Export Columns</h3>
+          <button class="close-btn" id="columnsClose">&times;</button>
+        </div>
+        <div id="columnsList"></div>
+        <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:16px">
+          <button class="btn" id="columnsSave" style="background:#667eea; color:white; border:none; padding:8px 16px; border-radius:6px">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <script is:inline>
+      let currentPage = 1;
+      let paginationData = { page: 1, totalPages: 1, total: 0 };
+      let allData = [];
+
+      function formatWaPhone(input){
+        const digits = String(input||'').replace(/\D/g,'');
+        if (digits.startsWith('91')) return digits;
+        if (digits.length === 10) return '91'+digits;
+        return digits;
+      }
+
+      async function fetchData(page = 1) {
+        const fromEl = document.getElementById('fromDate');
+        const toEl = document.getElementById('toDate');
+        const params = new URLSearchParams({ page: String(page), limit: '20' });
+        if (fromEl?.value) params.set('from', fromEl.value);
+        if (toEl?.value) params.set('to', toEl.value);
+        // Avoid starting a network request if we are in the middle of a navigation/unload
+        if (document.visibilityState === 'hidden') {
+          return allData;
+        }
+        try {
+          const res = await fetch(`/api/admin/appointments?${params.toString()}`, { credentials: 'include', keepalive: true });
+          const json = await res.json();
+          paginationData = json.pagination || { page: 1, totalPages: 1, total: 0 };
+          return Array.isArray(json?.data) ? json.data : [];
+        } catch (e) {
+          const msg = e instanceof Error ? e.message : String(e);
+          // Ignore navigation aborts; otherwise show a lightweight notification and keep the UI responsive
+          if (!msg.includes('ERR_ABORTED')) {
+            console.debug('appointments fetch error', e);
+            window.AdminNotify?.error?.('Failed to load appointments', 'Please try Refresh');
+            const wrap = document.getElementById('tableWrap');
+            if (wrap) wrap.innerHTML = '<p class="muted">Failed to load appointments. Please click Refresh.</p>';
+          }
+          // Preserve previous data to avoid blank UI
+          return allData || [];
+        }
+      }
+
+      function renderPagination() {
+        const pagEl = document.getElementById('pagination');
+        if (!pagEl) return;
+        if (paginationData.totalPages <= 1) {
+          pagEl.innerHTML = '';
+          return;
+        }
+        let html = '<div class="pagination">';
+        html += `<button ${currentPage === 1 ? 'disabled' : ''} id="prevPage">‹ Prev</button>`;
+        for (let i = 1; i <= paginationData.totalPages; i++) {
+          if (i === 1 || i === paginationData.totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+            html += `<button class="${i === currentPage ? 'active' : ''}" data-page="${i}">${i}</button>`;
+          } else if (i === currentPage - 3 || i === currentPage + 3) {
+            html += `<span>...</span>`;
+          }
+        }
+        html += `<button ${currentPage === paginationData.totalPages ? 'disabled' : ''} id="nextPage">Next ›</button>`;
+        html += `<span style="margin-left:12px; color:#666;">Page ${currentPage} of ${paginationData.totalPages} (${paginationData.total} total)</span>`;
+        html += '</div>';
+        pagEl.innerHTML = html;
+        
+        document.getElementById('prevPage')?.addEventListener('click', () => { if (currentPage > 1) loadPage(currentPage - 1); });
+        document.getElementById('nextPage')?.addEventListener('click', () => { if (currentPage < paginationData.totalPages) loadPage(currentPage + 1); });
+        document.querySelectorAll('[data-page]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const p = btn.getAttribute('data-page');
+            if (p) loadPage(parseInt(p));
+          });
+        });
+      }
+
+      const STATUS_BADGE = {
+        pending: 'badge text-bg-warning',
+        confirmed: 'badge text-bg-success',
+        rescheduled: 'badge text-bg-info',
+        cancelled: 'badge text-bg-danger',
+        scheduled: 'badge text-bg-primary'
+      };
+      function statusBadgeClass(s){
+        return STATUS_BADGE[(s||'pending').toLowerCase()] || 'badge badge-secondary';
+      }
+      function renderStatusCell(r){
+        const s = (r.status||'pending').toLowerCase();
+        return `<span class="${statusBadgeClass(s)}">${s}</span> <button class="btn btn-sm btn-outline-secondary statusEdit" data-id="${r.id}" title="Edit"><i class="fas fa-pen"></i></button>`;
+      }
+      function render(rows) {
+        const wrap = document.getElementById('tableWrap');
+        if (!wrap) return;
+        if (!rows.length) { wrap.innerHTML = '<p class="muted">No appointments found.</p>'; return; }
+        const uniqueServices = Array.from(new Set(rows.map(r => r.service))).filter(Boolean);
+        const serviceFilter = document.getElementById('serviceFilter');
+        const currentService = serviceFilter?.value || '';
+        if (serviceFilter) {
+          serviceFilter.innerHTML = '<option value="">All services</option>' + uniqueServices.map(s => `<option ${s === currentService ? 'selected' : ''}>${s}</option>`).join('');
+        }
+        
+        const html = [`<table class="table table-striped"><thead><tr>
+          <th>Appt ID</th><th>Name</th><th>Contact</th><th>Service</th><th>Date/Time</th><th>Method</th><th>Status</th><th>Payment</th><th>Source</th><th>Created</th><th>Actions</th>
+        </tr></thead><tbody>`,
+          ...rows.map(r => `<tr>
+            <td>${r.customer_appointment_id || ''}</td>
+            <td>${r.name}</td>
+            <td>
+              <div>${r.email}</div>
+              <div class="muted">${r.phone}</div>
+            </td>
+            <td><span class="badge text-bg-info">${r.service}</span></td>
+            <td>${r.date} ${r.time}</td>
+            <td>${r.consultation_method}</td>
+            <td>${renderStatusCell(r)}</td>
+            <td>
+              <select data-id="${r.id}" class="form-select form-select-sm paymentSel">
+                ${['unpaid','partial','paid'].map(p=>`<option ${r.payment_status===p?'selected':''}>${p}</option>`).join('')}
+              </select>
+            </td>
+            <td><span class="badge text-bg-secondary">${r.source||'system'}</span></td>
+            <td class="muted">${new Date(r.created_at).toLocaleString()}</td>
+            <td class="actions">
+              <a class="btn-sm" href="/admin/whatsapp?id=${encodeURIComponent(r.id)}&name=${encodeURIComponent(r.name)}&phone=${encodeURIComponent(r.phone)}&service=${encodeURIComponent(r.service)}&status=${encodeURIComponent(r.status||'pending')}&date=${encodeURIComponent(r.date)}&time=${encodeURIComponent(r.time)}&method=${encodeURIComponent(r.consultation_method)}&appointment_id=${encodeURIComponent(r.customer_appointment_id||r.id)}" target="_blank">WhatsApp</a>
+              <a class="btn-sm" href="#" data-email-id="${r.id}">Send Email</a>
+              <a class="btn-sm" href="#" data-notes-id="${r.id}" style="color:#f59e0b">📝 Notes</a>
+            </td>
+          </tr>`),
+        '</tbody></table>'].join('');
+        if (wrap) wrap.innerHTML = html;
+        
+        document.querySelectorAll('.statusEdit').forEach(el=>{
+          el.addEventListener('click', (e)=>{
+            e.preventDefault();
+            const target = e.target;
+            const id = target?.getAttribute('data-id') || '';
+            const cell = target?.closest('td');
+            if (!cell) return;
+            const current = (target?.previousElementSibling?.textContent||'pending').trim();
+            cell.innerHTML = `
+              <div style="display:flex; gap:6px; align-items:center">
+                <select data-id="${id}" class="form-select form-select-sm statusSel">
+                  ${['pending','confirmed','rescheduled','cancelled','scheduled'].map(s=>`<option ${current===s?'selected':''}>${s}</option>`).join('')}
+                </select>
+                <button class="btn-sm statusSave" data-id="${id}">Save</button>
+                <button class="btn-sm statusCancel" data-id="${id}">Cancel</button>
+              </div>`;
+            attachStatusHandlers(cell, id);
+          });
+        });
+        function attachStatusHandlers(cell, id){
+          cell.querySelector('.statusSave')?.addEventListener('click', async ()=>{
+            const sel = cell.querySelector('.statusSel');
+            const status = sel?.value || 'pending';
+            await fetch('/api/admin/appointments', { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ id, status }) });
+            const fakeRow = { id, status };
+            cell.innerHTML = renderStatusCell(fakeRow);
+            cell.querySelector('.statusEdit')?.addEventListener('click', (e)=>{
+              e.preventDefault();
+              const a = e.target;
+              const current = (a?.previousElementSibling?.textContent||'pending').trim();
+              cell.innerHTML = `
+                <div style="display:flex; gap:6px; align-items:center">
+                  <select data-id="${id}" class="form-select form-select-sm statusSel">
+                    ${['pending','confirmed','rescheduled','cancelled','scheduled'].map(s=>`<option ${current===s?'selected':''}>${s}</option>`).join('')}
+                  </select>
+                  <button class="btn-sm statusSave" data-id="${id}">Save</button>
+                  <button class="btn-sm statusCancel" data-id="${id}">Cancel</button>
+                </div>`;
+              attachStatusHandlers(cell, id);
+            });
+          });
+          cell.querySelector('.statusCancel')?.addEventListener('click', ()=>{
+            const sel = cell.querySelector('.statusSel');
+            const status = sel?.value || 'pending';
+            const fakeRow = { id, status };
+            cell.innerHTML = renderStatusCell(fakeRow);
+            cell.querySelector('.statusEdit')?.addEventListener('click', (e)=>{
+              e.preventDefault();
+              const a = e.target;
+              const current = (a?.previousElementSibling?.textContent||'pending').trim();
+              cell.innerHTML = `
+                <div style="display:flex; gap:6px; align-items:center">
+                  <select data-id="${id}" class="form-select form-select-sm statusSel">
+                    ${['pending','confirmed','rescheduled','cancelled','scheduled'].map(s=>`<option ${current===s?'selected':''}>${s}</option>`).join('')}
+                  </select>
+                  <button class="btn-sm statusSave" data-id="${id}">Save</button>
+                  <button class="btn-sm statusCancel" data-id="${id}">Cancel</button>
+                </div>`;
+              attachStatusHandlers(cell, id);
+            });
+          });
+        }
+        document.querySelectorAll('.paymentSel').forEach(el=>{
+          el.addEventListener('change', async (e)=>{
+            const target = e.target;
+            const id = target?.getAttribute('data-id') || '';
+            const desired = target?.value || '';
+            const row = rows.find(r=>r.id===id);
+            if (!row) return;
+            await openLedgerModal(row, desired);
+          });
+        });
+        async function openLedgerModal(row, desired){
+          const m = document.getElementById('ledgerModal');
+          const b = document.getElementById('ledgerBody');
+          if (!m || !b) return;
+          m.setAttribute('data-id', String(row.id));
+          let outstanding = 0;
+          let lastEntry = null;
+          try {
+            const apptId = row.customer_appointment_id || row.id;
+            const res = await fetch(`/api/admin/payments?appointment_id=${encodeURIComponent(apptId)}&limit=1`);
+            const j = await res.json();
+            if (j.ok && Array.isArray(j.data) && j.data.length) {
+              const le = j.data[0];
+              if (le && typeof le === 'object') {
+                lastEntry = le;
+                const bal = ('balance' in le) ? Number(le['balance'] || 0) : 0;
+                outstanding = bal || 0;
+              }
+            }
+          } catch (e) { console.error('Error loading last ledger entry:', e); }
+          const dueEl = document.getElementById('ledgerDue');
+          const recEl = document.getElementById('ledgerReceived');
+          const modeEl = document.getElementById('ledgerMode');
+          const typeEl = document.getElementById('ledgerType');
+          const noteEl = document.getElementById('ledgerNote');
+          const statusEl = document.getElementById('ledgerStatus');
+          const balEl = document.getElementById('ledgerBalance');
+          const fullEl = document.getElementById('ledgerFull');
+          if (dueEl) dueEl.setAttribute('value', outstanding ? String(outstanding.toFixed(2)) : '');
+          if (recEl) recEl.setAttribute('value', String(desired==='paid' ? (outstanding || 0) : 0));
+          if (modeEl) modeEl.setAttribute('value', 'cash');
+          if (typeEl) typeEl.setAttribute('value', 'credit');
+          if (noteEl) noteEl.textContent = '';
+          if (statusEl) statusEl.textContent = '';
+          if (balEl) balEl.textContent = '';
+          if (fullEl) fullEl.checked = desired === 'paid';
+          const lastWrap = document.getElementById('ledgerLast');
+          if (lastWrap) {
+            if (lastEntry) {
+              const le = lastEntry;
+              const created = le['created_at'] ? new Date(String(le['created_at'])).toLocaleString() : '';
+              const statusTxt = String(le['status']||'');
+              const amountTxt = Number(le['amount']||0).toFixed(2);
+              const dueTxt = le['total_due']!=null ? Number(le['total_due']||0).toFixed(2) : '-';
+              const balTxt = le['balance']!=null ? Number(le['balance']||0).toFixed(2) : '-';
+              const typeTxt = String(le['entry_type']||'');
+              const modeTxt = String(le['mode']||'');
+              lastWrap.innerHTML = `
+                <div style="padding:10px;margin-bottom:8px;background:#0b1220;border-radius:8px;border:1px solid rgba(148,163,184,0.25)">
+                  <div style="display:flex;justify-content:space-between"><div>${created}</div><div>${statusTxt}</div></div>
+                  <div class="muted" style="color:#94a3b8;font-size:12px">Received: ₹ ${amountTxt} · Due: ${dueTxt} · Balance: ${balTxt} · ${typeTxt} · ${modeTxt}</div>
+                  <div style="margin-top:8px;display:flex;gap:8px;justify-content:flex-end">
+                    <button class="btn-sm" id="ledgerLastEdit" style="background:#0ea5e9;color:#fff;border:none">Edit Last</button>
+                    <button class="btn-sm" id="ledgerLastDelete" style="background:#ef4444;color:#fff;border:none">Delete Last</button>
+                  </div>
+                </div>
+              `;
+              m.setAttribute('edit-id', String(le['id']||''));
+            } else {
+              lastWrap.innerHTML = '<p class="muted" style="color:#9ca3af">No previous ledger entry</p>';
+              m.removeAttribute('edit-id');
+            }
+          }
+          m.style.display = 'flex';
+          computeLedger();
+        }
+        function computeLedger(){
+          const dueEl = document.getElementById('ledgerDue');
+          const recEl = document.getElementById('ledgerReceived');
+          const dueVal = (dueEl instanceof HTMLInputElement) ? (dueEl.value || '0') : '0';
+          const recVal = (recEl instanceof HTMLInputElement) ? (recEl.value || '0') : '0';
+          const due = Number(String(dueVal).replace(/,/g,''));
+          const rec = Number(String(recVal).replace(/,/g,''));
+          const bal = Math.max(0, due - rec);
+          const status = due <= 0 ? 'paid' : (rec <= 0 ? 'unpaid' : (rec < due ? 'partial' : 'paid'));
+          const balEl = document.getElementById('ledgerBalance'); if (balEl) balEl.textContent = String(bal.toFixed(2));
+          const statusEl = document.getElementById('ledgerStatus'); if (statusEl) statusEl.textContent = status;
+        }
+        document.getElementById('ledgerDue')?.addEventListener('input', computeLedger);
+        document.getElementById('ledgerReceived')?.addEventListener('input', computeLedger);
+        document.getElementById('ledgerFull')?.addEventListener('change', (e)=>{
+          const chk = e.target;
+          const dueEl = document.getElementById('ledgerDue');
+          const dueVal = (dueEl instanceof HTMLInputElement) ? (dueEl.value || '0') : '0';
+          const due = Number(dueVal);
+          const recEl = document.getElementById('ledgerReceived');
+          if (recEl instanceof HTMLInputElement) recEl.value = (chk && 'checked' in chk && chk.checked) ? String(due) : '0';
+          computeLedger();
+        });
+        document.getElementById('ledgerCancel')?.addEventListener('click', ()=>{ const m = document.getElementById('ledgerModal'); if (m) m.style.display = 'none'; });
+        document.getElementById('ledgerSave')?.addEventListener('click', async ()=>{
+          const m = document.getElementById('ledgerModal');
+          if (!m) return;
+          const id = m.getAttribute('data-id')||'';
+          const editId = m.getAttribute('edit-id')||'';
+          const dueEl = document.getElementById('ledgerDue');
+          const recEl = document.getElementById('ledgerReceived');
+          const modeEl = document.getElementById('ledgerMode');
+          const typeEl = document.getElementById('ledgerType');
+          const noteEl = document.getElementById('ledgerNote');
+          const due = Number(dueEl instanceof HTMLInputElement ? (dueEl.value || '0') : '0');
+          const rec = Number(recEl instanceof HTMLInputElement ? (recEl.value || '0') : '0');
+          const mode = modeEl instanceof HTMLSelectElement ? (modeEl.value || 'cash') : 'cash';
+          const type = typeEl instanceof HTMLSelectElement ? (typeEl.value || 'credit') : 'credit';
+          const note = noteEl instanceof HTMLTextAreaElement ? (noteEl.value || '') : '';
+          const status = due <= 0 ? 'paid' : (rec <= 0 ? 'unpaid' : (rec < due ? 'partial' : 'paid'));
+          const row = rows.find(r=>r.id===id);
+          const email = row?.email || '';
+          if (editId) {
+            await fetch('/api/admin/payments', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ action:'update', id: editId, amount: rec, total_due: due, entry_type: type, mode, note }) });
+          } else {
+            await fetch('/api/admin/payments', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ action:'add', email, amount: rec, total_due: due, entry_type: type, mode, note, appointment_id: row?.customer_appointment_id || id }) });
+          }
+          await fetch('/api/admin/appointments', { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ id, payment_status: status }) });
+          m.style.display = 'none';
+          loadPage(currentPage);
+        });
+        document.addEventListener('click', async (e)=>{
+          const t = e.target;
+          const edit = t?.closest('#ledgerLastEdit');
+          const del = t?.closest('#ledgerLastDelete');
+          if (edit) {
+            e.preventDefault();
+            const m = document.getElementById('ledgerModal');
+            if (!m) return;
+            const id = m.getAttribute('data-id')||'';
+            const row = rows.find(r=>r.id===id);
+            if (!row) return;
+            await openLedgerModal(row, 'partial');
+            return;
+          }
+          if (del) {
+            e.preventDefault();
+            const m = document.getElementById('ledgerModal');
+            if (!m) return;
+            const editId = m.getAttribute('edit-id')||'';
+            if (!editId) return;
+            await fetch('/api/admin/payments', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ action:'remove', id: editId }) });
+            const apptId = m.getAttribute('data-id')||'';
+            const row = rows.find(r=>r.id===apptId);
+            let newStatus = 'unpaid';
+            try {
+              const res = await fetch(`/api/admin/payments?appointment_id=${encodeURIComponent(row?.customer_appointment_id || apptId)}&limit=1`);
+              const j = await res.json();
+              if (j.ok && Array.isArray(j.data) && j.data.length) newStatus = String(j.data[0].status||'unpaid');
+            } catch (e) { console.error('Error fetching payments:', e); }
+            await fetch('/api/admin/appointments', { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ id: apptId, payment_status: newStatus }) });
+            m.style.display = 'none';
+            loadPage(currentPage);
+            return;
+          }
+        });
+        document.querySelectorAll('[data-email-id]').forEach(el=>{
+          el.addEventListener('click', (e)=>{
+            e.preventDefault();
+            const id = el.getAttribute('data-email-id') || '';
+            const statusEl = document.querySelector(`select[data-id="${id}"]`);
+            const status = (statusEl instanceof HTMLSelectElement) ? statusEl.value : 'pending';
+            const row = rows.find(r=>r.id===id);
+            if (!row) return;
+            // Open confirm modal instead of window.confirm
+            openEmailConfirm({ id, status, row });
+          });
+        });
+        document.querySelectorAll('a.btn-sm[href^="/admin/whatsapp"]').forEach(a=>{
+          a.addEventListener('click', async (e)=>{
+            e.preventDefault();
+            const href = a.getAttribute('href') || '';
+            if (!href) return;
+            const url = new URL(href, location.origin);
+            const params = Object.fromEntries(url.searchParams.entries());
+            const res = await fetch('/api/admin/templates?type=whatsapp');
+            const tpl = await res.json();
+            const m = (tpl.data||[]).find(x=>x.key===params.status);
+            // Substitute all supported variables from params
+            const base = (m?.text||`Hello {name}, your appointment for {service} is {status}.`)
+              .replaceAll('{name}', params.name || '')
+              .replaceAll('{service}', params.service || '')
+              .replaceAll('{status}', params.status || '')
+              .replaceAll('{date}', params.date || '')
+              .replaceAll('{time}', params.time || '')
+              .replaceAll('{method}', params.method || '')
+              .replaceAll('{appointment_id}', params.appointment_id || (params.id||''));
+            const text = base;
+            const link = `https://wa.me/${encodeURIComponent(formatWaPhone(params.phone))}?text=${encodeURIComponent(text)}`;
+            // Log WhatsApp send to activity log
+            try {
+              await fetch('/api/admin/activity', {
+                method:'POST',
+                headers:{'Content-Type':'application/json'},
+                body: JSON.stringify({
+                  action: 'whatsapp_sent',
+                  entity_type: 'appointment',
+                  entity_id: params.id || null,
+                  details: `WhatsApp sent to ${params.name} (${params.phone}) for ${params.service} – ${params.status}`
+                })
+              });
+              // Also record WhatsApp history for notes modal
+              await fetch('/api/admin/whatsapp-history', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  recipient_phone: formatWaPhone(params.phone||''),
+                  recipient_name: params.name || null,
+                  message: text,
+                  type: 'appointment',
+                  related_id: params.id || null,
+                  related_type: 'appointment',
+                  status: 'sent'
+                })
+              });
+            } catch (err) { console.warn('Failed to log WhatsApp send', err); }
+            window.open(link, '_blank');
+          });
+        });
+      }
+
+      function applyFilters(all) {
+        const qEl = document.getElementById('search');
+        const sEl = document.getElementById('serviceFilter');
+        const srcEl = document.getElementById('sourceFilter');
+        const stEl = document.getElementById('statusFilter');
+        const q = (qEl?.value || '').toLowerCase();
+        const s = sEl?.value || '';
+        const src = srcEl?.value || '';
+        const st = stEl?.value || '';
+        return all.filter(r => (
+          (!q || (r.name+" "+r.email+" "+r.phone).toLowerCase().includes(q)) &&
+          (!s || r.service === s) &&
+          (!src || (r.source||'system') === src) &&
+          (!st || (r.status||'pending') === st)
+        ));
+      }
+
+      async function loadPage(page) {
+        currentPage = page;
+        showLoading(true);
+        try {
+          allData = await fetchData(page);
+          render(applyFilters(allData));
+          renderPagination();
+        } catch (e) {
+          console.debug('loadPage error', e);
+          const wrap = document.getElementById('tableWrap');
+          if (wrap) wrap.innerHTML = '<p class="muted">Unable to render appointments at the moment.</p>';
+        }
+        showLoading(false);
+      }
+      // Expose for other script blocks on the page
+      window.loadPage = loadPage;
+
+      function showLoading(on){
+        const overlay = document.getElementById('loadingOverlay');
+        if (!overlay) return;
+        if (on) { overlay.classList.add('active'); overlay.setAttribute('aria-busy','true'); }
+        else { overlay.classList.remove('active'); overlay.setAttribute('aria-busy','false'); }
+      }
+
+      // Modal handlers
+      // Email confirmation context and handlers
+  let emailContext = { id: '', status: 'pending', row: { email: '', name: '', service: '' } };
+      function openEmailConfirm(ctx) {
+        emailContext = ctx;
+        const modal = document.getElementById('emailConfirmModal');
+        const body = document.getElementById('emailConfirmBody');
+        if (body) body.innerHTML = `
+          <div style="display:grid;grid-template-columns:160px 1fr;gap:10px;color:#e5e7eb">
+            <div class="muted" style="color:#94a3b8">Recipient</div><div>${ctx.row.email}</div>
+            <div class="muted" style="color:#94a3b8">Name</div><div>${ctx.row.name}</div>
+            <div class="muted" style="color:#94a3b8">Service</div><div>${ctx.row.service}</div>
+            <div class="muted" style="color:#94a3b8">Status</div><div>${ctx.status}</div>
+            <div class="muted" style="color:#94a3b8">Appointment ID</div><div>${ctx.row.customer_appointment_id || '(not set)'}</div>
+          </div>`;
+        modal?.classList.add('active');
+      }
+      function closeEmailConfirm(){ document.getElementById('emailConfirmModal')?.classList.remove('active'); }
+      document.getElementById('emailConfirmCancel')?.addEventListener('click', closeEmailConfirm);
+      document.getElementById('emailConfirmCancel2')?.addEventListener('click', closeEmailConfirm);
+      let emailSending = false;
+      document.getElementById('emailConfirmSend')?.addEventListener('click', async ()=>{
+        if (emailSending) return;
+        emailSending = true;
+        const btn = document.getElementById('emailConfirmSend');
+        const originalText = btn?.innerText || 'Send Email';
+        if (btn) { btn.disabled = true; btn.innerText = 'Sending…'; btn.setAttribute('aria-busy', 'true'); }
+        try {
+          const { id, status, row } = emailContext;
+          const res = await fetch('/api/admin/appointments', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ action:'email', id, status }) });
+          const j = await res.json();
+          if (j.ok) {
+            if (j.duplicate) {
+              window.AdminNotify?.info?.('Already sending', 'Duplicate click suppressed');
+            } else {
+              window.AdminNotify?.success('Email sent', `To ${row.email}`);
+            }
+          } else {
+            window.AdminNotify?.error('Email failed', j.error || 'Unknown error');
+          }
+        } catch (e) {
+          const msg = (e && typeof e === 'object' && 'message' in e) ? e.message : 'Network error';
+          window.AdminNotify?.error('Email failed', String(msg));
+        } finally {
+          emailSending = false;
+          if (btn) { btn.disabled = false; btn.innerText = originalText; btn.removeAttribute('aria-busy'); }
+          closeEmailConfirm();
+        }
+      });
+      document.getElementById('addAppointmentBtn')?.addEventListener('click', () => {
+        document.getElementById('addModal')?.classList.add('active');
+      });
+      document.getElementById('closeModal')?.addEventListener('click', () => {
+        document.getElementById('addModal')?.classList.remove('active');
+      });
+      document.getElementById('cancelBtn')?.addEventListener('click', () => {
+        document.getElementById('addModal')?.classList.remove('active');
+      });
+      document.getElementById('addForm')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const tgt = e.target;
+        if (!(tgt instanceof HTMLFormElement)) return;
+        const form = tgt;
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+        const res = await fetch('/api/admin/appointments', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'create', ...data })
+        });
+        const json = await res.json();
+        if (json.ok) {
+          window.AdminNotify?.success('Appointment created');
+          document.getElementById('addModal')?.classList.remove('active');
+          form.reset();
+          loadPage(1);
+        } else {
+          window.AdminNotify?.error('Create failed', json.error || 'Unknown error');
+        }
+      });
+
+      // Export handler (with columns)
+      function getSelectedColumns() {
+        const saved = localStorage.getItem('appointments_export_fields');
+        const defaultCols = ['appt_id','name','email','phone','service','date','time','consultation_method','status','payment_status','message','source','created_at'];
+        try {
+          const parsed = saved ? JSON.parse(saved) : null;
+          if (Array.isArray(parsed) && parsed.length) return parsed;
+        } catch (e) {
+          console.debug('Failed to parse export fields for appointments', e);
+        }
+        return defaultCols;
+      }
+      document.getElementById('exportBtn')?.addEventListener('click', () => {
+        const fromEl = document.getElementById('fromDate');
+        const toEl = document.getElementById('toDate');
+        const params = new URLSearchParams({ type: 'appointments', format: 'csv' });
+        if (fromEl instanceof HTMLInputElement && fromEl.value) params.set('from', fromEl.value);
+        if (toEl instanceof HTMLInputElement && toEl.value) params.set('to', toEl.value);
+        const fields = getSelectedColumns();
+        if (fields && fields.length) params.set('fields', fields.join(','));
+        window.open(`/api/admin/export?${params.toString()}`, '_blank');
+      });
+
+      // Columns modal
+      const allColumns = ['appt_id','name','email','phone','service','date','time','consultation_method','status','payment_status','message','source','created_at'];
+      function renderColumnsModal(){
+        const list = document.getElementById('columnsList');
+        const chosen = new Set(getSelectedColumns());
+        if (!list) return;
+        list.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">${allColumns.map(k=>`
+          <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" value="${k}" ${chosen.has(k)?'checked':''} /> <span>${k}</span></label>
+        `).join('')}</div>`;
+      }
+      document.getElementById('columnsBtn')?.addEventListener('click', () => {
+        renderColumnsModal();
+        document.getElementById('columnsModal')?.classList.add('active');
+      });
+      document.getElementById('columnsClose')?.addEventListener('click', () => {
+        document.getElementById('columnsModal')?.classList.remove('active');
+      });
+      document.getElementById('columnsSave')?.addEventListener('click', () => {
+        const boxes = document.querySelectorAll('#columnsList input[type="checkbox"]');
+        const chosen = Array.from(boxes)
+          .filter((b)=>b instanceof HTMLInputElement && b.checked)
+          .map((b)=> (b instanceof HTMLInputElement ? b.value : ''))
+          .filter(Boolean);
+        if (!chosen.length) {
+          window.AdminNotify?.error?.('Select at least one column');
+          return;
+        }
+        localStorage.setItem('appointments_export_fields', JSON.stringify(chosen));
+        window.AdminNotify?.success?.('Export columns saved');
+        document.getElementById('columnsModal')?.classList.remove('active');
+      });
+
+      // Notes modal handlers
+      let currentNotesEntityId = null;
+      let currentNotesEntityType = 'appointment';
+      
+      document.getElementById('closeNotesModal')?.addEventListener('click', () => {
+        document.getElementById('notesModal')?.classList.remove('active');
+      });
+      
+      document.getElementById('saveNoteBtn')?.addEventListener('click', async () => {
+        if (!currentNotesEntityId) return;
+        const noteInput = document.getElementById('newNote');
+        const noteText = (noteInput?.value || '').trim();
+        if (!noteText) return;
+        
+        const res = await fetch('/api/admin/notes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ entity_type: currentNotesEntityType, entity_id: currentNotesEntityId, note_text: noteText })
+        });
+        const json = await res.json();
+        if (json.ok) {
+          if (noteInput) noteInput.value = '';
+          loadNotes(currentNotesEntityId, currentNotesEntityType);
+        }
+      });
+      
+      async function loadNotes(entityId, entityType) {
+        const [notesRes, emailRes, waRes] = await Promise.all([
+          fetch(`/api/admin/notes?entity_type=${entityType}&entity_id=${entityId}`).then(r => r.json()),
+          fetch(`/api/admin/email-history?related_id=${entityId}&related_type=${entityType}`).then(r => r.json()),
+          fetch(`/api/admin/whatsapp-history?related_id=${entityId}&related_type=${entityType}`).then(r => r.json())
+        ]);
+
+        const notesList = document.getElementById('notesList');
+        const notes = notesRes.data || [];
+        if (notesList) notesList.innerHTML = notes.length ? notes.map(n => `
+          <div data-note-id="${n.id}" style="padding:12px;margin-bottom:10px;background:#0b1220;border-radius:8px;border:1px solid rgba(148,163,184,0.25)">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+              <div style="font-size:12px;color:#94a3b8">${new Date(n.created_at).toLocaleString()}</div>
+              <div style="display:flex;gap:8px">
+                <button type="button" class="btn-sm" data-action="edit-note" data-id="${n.id}" style="background:#334155;color:#e5e7eb;border:none">Edit</button>
+                <button type="button" class="btn-sm" data-action="delete-note" data-id="${n.id}" style="background:#ef4444;color:#fff;border:none">Delete</button>
+              </div>
+            </div>
+            <div data-note-text style="color:#e5e7eb">${n.note_text}</div>
+          </div>
+        `).join('') : '<p style="color:#9ca3af;font-size:14px">No notes yet</p>';
+
+        const emailList = document.getElementById('emailHistoryList');
+        const emails = emailRes.data || [];
+        if (emailList) emailList.innerHTML = emails.length ? emails.map(e => `
+          <div style="padding:8px;margin-bottom:6px;background:#0b1220;border-radius:8px;border:1px solid rgba(148,163,184,0.25);font-size:13px;color:#e5e7eb">
+            <div style="font-weight:600;color:#e5e7eb">${e.subject}</div>
+            <div style="color:#94a3b8;font-size:11px">${new Date(e.sent_at).toLocaleString()} - ${e.status}</div>
+          </div>
+        `).join('') : '<p style="color:#9ca3af;font-size:14px">No emails sent</p>';
+
+        const waList = document.getElementById('whatsappHistoryList');
+        const wa = waRes.data || [];
+        if (waList) waList.innerHTML = wa.length ? wa.map(w => `
+          <div style="padding:8px;margin-bottom:6px;background:#0b1220;border-radius:8px;border:1px solid rgba(148,163,184,0.25);font-size:13px;color:#e5e7eb">
+            <div style="font-weight:600;color:#e5e7eb">${w.message.slice(0,120)}${w.message.length>120?'...':''}</div>
+            <div style="color:#94a3b8;font-size:11px">${new Date(w.sent_at).toLocaleString()} - ${w.status} - to ${w.recipient_phone}</div>
+          </div>
+        `).join('') : '<p style="color:#9ca3af;font-size:14px">No WhatsApp messages</p>';
+      }
+      
+      // Notes button handlers
+      document.addEventListener('click', async (e) => {
+        const tgt = e.target;
+        const notesBtn = tgt?.closest('[data-notes-id]');
+        const editBtn = tgt?.closest('[data-action="edit-note"]');
+        const delBtn = tgt?.closest('[data-action="delete-note"]');
+        if (notesBtn) {
+          e.preventDefault();
+          currentNotesEntityId = notesBtn.getAttribute('data-notes-id');
+          currentNotesEntityType = 'appointment';
+          document.getElementById('notesModal')?.classList.add('active');
+          await loadNotes(currentNotesEntityId, currentNotesEntityType);
+          return;
+        }
+        if (editBtn) {
+          e.preventDefault();
+          const id = editBtn.getAttribute('data-id');
+          const card = document.querySelector(`[data-note-id="${id}"]`);
+          const textEl = card?.querySelector('[data-note-text]');
+          const current = (textEl?.textContent || '').trim();
+          const editModal = document.getElementById('noteEditModal');
+          const editText = document.getElementById('noteEditText');
+          if (editModal) editModal.style.display = 'block';
+          if (editText) editText.value = current || '';
+          // Store id on the save button
+          const saveBtn = document.getElementById('noteEditSave');
+          saveBtn?.setAttribute('data-id', String(id || ''));
+          return;
+        }
+        if (delBtn) {
+          e.preventDefault();
+          const id = delBtn.getAttribute('data-id');
+          if (!id) return;
+          const delModal = document.getElementById('noteDeleteModal');
+          if (delModal) delModal.style.display = 'block';
+          const confirmBtn = document.getElementById('noteDeleteConfirmBtn');
+          confirmBtn?.setAttribute('data-id', String(id));
+          return;
+        }
+      });
+
+      // Edit modal actions
+      document.getElementById('noteEditCancel')?.addEventListener('click', () => { const m=document.getElementById('noteEditModal'); if(m) m.style.display='none'; });
+      document.getElementById('noteEditCancelBtn')?.addEventListener('click', () => { const m=document.getElementById('noteEditModal'); if(m) m.style.display='none'; });
+      document.getElementById('noteEditSave')?.addEventListener('click', async (e) => {
+        const btn = e.currentTarget;
+        const id = btn.getAttribute('data-id') || '';
+        const editText = document.getElementById('noteEditText');
+        const next = (editText?.value || '').trim();
+        if (!id || next === '') return;
+        try {
+          const res = await fetch('/api/admin/notes', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, note_text: next }) });
+          const json = await res.json();
+          if (json.ok) {
+            { const m=document.getElementById('noteEditModal'); if(m) m.style.display='none'; }
+            await loadNotes(currentNotesEntityId, currentNotesEntityType);
+          }
+        } catch (e) {
+          console.warn('Failed to update note text', e);
+        }
+      });
+
+      // Delete modal actions
+      document.getElementById('noteDeleteCancel')?.addEventListener('click', () => { const m=document.getElementById('noteDeleteModal'); if(m) m.style.display='none'; });
+      document.getElementById('noteDeleteCancelBtn')?.addEventListener('click', () => { const m=document.getElementById('noteDeleteModal'); if(m) m.style.display='none'; });
+      document.getElementById('noteDeleteConfirmBtn')?.addEventListener('click', async (e) => {
+        const btn = e.currentTarget;
+        const id = btn.getAttribute('data-id') || '';
+        if (!id) return;
+        try {
+          const res = await fetch('/api/admin/notes?id=' + encodeURIComponent(id), { method: 'DELETE' });
+          const json = await res.json();
+          if (json.ok) {
+            { const m=document.getElementById('noteDeleteModal'); if(m) m.style.display='none'; }
+            await loadNotes(currentNotesEntityId, currentNotesEntityType);
+          }
+        } catch (e) {
+          console.warn('Failed to delete note', e);
+        }
+      });
+
+      // Filter handlers
+      document.getElementById('search')?.addEventListener('input', () => render(applyFilters(allData)));
+      document.getElementById('serviceFilter')?.addEventListener('change', () => render(applyFilters(allData)));
+      document.getElementById('sourceFilter')?.addEventListener('change', () => render(applyFilters(allData)));
+      document.getElementById('statusFilter')?.addEventListener('change', () => render(applyFilters(allData)));
+      document.getElementById('fromDate')?.addEventListener('change', () => loadPage(1));
+      document.getElementById('toDate')?.addEventListener('change', () => loadPage(1));
+
+      // Quick date presets
+      function formatDate(d){ return d.toISOString().slice(0,10); }
+      document.getElementById('presetToday')?.addEventListener('click', () => {
+        const today = new Date();
+        const fromEl = document.getElementById('fromDate');
+        const toEl = document.getElementById('toDate');
+        if (fromEl) fromEl.setAttribute('value', formatDate(today));
+        if (toEl) toEl.setAttribute('value', formatDate(today));
+        if (fromEl) fromEl.dispatchEvent(new Event('change'));
+      });
+      document.getElementById('preset7')?.addEventListener('click', () => {
+        const end = new Date();
+        const start = new Date(); start.setDate(end.getDate()-6);
+        const fromEl = document.getElementById('fromDate');
+        const toEl = document.getElementById('toDate');
+        if (fromEl) fromEl.setAttribute('value', formatDate(start));
+        if (toEl) toEl.setAttribute('value', formatDate(end));
+        if (fromEl) fromEl.dispatchEvent(new Event('change'));
+      });
+      document.getElementById('presetMonth')?.addEventListener('click', () => {
+        const now = new Date();
+        const start = new Date(now.getFullYear(), now.getMonth(), 1);
+        const end = new Date(now.getFullYear(), now.getMonth()+1, 0);
+        const fromEl = document.getElementById('fromDate');
+        const toEl = document.getElementById('toDate');
+        if (fromEl) fromEl.setAttribute('value', formatDate(start));
+        if (toEl) toEl.setAttribute('value', formatDate(end));
+        if (fromEl) fromEl.dispatchEvent(new Event('change'));
+      });
+      document.getElementById('clearDates')?.addEventListener('click', () => {
+        const f = document.getElementById('fromDate');
+        const t = document.getElementById('toDate');
+        if (f && (f instanceof HTMLInputElement)) { f.value = ''; }
+        if (t && (t instanceof HTMLInputElement)) { t.value = ''; }
+        loadPage(1);
+      });
+
+      // Manual refresh button
+      document.getElementById('refreshBtn')?.addEventListener('click', () => {
+        loadPage(currentPage || 1);
+      });
+
+      document.getElementById('waUpcomingBtn')?.addEventListener('click', async () => {
+        try {
+          const res = await fetch('/api/admin/reminders', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ action:'send_upcoming_whatsapp' }) });
+          const j = await res.json();
+          if (j.ok) { window.AdminNotify?.success?.('WhatsApp reminders queued', `Count: ${j.queued||0}`); }
+          else { window.AdminNotify?.error?.('Queue failed', j.error||'Unknown error'); }
+        } catch (e) {
+          const msg = e instanceof Error ? e.message : String(e);
+          window.AdminNotify?.error?.('Queue failed', msg);
+        }
+      });
+      document.getElementById('waFollowupsBtn')?.addEventListener('click', async () => {
+        try {
+          const res = await fetch('/api/admin/reminders', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ action:'send_followups_whatsapp' }) });
+          const j = await res.json();
+          if (j.ok) { window.AdminNotify?.success?.('WhatsApp follow-ups queued', `Count: ${j.queued||0}`); }
+          else { window.AdminNotify?.error?.('Queue failed', j.error||'Unknown error'); }
+        } catch (e) {
+          const msg = e instanceof Error ? e.message : String(e);
+          window.AdminNotify?.error?.('Queue failed', msg);
+        }
+      });
+
+      // Initial load
+      loadPage(1);
+
+      // Saved views
+      function collectFilters(){
+        const fromEl = document.getElementById('fromDate');
+        const toEl = document.getElementById('toDate');
+        const svcEl = document.getElementById('serviceFilter');
+        const srcEl = document.getElementById('sourceFilter');
+        const stEl = document.getElementById('statusFilter');
+        const qEl = document.getElementById('search');
+        const f = (fromEl instanceof HTMLInputElement) ? (fromEl.value || '') : '';
+        const t = (toEl instanceof HTMLInputElement) ? (toEl.value || '') : '';
+        const s = (svcEl instanceof HTMLSelectElement) ? (svcEl.value || '') : '';
+        const src = (srcEl instanceof HTMLSelectElement) ? (srcEl.value || '') : '';
+        const st = (stEl instanceof HTMLSelectElement) ? (stEl.value || '') : '';
+        const q = (qEl instanceof HTMLInputElement) ? (qEl.value || '') : '';
+        const colsSaved = localStorage.getItem('appointments_export_fields');
+        const columns = colsSaved ? JSON.parse(colsSaved) : undefined;
+        return { from: f, to: t, service: s, source: src, status: st, search: q, columns };
+      }
+      async function loadViews(){
+        try {
+          if (document.visibilityState === 'hidden') return; // don't start fetch if page is hiding/unloading
+          const res = await fetch('/api/admin/views?page=appointments', { keepalive: true });
+          const j = await res.json();
+          const sel = document.getElementById('savedViews');
+          if (!(sel instanceof HTMLSelectElement)) return;
+          const opts = (j?.data||[]).map(v=>`<option value="${v.id}">${v.name}</option>`).join('');
+          sel.innerHTML = `<option value="">Saved views…</option>${opts}`;
+        } catch(e){
+          const msg = e instanceof Error ? e.message : String(e);
+          if (msg.includes('ERR_ABORTED')) return; // Ignore navigation aborts
+          console.debug('loadViews error', e);
+        }
+      }
+      function applyView(filters){
+        try {
+          const f = filters || {}; const setVal = (id, val)=>{ const el = document.getElementById(id); if (el instanceof HTMLInputElement || el instanceof HTMLSelectElement) { el.value = String(val||''); } };
+          setVal('fromDate', f.from||'');
+          setVal('toDate', f.to||'');
+          setVal('serviceFilter', f.service||'');
+          setVal('sourceFilter', f.source||'');
+          setVal('statusFilter', f.status||'');
+          setVal('search', f.search||'');
+          if (Array.isArray(f.columns) && f.columns.length) localStorage.setItem('appointments_export_fields', JSON.stringify(f.columns));
+          window.loadPage?.(1);
+        } catch(e){ console.debug('applyView error', e); }
+      }
+      document.getElementById('savedViews')?.addEventListener('change', async ()=>{
+        const selEl = document.getElementById('savedViews');
+        const id = (selEl instanceof HTMLSelectElement) ? (selEl.value || '') : '';
+        if (!id) return;
+        try {
+          if (document.visibilityState === 'hidden') return; // avoid fetch during unload
+          const res = await fetch('/api/admin/views?page=appointments', { keepalive: true });
+          const j = await res.json();
+          const v = (j?.data||[]).find((x)=>x.id===id);
+          if (v && v.filters) {
+            const filters = JSON.parse(v.filters);
+            applyView(filters);
+          }
+        } catch(e){
+          const msg = e instanceof Error ? e.message : String(e);
+          if (msg.includes('ERR_ABORTED')) return; // Ignore navigation aborts
+          console.debug('savedViews change error', e);
+        }
+      });
+      document.getElementById('saveViewBtn')?.addEventListener('click', async ()=>{
+        const vnEl = document.getElementById('viewName');
+        const name = (vnEl instanceof HTMLInputElement) ? (vnEl.value || '') : '';
+        if (!name.trim()) { window.AdminNotify?.error?.('Enter a view name'); return; }
+        try {
+          const filters = collectFilters();
+          const res = await fetch('/api/admin/views', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ page:'appointments', name, filters }) });
+          const j = await res.json();
+          if (j.ok) { window.AdminNotify?.success?.('View saved'); if (vnEl instanceof HTMLInputElement) vnEl.value=''; await loadViews(); }
+          else { window.AdminNotify?.error?.('Save failed', j.error||''); }
+        } catch(e){ window.AdminNotify?.error?.('Save failed'); console.debug('saveViewBtn error', e); }
+      });
+      document.getElementById('deleteViewBtn')?.addEventListener('click', async ()=>{
+        const sel = document.getElementById('savedViews');
+        const id = (sel instanceof HTMLSelectElement) ? (sel.value || '') : '';
+        if (!id) { window.AdminNotify?.error?.('Choose a view to delete'); return; }
+        try {
+          const res = await fetch('/api/admin/views?id='+encodeURIComponent(id), { method:'DELETE' });
+          const j = await res.json();
+          if (j.ok) { window.AdminNotify?.success?.('View deleted'); await loadViews(); }
+          else { window.AdminNotify?.error?.('Delete failed', j.error||''); }
+        } catch(e){ window.AdminNotify?.error?.('Delete failed'); console.debug('deleteViewBtn error', e); }
+      });
+      loadViews();
+
+      // Mobile drawer with animated hamburger
+      const sidebar = document.getElementById('adminSidebar');
+      const backdrop = document.getElementById('sidebarBackdrop');
+      const toggleBtn = document.getElementById('sidebarToggle');
+      let isOpen = false;
+      
+      function openSidebar() {
+        sidebar?.classList.add('active');
+        backdrop?.classList.add('active');
+        toggleBtn?.classList.add('active');
+        if (toggleBtn) toggleBtn.innerHTML = '✕';
+        isOpen = true;
+      }
+      
+      function closeSidebar() {
+        sidebar?.classList.remove('active');
+        backdrop?.classList.remove('active');
+        toggleBtn?.classList.remove('active');
+        if (toggleBtn) toggleBtn.innerHTML = '☰';
+        isOpen = false;
+      }
+      
+      toggleBtn?.addEventListener('click', () => {
+        if (isOpen) closeSidebar();
+        else openSidebar();
+      });
+      
+      backdrop?.addEventListener('click', closeSidebar);
+      sidebar?.querySelectorAll('a').forEach(a => {
+        a.addEventListener('click', () => {
+          if (window.innerWidth <= 900) closeSidebar();
+        });
+      });
+      
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && isOpen) closeSidebar();
+      });
+      (function(){
+        const btn = document.getElementById('toggleSidebarDesktop');
+        function sync(){ if(!btn) return; const c=document.body.classList.contains('sidebar-collapse'); btn.textContent = c ? 'Show sidebar' : 'Hide sidebar'; }
+        async function toggle(){ const c=document.body.classList.toggle('sidebar-collapse'); sync(); try{ await fetch('/api/admin/preferences', { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ key:'sidebarCollapsed', value: c ? '1':'0' }) }); }catch(e){ console.error('Error saving sidebarCollapsed:', e); } }
+        btn?.addEventListener('click', toggle);
+        sync();
+      })();
+      </script>
+      <div class="modal" id="ledgerModal" style="display:none;position:fixed;inset:0;background:rgba(2,6,23,0.6);z-index:1000;align-items:center;justify-content:center">
+        <div class="modal-content" style="background:#0f172a;padding:24px;border-radius:16px;max-width:560px;width:92%;border:1px solid rgba(148,163,184,0.2)">
+          <div class="modal-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;border-bottom:1px solid rgba(148,163,184,0.2);padding-bottom:12px">
+            <h3 style="margin:0;font-size:18px;color:#e2e8f0">Ledger Entry</h3>
+            <button class="close-btn" id="ledgerCancel" style="background:none;border:none;font-size:24px;color:#94a3b8">&times;</button>
+          </div>
+          <div id="ledgerBody">
+            <div id="ledgerLast" style="margin-bottom:12px"></div>
+            <div style="display:grid;grid-template-columns:160px 1fr;gap:10px;color:#e5e7eb">
+              <label>Total Due</label><input class="input" id="ledgerDue" type="number" step="0.01" />
+              <label>Amount Received</label><input class="input" id="ledgerReceived" type="number" step="0.01" />
+              <label>Full Amount Paid</label><div><input type="checkbox" id="ledgerFull" /></div>
+              <label>Mode</label><select class="select" id="ledgerMode"><option value="cash">Cash</option><option value="upi">UPI</option><option value="card">Card</option><option value="bank">Bank Transfer</option></select>
+              <label>Type</label><select class="select" id="ledgerType"><option value="credit">Credit</option><option value="debit">Debit</option></select>
+              <label>Note</label><textarea class="input" id="ledgerNote" rows="2"></textarea>
+              <label>Balance</label><div id="ledgerBalance" class="muted" style="color:#94a3b8">0.00</div>
+              <label>Status</label><div id="ledgerStatus" class="muted" style="color:#94a3b8">unpaid</div>
+            </div>
+            <div style="margin-top:14px;display:flex;justify-content:flex-end;gap:8px"><button class="btn-sm" id="ledgerSave" style="background:#16a34a;color:#fff;border:none">Save</button></div>
+          </div>
+        </div>
+      </div>
+    <script is:inline>
+      // Convenience: normalize invalid date ranges and render chips
+      function normalizeDateRange(){
+        const fromEl = document.getElementById('fromDate');
+        const toEl = document.getElementById('toDate');
+        const f = fromEl?.value || '';
+        const t = toEl?.value || '';
+        if (f && t && f > t) {
+          // Auto-correct: set `to` = `from`
+          if (toEl) toEl.value = f;
+          window.AdminNotify?.info?.('Adjusted date range: To matched From');
+        }
+      }
+      function renderActiveChips(){
+        const chipsEl = document.getElementById('activeChips'); if (!chipsEl) return;
+        const svcEl = document.getElementById('serviceFilter');
+        const srcEl = document.getElementById('sourceFilter');
+        const stEl = document.getElementById('statusFilter');
+        const fromEl = document.getElementById('fromDate');
+        const toEl = document.getElementById('toDate');
+        const svc = (svcEl instanceof HTMLSelectElement) ? (svcEl.value || '') : '';
+        const src = (srcEl instanceof HTMLSelectElement) ? (srcEl.value || '') : '';
+        const st = (stEl instanceof HTMLSelectElement) ? (stEl.value || '') : '';
+        const f = (fromEl instanceof HTMLInputElement) ? (fromEl.value || '') : '';
+        const t = (toEl instanceof HTMLInputElement) ? (toEl.value || '') : '';
+        const chips = [];
+        if (svc) chips.push({ key:'serviceFilter', label:`Service: ${svc}` });
+        if (src) chips.push({ key:'sourceFilter', label:`Source: ${src}` });
+        if (st) chips.push({ key:'statusFilter', label:`Status: ${st}` });
+        if (f) chips.push({ key:'fromDate', label:`From: ${f}` });
+        if (t) chips.push({ key:'toDate', label:`To: ${t}` });
+        const hasAny = chips.length > 0;
+        chipsEl.innerHTML = hasAny 
+          ? chips.map(c=>`<button class="pill" data-clear="${c.key}">${c.label} ✕</button>`).join('') + 
+            `<button class="pill" data-clear="__all__">Clear all ✕</button>`
+          : '';
+        chipsEl.querySelectorAll('[data-clear]').forEach(btn=>{
+          btn.addEventListener('click', (e)=>{
+            const t = e.currentTarget; const key = (t instanceof Element) ? (t.getAttribute('data-clear') || '') : '';
+            if (!key) return;
+            if (key === '__all__') {
+              ['serviceFilter','sourceFilter','statusFilter','fromDate','toDate'].forEach(id=>{ const el = document.getElementById(id); if (el instanceof HTMLInputElement || el instanceof HTMLSelectElement) { el.value = ''; } });
+            } else {
+              const el = document.getElementById(key); if (el instanceof HTMLInputElement || el instanceof HTMLSelectElement) { el.value = ''; }
+              // If clearing from/to, keep the other intact
+            }
+            window.loadPage?.(1);
+            renderActiveChips();
+          });
+        });
+      }
+      // Date inputs: validate and reload
+      document.getElementById('fromDate')?.addEventListener('change', ()=>{ normalizeDateRange(); window.loadPage?.(1); renderActiveChips(); });
+      document.getElementById('toDate')?.addEventListener('change', ()=>{ normalizeDateRange(); window.loadPage?.(1); renderActiveChips(); });
+      // Preset: Last 30 days
+      document.getElementById('preset30')?.addEventListener('click', ()=>{
+        const fromEl = document.getElementById('fromDate');
+        const toEl = document.getElementById('toDate');
+        const d = new Date(); const to = d.toISOString().slice(0,10);
+        d.setDate(d.getDate()-30); const from = d.toISOString().slice(0,10);
+        if (fromEl instanceof HTMLInputElement) fromEl.value = from; if (toEl instanceof HTMLInputElement) toEl.value = to;
+        window.loadPage?.(1); renderActiveChips();
+      });
+      // Other filters: update chips on change
+      ['serviceFilter','sourceFilter','statusFilter'].forEach(id=>{
+        document.getElementById(id)?.addEventListener('change', ()=>{ renderActiveChips(); });
+      });
+      renderActiveChips();
+    </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/admin-lte@latest/dist/js/adminlte.min.js" defer></script>
+  </body>
+</html>

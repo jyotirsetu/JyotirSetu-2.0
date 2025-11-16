@@ -1,0 +1,159 @@
+---
+export const prerender = false;
+import Favicons from '~/components/Favicons.astro';
+---
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Follow Hub – Overview</title>
+    <Favicons />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@latest/dist/css/adminlte.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/css/all.min.css" />
+    <link rel="stylesheet" href="/admin.css" />
+    <style>
+      .chip{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;border:1px solid var(--border);margin:6px 6px 0 0;background:rgba(255,255,255,0.05)}
+      .chip .dot{width:8px;height:8px;border-radius:50%}
+      .chip.teal .dot{background:#2ad1b2}
+      .chip.gold .dot{background:#f1c40f}
+      .chip.blue .dot{background:#3498db}
+      .chip.pink .dot{background:#ff6fb3}
+      .chip.red .dot{background:#e74c3c}
+      .chip.gray .dot{background:#95a5a6}
+    </style>
+  </head>
+  <body class="hold-transition sidebar-mini">
+    <script is:inline>
+      (function(){
+        function applyTheme(t){ let x=t; if(x==='auto'){ x=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'; } document.body.classList.toggle('dark-mode', x==='dark'); }
+        let theme='dark'; let collapsed=false; try{ const s=localStorage.getItem('adminSettings'); if(s){ const o=JSON.parse(s); if(o&&typeof o==='object'){ if(o.theme) theme=o.theme; if(o.sidebarCollapsed!=null) collapsed=!!o.sidebarCollapsed; } } }catch(e){ console.error('Error loading admin settings:', e); }
+        applyTheme(theme); document.body.classList.toggle('sidebar-collapse', collapsed);
+        try{ Promise.all([
+          fetch('/api/admin/preferences?key=theme').then(function(r){return r.json();}),
+          fetch('/api/admin/preferences?key=sidebarCollapsed').then(function(r){return r.json();})
+        ]).then(function(rs){ const tr=rs[0], sr=rs[1]; if(tr&&tr.ok&&typeof tr.value==='string') applyTheme(tr.value); if(sr&&sr.ok&&sr.value!=null) document.body.classList.toggle('sidebar-collapse', sr.value==='1'); }).catch(function(err){ console.error('Error syncing preferences:', err); }); }catch(e){ console.error('Error syncing preferences:', e); }
+      })();
+    </script>
+    <div class="wrapper">
+      <nav class="main-header navbar navbar-expand navbar-dark">
+        <ul class="navbar-nav">
+          <li class="nav-item"><a class="nav-link" data-widget="pushmenu" href="#" role="button" aria-label="Toggle sidebar"><i class="fas fa-bars"></i></a></li>
+          <li class="nav-item"><a href="/admin/dashboard" class="nav-link">Dashboard</a></li>
+        </ul>
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><button class="btn btn-sm btn-outline-secondary" id="toggleSidebarDesktop">Hide sidebar</button></li>
+          <li class="nav-item"><a href="/api/admin/logout" class="nav-link">Logout</a></li>
+        </ul>
+      </nav>
+      <aside class="main-sidebar sidebar-dark-primary elevation-4">
+        <a href="/admin/dashboard" class="brand-link" style="display:flex;align-items:center;gap:8px">
+          <span class="brand-dot"></span>
+          <span class="brand-text">JyotirSetu Admin</span>
+        </a>
+        <div class="sidebar">
+          <nav class="mt-2">
+            <ul class="nav nav-pills nav-sidebar flex-column" role="menu" data-accordion="false" data-widget="treeview">
+              <li class="nav-item"><a href="/admin/dashboard" class="nav-link"><i class="nav-icon fas fa-gauge"></i><p>Dashboard</p></a></li>
+              <li class="nav-item"><a href="/admin/appointments" class="nav-link"><i class="nav-icon fas fa-calendar-check"></i><p>Appointments</p></a></li>
+              <li class="nav-item"><a href="/admin/contacts" class="nav-link"><i class="nav-icon fas fa-comments"></i><p>Contacts</p></a></li>
+              <li class="nav-item"><a href="/admin/calendar" class="nav-link"><i class="nav-icon fas fa-calendar"></i><p>Calendar</p></a></li>
+              <li class="nav-item"><a href="/admin/activity-log" class="nav-link"><i class="nav-icon fas fa-list"></i><p>Activity Log</p></a></li>
+              <li class="nav-item"><a href="/admin/newsletter" class="nav-link"><i class="nav-icon fas fa-envelope-open-text"></i><p>Newsletter</p></a></li>
+              <li class="nav-item"><a href="/admin/tools/follow-hub/overview" class="nav-link active"><i class="nav-icon fas fa-toolbox"></i><p>Follow Hub – Overview</p></a></li>
+              <li class="nav-item"><a href="/admin/tools/follow-hub/insights" class="nav-link"><i class="nav-icon fas fa-chart-line"></i><p>Follow Hub – Insights</p></a></li>
+              <li class="nav-item"><a href="/admin/templates/email" class="nav-link"><i class="nav-icon fas fa-file-alt"></i><p>Email Templates</p></a></li>
+              <li class="nav-item"><a href="/admin/templates/whatsapp" class="nav-link"><i class="nav-icon fas fa-file-alt"></i><p>WhatsApp Templates</p></a></li>
+              <li class="nav-item"><a href="/admin/settings" class="nav-link"><i class="nav-icon fas fa-gear"></i><p>Settings</p></a></li>
+            </ul>
+          </nav>
+        </div>
+      </aside>
+      <div class="content-wrapper">
+        <section class="content-header">
+          <div class="container-fluid">
+            <div class="row mb-2">
+              <div class="col-sm-6"><h1>Follow Hub – Overview</h1></div>
+              <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                  <li class="breadcrumb-item"><a href="/admin/dashboard">Home</a></li>
+                  <li class="breadcrumb-item active">Overview</li>
+                </ol>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section class="content">
+          <div class="container-fluid">
+            <div class="topbar">
+              <strong>Follow Hub Clicks</strong>
+              <div class="row">
+                <a class="btn btn-sm btn-outline-info" id="exportCsv">Export CSV</a>
+                <a class="btn btn-sm btn-primary" href="/admin/tools/follow-hub/insights">Insights</a>
+              </div>
+            </div>
+            <div class="container">
+              <div class="cards">
+                <div class="card"><h4>Totals</h4><div class="stat" id="totals">–</div><div class="delta">Overall clicks across CTAs</div></div>
+              </div>
+              <div class="section">
+                <h3 style="margin:0 0 8px 0">Clicks per Link</h3>
+                <div class="row" id="ctaChips"></div>
+              </div>
+              <div class="section">
+                <h3 style="margin:0 0 8px 0">Platforms</h3>
+                <div class="cards" id="platformCards"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+      <footer class="main-footer"><strong>JyotirSetu Admin</strong><div class="float-end d-none d-sm-inline">AdminLTE theme</div></footer>
+    </div>
+
+    <script is:inline>
+      const qs=function(id){return document.getElementById(id);};
+      function colorForCta(cta){switch(String(cta||'').toLowerCase()){case 'whatsapp': return 'teal';case 'google_review': return 'gold';case 'facebook': return 'blue';case 'instagram': return 'pink';case 'youtube': return 'red';case 'website': return 'gray';default: return 'gray';}}
+      async function loadOverview(){ const res=await fetch('/api/admin/follow-hub/overview'); const j=await res.json(); if(!j.ok) return; const t=j.data||{}; const totalsEl=qs('totals'); if(totalsEl){ const tt=t.totals||{}; totalsEl.textContent=(tt.cta_clicks||0)+' clicks (CTR '+(tt.ctr||0)+'%)'; } const allowed=new Set(['google_review','instagram','facebook','youtube','whatsapp']); const breakdown=(j.data&&j.data.cta_breakdown||[]).filter(function(r){return allowed.has(String(r.cta||'').toLowerCase());}); const chips=breakdown.map(function(r){ const color=colorForCta(r.cta); return '<span class="chip '+color+'"><span class="dot"></span><span>'+(r.cta||'—')+'</span><strong>'+(r.clicks||0)+'</strong></span>'; }).join(''); const chipsEl=qs('ctaChips'); if(chipsEl) chipsEl.innerHTML=chips||'<span class="chip gray"><span class="dot"></span><span>No clicks yet</span></span>'; let max=Math.max(1).valueOf(); breakdown.forEach(function(r){ max=Math.max(max, Number(r.clicks||0)); }); const platformCardsEl=qs('platformCards'); if(platformCardsEl) platformCardsEl.innerHTML=breakdown.map(function(r){ const pct=Math.round((Number(r.clicks||0)/max)*100); return '<div class="card"><div style="display:flex;justify-content:space-between;align-items:center"><strong style="text-transform:capitalize">'+r.cta+'</strong><span>'+(r.clicks||0)+' clicks</span></div><div style="height:8px;border-radius:999px;background:rgba(255,255,255,0.08);margin-top:10px"><div style="height:8px;border-radius:999px;background:linear-gradient(90deg, #2ad1b2, #3498db); width:'+pct+'%"></div></div></div>'; }).join(''); }
+      loadOverview();
+      function initSidebarToggle(){
+        const btn=document.getElementById('toggleSidebarDesktop');
+        function sync(){
+          if(!btn) return;
+          const c=document.body.classList.contains('sidebar-collapse');
+          btn.textContent=c?'Show sidebar':'Hide sidebar';
+        }
+        async function toggle(){
+          const c=document.body.classList.toggle('sidebar-collapse');
+          sync();
+          try{
+            await fetch('/api/admin/preferences',{
+              method:'PUT',
+              headers:{'Content-Type':'application/json'},
+              body:JSON.stringify({key:'sidebarCollapsed',value:c?'1':'0'})
+            });
+          }catch(e){
+            console.error('Error saving sidebarCollapsed:', e);
+          }
+        }
+        if(btn){
+          btn.addEventListener('click',toggle);
+          sync();
+        }
+      }
+      initSidebarToggle();
+      const exportEl = qs('exportCsv');
+      if (exportEl) exportEl.addEventListener('click', async function(){
+        const res=await fetch('/api/admin/follow-hub/events?limit=2000'); const j=await res.json(); const rows=j.data||[];
+        const csv=['time,type,cta_shown,cta_clicked,variant,source,device,ip_masked'].concat(
+          rows.map(function(r){return [r.created_at,r.event_type,r.primary_cta_shown,r.cta_clicked,r.cta_variant,r.source,r.device,r.ip_masked].map(function(x){return '"'+String(x||'').replace(/"/g,'""')+'"';}).join(',');})
+        ).join('\n');
+        const blob=new Blob([csv],{type:'text/csv'});
+        const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='follow-hub-'+new Date().toISOString().slice(0,10)+'.csv'; a.click();
+      });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/admin-lte@latest/dist/js/adminlte.min.js" defer></script>
+  </body>
+ </html>
