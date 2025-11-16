@@ -137,6 +137,7 @@ import Favicons from '~/components/Favicons.astro';
               <button class="btn btn-sm btn-success" id="exportBtn">📥 Export CSV</button>
               <button class="btn btn-sm btn-success" id="waUpcomingBtn">WA Reminders</button>
               <button class="btn btn-sm btn-warning" id="waFollowupsBtn">WA Follow-ups</button>
+              <a class="btn btn-sm btn-secondary" href="/admin/templates/payment">Payment Templates</a>
               <span class="pill">Manage and contact clients</span>
               <a href="/api/admin/logout" class="pill">Logout</a>
             </div>
@@ -478,7 +479,8 @@ import Favicons from '~/components/Favicons.astro';
             <td class="muted">${new Date(r.created_at).toLocaleString()}</td>
             <td class="actions">
               <a class="btn-sm" href="/admin/whatsapp?id=${encodeURIComponent(r.id)}&name=${encodeURIComponent(r.name)}&phone=${encodeURIComponent(r.phone)}&service=${encodeURIComponent(r.service)}&status=${encodeURIComponent(r.status||'pending')}&date=${encodeURIComponent(r.date)}&time=${encodeURIComponent(r.time)}&method=${encodeURIComponent(r.consultation_method)}&appointment_id=${encodeURIComponent(r.customer_appointment_id||r.id)}" target="_blank">WhatsApp</a>
-              <a class="btn-sm" href="#" data-email-id="${r.id}">Send Email</a>
+              <a class="btn-sm" href="#" data-email-appt-id="${r.id}">Appt Email</a>
+              <a class="btn-sm" href="#" data-email-pay-id="${r.id}">Payment Email</a>
               <a class="btn-sm" href="#" data-notes-id="${r.id}" style="color:#f59e0b">📝 Notes</a>
             </td>
           </tr>`),
@@ -709,16 +711,24 @@ import Favicons from '~/components/Favicons.astro';
             return;
           }
         });
-        document.querySelectorAll('[data-email-id]').forEach(el=>{
+        document.querySelectorAll('[data-email-appt-id]').forEach(el=>{
           el.addEventListener('click', (e)=>{
             e.preventDefault();
-            const id = el.getAttribute('data-email-id') || '';
-            const statusEl = document.querySelector(`select[data-id="${id}"]`);
-            const status = (statusEl instanceof HTMLSelectElement) ? statusEl.value : 'pending';
+            const id = el.getAttribute('data-email-appt-id') || '';
             const row = rows.find(r=>r.id===id);
             if (!row) return;
-            // Open confirm modal instead of window.confirm
-            openEmailConfirm({ id, status, row });
+            openEmailConfirm({ id, status: String(row.status||'pending'), row, type: 'appointment' });
+          });
+        });
+        document.querySelectorAll('[data-email-pay-id]').forEach(el=>{
+          el.addEventListener('click', (e)=>{
+            e.preventDefault();
+            const id = el.getAttribute('data-email-pay-id') || '';
+            const statusEl = document.querySelector(`select[data-id="${id}"]`);
+            const status = (statusEl instanceof HTMLSelectElement) ? statusEl.value : 'unpaid';
+            const row = rows.find(r=>r.id===id);
+            if (!row) return;
+            openEmailConfirm({ id, status, row, type: 'payment', template_key: status });
           });
         });
         document.querySelectorAll('a.btn-sm[href^="/admin/whatsapp"]').forEach(a=>{
@@ -817,7 +827,7 @@ import Favicons from '~/components/Favicons.astro';
 
       // Modal handlers
       // Email confirmation context and handlers
-  let emailContext = { id: '', status: 'pending', row: { email: '', name: '', service: '' } };
+  let emailContext = { id: '', status: 'pending', row: { email: '', name: '', service: '' }, type: 'appointment', template_key: '' };
       function openEmailConfirm(ctx) {
         emailContext = ctx;
         const modal = document.getElementById('emailConfirmModal');
@@ -828,6 +838,7 @@ import Favicons from '~/components/Favicons.astro';
             <div class="muted" style="color:#94a3b8">Name</div><div>${ctx.row.name}</div>
             <div class="muted" style="color:#94a3b8">Service</div><div>${ctx.row.service}</div>
             <div class="muted" style="color:#94a3b8">Status</div><div>${ctx.status}</div>
+            <div class="muted" style="color:#94a3b8">Type</div><div>${ctx.type||'appointment'}</div>
             <div class="muted" style="color:#94a3b8">Appointment ID</div><div>${ctx.row.customer_appointment_id || '(not set)'}</div>
           </div>`;
         modal?.classList.add('active');
@@ -843,8 +854,15 @@ import Favicons from '~/components/Favicons.astro';
         const originalText = btn?.innerText || 'Send Email';
         if (btn) { btn.disabled = true; btn.innerText = 'Sending…'; btn.setAttribute('aria-busy', 'true'); }
         try {
-          const { id, status, row } = emailContext;
-          const res = await fetch('/api/admin/appointments', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ action:'email', id, status }) });
+          const ctx = emailContext || {};
+          const id = ctx.id || '';
+          const status = ctx.status || 'pending';
+          const row = ctx.row || {};
+          const type = ctx.type || 'appointment';
+          const template_key = ctx.template_key || '';
+          const payload = { action:'email', id, status };
+          if (type === 'payment' && template_key) { payload.template_key = template_key; }
+          const res = await fetch('/api/admin/appointments', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
           const j = await res.json();
           if (j.ok) {
             if (j.duplicate) {

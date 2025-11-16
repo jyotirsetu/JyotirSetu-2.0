@@ -132,6 +132,7 @@ import Favicons from '~/components/Favicons.astro';
             <li class="nav-item"><a href="/admin/calendar" class="nav-link"><i class="nav-icon fas fa-calendar"></i><p>Calendar</p></a></li>
             <li class="nav-item"><a href="/admin/activity-log" class="nav-link"><i class="nav-icon fas fa-list"></i><p>Activity Log</p></a></li>
             <li class="nav-item"><a href="/admin/templates/email" class="nav-link"><i class="nav-icon fas fa-file-alt"></i><p>Email Templates</p></a></li>
+            <li class="nav-item"><a href="/admin/templates/payment" class="nav-link"><i class="nav-icon fas fa-file-invoice-dollar"></i><p>Payment Templates</p></a></li>
             <li class="nav-item"><a href="/admin/templates/whatsapp" class="nav-link active"><i class="nav-icon fas fa-file-alt"></i><p>WhatsApp Templates</p></a></li>
             <li class="nav-item"><a href="/admin/tools/follow-hub/insights" class="nav-link"><i class="nav-icon fas fa-toolbox"></i><p>Follow Hub – Insights</p></a></li>
             <li class="nav-item"><a href="/admin/settings" class="nav-link"><i class="nav-icon fas fa-gear"></i><p>Settings</p></a></li>
@@ -250,8 +251,9 @@ import Favicons from '~/components/Favicons.astro';
           </div>
       </div>
     <script is:inline>
+      (function(){
       const textEl = document.getElementById('text');
-      if (!(textEl instanceof HTMLTextAreaElement)) { return; }
+      if (!(textEl instanceof HTMLTextAreaElement)) { console.warn('WhatsApp Templates: textarea not found'); return; }
       const textArea = textEl;
 
       function updatePreview() {
@@ -681,6 +683,7 @@ import Favicons from '~/components/Favicons.astro';
           window.AdminNotify?.error('Delete failed', String(e?.message || e || 'Unknown error'));
         }
       });
+      })();
     </script>
   </body>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" defer></script>

@@ -47,6 +47,7 @@ export class EmailService {
   private smtpUser?: string;
   private smtpPass?: string;
   private logoUrl: string;
+  private includeBrandLogoHeader: boolean;
 
   constructor() {
     this.clientId = import.meta.env.ZOHO_CLIENT_ID || '';
@@ -79,6 +80,8 @@ export class EmailService {
     } else {
       this.logoUrl = `${siteUrl}/assets/images/JyotirSetu%20Astrology%20Text.png`;
     }
+    const headerRaw = (import.meta.env.EMAIL_LOGO_HEADER || process.env.EMAIL_LOGO_HEADER || 'true').toString().trim().toLowerCase();
+    this.includeBrandLogoHeader = headerRaw === 'true' || headerRaw === '1' || headerRaw === 'yes';
   }
 
   private resolvedLogoUrl?: string;
@@ -91,6 +94,32 @@ export class EmailService {
         'g'
       );
       return html.replace(pattern, newUrl);
+    } catch {
+      return html;
+    }
+  }
+
+  private async replaceLogoWithInlineData(html: string): Promise<string> {
+    try {
+      let buf: Buffer | null = await this.getLogoBuffer();
+      const resolvedLogoUrl = await this.getResolvedLogoUrl().catch(() => this.logoUrl);
+      if (!buf) {
+        try {
+          const res = await fetch(resolvedLogoUrl);
+          if (res.ok) buf = Buffer.from(await res.arrayBuffer());
+        } catch {
+          void 0;
+        }
+      }
+      if (!buf) return html;
+      const dataUrl = `data:image/png;base64,${buf.toString('base64')}`;
+      const candidates = Array.from(new Set([this.logoUrl, resolvedLogoUrl].filter(Boolean)));
+      let out = html;
+      for (const c of candidates) {
+        const pattern = new RegExp(String(c).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
+        out = out.replace(pattern, dataUrl);
+      }
+      return out;
     } catch {
       return html;
     }
@@ -219,9 +248,7 @@ export class EmailService {
       <body>
         <div class="container">
           <div class="header">
-            <div class="logo-container">
-              <img src="${this.logoUrl}" alt="JyotirSetu Logo" class="logo-image" />
-            </div>
+            ${this.includeBrandLogoHeader ? `<div class="logo-container"><img src="${this.logoUrl}" alt="JyotirSetu Logo" class="logo-image" /></div>` : ''}
             <div class="tagline">Expert Astrological Consultations by Punita Sharma</div>
           </div>
           <div class="content">${innerHtml}</div>
@@ -285,7 +312,7 @@ export class EmailService {
       ],
       from: { email: from.email, name: from.name },
       subject,
-      content: [{ type: 'text/html', value: html }],
+      content: [{ type: 'text/html', value: await this.replaceLogoWithInlineData(html) }],
       headers: {
         'Reply-To': this.toAdmin,
       },
@@ -322,26 +349,21 @@ export class EmailService {
     try {
       // First try to read the logo directly from the repo (local asset)
       const logoBuf = await this.getLogoBuffer();
+      const srcPattern = new RegExp(String(this.logoUrl).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
       if (logoBuf) {
-        // Replace occurrences of the logo URL with cid reference
-        const srcPattern = new RegExp(
-          String(this.logoUrl).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
-          'g'
-        );
-        htmlWithCid = htmlWithCid.replace(srcPattern, 'cid:js-logo');
-        attachments = [{ filename: 'logo.png', content: logoBuf, cid: 'js-logo' }];
+        const replaced = htmlWithCid.replace(srcPattern, 'cid:js-logo');
+        const used = replaced !== htmlWithCid;
+        htmlWithCid = replaced;
+        if (used) attachments = [{ filename: 'logo.png', content: logoBuf, cid: 'js-logo' }];
       } else {
-        // Fallback: fetch a validated remote logo URL
         const resolvedLogoUrl = await this.getResolvedLogoUrl().catch(() => this.logoUrl);
         const res = await fetch(resolvedLogoUrl);
         if (res.ok) {
           const buf = Buffer.from(await res.arrayBuffer());
-          const srcPattern = new RegExp(
-            String(this.logoUrl).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
-            'g'
-          );
-          htmlWithCid = htmlWithCid.replace(srcPattern, 'cid:js-logo');
-          attachments = [{ filename: 'logo.png', content: buf, cid: 'js-logo' }];
+          const replaced = htmlWithCid.replace(srcPattern, 'cid:js-logo');
+          const used = replaced !== htmlWithCid;
+          htmlWithCid = replaced;
+          if (used) attachments = [{ filename: 'logo.png', content: buf, cid: 'js-logo' }];
         }
       }
     } catch {
@@ -373,11 +395,12 @@ export class EmailService {
     // Ensure logo URL is reachable to avoid broken image in Zoho emails
     const finalLogo = await this.getResolvedLogoUrl().catch(() => this.logoUrl);
     const safeHtml = this.replaceLogoUrlInHtml(html, finalLogo);
+    const inlinedHtml = await this.replaceLogoWithInlineData(safeHtml);
     const payload = {
       fromAddress: fromPlain,
       toAddress: to,
       subject,
-      content: safeHtml,
+      content: inlinedHtml,
       mailFormat: 'html',
       askReceipt: false,
       // Optionally BCC admin for delivery visibility

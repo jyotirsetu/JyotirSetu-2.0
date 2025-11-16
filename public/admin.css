@@ -204,6 +204,9 @@ th { text-align: left; font-weight: 600; color: var(--text); }
 .content { background: transparent; position: relative; z-index: 1; }
 .content-wrapper { background: transparent; position: relative; z-index: 1; }
 
+/* Hide redundant breadcrumbs on admin pages (sidebar provides navigation) */
+.content-header .breadcrumb { display: none !important; }
+
 .main-sidebar { position: fixed; top: 0; left: 0; height: 100vh; width: 250px; }
 .main-header, .main-footer, .content-wrapper { margin-left: 250px; }
 /* Collapse behavior (desktop) */
@@ -211,6 +214,9 @@ body.sidebar-collapse .main-sidebar { left: -250px; transition: left 0.2s ease; 
 body.sidebar-collapse .main-header,
 body.sidebar-collapse .main-footer,
 body.sidebar-collapse .content-wrapper { margin-left: 0; transition: margin-left 0.2s ease; }
+/* Ensure fully hidden with no translucent overlay when collapsed */
+body.sidebar-collapse #adminSidebar { opacity: 0; pointer-events: none; }
+body.sidebar-collapse .sidebar { opacity: 0; pointer-events: none; }
 /* Treeview default collapsed; only show when menu-open */
 .sidebar .nav .nav-treeview { display: none; }
 .sidebar .nav .nav-item.menu-open > .nav-treeview { display: block; }

@@ -3,10 +3,6 @@ import type { APIRoute } from 'astro';
 // This API route should be server-side rendered
 export const prerender = false;
 
-interface ResendWebhookData<T> {
-  type: string;
-  data: T;
-}
 
 interface EmailSentData {
   to: string[];
@@ -45,7 +41,7 @@ interface EmailClickedData {
 
 export const POST: APIRoute = async ({ request }) => {
   try {
-    const data: ResendWebhookData = await request.json();
+    const data = await request.json();
     
     console.log('📧 Resend Webhook received:', data);
     

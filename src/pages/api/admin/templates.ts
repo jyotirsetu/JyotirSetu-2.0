@@ -208,9 +208,8 @@ export const GET: APIRoute = async ({ request }) => {
       if (type === 'whatsapp') {
         const res = await client.execute({ sql: `SELECT key, text, updated_at FROM whatsapp_templates`, args: [] });
         const rows = Array.isArray(res.rows) ? res.rows : [];
-        // If DB is configured, do NOT auto-fill defaults when empty.
-        // Return empty array so the UI reflects true DB state.
-        return new Response(JSON.stringify({ ok: true, data: rows }), { headers: { 'Content-Type': 'application/json' } });
+        const data = rows.length ? rows : defaultWhatsapp;
+        return new Response(JSON.stringify({ ok: true, data }), { headers: { 'Content-Type': 'application/json' } });
       }
       const res = await client.execute({ sql: `SELECT key, subject, html, updated_at FROM email_templates`, args: [] });
       const rows = Array.isArray(res.rows) ? res.rows : [];
@@ -241,10 +240,13 @@ export const PUT: APIRoute = async ({ request }) => {
       await client.execute({ sql: `INSERT INTO whatsapp_templates (key, text, updated_at) VALUES (?, ?, ?) ON CONFLICT(key) DO UPDATE SET text = excluded.text, updated_at = excluded.updated_at`, args: [String(key), String(text), now] });
       return new Response(JSON.stringify({ ok: true }));
     }
-    const { key, subject, html } = body;
-    if (!key || !subject || !html) return new Response(JSON.stringify({ ok: false, error: 'key, subject, html required' }), { status: 400 });
-    await client.execute({ sql: `INSERT INTO email_templates (key, subject, html, updated_at) VALUES (?, ?, ?, ?) ON CONFLICT(key) DO UPDATE SET subject = excluded.subject, html = excluded.html, updated_at = excluded.updated_at`, args: [String(key), String(subject), String(html), now] });
-    return new Response(JSON.stringify({ ok: true }));
+    if (body.type === 'email') {
+      const { key, subject, html } = body;
+      if (!key || !subject || !html) return new Response(JSON.stringify({ ok: false, error: 'key, subject, html required' }), { status: 400 });
+      await client.execute({ sql: `INSERT INTO email_templates (key, subject, html, updated_at) VALUES (?, ?, ?, ?) ON CONFLICT(key) DO UPDATE SET subject = excluded.subject, html = excluded.html, updated_at = excluded.updated_at`, args: [String(key), String(subject), String(html), now] });
+      return new Response(JSON.stringify({ ok: true }));
+    }
+    return new Response(JSON.stringify({ ok: false, error: 'invalid type' }), { status: 400 });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : 'failed';
     const isConfig = /Turso configuration missing/i.test(String(msg));
@@ -266,10 +268,13 @@ export const DELETE: APIRoute = async ({ request }) => {
       await client.execute({ sql: `DELETE FROM whatsapp_templates WHERE key = ?`, args: [String(key)] });
       return new Response(JSON.stringify({ ok: true }));
     }
-    const { key } = body;
-    if (!key) return new Response(JSON.stringify({ ok: false, error: 'key required' }), { status: 400 });
-    await client.execute({ sql: `DELETE FROM email_templates WHERE key = ?`, args: [String(key)] });
-    return new Response(JSON.stringify({ ok: true }));
+    if (body.type === 'email') {
+      const { key } = body;
+      if (!key) return new Response(JSON.stringify({ ok: false, error: 'key required' }), { status: 400 });
+      await client.execute({ sql: `DELETE FROM email_templates WHERE key = ?`, args: [String(key)] });
+      return new Response(JSON.stringify({ ok: true }));
+    }
+    return new Response(JSON.stringify({ ok: false, error: 'invalid type' }), { status: 400 });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : 'failed';
     const isConfig = /Turso configuration missing/i.test(String(msg));

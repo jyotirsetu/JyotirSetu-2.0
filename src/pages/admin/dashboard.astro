@@ -34,6 +34,8 @@ import Favicons from '~/components/Favicons.astro';
       .action-card strong { display: block; margin-bottom: 6px; font-size: 16px; }
       .action-card .muted { font-size: 13px; }
       .action-card .arrow { float: right; font-size: 20px; opacity: 0.5; }
+      .cards-row { display: flex; flex-wrap: nowrap; gap: 16px; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 8px; }
+      .cards-row .card { min-width: 280px; }
     </style>
     <style>
       /* Newsletter stats card style */
@@ -103,6 +105,7 @@ import Favicons from '~/components/Favicons.astro';
             <li class="nav-item"><a href="/admin/calendar" class="nav-link"><i class="nav-icon fas fa-calendar"></i><p>Calendar</p></a></li>
             <li class="nav-item"><a href="/admin/activity-log" class="nav-link"><i class="nav-icon fas fa-list"></i><p>Activity Log</p></a></li>
             <li class="nav-item"><a href="/admin/templates/email" class="nav-link"><i class="nav-icon fas fa-file-alt"></i><p>Email Templates</p></a></li>
+            <li class="nav-item"><a href="/admin/templates/payment" class="nav-link"><i class="nav-icon fas fa-file-invoice-dollar"></i><p>Payment Templates</p></a></li>
             <li class="nav-item"><a href="/admin/templates/whatsapp" class="nav-link"><i class="nav-icon fas fa-file-alt"></i><p>WhatsApp Templates</p></a></li>
             <li class="nav-item"><a href="/admin/tools/follow-hub/insights" class="nav-link"><i class="nav-icon fas fa-toolbox"></i><p>Follow Hub – Insights</p></a></li>
             <li class="nav-item"><a href="/admin/settings" class="nav-link"><i class="nav-icon fas fa-gear"></i><p>Settings</p></a></li>
@@ -193,41 +196,40 @@ import Favicons from '~/components/Favicons.astro';
             </div>
           </div>
 
-          <div class="row mt-3">
-            <div class="col-lg-3 col-md-6">
-              <div class="card card-outline card-primary h-100">
-                <div class="card-body">
-                  <h5 class="card-title">Manage Appointments</h5>
-                  <p class="card-text">Review, filter, and contact clients</p>
-                  <a href="/admin/appointments" class="stretched-link"></a>
-                </div>
+          <div class="cards-row mt-3">
+            <div class="card card-outline card-primary h-100">
+              <div class="card-body">
+                <h5 class="card-title">Manage Appointments</h5>
+                <p class="card-text">Review, filter, and contact clients</p>
+                <a href="/admin/appointments" class="stretched-link"></a>
               </div>
             </div>
-            <div class="col-lg-3 col-md-6">
-              <div class="card card-outline card-info h-100">
-                <div class="card-body">
-                  <h5 class="card-title">View Contacts</h5>
-                  <p class="card-text">Reply to messages and track status</p>
-                  <a href="/admin/contacts" class="stretched-link"></a>
-                </div>
+            <div class="card card-outline card-info h-100">
+              <div class="card-body">
+                <h5 class="card-title">View Contacts</h5>
+                <p class="card-text">Reply to messages and track status</p>
+                <a href="/admin/contacts" class="stretched-link"></a>
               </div>
             </div>
-            <div class="col-lg-3 col-md-6">
-              <div class="card card-outline card-indigo h-100">
-                <div class="card-body">
-                  <h5 class="card-title">Email Templates</h5>
-                  <p class="card-text">Customize email templates</p>
-                  <a href="/admin/templates/email" class="stretched-link"></a>
-                </div>
+            <div class="card card-outline card-indigo h-100">
+              <div class="card-body">
+                <h5 class="card-title">Email Templates</h5>
+                <p class="card-text">Customize email templates</p>
+                <a href="/admin/templates/email" class="stretched-link"></a>
               </div>
             </div>
-            <div class="col-lg-3 col-md-6">
-              <div class="card card-outline card-success h-100">
-                <div class="card-body">
-                  <h5 class="card-title">WhatsApp Templates</h5>
-                  <p class="card-text">Manage WhatsApp messages</p>
-                  <a href="/admin/templates/whatsapp" class="stretched-link"></a>
-                </div>
+            <div class="card card-outline card-success h-100">
+              <div class="card-body">
+                <h5 class="card-title">WhatsApp Templates</h5>
+                <p class="card-text">Manage WhatsApp messages</p>
+                <a href="/admin/templates/whatsapp" class="stretched-link"></a>
+              </div>
+            </div>
+            <div class="card card-outline card-warning h-100">
+              <div class="card-body">
+                <h5 class="card-title">Payment Templates</h5>
+                <p class="card-text">Configure payment email messages</p>
+                <a href="/admin/templates/payment" class="stretched-link"></a>
               </div>
             </div>
           </div>
