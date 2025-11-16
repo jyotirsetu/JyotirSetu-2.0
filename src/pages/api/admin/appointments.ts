@@ -186,15 +186,17 @@ export const POST: APIRoute = async ({ request }) => {
         } catch { /* ignore update errors */ }
       }
 
-      const { template_key, reason, new_date, new_time, subject, html } = (req as {
+      const { template_key, reason, new_date, new_time, subject, html, type: reqType } = (req as {
         template_key?: string;
         reason?: string;
         new_date?: string;
         new_time?: string;
         subject?: string;
         html?: string;
+        type?: string;
       });
       let subjectUsed = String(subject || `Appointment ${status}`);
+      const typeTag = (String(reqType || '').toLowerCase() === 'payment') ? 'payment_status' : 'appointment_status';
 
       // Duplicate suppression: if a recent email was sent for this appointment, skip sending
       try {
@@ -237,14 +239,18 @@ export const POST: APIRoute = async ({ request }) => {
         row.email,
         row.name,
         subjectUsed,
-        'appointment_status',
+        typeTag,
         id,
         'appointment',
         ok ? 'sent' : 'failed',
         ok ? null : 'Email service error'
       );
       
-      await logActivity('email_sent', 'appointment', id, `Email sent to ${row.name} (${row.email}): ${status}`);
+      if (ok) {
+        await logActivity('email_sent', 'appointment', id, `Email sent to ${row.name} (${row.email}): ${status}`);
+      } else {
+        await logActivity('email_failed', 'appointment', id, `Email failed for ${row.name} (${row.email}): ${status}`);
+      }
       
       return new Response(JSON.stringify({ ok }), { headers: { 'Content-Type': 'application/json' } });
     }

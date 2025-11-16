@@ -861,6 +861,7 @@ import Favicons from '~/components/Favicons.astro';
           const type = ctx.type || 'appointment';
           const template_key = ctx.template_key || '';
           const payload = { action:'email', id, status };
+          payload.type = type;
           if (type === 'payment' && template_key) { payload.template_key = template_key; }
           const res = await fetch('/api/admin/appointments', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
           const j = await res.json();

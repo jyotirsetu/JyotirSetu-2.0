@@ -425,38 +425,19 @@ export class EmailService {
   async sendContactConfirmationEmail(contactData: ContactData): Promise<boolean> {
     try {
       const emailHtml = this.generateContactConfirmationEmailHTMLBranded(contactData);
-      if (this.smtpHost) {
-        return await this.sendViaSmtp(contactData.email, 'Thank you for contacting JyotirSetu - We\'ll be in touch soon!', emailHtml);
-      }
-      if (this.useMailChannels) {
-        // Ensure a reachable logo URL is used for MailChannels (no CID support)
-        const finalLogo = await this.getResolvedLogoUrl().catch(() => this.logoUrl);
-        const safeHtml = this.replaceLogoUrlInHtml(emailHtml, finalLogo);
-        return await this.sendViaMailChannels(contactData.email, 'Thank you for contacting JyotirSetu - We\'ll be in touch soon!', safeHtml);
-      }
-      return await this.sendViaZoho(contactData.email, 'Thank you for contacting JyotirSetu - We\'ll be in touch soon!', emailHtml);
-    } catch (error) {
-      console.error('Error sending contact confirmation email:', error);
-        return false;
-      }
+      const subject = 'Thank you for contacting JyotirSetu - We\'ll be in touch soon!';
+      return await this.sendWithAvailableTransports(contactData.email, subject, emailHtml);
+    } catch {
+      return false;
+    }
   }
 
   async sendConfirmationEmail(appointmentData: AppointmentData): Promise<boolean> {
     try {
       const emailHtml = this.generateAppointmentEmailHTMLV2(appointmentData);
       const subject = 'Appointment Request Confirmed - JyotirSetu';
-      if (this.smtpHost) {
-        return await this.sendViaSmtp(appointmentData.email, subject, emailHtml);
-      }
-      if (this.useMailChannels) {
-        // Validate and inject accessible logo URL for MailChannels
-        const finalLogo = await this.getResolvedLogoUrl().catch(() => this.logoUrl);
-        const safeHtml = this.replaceLogoUrlInHtml(emailHtml, finalLogo);
-        return await this.sendViaMailChannels(appointmentData.email, subject, safeHtml);
-      }
-      return await this.sendViaZoho(appointmentData.email, subject, emailHtml);
-    } catch (error) {
-      console.error('Error sending confirmation email:', error);
+      return await this.sendWithAvailableTransports(appointmentData.email, subject, emailHtml);
+    } catch {
       return false;
     }
   }
@@ -465,17 +446,8 @@ export class EmailService {
     try {
       const emailHtml = this.generateNewsletterWelcomeEmailHTML(newsletterData);
       const subject = 'Welcome to Daily Astro Tips – JyotirSetu';
-      if (this.smtpHost) {
-        return await this.sendViaSmtp(newsletterData.email, subject, emailHtml);
-      }
-      if (this.useMailChannels) {
-        const finalLogo = await this.getResolvedLogoUrl().catch(() => this.logoUrl);
-        const safeHtml = this.replaceLogoUrlInHtml(emailHtml, finalLogo);
-        return await this.sendViaMailChannels(newsletterData.email, subject, safeHtml);
-      }
-      return await this.sendViaZoho(newsletterData.email, subject, emailHtml);
-    } catch (error) {
-      console.error('Error sending newsletter welcome email:', error);
+      return await this.sendWithAvailableTransports(newsletterData.email, subject, emailHtml);
+    } catch {
       return false;
     }
   }
@@ -586,7 +558,6 @@ export class EmailService {
   async sendAppointmentStatusEmail(appointmentData: AppointmentData, status: string): Promise<boolean> {
     try {
       const statusLower = String(status || '').toLowerCase();
-      // Try DB template for the given status key first
       const tpl = await this.loadEmailTemplate(statusLower);
       let subject = '';
       let emailHtml = '';
@@ -595,7 +566,6 @@ export class EmailService {
         const replaced = this.replaceVars(tpl.html || '', appointmentData, {}, statusLower);
         emailHtml = this.wrapBranded(subject, replaced);
       } else {
-        // Fallback to built-in generator
         emailHtml = this.generateStatusEmailHTML(appointmentData, status);
         const statusSubjects: Record<string, string> = {
           pending: 'Appointment Request Received - JyotirSetu',
@@ -605,18 +575,8 @@ export class EmailService {
         };
         subject = statusSubjects[statusLower] || `Appointment ${status} - JyotirSetu`;
       }
-
-      if (this.smtpHost) {
-        return await this.sendViaSmtp(appointmentData.email, subject, emailHtml);
-      }
-      if (this.useMailChannels) {
-        const finalLogo = await this.getResolvedLogoUrl().catch(() => this.logoUrl);
-        const safeHtml = this.replaceLogoUrlInHtml(emailHtml, finalLogo);
-        return await this.sendViaMailChannels(appointmentData.email, subject, safeHtml);
-      }
-      return await this.sendViaZoho(appointmentData.email, subject, emailHtml);
-    } catch (error) {
-      console.error('Error sending status email:', error);
+      return await this.sendWithAvailableTransports(appointmentData.email, subject, emailHtml);
+    } catch {
       return false;
     }
   }
@@ -628,15 +588,8 @@ export class EmailService {
       const subject = tpl?.subject || `Appointment ${key} - JyotirSetu`;
       const replaced = this.replaceVars((tpl?.html || ''), appointmentData, extras, key);
       const html = this.wrapBranded(subject, replaced);
-      if (this.smtpHost) return await this.sendViaSmtp(appointmentData.email, subject, html);
-      if (this.useMailChannels) {
-        const finalLogo = await this.getResolvedLogoUrl().catch(() => this.logoUrl);
-        const safeHtml = this.replaceLogoUrlInHtml(html, finalLogo);
-        return await this.sendViaMailChannels(appointmentData.email, subject, safeHtml);
-      }
-      return await this.sendViaZoho(appointmentData.email, subject, html);
-    } catch (error) {
-      console.error('Error sending template email:', error);
+      return await this.sendWithAvailableTransports(appointmentData.email, subject, html);
+    } catch {
       return false;
     }
   }
@@ -645,17 +598,26 @@ export class EmailService {
     try {
       const replaced = this.replaceVars(innerHtml || '', appointmentData, extras);
       const html = this.wrapBranded(subject || 'Appointment Update - JyotirSetu', replaced);
-      if (this.smtpHost) return await this.sendViaSmtp(appointmentData.email, subject, html);
-      if (this.useMailChannels) {
-        const finalLogo = await this.getResolvedLogoUrl().catch(() => this.logoUrl);
-        const safeHtml = this.replaceLogoUrlInHtml(html, finalLogo);
-        return await this.sendViaMailChannels(appointmentData.email, subject, safeHtml);
-      }
-      return await this.sendViaZoho(appointmentData.email, subject, html);
-    } catch (error) {
-      console.error('Error sending custom appointment email:', error);
+      return await this.sendWithAvailableTransports(appointmentData.email, subject, html);
+    } catch {
       return false;
     }
+  }
+
+  private async sendWithAvailableTransports(to: string, subject: string, html: string): Promise<boolean> {
+    const methods: Array<'smtp' | 'mc' | 'zoho'> = [];
+    if (this.smtpHost && this.smtpPort && this.smtpSecure !== undefined && this.smtpUser && this.smtpPass) methods.push('smtp');
+    if (this.useMailChannels) methods.push('mc');
+    methods.push('zoho');
+    for (const m of methods) {
+      try {
+        const ok = m === 'smtp' ? await this.sendViaSmtp(to, subject, html) : m === 'mc' ? await this.sendViaMailChannels(to, subject, html) : await this.sendViaZoho(to, subject, html);
+        if (ok) return true;
+      } catch {
+        void 0;
+      }
+    }
+    return false;
   }
 
   private generateStatusEmailHTML(data: AppointmentData, status: string): string {
