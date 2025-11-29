@@ -442,24 +442,28 @@ export const GET: APIRoute = async ({ request }) => {
     `;
 
     // Generate PDF
-    const isProd = (import.meta as unknown as { env?: Record<string, unknown> }).env?.PROD === true ||
+    const isProd =
+      ((import.meta as unknown as { env?: Record<string, unknown> }).env?.PROD as unknown) === true ||
       String(((process as unknown as { env?: Record<string, unknown> }).env || {}).VERCEL || '') === '1';
 
-    let browser: import('puppeteer-core').Browser | import('puppeteer').Browser;
+    let browser: import('puppeteer').Browser | import('puppeteer-core').Browser;
     if (isProd) {
-      const chromium = (await import('@sparticuz/chromium')).default;
+      type ChromiumModule = { args: string[]; executablePath: string | (() => Promise<string>) };
+      const chromiumMod = await import('@sparticuz/chromium');
+      const cm = chromiumMod as unknown as { default?: ChromiumModule };
+      const chromium: ChromiumModule = cm.default ?? (chromiumMod as unknown as ChromiumModule);
       const puppeteerCore = (await import('puppeteer-core')).default;
-      const executablePath = await chromium.executablePath();
+      const ep = chromium.executablePath;
+      const executablePath = typeof ep === 'function' ? await ep() : ep;
       browser = await puppeteerCore.launch({
-        headless: chromium.headless,
+        headless: true,
         args: chromium.args,
         executablePath,
-        defaultViewport: chromium.defaultViewport,
       });
     } else {
       const puppeteer = (await import('puppeteer')).default;
       browser = await puppeteer.launch({
-        headless: 'new',
+        headless: true,
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
       });
     }
@@ -479,7 +483,14 @@ export const GET: APIRoute = async ({ request }) => {
         },
       });
 
-      return new Response(pdf, {
+      const u8 = pdf as Uint8Array;
+      const stream = new ReadableStream({
+        start(controller) {
+          controller.enqueue(u8);
+          controller.close();
+        },
+      });
+      return new Response(stream, {
         headers: {
           'Content-Type': 'application/pdf',
           'Content-Disposition': `attachment; filename="quotation_${quote.number}.pdf"`,
