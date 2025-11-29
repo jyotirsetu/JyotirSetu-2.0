@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import puppeteer from 'puppeteer';
+// Use puppeteer in dev, puppeteer-core + @sparticuz/chromium in production/serverless
 import { getTursoClient } from '../../../../lib/turso';
 
 function formatCurrency(amount: number | null): string {
@@ -442,10 +442,27 @@ export const GET: APIRoute = async ({ request }) => {
     `;
 
     // Generate PDF
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
-    });
+    const isProd = (import.meta as unknown as { env?: Record<string, unknown> }).env?.PROD === true ||
+      String(((process as unknown as { env?: Record<string, unknown> }).env || {}).VERCEL || '') === '1';
+
+    let browser: import('puppeteer-core').Browser | import('puppeteer').Browser;
+    if (isProd) {
+      const chromium = await import('@sparticuz/chromium');
+      const puppeteerCore = (await import('puppeteer-core')).default;
+      const executablePath = await chromium.executablePath();
+      browser = await puppeteerCore.launch({
+        headless: true,
+        args: chromium.args,
+        executablePath: executablePath || undefined,
+        defaultViewport: chromium.defaultViewport,
+      });
+    } else {
+      const puppeteer = (await import('puppeteer')).default;
+      browser = await puppeteer.launch({
+        headless: 'new',
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      });
+    }
 
     try {
       const page = await browser.newPage();
