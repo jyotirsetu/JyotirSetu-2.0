@@ -279,3 +279,38 @@ import { UI } from 'astrowind:config';
     Observer.start();
   });
 </script>
+
+<script is:inline>
+  (function () {
+    if (window.__suppressViteErrors__) return;
+    window.__suppressViteErrors__ = true;
+    const e1 = 'net::ERR_ABORTED';
+    const e2 = 'ERR_NETWORK_IO_SUSPENDED';
+    const oe = console.error;
+    const ow = console.warn;
+    function f(fn) {
+      return function (...args) {
+        const s = args.map(function (a) {
+          if (typeof a === 'string') return a;
+          if (a && typeof a === 'object' && 'message' in a) return String(a.message);
+          try { return JSON.stringify(a); } catch { return String(a); }
+        }).join(' ');
+        if (s.indexOf(e1) !== -1 || s.indexOf(e2) !== -1) return;
+        return fn.apply(console, args);
+      };
+    }
+    console.error = f(oe);
+    console.warn = f(ow);
+    window.addEventListener(
+      'error',
+      function (ev) {
+        const msg = String(ev.message || '');
+        if (msg.indexOf(e1) !== -1 || msg.indexOf(e2) !== -1) {
+          ev.stopImmediatePropagation();
+          ev.preventDefault();
+        }
+      },
+      true
+    );
+  })();
+</script>

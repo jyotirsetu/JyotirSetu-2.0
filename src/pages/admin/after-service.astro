@@ -522,6 +522,7 @@ import Favicons from '~/components/Favicons.astro';
             html,
             related_id: selected.id || null,
           };
+          const csrf = (document.cookie.match(/(?:^|; )csrf_token=([^;]+)/)?.[1] || '').trim();
           this.disabled = true;
           const original = this.innerText;
           this.innerText = 'Sending…';
@@ -529,7 +530,7 @@ import Favicons from '~/components/Favicons.astro';
           try {
             const res = await fetch('/api/admin/after-service', {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers: { 'Content-Type': 'application/json', 'x-csrf-token': decodeURIComponent(csrf) },
               body: JSON.stringify(body),
             });
             const j = await res.json();
@@ -560,7 +561,10 @@ import Favicons from '~/components/Favicons.astro';
           try {
             await fetch('/api/admin/after-service?action=log_whatsapp', {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers: {
+                'Content-Type': 'application/json',
+                'x-csrf-token': decodeURIComponent((document.cookie.match(/(?:^|; )csrf_token=([^;]+)/)?.[1] || '').trim()),
+              },
               body: JSON.stringify({
                 phone,
                 name: selected.name || '',
