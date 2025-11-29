@@ -1,0 +1,39 @@
+<div id="mobileMenu" class="mobile-menu" aria-hidden="true">
+  <div class="mobile-menu-content">
+    <div class="mobile-menu-header">
+      <strong>Admin Menu</strong>
+      <button id="mobileMenuClose" class="btn btn-sm">Close</button>
+    </div>
+    <nav class="mobile-menu-nav">
+      <a href="/admin/dashboard">Dashboard</a>
+      <a href="/admin/appointments">Appointments</a>
+      <a href="/admin/contacts">Contacts</a>
+      <a href="/admin/newsletter">Newsletter</a>
+      <a href="/admin/calendar">Calendar</a>
+      <a href="/admin/quotes">Quotations</a>
+      <a href="/admin/after-service">After Service</a>
+      <a href="/admin/activity-log">Activity Log</a>
+      <a href="/admin/templates/email">Email Templates</a>
+      <a href="/admin/templates/payment">Payment Templates</a>
+      <a href="/admin/templates/whatsapp">WhatsApp Templates</a>
+      <a href="/admin/client360">Client 360°</a>
+      <a href="/admin/tools/follow-hub/insights">Follow Hub – Insights</a>
+      <a href="/admin/settings">Settings</a>
+    </nav>
+  </div>
+  <div id="mobileMenuBackdrop" class="mobile-menu-backdrop"></div>
+</div>
+<script>
+  (function(){
+    const menu = document.getElementById('mobileMenu');
+    const backdrop = document.getElementById('mobileMenuBackdrop');
+    const btn = document.getElementById('sidebarToggle') || document.getElementById('mobileMenuBtn');
+    const closeBtn = document.getElementById('mobileMenuClose');
+    function open(){ menu?.classList.add('active'); backdrop?.classList.add('active'); }
+    function close(){ menu?.classList.remove('active'); backdrop?.classList.remove('active'); }
+    btn?.addEventListener('click', function(){ if (window.innerWidth <= 900) { if (menu?.classList.contains('active')) close(); else open(); } });
+    closeBtn?.addEventListener('click', close);
+    backdrop?.addEventListener('click', close);
+    document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && menu?.classList.contains('active')) close(); });
+  })();
+</script>

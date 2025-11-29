@@ -1,70 +1,153 @@
 ---
 export const prerender = false;
 import Favicons from '~/components/Favicons.astro';
+import AdminNavbar from '~/components/AdminNavbar.astro';
 ---
-<!DOCTYPE html>
+
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Settings – Admin</title>
-<link rel="stylesheet" href="/admin.css?v=20251116" />
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/css/all.min.css" />
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" />
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@latest/dist/css/adminlte.min.css" />
+    <link rel="stylesheet" href="/admin.css?v=20251116" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@latest/dist/css/adminlte.min.css" />
     <Favicons />
     <script src="/js/admin-notify.js" defer></script>
     <script is:inline>
-      (function(){
-        function defineFallback(){
-          try{
-            if(window.AdminNotify) return;
+      (function () {
+        function defineFallback() {
+          try {
+            if (window.AdminNotify) return;
             window.AdminNotify = {
-              success:function(msg, detail){ console.log('SUCCESS:', detail? (msg+': '+detail) : msg); },
-              error:function(msg, detail){ console.error('ERROR:', detail? (msg+': '+detail) : msg); },
-              info:function(msg, detail){ console.log('INFO:', detail? (msg+': '+detail) : msg); }
+              success: function (msg, detail) {
+                console.log('SUCCESS:', detail ? msg + ': ' + detail : msg);
+              },
+              error: function (msg, detail) {
+                console.error('ERROR:', detail ? msg + ': ' + detail : msg);
+              },
+              info: function (msg, detail) {
+                console.log('INFO:', detail ? msg + ': ' + detail : msg);
+              },
             };
-          }catch{/* ignore */}
+          } catch {
+            /* ignore */
+          }
         }
-        function reinject(){
-          try{
+        function reinject() {
+          try {
             const s = document.createElement('script');
             s.src = '/js/admin-notify.js?v=' + Date.now();
             s.defer = true;
-            s.onload = function(){ if(!window.AdminNotify) defineFallback(); };
-            s.onerror = function(){ defineFallback(); };
+            s.onload = function () {
+              if (!window.AdminNotify) defineFallback();
+            };
+            s.onerror = function () {
+              defineFallback();
+            };
             document.head.appendChild(s);
-          }catch{ defineFallback(); }
+          } catch {
+            defineFallback();
+          }
         }
-        if(!window.AdminNotify){
-          if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', reinject); } else { reinject(); }
-          setTimeout(function(){ if(!window.AdminNotify) defineFallback(); }, 1500);
+        if (!window.AdminNotify) {
+          if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', reinject);
+          } else {
+            reinject();
+          }
+          setTimeout(function () {
+            if (!window.AdminNotify) defineFallback();
+          }, 1500);
         }
       })();
     </script>
     <style>
-      .settings-section { background: linear-gradient(180deg, var(--panel), var(--panel-2)); border: 1px solid var(--border); border-radius: 14px; padding: 24px; margin-bottom: 20px; }
-      .settings-section h3 { margin: 0 0 16px; font-size: 18px; font-weight: 700; }
-      .form-row { display: grid; grid-template-columns: 200px 1fr; gap: 16px; margin-bottom: 16px; align-items: center; }
-      .form-row label { font-weight: 500; color: var(--text); }
-      .form-row .input, .form-row .select { flex: 1; }
-      .toggle-switch { position: relative; display: inline-block; width: 50px; height: 24px; }
-      .toggle-switch input { opacity: 0; width: 0; height: 0; }
-      .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #374151; transition: .4s; border-radius: 24px; }
-      .toggle-slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
-      input:checked + .toggle-slider { background-color: var(--brand); }
-      input:checked + .toggle-slider:before { transform: translateX(26px); }
-      .info-text { font-size: 12px; color: var(--muted); margin-top: 4px; }
+      .settings-section {
+        background: linear-gradient(180deg, var(--panel), var(--panel-2));
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 24px;
+        margin-bottom: 20px;
+      }
+      .settings-section h3 {
+        margin: 0 0 16px;
+        font-size: 18px;
+        font-weight: 700;
+      }
+      .form-row {
+        display: grid;
+        grid-template-columns: 200px 1fr;
+        gap: 16px;
+        margin-bottom: 16px;
+        align-items: center;
+      }
+      .form-row label {
+        font-weight: 500;
+        color: var(--text);
+      }
+      .form-row .input,
+      .form-row .select {
+        flex: 1;
+      }
+      .toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 50px;
+        height: 24px;
+      }
+      .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+      .toggle-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #374151;
+        transition: 0.4s;
+        border-radius: 24px;
+      }
+      .toggle-slider:before {
+        position: absolute;
+        content: '';
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: 0.4s;
+        border-radius: 50%;
+      }
+      input:checked + .toggle-slider {
+        background-color: var(--brand);
+      }
+      input:checked + .toggle-slider:before {
+        transform: translateX(26px);
+      }
+      .info-text {
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 4px;
+      }
     </style>
   </head>
   <body class="hold-transition sidebar-mini">
     <button class="sidebar-toggle" aria-label="Open Admin Menu" id="sidebarToggle">☰</button>
     <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
     <script is:inline>
-      (function(){
-        function applyTheme(theme){
+      (function () {
+        function applyTheme(theme) {
           let t = theme;
-          if (t === 'auto') { t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'; }
+          if (t === 'auto') {
+            t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          }
           document.body.classList.toggle('dark-mode', t === 'dark');
         }
         let theme = 'dark';
@@ -78,46 +161,113 @@ import Favicons from '~/components/Favicons.astro';
               if (s.sidebarCollapsed != null) collapsed = !!s.sidebarCollapsed;
             }
           }
-        } catch (e) { console.error('Error loading admin settings:', e); }
+        } catch (e) {
+          console.error('Error loading admin settings:', e);
+        }
         applyTheme(theme);
         document.body.classList.toggle('sidebar-collapse', collapsed);
         try {
           Promise.all([
-            fetch('/api/admin/preferences?key=theme').then(function(r){return r.json();}),
-            fetch('/api/admin/preferences?key=sidebarCollapsed').then(function(r){return r.json();})
-          ]).then(function(rs){
-            const tr = rs[0], sr = rs[1];
-            if (tr && tr.ok && typeof tr.value === 'string') applyTheme(tr.value);
-            if (sr && sr.ok && sr.value != null) document.body.classList.toggle('sidebar-collapse', sr.value === '1');
-          }).catch(function(err){ console.error('Error syncing preferences:', err); });
-        } catch (e) { console.error('Error syncing preferences:', e); }
+            fetch('/api/admin/preferences?key=theme').then(function (r) {
+              return r.json();
+            }),
+            fetch('/api/admin/preferences?key=sidebarCollapsed').then(function (r) {
+              return r.json();
+            }),
+          ])
+            .then(function (rs) {
+              const tr = rs[0],
+                sr = rs[1];
+              if (tr && tr.ok && typeof tr.value === 'string') applyTheme(tr.value);
+              if (sr && sr.ok && sr.value != null) document.body.classList.toggle('sidebar-collapse', sr.value === '1');
+            })
+            .catch(function (err) {
+              console.error('Error syncing preferences:', err);
+            });
+        } catch (e) {
+          console.error('Error syncing preferences:', e);
+        }
       })();
     </script>
     <div class="wrapper">
+      <AdminNavbar />
+      <!-- legacy navbar
       <nav class="main-header navbar navbar-expand navbar-dark">
         <ul class="navbar-nav">
-          <li class="nav-item"><a class="nav-link" data-widget="pushmenu" href="#" role="button" aria-label="Toggle sidebar"><i class="fas fa-bars"></i></a></li>
+          <li class="nav-item">
+            <a class="nav-link" data-widget="pushmenu" href="#" role="button" aria-label="Toggle sidebar"
+              ><i class="fas fa-bars"></i></a
+            >
+          </li>
           <li class="nav-item"><a href="/admin/dashboard" class="nav-link">Dashboard</a></li>
         </ul>
         <ul class="navbar-nav ms-auto">
           <li class="nav-item"><a href="/api/admin/logout" class="nav-link">Logout</a></li>
         </ul>
-      </nav>
+      </nav> -->
       <aside class="main-sidebar sidebar-dark-primary elevation-4" id="adminSidebar">
-        <div class="logo"><img src="https://images.unsplash.com/vector-1763306579596-25a002c977df?q=80&w=1979&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Brand" style="height:40px;width:auto;border-radius:0;box-shadow:0 2px 6px rgba(0,0,0,0.25)" /></div>
+        <div class="logo">
+          <img
+            src="https://images.unsplash.com/vector-1763306579596-25a002c977df?q=80&w=1979&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+            alt="Brand"
+            style="height:40px;width:auto;border-radius:0;box-shadow:0 2px 6px rgba(0,0,0,0.25)"
+          />
+        </div>
         <nav class="mt-2">
           <ul class="nav nav-pills nav-sidebar flex-column" role="menu" data-accordion="false" data-widget="treeview">
-            <li class="nav-item"><a href="/admin/dashboard" class="nav-link"><i class="nav-icon fas fa-gauge"></i><p>Dashboard</p></a></li>
-            <li class="nav-item"><a href="/admin/appointments" class="nav-link"><i class="nav-icon fas fa-calendar-check"></i><p>Appointments</p></a></li>
-            <li class="nav-item"><a href="/admin/contacts" class="nav-link"><i class="nav-icon fas fa-comments"></i><p>Contacts</p></a></li>
-            <li class="nav-item"><a href="/admin/newsletter" class="nav-link"><i class="nav-icon fas fa-envelope-open-text"></i><p>Newsletter</p></a></li>
-            <li class="nav-item"><a href="/admin/calendar" class="nav-link"><i class="nav-icon fas fa-calendar"></i><p>Calendar</p></a></li>
-            <li class="nav-item"><a href="/admin/activity-log" class="nav-link"><i class="nav-icon fas fa-list"></i><p>Activity Log</p></a></li>
-            <li class="nav-item"><a href="/admin/templates/email" class="nav-link"><i class="nav-icon fas fa-file-alt"></i><p>Email Templates</p></a></li>
-            <li class="nav-item"><a href="/admin/templates/payment" class="nav-link"><i class="nav-icon fas fa-file-invoice-dollar"></i><p>Payment Templates</p></a></li>
-            <li class="nav-item"><a href="/admin/templates/whatsapp" class="nav-link"><i class="nav-icon fas fa-file-alt"></i><p>WhatsApp Templates</p></a></li>
-            <li class="nav-item"><a href="/admin/tools/follow-hub/insights" class="nav-link"><i class="nav-icon fas fa-toolbox"></i><p>Follow Hub – Insights</p></a></li>
-            <li class="nav-item"><a href="/admin/settings" class="nav-link active"><i class="nav-icon fas fa-gear"></i><p>Settings</p></a></li>
+            <li class="nav-item">
+              <a href="/admin/dashboard" class="nav-link"><i class="nav-icon fas fa-gauge"></i><p>Dashboard</p></a>
+            </li>
+            <li class="nav-item">
+              <a href="/admin/appointments" class="nav-link"
+                ><i class="nav-icon fas fa-calendar-check"></i><p>Appointments</p></a
+              >
+            </li>
+            <li class="nav-item">
+              <a href="/admin/contacts" class="nav-link"><i class="nav-icon fas fa-comments"></i><p>Contacts</p></a>
+            </li>
+            <li class="nav-item">
+              <a href="/admin/newsletter" class="nav-link"
+                ><i class="nav-icon fas fa-envelope-open-text"></i><p>Newsletter</p></a
+              >
+            </li>
+            <li class="nav-item">
+              <a href="/admin/calendar" class="nav-link"><i class="nav-icon fas fa-calendar"></i><p>Calendar</p></a>
+            </li>
+            <li class="nav-item">
+              <a href="/admin/quotes" class="nav-link"><i class="nav-icon fas fa-file-invoice"></i><p>Quotations</p></a>
+            </li>
+            <li class="nav-item">
+              <a href="/admin/activity-log" class="nav-link"><i class="nav-icon fas fa-list"></i><p>Activity Log</p></a>
+            </li>
+            <li class="nav-item">
+              <a href="/admin/templates/email" class="nav-link"
+                ><i class="nav-icon fas fa-file-alt"></i><p>Email Templates</p></a
+              >
+            </li>
+            <li class="nav-item">
+              <a href="/admin/templates/payment" class="nav-link"
+                ><i class="nav-icon fas fa-file-invoice-dollar"></i><p>Payment Templates</p></a
+              >
+            </li>
+            <li class="nav-item">
+              <a href="/admin/templates/whatsapp" class="nav-link"
+                ><i class="nav-icon fas fa-file-alt"></i><p>WhatsApp Templates</p></a
+              >
+            </li>
+            <li class="nav-item">
+              <a href="/admin/client360" class="nav-link"
+                ><i class="nav-icon fas fa-user-circle"></i><p>Client 360°</p></a
+              >
+            </li>
+            <li class="nav-item">
+              <a href="/admin/tools/follow-hub/insights" class="nav-link"
+                ><i class="nav-icon fas fa-toolbox"></i><p>Follow Hub – Insights</p></a
+              >
+            </li>
+            <li class="nav-item">
+              <a href="/admin/settings" class="nav-link active"><i class="nav-icon fas fa-gear"></i><p>Settings</p></a>
+            </li>
           </ul>
         </nav>
       </aside>
@@ -193,14 +343,27 @@ import Favicons from '~/components/Favicons.astro';
               <label>Email Service</label>
               <div>
                 <span class="pill" style="background:#22c55e">SMTP (Active)</span>
-                <div class="info-text" style="margin-top: 8px;">SMTP configuration is managed via environment variables (SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS)</div>
+                <div class="info-text" style="margin-top: 8px;">
+                  SMTP configuration is managed via environment variables (SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS)
+                </div>
               </div>
             </div>
             <div class="form-row">
               <label>Test Email</label>
               <div style="display:flex;gap:8px;align-items:center">
-                <input class="input" id="testEmail" type="email" placeholder="Enter email to test" style="flex:1;max-width:300px" />
-                <button class="btn-sm" id="testEmailBtn" style="background:#667eea;color:white;border:none;padding:8px 16px;border-radius:6px;cursor:pointer">Send Test</button>
+                <input
+                  class="input"
+                  id="testEmail"
+                  type="email"
+                  placeholder="Enter email to test"
+                  style="flex:1;max-width:300px"
+                />
+                <button
+                  class="btn-sm"
+                  id="testEmailBtn"
+                  style="background:#667eea;color:white;border:none;padding:8px 16px;border-radius:6px;cursor:pointer"
+                  >Send Test</button
+                >
               </div>
             </div>
           </div>
@@ -215,7 +378,12 @@ import Favicons from '~/components/Favicons.astro';
             </div>
             <div class="form-row">
               <label>Backup Database</label>
-              <button class="btn-sm" id="backupBtn" style="background:#667eea;color:white;border:none;padding:8px 16px;border-radius:6px;cursor:pointer">Download Backup</button>
+              <button
+                class="btn-sm"
+                id="backupBtn"
+                style="background:#667eea;color:white;border:none;padding:8px 16px;border-radius:6px;cursor:pointer"
+                >Download Backup</button
+              >
             </div>
           </div>
 
@@ -289,6 +457,18 @@ import Favicons from '~/components/Favicons.astro';
           </div>
 
           <div class="settings-section">
+            <h3>📄 Invoice Settings</h3>
+            <div class="form-row">
+              <label>Invoice Number Seed</label>
+              <input class="input" id="invoiceNumberSeed" type="text" placeholder="25-26/JA001" />
+            </div>
+            <div class="form-row">
+              <label>Default Due Days</label>
+              <input class="input" id="invoiceDueDays" type="number" placeholder="7" />
+            </div>
+          </div>
+
+          <div class="settings-section">
             <h3>📊 Dashboard Settings</h3>
             <div class="form-row">
               <label>Show Last 24h Stats</label>
@@ -316,11 +496,15 @@ import Favicons from '~/components/Favicons.astro';
           </div>
 
           <div style="margin-top: 24px; display: flex; gap: 12px; justify-content: flex-end;">
-            <button class="btn-primary" id="saveBtn" style="width:100%;padding:12px;font-size:16px;margin-top:20px">Save Settings</button>
+            <button class="btn-primary" id="saveBtn" style="width:100%;padding:12px;font-size:16px;margin-top:20px"
+              >Save Settings</button
+            >
           </div>
         </div>
       </div>
-      <footer class="main-footer"><strong>JyotirSetu Admin</strong><div class="float-end d-none d-sm-inline">AdminLTE theme</div></footer>
+      <footer class="main-footer">
+        <strong>JyotirSetu Admin</strong><div class="float-end d-none d-sm-inline">AdminLTE theme</div>
+      </footer>
     </div>
 
     <script is:inline>
@@ -371,16 +555,44 @@ import Favicons from '~/components/Favicons.astro';
       async function saveSettings(newSettings) {
         const current = getSettings();
         const updated = { ...current, ...newSettings };
-        try { localStorage.setItem('adminSettings', JSON.stringify(updated)); } catch (e) { console.error('Failed to save adminSettings:', e); }
+        try {
+          localStorage.setItem('adminSettings', JSON.stringify(updated));
+        } catch (e) {
+          console.error('Failed to save adminSettings:', e);
+        }
         applySettings(updated);
         try {
           if (newSettings.theme != null) {
-            await fetch('/api/admin/preferences', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: 'theme', value: String(newSettings.theme) }) });
+            await fetch('/api/admin/preferences', {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ key: 'theme', value: String(newSettings.theme) }),
+            });
           }
           if (newSettings.sidebarCollapsed != null) {
-            await fetch('/api/admin/preferences', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: 'sidebarCollapsed', value: newSettings.sidebarCollapsed ? '1' : '0' }) });
+            await fetch('/api/admin/preferences', {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ key: 'sidebarCollapsed', value: newSettings.sidebarCollapsed ? '1' : '0' }),
+            });
           }
-        } catch (e) { console.error('Failed to save preferences:', e); }
+          if (newSettings.invoiceNumberSeed != null) {
+            await fetch('/api/admin/preferences', {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ key: 'invoiceNumberSeed', value: String(newSettings.invoiceNumberSeed || '') }),
+            });
+          }
+          if (newSettings.invoiceDueDays != null) {
+            await fetch('/api/admin/preferences', {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ key: 'invoiceDueDays', value: String(newSettings.invoiceDueDays || 0) }),
+            });
+          }
+        } catch (e) {
+          console.error('Failed to save preferences:', e);
+        }
       }
 
       /** @param {Settings} settings */
@@ -408,6 +620,8 @@ import Favicons from '~/components/Favicons.astro';
         setInputValue('showEmailPreview', settings.showEmailPreview);
         setInputValue('confirmDelete', settings.confirmDelete);
         setInputValue('showTimestamps', settings.showTimestamps);
+        setInputValue('invoiceNumberSeed', settings.invoiceNumberSeed ?? '');
+        setInputValue('invoiceDueDays', settings.invoiceDueDays ?? 7);
       }
 
       /**
@@ -456,38 +670,52 @@ import Favicons from '~/components/Favicons.astro';
             showEmailPreview: !!getInputValue('showEmailPreview'),
             confirmDelete: !!getInputValue('confirmDelete'),
             showTimestamps: !!getInputValue('showTimestamps'),
+            invoiceNumberSeed: String(getInputValue('invoiceNumberSeed') || ''),
+            invoiceDueDays: Number(getInputValue('invoiceDueDays')),
           };
           saveSettings(newSettings);
           window.AdminNotify?.success('Settings saved');
         });
 
         // Load preferences from DB and apply
-        (async ()=>{
+        (async () => {
           try {
-            const tr = await fetch('/api/admin/preferences?key=theme').then(r=>r.json());
+            const tr = await fetch('/api/admin/preferences?key=theme').then((r) => r.json());
             if (tr?.ok && typeof tr.value === 'string') {
               setInputValue('theme', tr.value);
             }
-            const sr = await fetch('/api/admin/preferences?key=sidebarCollapsed').then(r=>r.json());
+            const sr = await fetch('/api/admin/preferences?key=sidebarCollapsed').then((r) => r.json());
             if (sr?.ok && sr.value != null) {
               setInputValue('sidebarCollapsed', sr.value === '1');
             }
-          } catch (e) { console.error('Failed to load preferences:', e); }
+            const ir = await fetch('/api/admin/preferences?key=invoiceNumberSeed').then((r) => r.json());
+            if (ir?.ok && typeof ir.value === 'string') {
+              setInputValue('invoiceNumberSeed', ir.value);
+            }
+            const dr = await fetch('/api/admin/preferences?key=invoiceDueDays').then((r) => r.json());
+            if (dr?.ok && dr.value != null) {
+              setInputValue('invoiceDueDays', dr.value);
+            }
+          } catch (e) {
+            console.error('Failed to load preferences:', e);
+          }
           applySettings(getSettings());
         })();
 
         // Check DB status
-        fetch('/api/db-health').then(res => res.json()).then(data => {
-          const statusEl = document.getElementById('dbStatus');
-          if (!statusEl) return;
-          if (data.ok) {
-            statusEl.textContent = 'Connected';
-            statusEl.style.background = '#22c55e';
-          } else {
-            statusEl.textContent = 'Error';
-            statusEl.style.background = '#ef4444';
-          }
-        });
+        fetch('/api/db-health')
+          .then((res) => res.json())
+          .then((data) => {
+            const statusEl = document.getElementById('dbStatus');
+            if (!statusEl) return;
+            if (data.ok) {
+              statusEl.textContent = 'Connected';
+              statusEl.style.background = '#22c55e';
+            } else {
+              statusEl.textContent = 'Error';
+              statusEl.style.background = '#ef4444';
+            }
+          });
 
         // Test email
         const testEmailBtn = document.getElementById('testEmailBtn');
@@ -498,7 +726,10 @@ import Favicons from '~/components/Favicons.astro';
             return;
           }
           const btn = document.getElementById('testEmailBtn');
-          if (btn) { btn.textContent = 'Sending...'; btn.disabled = true; }
+          if (btn) {
+            btn.textContent = 'Sending...';
+            btn.disabled = true;
+          }
           try {
             const res = await fetch('/api/test-email', {
               method: 'POST',
@@ -511,25 +742,42 @@ import Favicons from '~/components/Favicons.astro';
           } catch (e) {
             window.AdminNotify?.error('Error occurred', e.message);
           }
-          if (btn) { btn.textContent = 'Send Test'; btn.disabled = false; }
+          if (btn) {
+            btn.textContent = 'Send Test';
+            btn.disabled = false;
+          }
         });
 
         // Backup DB
         const backupBtn = document.getElementById('backupBtn');
         backupBtn?.addEventListener('click', () => {
-          window.location.href = '/api/admin/export';
+          window.location.href = '/api/admin/backup';
         });
-        (function(){
+        (function () {
           const btn = document.getElementById('toggleSidebarDesktop');
-          function sync(){ if(!btn) return; const c=document.body.classList.contains('sidebar-collapse'); btn.textContent = c ? 'Show sidebar' : 'Hide sidebar'; }
-          async function toggle(){ const c=document.body.classList.toggle('sidebar-collapse'); sync(); try{ await fetch('/api/admin/preferences', { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ key:'sidebarCollapsed', value: c ? '1':'0' }) }); }catch(e){ console.error('Error saving sidebarCollapsed:', e); } }
+          function sync() {
+            if (!btn) return;
+            const c = document.body.classList.contains('sidebar-collapse');
+            btn.textContent = c ? 'Show sidebar' : 'Hide sidebar';
+          }
+          async function toggle() {
+            const c = document.body.classList.toggle('sidebar-collapse');
+            sync();
+            try {
+              await fetch('/api/admin/preferences', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ key: 'sidebarCollapsed', value: c ? '1' : '0' }),
+              });
+            } catch (e) {
+              console.error('Error saving sidebarCollapsed:', e);
+            }
+          }
           btn?.addEventListener('click', toggle);
           sync();
         })();
       });
     </script>
-  </body>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/admin-lte@latest/dist/js/adminlte.min.js" defer></script>
+  </body><script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/admin-lte@latest/dist/js/adminlte.min.js" defer></script>
 </html>
-

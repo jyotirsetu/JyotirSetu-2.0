@@ -1,41 +1,27 @@
 ---
 export const prerender = false;
 import Favicons from '~/components/Favicons.astro';
+
+import AdminNavbar from '~/components/AdminNavbar.astro';
 ---
-<!DOCTYPE html>
+
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>WhatsApp Templates – Admin</title>
-<link rel="stylesheet" href="/admin.css?v=20251108" />
-<Favicons />
+    <link rel="stylesheet" href="/admin.css?v=20251108" />
+    <Favicons />
   </head>
   <body>
-    <button class="sidebar-toggle" aria-label="Open Admin Menu" id="sidebarToggle">☰</button>
-    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
-    <div class="layout">
-      <aside class="sidebar" id="adminSidebar">
-        <div class="logo"><span class="brand-dot"></span> <span>JyotirSetu Admin</span></div>
-        <nav class="nav">
-          <a href="/admin/dashboard">Dashboard</a>
-          <a href="/admin/appointments">Appointments</a>
-          <a href="/admin/contacts">Contacts</a>
-          <a href="/admin/calendar">Calendar</a>
-          <a href="/admin/activity-log">Activity Log</a>
-          <a href="/admin/newsletter">Newsletter</a>
-          <a href="/admin/templates/email">Email Templates</a>
-          <a href="/admin/templates/whatsapp">WhatsApp Templates</a>
-          <a class="active" href="/admin/whatsapp">WhatsApp</a>
-          <a href="/admin/settings">Settings</a>
-        </nav>
-      </aside>
-      <section class="content">
+    <div class="wrapper">
+      <AdminNavbar />
+      <section class="content-wrapper">
         <div class="topbar">
           <strong>WhatsApp Templates</strong>
           <div style="display:flex; gap:8px; align-items:center">
             <span class="pill">Personalize and copy</span>
-            <a href="/api/admin/logout" class="pill">Logout</a>
           </div>
         </div>
         <div class="toolbar">
@@ -55,10 +41,10 @@ import Favicons from '~/components/Favicons.astro';
 
     <script is:inline>
       if (typeof window !== 'undefined') {
-        function formatWaPhone(input){
-          const digits = String(input||'').replace(/\D/g,'');
+        function formatWaPhone(input) {
+          const digits = String(input || '').replace(/\D/g, '');
           if (digits.startsWith('91')) return digits;
-          if (digits.length === 10) return '91'+digits;
+          if (digits.length === 10) return '91' + digits;
           return digits;
         }
         const nameInput = document.getElementById('waName');
@@ -66,50 +52,75 @@ import Favicons from '~/components/Favicons.astro';
         const serviceInput = document.getElementById('waService');
         const statusSelect = document.getElementById('waStatus');
         const qs = new URLSearchParams(window.location.search);
-        nameInput.value = qs.get('name')||'';
-        phoneInput.value = qs.get('phone')||'';
-        serviceInput.value = qs.get('service')||'';
-        statusSelect.value = qs.get('status')||'pending';
+        nameInput.value = qs.get('name') || '';
+        phoneInput.value = qs.get('phone') || '';
+        serviceInput.value = qs.get('service') || '';
+        statusSelect.value = qs.get('status') || 'pending';
 
         let dbTemplates = [];
         const fallback = [
-          { key:'pending', text:'🕐 Hi {name}, your appointment request for {service} is pending. ID: {appointment_id}. We’ll confirm soon. Follow Hub: https://follow.jyotirsetu.com' },
-          { key:'confirmed', text:'✅ Confirmed: {service} on {date} at {time} ({method}). ID: {appointment_id}. Details: https://follow.jyotirsetu.com' },
-          { key:'rescheduled', text:'🔁 Rescheduled: {service}. New {date} {time} ({method}). ID: {appointment_id}. Details: https://follow.jyotirsetu.com' },
-          { key:'cancelled_user', text:'❌ Cancelled as requested: {service}. ID: {appointment_id}. Book again anytime: https://follow.jyotirsetu.com' },
-          { key:'cancelled_provider', text:'⚠️ Cancelled by provider: {service}. ID: {appointment_id}. We’ll offer alternate slots shortly. Updates: https://follow.jyotirsetu.com' }
+          {
+            key: 'pending',
+            text: '🕐 Hi {name}, your appointment request for {service} is pending. ID: {appointment_id}. We’ll confirm soon. Follow Hub: https://follow.jyotirsetu.com',
+          },
+          {
+            key: 'confirmed',
+            text: '✅ Confirmed: {service} on {date} at {time} ({method}). ID: {appointment_id}. Details: https://follow.jyotirsetu.com',
+          },
+          {
+            key: 'rescheduled',
+            text: '🔁 Rescheduled: {service}. New {date} {time} ({method}). ID: {appointment_id}. Details: https://follow.jyotirsetu.com',
+          },
+          {
+            key: 'cancelled_user',
+            text: '❌ Cancelled as requested: {service}. ID: {appointment_id}. Book again anytime: https://follow.jyotirsetu.com',
+          },
+          {
+            key: 'cancelled_provider',
+            text: '⚠️ Cancelled by provider: {service}. ID: {appointment_id}. We’ll offer alternate slots shortly. Updates: https://follow.jyotirsetu.com',
+          },
         ];
 
-        async function loadTemplates(){
-          try{
+        async function loadTemplates() {
+          try {
             const res = await fetch('/api/admin/templates?type=whatsapp', { credentials: 'include' });
             const j = await res.json();
             dbTemplates = Array.isArray(j.data) ? j.data : [];
-          }catch{ dbTemplates = []; }
+          } catch {
+            dbTemplates = [];
+          }
         }
 
-        function render(){
-          const p = { name:nameInput.value, phone:phoneInput.value, service:serviceInput.value, status:statusSelect.value, appointment_id: (qs.get('id')||'') };
-          const list = (dbTemplates.length ? dbTemplates : fallback);
-          const html = list.map(t=>{
-            const base = (t.text||'')
-              .replaceAll('{name}', p.name)
-              .replaceAll('{service}', p.service)
-              .replaceAll('{status}', p.status)
-              .replaceAll('{date}', '')
-              .replaceAll('{time}', '')
-              .replaceAll('{appointment_id}', p.appointment_id||'');
-            const link = `https://wa.me/${encodeURIComponent(formatWaPhone(p.phone))}?text=${encodeURIComponent(base)}`;
-            const title = (t.key||'').charAt(0).toUpperCase() + (t.key||'').slice(1);
-            return `<div class="card"><strong>${title||'Template'}</strong><p class="muted" style="margin:8px 0 12px">${base}</p><a class="btn-sm" href="${link}" target="_blank">Open in WhatsApp</a></div>`;
-          }).join('');
+        function render() {
+          const p = {
+            name: nameInput.value,
+            phone: phoneInput.value,
+            service: serviceInput.value,
+            status: statusSelect.value,
+            appointment_id: qs.get('id') || '',
+          };
+          const list = dbTemplates.length ? dbTemplates : fallback;
+          const html = list
+            .map((t) => {
+              const base = (t.text || '')
+                .replaceAll('{name}', p.name)
+                .replaceAll('{service}', p.service)
+                .replaceAll('{status}', p.status)
+                .replaceAll('{date}', '')
+                .replaceAll('{time}', '')
+                .replaceAll('{appointment_id}', p.appointment_id || '');
+              const link = `https://wa.me/${encodeURIComponent(formatWaPhone(p.phone))}?text=${encodeURIComponent(base)}`;
+              const title = (t.key || '').charAt(0).toUpperCase() + (t.key || '').slice(1);
+              return `<div class="card"><strong>${title || 'Template'}</strong><p class="muted" style="margin:8px 0 12px">${base}</p><a class="btn-sm" href="${link}" target="_blank">Open in WhatsApp</a></div>`;
+            })
+            .join('');
           document.getElementById('templates').innerHTML = html;
         }
 
         (async () => {
           await loadTemplates();
           render();
-          ['input','change'].forEach(ev=>{
+          ['input', 'change'].forEach((ev) => {
             nameInput.addEventListener(ev, render);
             phoneInput.addEventListener(ev, render);
             serviceInput.addEventListener(ev, render);
@@ -124,7 +135,7 @@ import Favicons from '~/components/Favicons.astro';
       const backdrop = document.getElementById('sidebarBackdrop');
       const toggleBtn = document.getElementById('sidebarToggle');
       let isOpen = false;
-      
+
       function openSidebar() {
         sidebar?.classList.add('active');
         backdrop?.classList.add('active');
@@ -132,7 +143,7 @@ import Favicons from '~/components/Favicons.astro';
         if (toggleBtn) toggleBtn.innerHTML = '✕';
         isOpen = true;
       }
-      
+
       function closeSidebar() {
         sidebar?.classList.remove('active');
         backdrop?.classList.remove('active');
@@ -140,24 +151,22 @@ import Favicons from '~/components/Favicons.astro';
         if (toggleBtn) toggleBtn.innerHTML = '☰';
         isOpen = false;
       }
-      
+
       toggleBtn?.addEventListener('click', () => {
         if (isOpen) closeSidebar();
         else openSidebar();
       });
-      
+
       backdrop?.addEventListener('click', closeSidebar);
-      sidebar?.querySelectorAll('a').forEach(a => {
+      sidebar?.querySelectorAll('a').forEach((a) => {
         a.addEventListener('click', () => {
           if (window.innerWidth <= 900) closeSidebar();
         });
       });
-      
+
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && isOpen) closeSidebar();
       });
     </script>
   </body>
 </html>
-
-

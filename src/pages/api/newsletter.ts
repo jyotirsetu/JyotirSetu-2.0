@@ -23,7 +23,10 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     if (!email) {
-      return new Response(JSON.stringify({ ok: false, error: 'email_required' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+      return new Response(JSON.stringify({ ok: false, error: 'email_required' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
 
     const client = await getTursoClient();
@@ -31,7 +34,7 @@ export const POST: APIRoute = async ({ request }) => {
     await client.execute({
       sql: `INSERT INTO newsletter_subscribers (id, name, email, status, subscribed_at)
             VALUES (lower(hex(randomblob(16))), ?, ?, 'pending', ?)`,
-      args: [name || null, email, now]
+      args: [name || null, email, now],
     });
 
     // Send welcome email
@@ -41,6 +44,9 @@ export const POST: APIRoute = async ({ request }) => {
     return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { 'Content-Type': 'application/json' } });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e);
-    return new Response(JSON.stringify({ ok: false, error: msg }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+    return new Response(JSON.stringify({ ok: false, error: msg }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 };

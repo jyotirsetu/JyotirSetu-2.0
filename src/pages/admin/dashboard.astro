@@ -1,55 +1,256 @@
 ---
 export const prerender = false;
 import Favicons from '~/components/Favicons.astro';
+import AdminNavbar from '~/components/AdminNavbar.astro';
 ---
-<!DOCTYPE html>
+
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Admin Dashboard – JyotirSetu</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/css/all.min.css" />
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" />
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@latest/dist/css/adminlte.min.css" />
-<link rel="stylesheet" href="/admin.css?v=20251116" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@latest/dist/css/adminlte.min.css" />
+    <link rel="stylesheet" href="/admin.css?v=20251129" />
     <Favicons />
     <style>
-      .dashboard-hero { background: linear-gradient(135deg, rgba(124,58,237,0.15), rgba(34,211,238,0.15)); border-radius: 16px; padding: 32px; margin-bottom: 24px; border: 1px solid var(--border); }
-      .dashboard-hero h1 { margin: 0 0 8px; font-size: 28px; font-weight: 800; }
-      .dashboard-hero p { margin: 0; color: var(--muted); font-size: 14px; }
-      .stat-card { background: linear-gradient(180deg, var(--panel), var(--panel-2)); border: 1px solid var(--border); border-radius: 14px; padding: 20px; transition: transform 0.2s, box-shadow 0.2s; }
-      .stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
-      .stat-card .icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 12px; }
-      .stat-card.appointments .icon { background: linear-gradient(135deg, rgba(124,58,237,0.2), rgba(124,58,237,0.1)); }
-      .stat-card.contacts .icon { background: linear-gradient(135deg, rgba(34,211,238,0.2), rgba(34,211,238,0.1)); }
-      .stat-card.recent .icon { background: linear-gradient(135deg, rgba(34,197,94,0.2), rgba(34,197,94,0.1)); }
-      .stat-card.pending .icon { background: linear-gradient(135deg, rgba(245,158,11,0.2), rgba(245,158,11,0.1)); }
-      .stat-card.delivery .icon { background: linear-gradient(135deg, rgba(22,163,74,0.2), rgba(22,163,74,0.1)); }
-      .stat-label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
-      .stat-value { font-size: 32px; font-weight: 800; margin-bottom: 4px; }
-      .stat-change { font-size: 11px; color: var(--muted); }
-      .quick-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 24px; }
-      .action-card { background: linear-gradient(180deg, var(--panel), var(--panel-2)); border: 1px solid var(--border); border-radius: 14px; padding: 20px; text-decoration: none; color: inherit; display: block; transition: all 0.2s; }
-      .action-card:hover { border-color: var(--brand); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(124,58,237,0.2); }
-      .action-card strong { display: block; margin-bottom: 6px; font-size: 16px; }
-      .action-card .muted { font-size: 13px; }
-      .action-card .arrow { float: right; font-size: 20px; opacity: 0.5; }
-      .cards-row { display: flex; flex-wrap: nowrap; gap: 16px; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 8px; }
-      .cards-row .card { min-width: 280px; }
+      .dashboard-hero {
+        background: linear-gradient(135deg, rgba(124, 58, 237, 0.15), rgba(34, 211, 238, 0.15));
+        border-radius: 16px;
+        padding: 32px;
+        margin-bottom: 24px;
+        border: 1px solid var(--border);
+      }
+      .dashboard-hero h1 {
+        margin: 0 0 8px;
+        font-size: 28px;
+        font-weight: 800;
+      }
+      .dashboard-hero p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 14px;
+      }
+      .stat-card {
+        background: linear-gradient(180deg, var(--panel), var(--panel-2));
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 20px;
+        transition:
+          transform 0.2s,
+          box-shadow 0.2s;
+      }
+      .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+      }
+      .stat-card .icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        margin-bottom: 12px;
+      }
+      .stat-card.appointments .icon {
+        background: linear-gradient(135deg, rgba(124, 58, 237, 0.2), rgba(124, 58, 237, 0.1));
+      }
+      .stat-card.contacts .icon {
+        background: linear-gradient(135deg, rgba(34, 211, 238, 0.2), rgba(34, 211, 238, 0.1));
+      }
+      .stat-card.recent .icon {
+        background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(34, 197, 94, 0.1));
+      }
+      .stat-card.pending .icon {
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(245, 158, 11, 0.1));
+      }
+      .stat-card.delivery .icon {
+        background: linear-gradient(135deg, rgba(22, 163, 74, 0.2), rgba(22, 163, 74, 0.1));
+      }
+      .stat-label {
+        font-size: 12px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+      }
+      .stat-value {
+        font-size: 32px;
+        font-weight: 800;
+        margin-bottom: 4px;
+      }
+      .stat-change {
+        font-size: 11px;
+        color: var(--muted);
+      }
+
+      .stat-card-modern {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 16px;
+        padding: 24px;
+        color: white;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      }
+      .stat-card-modern:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+      }
+      .stat-card-modern::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.1);
+        transform: rotate(45deg);
+        transition: all 0.3s ease;
+      }
+      .stat-card-modern:hover::before {
+        top: -30%;
+        right: -30%;
+      }
+      .stat-card-modern.appointments {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      }
+      .stat-card-modern.contacts {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      }
+      .stat-card-modern.newsletter {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      }
+      .stat-card-modern.recent {
+        background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+      }
+      .stat-card-modern.pending {
+        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+      }
+      .stat-card-modern.quotes {
+        background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+        color: #2d3748;
+      }
+      .stat-card-modern.quotes-amount {
+        background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+        color: #2d3748;
+      }
+      .stat-card-modern .icon-modern {
+        width: 60px;
+        height: 60px;
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        margin-bottom: 16px;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+      }
+      .stat-card-modern .stat-label-modern {
+        font-size: 14px;
+        opacity: 0.9;
+        margin-bottom: 8px;
+        font-weight: 500;
+      }
+      .stat-card-modern .stat-value-modern {
+        font-size: 36px;
+        font-weight: 800;
+        margin-bottom: 8px;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      .stat-card-modern .stat-change-modern {
+        font-size: 12px;
+        opacity: 0.8;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .stat-card-modern .stat-change-modern .arrow {
+        font-size: 10px;
+      }
+      .quick-actions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        margin-top: 24px;
+      }
+      .action-card {
+        background: linear-gradient(180deg, var(--panel), var(--panel-2));
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 20px;
+        text-decoration: none;
+        color: inherit;
+        display: block;
+        transition: all 0.2s;
+      }
+      .action-card:hover {
+        border-color: var(--brand);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(124, 58, 237, 0.2);
+      }
+      .action-card strong {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 16px;
+      }
+      .action-card .muted {
+        font-size: 13px;
+      }
+      .action-card .arrow {
+        float: right;
+        font-size: 20px;
+        opacity: 0.5;
+      }
+      .cards-row {
+        display: flex;
+        flex-wrap: nowrap;
+        gap: 16px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 8px;
+      }
+      .cards-row .card {
+        min-width: 280px;
+      }
     </style>
     <style>
-      /* Newsletter stats card style */
-      .stat-card.newsletter .icon { background: linear-gradient(135deg, rgba(14,165,233,0.2), rgba(14,165,233,0.1)); }
+      .stat-card.newsletter .icon {
+        background: linear-gradient(135deg, rgba(14, 165, 233, 0.2), rgba(14, 165, 233, 0.1));
+      }
+      @media (max-width: 576px) {
+        .stat-grid {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 12px;
+        }
+        .stat-grid > [class*='col-'] {
+          width: auto;
+          padding: 0;
+        }
+        .stat-card-modern { padding: 16px; }
+        .stat-card-modern .stat-value-modern { font-size: 28px; }
+        .stat-card-modern .icon-modern { width: 48px; height: 48px; }
+      }
     </style>
   </head>
   <body class="hold-transition sidebar-mini">
     <button class="sidebar-toggle" aria-label="Open Admin Menu" id="sidebarToggle">☰</button>
     <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
     <script is:inline>
-      (function(){
-        function applyTheme(theme){
+      (function () {
+        function applyTheme(theme) {
           let t = theme;
-          if (t === 'auto') { t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'; }
+          if (t === 'auto') {
+            t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          }
           document.body.classList.toggle('dark-mode', t === 'dark');
         }
         let theme = 'dark';
@@ -63,53 +264,135 @@ import Favicons from '~/components/Favicons.astro';
               if (s.sidebarCollapsed != null) collapsed = !!s.sidebarCollapsed;
             }
           }
-        } catch (e) { console.error('Error loading admin settings:', e); }
+        } catch (e) {
+          console.error('Error loading admin settings:', e);
+        }
         applyTheme(theme);
         document.body.classList.toggle('sidebar-collapse', collapsed);
         try {
           Promise.all([
-            fetch('/api/admin/preferences?key=theme').then(function(r){return r.json();}),
-            fetch('/api/admin/preferences?key=sidebarCollapsed').then(function(r){return r.json();})
-          ]).then(function(rs){
-            const tr = rs[0], sr = rs[1];
-            if (tr && tr.ok && typeof tr.value === 'string') applyTheme(tr.value);
-            if (sr && sr.ok && sr.value != null) document.body.classList.toggle('sidebar-collapse', sr.value === '1');
-          }).catch(function(err){ console.error('Error syncing preferences:', err); });
-        } catch (e) { console.error('Error syncing preferences:', e); }
+            fetch('/api/admin/preferences?key=theme').then(function (r) {
+              return r.json();
+            }),
+            fetch('/api/admin/preferences?key=sidebarCollapsed').then(function (r) {
+              return r.json();
+            }),
+          ])
+            .then(function (rs) {
+              const tr = rs[0],
+                sr = rs[1];
+              if (tr && tr.ok && typeof tr.value === 'string') applyTheme(tr.value);
+              if (sr && sr.ok && sr.value != null) document.body.classList.toggle('sidebar-collapse', sr.value === '1');
+            })
+            .catch(function (err) {
+              console.error('Error syncing preferences:', err);
+            });
+        } catch (e) {
+          console.error('Error syncing preferences:', e);
+        }
       })();
     </script>
     <div class="wrapper">
+      <AdminNavbar />
+      <!-- legacy navbar kept for reference
       <nav class="main-header navbar navbar-expand navbar-dark">
         <ul class="navbar-nav">
-          <li class="nav-item"><a class="nav-link" data-widget="pushmenu" href="#" role="button" aria-label="Toggle sidebar"><i class="fas fa-bars"></i></a></li>
+          <li class="nav-item">
+            <a class="nav-link" data-widget="pushmenu" href="#" role="button" aria-label="Toggle sidebar"
+              ><i class="fas fa-bars"></i></a
+            >
+          </li>
           <li class="nav-item"><a href="/admin/dashboard" class="nav-link">Dashboard</a></li>
         </ul>
         <ul class="navbar-nav ms-auto">
-          <li class="nav-item"><button class="btn btn-sm btn-outline-secondary" id="toggleSidebarDesktop">Hide sidebar</button></li>
+          <li class="nav-item">
+            <button class="btn btn-sm btn-outline-secondary" id="toggleSidebarDesktop">Hide sidebar</button>
+          </li>
           <li class="nav-item"><a href="/admin/login" class="nav-link">Switch account</a></li>
           <li class="nav-item"><a href="/api/admin/logout" class="nav-link">Logout</a></li>
         </ul>
-      </nav>
+      </nav> -->
+      <style>
+        @media (max-width: 900px) { [data-widget='pushmenu'] { display:none; } }
+      </style>
       <aside class="main-sidebar sidebar-dark-primary elevation-4" id="adminSidebar">
         <a href="/admin/dashboard" class="brand-link" style="display:flex;align-items:center;gap:8px">
-          <img src="https://images.unsplash.com/vector-1763306579596-25a002c977df?q=80&w=1979&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Brand" style="height:40px;width:auto;border-radius:0;box-shadow:0 2px 6px rgba(0,0,0,0.25)" />
+          <img
+            src="https://images.unsplash.com/vector-1763306579596-25a002c977df?q=80&w=1979&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+            alt="Brand"
+            style="height:40px;width:auto;border-radius:0;box-shadow:0 2px 6px rgba(0,0,0,0.25)"
+          />
         </a>
         <div class="sidebar">
-        <nav class="mt-2">
-          <ul class="nav nav-pills nav-sidebar flex-column" role="menu" data-accordion="false" data-widget="treeview">
-            <li class="nav-item"><a href="/admin/dashboard" class="nav-link active"><i class="nav-icon fas fa-gauge"></i><p>Dashboard</p></a></li>
-            <li class="nav-item"><a href="/admin/appointments" class="nav-link"><i class="nav-icon fas fa-calendar-check"></i><p>Appointments</p></a></li>
-            <li class="nav-item"><a href="/admin/contacts" class="nav-link"><i class="nav-icon fas fa-comments"></i><p>Contacts</p></a></li>
-            <li class="nav-item"><a href="/admin/newsletter" class="nav-link"><i class="nav-icon fas fa-envelope-open-text"></i><p>Newsletter</p></a></li>
-            <li class="nav-item"><a href="/admin/calendar" class="nav-link"><i class="nav-icon fas fa-calendar"></i><p>Calendar</p></a></li>
-            <li class="nav-item"><a href="/admin/activity-log" class="nav-link"><i class="nav-icon fas fa-list"></i><p>Activity Log</p></a></li>
-            <li class="nav-item"><a href="/admin/templates/email" class="nav-link"><i class="nav-icon fas fa-file-alt"></i><p>Email Templates</p></a></li>
-            <li class="nav-item"><a href="/admin/templates/payment" class="nav-link"><i class="nav-icon fas fa-file-invoice-dollar"></i><p>Payment Templates</p></a></li>
-            <li class="nav-item"><a href="/admin/templates/whatsapp" class="nav-link"><i class="nav-icon fas fa-file-alt"></i><p>WhatsApp Templates</p></a></li>
-            <li class="nav-item"><a href="/admin/tools/follow-hub/insights" class="nav-link"><i class="nav-icon fas fa-toolbox"></i><p>Follow Hub – Insights</p></a></li>
-            <li class="nav-item"><a href="/admin/settings" class="nav-link"><i class="nav-icon fas fa-gear"></i><p>Settings</p></a></li>
-          </ul>
-        </nav>
+          <nav class="mt-2">
+            <ul class="nav nav-pills nav-sidebar flex-column" role="menu" data-accordion="false" data-widget="treeview">
+              <li class="nav-item">
+                <a href="/admin/dashboard" class="nav-link active"
+                  ><i class="nav-icon fas fa-gauge"></i><p>Dashboard</p></a
+                >
+              </li>
+
+              <li class="nav-item">
+                <a href="/admin/appointments" class="nav-link"
+                  ><i class="nav-icon fas fa-calendar-check"></i><p>Appointments</p></a
+                >
+              </li>
+              <li class="nav-item">
+                <a href="/admin/contacts" class="nav-link"><i class="nav-icon fas fa-comments"></i><p>Contacts</p></a>
+              </li>
+              <li class="nav-item">
+                <a href="/admin/newsletter" class="nav-link"
+                  ><i class="nav-icon fas fa-envelope-open-text"></i><p>Newsletter</p></a
+                >
+              </li>
+              <li class="nav-item">
+                <a href="/admin/calendar" class="nav-link"><i class="nav-icon fas fa-calendar"></i><p>Calendar</p></a>
+              </li>
+              <li class="nav-item">
+                <a href="/admin/quotes" class="nav-link"
+                  ><i class="nav-icon fas fa-file-invoice"></i><p>Quotations</p></a
+                >
+              </li>
+              <li class="nav-item">
+                <a href="/admin/after-service" class="nav-link"
+                  ><i class="nav-icon fas fa-handshake"></i><p>After Service</p></a
+                >
+              </li>
+              <li class="nav-item">
+                <a href="/admin/activity-log" class="nav-link"
+                  ><i class="nav-icon fas fa-list"></i><p>Activity Log</p></a
+                >
+              </li>
+              <li class="nav-item">
+                <a href="/admin/templates/email" class="nav-link"
+                  ><i class="nav-icon fas fa-file-alt"></i><p>Email Templates</p></a
+                >
+              </li>
+              <li class="nav-item">
+                <a href="/admin/templates/payment" class="nav-link"
+                  ><i class="nav-icon fas fa-file-invoice-dollar"></i><p>Payment Templates</p></a
+                >
+              </li>
+              <li class="nav-item">
+                <a href="/admin/templates/whatsapp" class="nav-link"
+                  ><i class="nav-icon fas fa-file-alt"></i><p>WhatsApp Templates</p></a
+                >
+              </li>
+              <li class="nav-item">
+                <a href="/admin/client360" class="nav-link"
+                  ><i class="nav-icon fas fa-user-circle"></i><p>Client 360°</p></a
+                >
+              </li>
+              <li class="nav-item">
+                <a href="/admin/tools/follow-hub/insights" class="nav-link"
+                  ><i class="nav-icon fas fa-toolbox"></i><p>Follow Hub – Insights</p></a
+                >
+              </li>
+              <li class="nav-item">
+                <a href="/admin/settings" class="nav-link"><i class="nav-icon fas fa-gear"></i><p>Settings</p></a>
+              </li>
+            </ul>
+          </nav>
         </div>
       </aside>
       <div class="content-wrapper">
@@ -128,320 +411,502 @@ import Favicons from '~/components/Favicons.astro';
         </section>
         <section class="content">
           <div class="container-fluid">
-          <div class="dashboard-hero">
-            <h1>Welcome to JyotirSetu Admin</h1>
-            <p>Manage appointments, contacts, and templates from one central dashboard</p>
-          </div>
+            <div class="dashboard-hero">
+              <h1>Welcome to JyotirSetu Admin</h1>
+              <p>Manage appointments, contacts, and templates from one central dashboard</p>
+            </div>
 
-          <div class="callout callout-success">
-            <h5>System Status</h5>
-            <p>All systems operational</p>
-          </div>
+            <div class="callout callout-info" id="systemStatusCallout">
+              <h5>System Status</h5>
+              <p id="systemStatusText">Checking database…</p>
+            </div>
 
-          <div class="row">
-            <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-              <div class="small-box bg-gradient-primary">
-                <div class="inner">
-                  <p>Total Appointments</p>
-                  <h3 id="stat-appointments">—</h3>
-                </div>
-                <div class="icon"><i class="fas fa-calendar-check"></i></div>
-              </div>
-            </div>
-            <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-              <div class="small-box bg-gradient-info">
-                <div class="inner">
-                  <p>New Contacts</p>
-                  <h3 id="stat-contacts">—</h3>
-                </div>
-                <div class="icon"><i class="fas fa-comments"></i></div>
-              </div>
-            </div>
-            <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-              <div class="small-box bg-gradient-indigo">
-                <div class="inner">
-                  <p>Newsletter Subscribers</p>
-                  <h3 id="stat-newsletter">—</h3>
-                </div>
-                <div class="icon"><i class="fas fa-envelope-open-text"></i></div>
-              </div>
-            </div>
-            <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-              <div class="small-box bg-gradient-success">
-                <div class="inner">
-                  <p>Last 24 Hours</p>
-                  <h3 id="stat-24h">—</h3>
-                </div>
-                <div class="icon"><i class="fas fa-clock"></i></div>
-              </div>
-            </div>
-            <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-              <div class="small-box bg-gradient-warning">
-                <div class="inner">
-                  <p>Pending Action</p>
-                  <h3 id="stat-pending">—</h3>
-                </div>
-                <div class="icon"><i class="fas fa-hourglass-half"></i></div>
-              </div>
-            </div>
-            <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-              <div class="small-box bg-gradient-success">
-                <div class="inner">
-                  <p>Email Status</p>
-                  <h3>OK</h3>
-                </div>
-                <div class="icon"><i class="fas fa-check-circle"></i></div>
-              </div>
-            </div>
-          </div>
-
-          <div class="cards-row mt-3">
-            <div class="card card-outline card-primary h-100">
-              <div class="card-body">
-                <h5 class="card-title">Manage Appointments</h5>
-                <p class="card-text">Review, filter, and contact clients</p>
-                <a href="/admin/appointments" class="stretched-link"></a>
-              </div>
-            </div>
-            <div class="card card-outline card-info h-100">
-              <div class="card-body">
-                <h5 class="card-title">View Contacts</h5>
-                <p class="card-text">Reply to messages and track status</p>
-                <a href="/admin/contacts" class="stretched-link"></a>
-              </div>
-            </div>
-            <div class="card card-outline card-indigo h-100">
-              <div class="card-body">
-                <h5 class="card-title">Email Templates</h5>
-                <p class="card-text">Customize email templates</p>
-                <a href="/admin/templates/email" class="stretched-link"></a>
-              </div>
-            </div>
-            <div class="card card-outline card-success h-100">
-              <div class="card-body">
-                <h5 class="card-title">WhatsApp Templates</h5>
-                <p class="card-text">Manage WhatsApp messages</p>
-                <a href="/admin/templates/whatsapp" class="stretched-link"></a>
-              </div>
-            </div>
-            <div class="card card-outline card-warning h-100">
-              <div class="card-body">
-                <h5 class="card-title">Payment Templates</h5>
-                <p class="card-text">Configure payment email messages</p>
-                <a href="/admin/templates/payment" class="stretched-link"></a>
-              </div>
-            </div>
-          </div>
-
-          <div class="row mt-3">
-            <div class="col-12">
-              <div class="card">
-                <div class="card-header">
-                  <h3 class="card-title">Recent Activity</h3>
-                  <div class="card-tools">
-                    <a class="btn btn-sm btn-outline-secondary" href="/admin/activity-log">View all</a>
+            <div class="row stat-grid stats-separator">
+              <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+                <div class="stat-card-modern appointments">
+                  <div class="icon-modern"><i class="fas fa-calendar-check"></i></div>
+                  <div class="stat-label-modern">Total Appointments</div>
+                  <div class="stat-value-modern" id="stat-appointments">—</div>
+                  <div class="stat-change-modern">
+                    <i class="fas fa-arrow-up arrow"></i><span>All appointments</span>
                   </div>
                 </div>
-                <div class="card-body">
-                  <div id="recentActivityList" class="activity-list"></div>
+              </div>
+              <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+                <div class="stat-card-modern contacts">
+                  <div class="icon-modern"><i class="fas fa-comments"></i></div>
+                  <div class="stat-label-modern">New Contacts</div>
+                  <div class="stat-value-modern" id="stat-contacts">—</div>
+                  <div class="stat-change-modern">
+                    <i class="fas fa-arrow-up arrow"></i><span>Contact messages</span>
+                  </div>
+                </div>
+              </div>
+              <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+                <div class="stat-card-modern newsletter">
+                  <div class="icon-modern"><i class="fas fa-envelope-open-text"></i></div>
+                  <div class="stat-label-modern">Newsletter Subscribers</div>
+                  <div class="stat-value-modern" id="stat-newsletter">—</div>
+                  <div class="stat-change-modern">
+                    <i class="fas fa-arrow-up arrow"></i><span>Email subscribers</span>
+                  </div>
+                </div>
+              </div>
+              <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+                <div class="stat-card-modern recent">
+                  <div class="icon-modern"><i class="fas fa-clock"></i></div>
+                  <div class="stat-label-modern">Last 24 Hours</div>
+                  <div class="stat-value-modern" id="stat-24h">—</div>
+                  <div class="stat-change-modern">
+                    <i class="fas fa-arrow-up arrow"></i><span>Recent activity</span>
+                  </div>
+                </div>
+              </div>
+              <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+                <div class="stat-card-modern pending">
+                  <div class="icon-modern"><i class="fas fa-hourglass-half"></i></div>
+                  <div class="stat-label-modern">Pending Action</div>
+                  <div class="stat-value-modern" id="stat-pending">—</div>
+                  <div class="stat-change-modern">
+                    <i class="fas fa-exclamation-circle arrow"></i><span>Requires attention</span>
+                  </div>
+                </div>
+              </div>
+              <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+                <div class="stat-card-modern" style="background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);">
+                  <div class="icon-modern"><i class="fas fa-check-circle"></i></div>
+                  <div class="stat-label-modern">Email Status</div>
+                  <div class="stat-value-modern">OK</div>
+                  <div class="stat-change-modern"><i class="fas fa-check arrow"></i><span>System online</span></div>
+                </div>
+              </div>
+              <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+                <div class="stat-card-modern quotes">
+                  <div class="icon-modern"><i class="fas fa-file-invoice"></i></div>
+                  <div class="stat-label-modern">Total Quotations</div>
+                  <div class="stat-value-modern" id="stat-quotes">—</div>
+                  <div class="stat-change-modern"><i class="fas fa-arrow-up arrow"></i><span>Quotes count</span></div>
+                </div>
+              </div>
+              <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+                <div class="stat-card-modern quotes-amount">
+                  <div class="icon-modern"><i class="fas fa-indian-rupee-sign"></i></div>
+                  <div class="stat-label-modern">Quotations Amount</div>
+                  <div class="stat-value-modern" id="stat-quotes-amount">—</div>
+                  <div class="stat-change-modern"><i class="fas fa-arrow-up arrow"></i><span>Total value</span></div>
                 </div>
               </div>
             </div>
-          </div>
+
+            <div class="cards-row mt-3">
+              <div class="card card-outline card-primary h-100">
+                <div class="card-body">
+                  <h5 class="card-title">Manage Appointments</h5>
+                  <p class="card-text">Review, filter, and contact clients</p>
+                  <a href="/admin/appointments" class="stretched-link"></a>
+                </div>
+              </div>
+              <div class="card card-outline card-info h-100">
+                <div class="card-body">
+                  <h5 class="card-title">View Contacts</h5>
+                  <p class="card-text">Reply to messages and track status</p>
+                  <a href="/admin/contacts" class="stretched-link"></a>
+                </div>
+              </div>
+              <div class="card card-outline card-indigo h-100">
+                <div class="card-body">
+                  <h5 class="card-title">Email Templates</h5>
+                  <p class="card-text">Customize email templates</p>
+                  <a href="/admin/templates/email" class="stretched-link"></a>
+                </div>
+              </div>
+              <div class="card card-outline card-success h-100">
+                <div class="card-body">
+                  <h5 class="card-title">WhatsApp Templates</h5>
+                  <p class="card-text">Manage WhatsApp messages</p>
+                  <a href="/admin/templates/whatsapp" class="stretched-link"></a>
+                </div>
+              </div>
+              <div class="card card-outline card-warning h-100">
+                <div class="card-body">
+                  <h5 class="card-title">Payment Templates</h5>
+                  <p class="card-text">Configure payment email messages</p>
+                  <a href="/admin/templates/payment" class="stretched-link"></a>
+                </div>
+              </div>
+            </div>
+
+            <div class="row mt-3">
+              <div class="col-12">
+                <div class="card">
+                  <div class="card-header">
+                    <h3 class="card-title">Recent Activity</h3>
+                    <div class="card-tools">
+                      <a class="btn btn-sm btn-outline-secondary" href="/admin/activity-log">View all</a>
+                    </div>
+                  </div>
+                  <div class="card-body">
+                    <div id="recentActivityList" class="activity-list"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
       </div>
-      <footer class="main-footer"><strong>JyotirSetu Admin</strong><div class="float-end d-none d-sm-inline">AdminLTE theme</div></footer>
+      <footer class="main-footer">
+        <strong>JyotirSetu Admin</strong><div class="float-end d-none d-sm-inline">AdminLTE theme</div>
+      </footer>
     </div>
 
     <script is:inline>
-      async function loadStats(){
-        try{
-          const [a,c,n] = await Promise.all([
-            fetch('/api/admin/appointments?page=1&limit=1000').then(r=>r.json()).catch(()=>({data:[]})),
-            fetch('/api/admin/contacts').then(r=>r.json()).catch(()=>({data:[]})),
-            fetch('/api/admin/newsletter?page=1&limit=1').then(r=>r.json()).catch(()=>({ pagination: { total: 0 } }))
-          ]);
-          const appts = a.data||[];
-          const apptEl = document.getElementById('stat-appointments');
-          if (apptEl) apptEl.textContent = String(appts.length);
-          const contactsEl = document.getElementById('stat-contacts');
-          if (contactsEl) contactsEl.textContent = String((c.data||[]).length);
-          const newsletterEl = document.getElementById('stat-newsletter');
-          const totalNewsletter = (n?.pagination?.total) ?? ((n?.data||[]).length) ?? 0;
-          if (newsletterEl) newsletterEl.textContent = String(totalNewsletter);
-          const now = Date.now();
-          const last24 = appts.filter(x=>{
-            const t = new Date(x.created_at).getTime();
-            return !isNaN(t) && (now - t) <= 24*60*60*1000;
-          }).length;
-          const pending = appts.filter(x=>String(x.status||'').toLowerCase()==='pending').length;
-          const last24El = document.getElementById('stat-24h');
-          if (last24El) last24El.textContent = String(last24);
-          const pendingEl = document.getElementById('stat-pending');
-          if (pendingEl) pendingEl.textContent = String(pending);
-        }catch(e){ console.warn('Failed to load stats', e); }
-      }
-      loadStats();
-
-      function formatIndiaTime(ts){
-        try{
-          let d;
-          if (typeof ts === 'string') {
-            const s = ts.trim();
-            // Normalize SQLite UTC string (no timezone) to proper UTC
-            if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(\.\d+)?$/.test(s)) {
-              d = new Date(s.replace(' ', 'T') + 'Z');
-            } else {
-              d = new Date(s);
-            }
-          } else {
-            d = new Date(ts);
+      (function () {
+        const controllers = new Set();
+        let updatesInterval = null;
+        function silentFetchJson(url, opts, fallback) {
+          try {
+            const c = new AbortController();
+            controllers.add(c);
+            const options = Object.assign(
+              { cache: 'no-store', credentials: 'include', keepalive: true, signal: c.signal },
+              opts || {}
+            );
+            return fetch(url, options)
+              .then(function (r) {
+                return r.ok ? r.json() : fallback;
+              })
+              .catch(function () {
+                return fallback;
+              })
+              .finally(function () {
+                controllers.delete(c);
+              });
+          } catch {
+            return Promise.resolve(fallback);
           }
-          return d.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', year:'numeric', month:'short', day:'2-digit', hour:'2-digit', minute:'2-digit', hour12:true });
-        }catch{ return String(ts||''); }
-      }
-      async function loadRecentActivity(){
-        try{
-          const res = await fetch('/api/admin/activity-log?limit=10', { credentials: 'include' });
-          const json = await res.json();
-          const logs = json.data||[];
-          const list = document.getElementById('recentActivityList');
-          if(!list) return;
-          if(!logs.length){ list.innerHTML = '<div class="activity-item"><div class="activity-left"><div class="activity-title">No recent activity</div></div></div>'; return; }
-          const iconForAction = (a)=>({
-            'appointment_created':'📅',
-            'status_updated':'🔄',
-            'email_sent':'📧',
-            'contact_created':'💬',
-            'note_created':'📝',
-            'note_deleted':'🗑️',
-            'contact_deleted':'🗑️'
-          })[String(a||'').toLowerCase()] || '⚡';
-          list.innerHTML = logs.slice(0,6).map(l=>{
-            const actionText = String(l.action||'').replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
-            const when = formatIndiaTime(l.created_at);
-            const nameOrEmail = l.appointment_name || l.contact_name || l.appointment_email || l.contact_email || '';
-            const subtitle = `${String(l.entity_type||'').toLowerCase()}${nameOrEmail?` – ${nameOrEmail}`:''}`;
-            const details = l.details || '';
-            const icon = iconForAction(l.action);
-            return `<div class="activity-item" style="gap:12px">
+        }
+        function abortAll() {
+          controllers.forEach(function (c) {
+            try {
+              c.abort();
+            } catch (e) {
+              void e;
+            }
+          });
+          controllers.clear();
+        }
+        window.addEventListener('beforeunload', function () {
+          if (updatesInterval) clearInterval(updatesInterval);
+          abortAll();
+        });
+        document.addEventListener('visibilitychange', function () {
+          if (document.visibilityState === 'hidden') {
+            if (updatesInterval) clearInterval(updatesInterval);
+            abortAll();
+          }
+        });
+
+        async function loadStats() {
+          try {
+            const [a, c, n, q] = await Promise.all([
+              silentFetchJson('/api/admin/appointments?page=1&limit=1000', null, { data: [] }),
+              silentFetchJson('/api/admin/contacts', null, { data: [] }),
+              silentFetchJson('/api/admin/newsletter?page=1&limit=1', null, { pagination: { total: 0 } }),
+              silentFetchJson('/api/admin/quotes?stats=1', null, { totals: { count: 0, amount: 0 } }),
+            ]);
+            const appts = a.data || [];
+            const apptEl = document.getElementById('stat-appointments');
+            if (apptEl) apptEl.textContent = String(appts.length);
+            const contactsEl = document.getElementById('stat-contacts');
+            if (contactsEl) contactsEl.textContent = String((c.data || []).length);
+            const newsletterEl = document.getElementById('stat-newsletter');
+            const totalNewsletter = n?.pagination?.total ?? (n?.data || []).length ?? 0;
+            if (newsletterEl) newsletterEl.textContent = String(totalNewsletter);
+            const now = Date.now();
+            const last24 = appts.filter((x) => {
+              const t = new Date(x.created_at).getTime();
+              return !isNaN(t) && now - t <= 24 * 60 * 60 * 1000;
+            }).length;
+            const pending = appts.filter((x) => String(x.status || '').toLowerCase() === 'pending').length;
+            const last24El = document.getElementById('stat-24h');
+            if (last24El) last24El.textContent = String(last24);
+            const pendingEl = document.getElementById('stat-pending');
+            if (pendingEl) pendingEl.textContent = String(pending);
+            const qTotals = (q && q.totals) || { count: 0, amount: 0 };
+            const qEl = document.getElementById('stat-quotes');
+            if (qEl) qEl.textContent = String(qTotals.count || 0);
+            const qaEl = document.getElementById('stat-quotes-amount');
+            function fmtFull(n) { return '₹' + Number(n || 0).toFixed(2); }
+            function fmtCompact(n) {
+              const num = Number(n || 0);
+              const abs = Math.abs(num);
+              let value = num;
+              let suffix = '';
+              if (abs >= 1e7) { value = num / 1e7; suffix = ' Cr'; }
+              else if (abs >= 1e5) { value = num / 1e5; suffix = ' L'; }
+              else if (abs >= 1e3) { value = num / 1e3; suffix = ' k'; }
+              const decimals = Math.abs(value) < 10 ? 1 : 0;
+              return '₹' + value.toFixed(decimals) + suffix;
+            }
+            if (qaEl) {
+              const compact = window.innerWidth <= 576;
+              const txt = compact ? fmtCompact(qTotals.amount || 0) : fmtFull(qTotals.amount || 0);
+              qaEl.textContent = txt;
+              qaEl.setAttribute('title', fmtFull(qTotals.amount || 0));
+            }
+          } catch (e) {
+            console.warn('Failed to load stats', e);
+          }
+        }
+        loadStats();
+        try {
+          window.addEventListener('resize', function () {
+            loadStats();
+          });
+        } catch (err) { void err; }
+        try {
+          window.addEventListener('storage', function (e) {
+            try {
+              if (e && e.key === 'quotesStatsUpdated') {
+                loadStats();
+              }
+            } catch (err) {
+              void err;
+            }
+          });
+        } catch (e) {
+          void e;
+        }
+        async function loadDbHealth() {
+          try {
+            const res = await fetch('/api/db-health', { headers: { Accept: 'application/json' }, cache: 'no-store' });
+            const j = await res.json();
+            const box = document.getElementById('systemStatusCallout');
+            const txt = document.getElementById('systemStatusText');
+            if (!box || !txt) return;
+            if (j && j.ok) {
+              box.classList.remove('callout-danger', 'callout-warning');
+              box.classList.add('callout-success');
+              txt.textContent = 'Database connected (' + (j.urlHostMasked || '') + ')';
+            } else {
+              box.classList.remove('callout-success');
+              box.classList.add('callout-warning');
+              const stage = (j && j.stage) || 'unknown';
+              const details = [];
+              if (j && j.hasUrl === false) details.push('missing TURSO_DATABASE_URL');
+              if (j && j.hasToken === false) details.push('missing TURSO_AUTH_TOKEN');
+              if (stage === 'query' && j && j.error) {
+                details.push(String(j.error));
+              }
+              txt.textContent = 'Database not connected' + (details.length ? ': ' + details.join(', ') : '');
+            }
+          } catch {
+            const box = document.getElementById('systemStatusCallout');
+            const txt = document.getElementById('systemStatusText');
+            if (box && txt) {
+              box.classList.remove('callout-success');
+              box.classList.add('callout-danger');
+              txt.textContent = 'Database check failed';
+            }
+          }
+        }
+        loadDbHealth();
+
+        function formatIndiaTime(ts) {
+          try {
+            let d;
+            if (typeof ts === 'string') {
+              const s = ts.trim();
+              // Normalize SQLite UTC string (no timezone) to proper UTC
+              if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(\.\d+)?$/.test(s)) {
+                d = new Date(s.replace(' ', 'T') + 'Z');
+              } else {
+                d = new Date(s);
+              }
+            } else {
+              d = new Date(ts);
+            }
+            return d.toLocaleString('en-IN', {
+              timeZone: 'Asia/Kolkata',
+              year: 'numeric',
+              month: 'short',
+              day: '2-digit',
+              hour: '2-digit',
+              minute: '2-digit',
+              hour12: true,
+            });
+          } catch {
+            return String(ts || '');
+          }
+        }
+        async function loadRecentActivity() {
+          try {
+            const json = await silentFetchJson('/api/admin/activity-log?limit=10', null, { data: [] });
+            const logs = json.data || [];
+            const list = document.getElementById('recentActivityList');
+            if (!list) return;
+            if (!logs.length) {
+              list.innerHTML =
+                '<div class="activity-item"><div class="activity-left"><div class="activity-title">No recent activity</div></div></div>';
+              return;
+            }
+            const iconForAction = (a) =>
+              ({
+                appointment_created: '📅',
+                status_updated: '🔄',
+                email_sent: '📧',
+                contact_created: '💬',
+                note_created: '📝',
+                note_deleted: '🗑️',
+                contact_deleted: '🗑️',
+              })[String(a || '').toLowerCase()] || '⚡';
+            list.innerHTML = logs
+              .slice(0, 6)
+              .map((l) => {
+                const actionText = String(l.action || '')
+                  .replace(/_/g, ' ')
+                  .replace(/\b\w/g, (c) => c.toUpperCase());
+                const when = formatIndiaTime(l.created_at);
+                const nameOrEmail =
+                  l.appointment_name || l.contact_name || l.appointment_email || l.contact_email || '';
+                const subtitle = `${String(l.entity_type || '').toLowerCase()}${nameOrEmail ? ` – ${nameOrEmail}` : ''}`;
+                const details = l.details || '';
+                const icon = iconForAction(l.action);
+                return `<div class="activity-item" style="gap:12px">
               <div style="font-size:18px;line-height:1.2">${icon}</div>
               <div class="activity-left">
                 <div class="activity-title">${actionText}</div>
-                ${subtitle?`<div class="activity-details">${subtitle}</div>`:''}
-                ${details?`<div class="activity-details">${details}</div>`:''}
+                ${subtitle ? `<div class="activity-details">${subtitle}</div>` : ''}
+                ${details ? `<div class="activity-details">${details}</div>` : ''}
               </div>
               <div class="activity-time">${when}</div>
             </div>`;
-          }).join('');
-        }catch{
-          const list = document.getElementById('recentActivityList');
-          if(list) list.innerHTML = '<div class="activity-item"><div class="activity-left"><div class="activity-title">Failed to load activity</div></div></div>';
-        }
-      }
-      loadRecentActivity();
-
-      // Initialize notifications
-      if (typeof window !== 'undefined' && 'Notification' in window) {
-        if (Notification.permission === 'default') {
-          Notification.requestPermission();
-        }
-        
-        let lastApptsCount = 0;
-        let lastContactsCount = 0;
-        
-        async function checkForUpdates() {
-          try {
-            const settings = JSON.parse(localStorage.getItem('adminSettings') || '{}');
-            if (settings.browserNotifications === false) return;
-            
-            const [apptsRes, contactsRes] = await Promise.all([
-              fetch('/api/admin/appointments?page=1&limit=1').then(r => r.json()).catch(() => ({ pagination: { total: 0 } })),
-              fetch('/api/admin/contacts?page=1&limit=1').then(r => r.json()).catch(() => ({ pagination: { total: 0 } }))
-            ]);
-            
-            const apptsCount = apptsRes.pagination?.total || 0;
-            const contactsCount = contactsRes.pagination?.total || 0;
-            
-            if (lastApptsCount > 0 && apptsCount > lastApptsCount && settings.notifyNewAppointment !== false) {
-              new Notification('New Appointment!', {
-                body: `You have ${apptsCount - lastApptsCount} new appointment(s)`,
-                icon: '/favicon.ico',
-                tag: 'new-appointment'
-              });
-            }
-            
-            if (lastContactsCount > 0 && contactsCount > lastContactsCount && settings.notifyNewContact !== false) {
-              new Notification('New Contact Message!', {
-                body: `You have ${contactsCount - lastContactsCount} new contact message(s)`,
-                icon: '/favicon.ico',
-                tag: 'new-contact'
-              });
-            }
-            
-            lastApptsCount = apptsCount;
-            lastContactsCount = contactsCount;
-          } catch (e) {
-            console.error('Notification check failed:', e);
+              })
+              .join('');
+          } catch {
+            const list = document.getElementById('recentActivityList');
+            if (list)
+              list.innerHTML =
+                '<div class="activity-item"><div class="activity-left"><div class="activity-title">Failed to load activity</div></div></div>';
           }
         }
-        
-        // Initial check after 5 seconds
-        setTimeout(() => {
-          checkForUpdates();
-          // Then check every 30 seconds
-          setInterval(checkForUpdates, 30000);
-        }, 5000);
-      }
+        loadRecentActivity();
 
-      // Mobile drawer with animated hamburger
-      const sidebar = document.getElementById('adminSidebar');
-      const backdrop = document.getElementById('sidebarBackdrop');
-      const toggleBtn = document.getElementById('sidebarToggle');
-      let isOpen = false;
-      
-      function openSidebar() {
-        sidebar?.classList.add('active');
-        backdrop?.classList.add('active');
-        toggleBtn?.classList.add('active');
-        if (toggleBtn) toggleBtn.innerHTML = '✕';
-        isOpen = true;
-      }
-      
-      function closeSidebar() {
-        sidebar?.classList.remove('active');
-        backdrop?.classList.remove('active');
-        toggleBtn?.classList.remove('active');
-        if (toggleBtn) toggleBtn.innerHTML = '☰';
-        isOpen = false;
-      }
-      
-      toggleBtn?.addEventListener('click', () => {
-        if (isOpen) closeSidebar();
-        else openSidebar();
-      });
-      
-      backdrop?.addEventListener('click', closeSidebar);
-      sidebar?.querySelectorAll('a').forEach(a => {
-        a.addEventListener('click', () => {
-          if (window.innerWidth <= 900) closeSidebar();
+        // Initialize notifications
+        if (typeof window !== 'undefined' && 'Notification' in window) {
+          if (Notification.permission === 'default') {
+            Notification.requestPermission();
+          }
+
+          let lastApptsCount = 0;
+          let lastContactsCount = 0;
+
+          async function checkForUpdates() {
+            try {
+              const settings = JSON.parse(localStorage.getItem('adminSettings') || '{}');
+              if (settings.browserNotifications === false) return;
+              if (document.visibilityState !== 'visible') return;
+              if (Notification.permission !== 'granted') return;
+
+              const [apptsRes, contactsRes] = await Promise.all([
+                silentFetchJson('/api/admin/appointments?page=1&limit=1', null, { pagination: { total: 0 } }),
+                silentFetchJson('/api/admin/contacts?page=1&limit=1', null, { pagination: { total: 0 } }),
+              ]);
+
+              const apptsCount = apptsRes.pagination?.total || 0;
+              const contactsCount = contactsRes.pagination?.total || 0;
+
+              if (lastApptsCount > 0 && apptsCount > lastApptsCount && settings.notifyNewAppointment !== false) {
+                new Notification('New Appointment!', {
+                  body: `You have ${apptsCount - lastApptsCount} new appointment(s)`,
+                  icon: '/favicon.ico',
+                  tag: 'new-appointment',
+                });
+              }
+
+              if (lastContactsCount > 0 && contactsCount > lastContactsCount && settings.notifyNewContact !== false) {
+                new Notification('New Contact Message!', {
+                  body: `You have ${contactsCount - lastContactsCount} new contact message(s)`,
+                  icon: '/favicon.ico',
+                  tag: 'new-contact',
+                });
+              }
+
+              lastApptsCount = apptsCount;
+              lastContactsCount = contactsCount;
+            } catch (e) {
+              console.error('Notification check failed:', e);
+            }
+          }
+
+          // Initial check after 5 seconds
+          setTimeout(() => {
+            checkForUpdates();
+            updatesInterval = setInterval(checkForUpdates, 30000);
+          }, 5000);
+        }
+
+        // Mobile drawer with animated hamburger
+        const sidebar = document.getElementById('adminSidebar');
+        const backdrop = document.getElementById('sidebarBackdrop');
+        const toggleBtn = document.getElementById('sidebarToggle');
+        let isOpen = false;
+
+        function openSidebar() {
+          sidebar?.classList.add('active');
+          backdrop?.classList.add('active');
+          toggleBtn?.classList.add('active');
+          if (toggleBtn) toggleBtn.innerHTML = '✕';
+          isOpen = true;
+        }
+
+        function closeSidebar() {
+          sidebar?.classList.remove('active');
+          backdrop?.classList.remove('active');
+          toggleBtn?.classList.remove('active');
+          if (toggleBtn) toggleBtn.innerHTML = '☰';
+          isOpen = false;
+        }
+
+        toggleBtn?.addEventListener('click', () => {
+          if (isOpen) closeSidebar();
+          else openSidebar();
         });
-      });
-      
-      // Close on escape key
-      document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && isOpen) closeSidebar();
-      });
-      (function(){
+
+        backdrop?.addEventListener('click', closeSidebar);
+        sidebar?.querySelectorAll('a').forEach((a) => {
+          a.addEventListener('click', () => {
+            if (window.innerWidth <= 900) closeSidebar();
+          });
+        });
+
+        // Close on escape key
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape' && isOpen) closeSidebar();
+        });
         const btn = document.getElementById('toggleSidebarDesktop');
-        function sync(){ if(!btn) return; const c=document.body.classList.contains('sidebar-collapse'); btn.textContent = c ? 'Show sidebar' : 'Hide sidebar'; }
-        async function toggle(){ const c=document.body.classList.toggle('sidebar-collapse'); sync(); try{ await fetch('/api/admin/preferences', { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ key:'sidebarCollapsed', value: c ? '1':'0' }) }); }catch(e){ console.error('Error saving sidebarCollapsed:', e); } }
+        function sync() {
+          if (!btn) return;
+          const c = document.body.classList.contains('sidebar-collapse');
+          btn.textContent = c ? 'Show sidebar' : 'Hide sidebar';
+        }
+        async function toggle() {
+          const c = document.body.classList.toggle('sidebar-collapse');
+          sync();
+          try {
+            await fetch('/api/admin/preferences', {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ key: 'sidebarCollapsed', value: c ? '1' : '0' }),
+            });
+          } catch (e) {
+            console.error('Error saving sidebarCollapsed:', e);
+          }
+        }
         btn?.addEventListener('click', toggle);
         sync();
       })();
     </script>
-  </body>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/admin-lte@latest/dist/js/adminlte.min.js" defer></script>
+  </body><script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/admin-lte@latest/dist/js/adminlte.min.js" defer></script>
 </html>

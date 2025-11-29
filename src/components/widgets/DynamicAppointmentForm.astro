@@ -834,7 +834,7 @@
   // Form submission handler function
   async function handleFormSubmission(form) {
     console.log('📝 Starting form submission process...');
-    
+
     const submitBtn = form.querySelector('button[type="submit"]');
     if (!submitBtn) {
       console.error('❌ Submit button not found');
@@ -849,7 +849,7 @@
     try {
       if (!(form instanceof HTMLFormElement)) return;
       const formData = new FormData(form);
-      
+
       // Enhanced validation
       const requiredFields = {
         fullName: formData.get('fullName'),
@@ -858,7 +858,7 @@
         serviceType: formData.get('serviceType'),
         appointmentDate: formData.get('appointmentDate'),
         appointmentTime: formData.get('appointmentTime'),
-        consultationMethod: formData.get('consultationMethod')
+        consultationMethod: formData.get('consultationMethod'),
       };
 
       console.log('📋 Form data collected:', requiredFields);
@@ -924,13 +924,13 @@
       const response = await fetch('/api/appointment-form', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(appointmentData)
+        body: JSON.stringify(appointmentData),
       });
 
       console.log('📡 API response status:', response.status);
       const result = await response.json();
       console.log('📄 API response data:', result);
-      
+
       if (result.success) {
         showSuccessMessage(result.message || 'Appointment booked successfully! We will contact you soon.');
         form.reset();
@@ -946,16 +946,16 @@
       console.error('Error details:', {
         message: error.message,
         stack: error.stack,
-        name: error.name
+        name: error.name,
       });
-      
+
       let errorMessage = 'Sorry, there was an error. Please try again.';
       if (error.message.includes('fetch')) {
         errorMessage = 'Network error. Please check your internet connection and try again.';
       } else if (error.message.includes('JSON')) {
         errorMessage = 'Server response error. Please try again.';
       }
-      
+
       showErrorMessage(errorMessage);
     } finally {
       submitBtn.innerHTML = originalText;
@@ -966,7 +966,7 @@
   // Initialize everything when DOM is ready
   document.addEventListener('DOMContentLoaded', function () {
     console.log('DOM loaded, initializing appointment form...');
-    
+
     // Set default dates
     const today = new Date();
     const tomorrow = new Date(today);
@@ -981,10 +981,10 @@
     // Form submission handling
     const form = document.getElementById('dynamic-appointment-form');
     console.log('Form element found:', form);
-    
+
     if (form) {
       console.log('Adding submit event listener to form...');
-      form.addEventListener('submit', async function(e) {
+      form.addEventListener('submit', async function (e) {
         e.preventDefault();
         console.log('🚀 Appointment form submitted - event triggered!');
 
@@ -999,7 +999,7 @@
         try {
           if (!(form instanceof HTMLFormElement)) return;
           const formData = new FormData(form);
-          
+
           // Enhanced validation
           const requiredFields = {
             fullName: formData.get('fullName'),
@@ -1008,7 +1008,7 @@
             serviceType: formData.get('serviceType'),
             appointmentDate: formData.get('appointmentDate'),
             appointmentTime: formData.get('appointmentTime'),
-            consultationMethod: formData.get('consultationMethod')
+            consultationMethod: formData.get('consultationMethod'),
           };
 
           // Check for missing required fields
@@ -1072,13 +1072,13 @@
           const response = await fetch('/api/appointment-form', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(appointmentData)
+            body: JSON.stringify(appointmentData),
           });
 
           console.log('API response status:', response.status);
           const result = await response.json();
           console.log('API response data:', result);
-          
+
           if (result.success) {
             showSuccessMessage(result.message || 'Appointment booked successfully! We will contact you soon.');
             form.reset();
@@ -1094,23 +1094,23 @@
           console.error('Error details:', {
             message: error.message,
             stack: error.stack,
-            name: error.name
+            name: error.name,
           });
-          
+
           let errorMessage = 'Sorry, there was an error. Please try again.';
           if (error.message.includes('fetch')) {
             errorMessage = 'Network error. Please check your internet connection and try again.';
           } else if (error.message.includes('JSON')) {
             errorMessage = 'Server response error. Please try again.';
           }
-          
+
           showErrorMessage(errorMessage);
         } finally {
           submitBtn.innerHTML = originalText;
           submitBtn.disabled = false;
         }
       });
-      
+
       console.log('✅ Form submit event listener added successfully');
     } else {
       console.error('❌ Form element not found! Form ID: dynamic-appointment-form');
@@ -1118,13 +1118,13 @@
   });
 
   // Fallback: Try to attach event listener after a short delay
-  setTimeout(function() {
+  setTimeout(function () {
     const form = document.getElementById('dynamic-appointment-form');
     if (form && !form.hasAttribute('data-listener-attached')) {
       console.log('🔄 Fallback: Adding submit event listener...');
       form.setAttribute('data-listener-attached', 'true');
-      
-      form.addEventListener('submit', async function(e) {
+
+      form.addEventListener('submit', async function (e) {
         e.preventDefault();
         console.log('🚀 Fallback: Appointment form submitted!');
 
@@ -1142,7 +1142,7 @@
         try {
           if (!(form instanceof HTMLFormElement)) return;
           const formData = new FormData(form);
-          
+
           // Enhanced validation
           const requiredFields = {
             fullName: formData.get('fullName'),
@@ -1151,7 +1151,7 @@
             serviceType: formData.get('serviceType'),
             appointmentDate: formData.get('appointmentDate'),
             appointmentTime: formData.get('appointmentTime'),
-            consultationMethod: formData.get('consultationMethod')
+            consultationMethod: formData.get('consultationMethod'),
           };
 
           // Check for missing required fields
@@ -1215,13 +1215,13 @@
           const response = await fetch('/api/appointment-form', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(appointmentData)
+            body: JSON.stringify(appointmentData),
           });
 
           console.log('API response status:', response.status);
           const result = await response.json();
           console.log('API response data:', result);
-          
+
           if (result.success) {
             showSuccessMessage(result.message || 'Appointment booked successfully! We will contact you soon.');
             form.reset();
@@ -1237,16 +1237,16 @@
           console.error('Error details:', {
             message: error.message,
             stack: error.stack,
-            name: error.name
+            name: error.name,
           });
-          
+
           let errorMessage = 'Sorry, there was an error. Please try again.';
           if (error.message.includes('fetch')) {
             errorMessage = 'Network error. Please check your internet connection and try again.';
           } else if (error.message.includes('JSON')) {
             errorMessage = 'Server response error. Please try again.';
           }
-          
+
           showErrorMessage(errorMessage);
         } finally {
           submitBtn.innerHTML = originalText;
@@ -1255,7 +1255,6 @@
       });
     }
   }, 1000);
-
 
   // Mobile number input validation
   document.addEventListener('DOMContentLoaded', () => {
@@ -1268,23 +1267,23 @@
   });
 
   // Debug: Test form submission manually
-  setTimeout(function() {
+  setTimeout(function () {
     const form = document.getElementById('dynamic-appointment-form');
     const submitBtn = document.querySelector('button[type="submit"]');
-    
+
     console.log('🔍 Debug Info:');
     console.log('- Form element:', form);
     console.log('- Submit button:', submitBtn);
     console.log('- Form has submit listener:', form ? form.onsubmit !== null : 'Form not found');
-    
+
     if (form && submitBtn) {
       console.log('✅ Form and submit button found - form should work');
-      
+
       // Test if we can manually trigger the submit event
-      submitBtn.addEventListener('click', function(e) {
+      submitBtn.addEventListener('click', function (e) {
         console.log('🖱️ Submit button clicked!');
         e.preventDefault(); // Prevent default form submission
-        
+
         // Manually trigger our form submission logic
         console.log('🚀 Manually triggering form submission...');
         handleFormSubmission(form);

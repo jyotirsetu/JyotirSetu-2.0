@@ -1,5 +1,5 @@
 // WhatsApp Templates page client-side logic
-(function(){
+(function () {
   const textArea = document.getElementById('text');
   if (!textArea) return;
 
@@ -26,67 +26,135 @@
   }
 
   const defaultTemplates = [
-    { key: 'pending', text: [
-      'Dear {name},','',
-      '🙏 Thank you for choosing JyotirSetu Astrology. We have received your appointment request for {service}.','',
-      '🕐 Your appointment is currently pending. We will confirm your slot based on availability and inform you shortly.','',
-      '📋 Appointment Details:','• 🆔 Appointment ID: {appointment_id}','• 📆 Date: {date}','• ⏰ Time: {time}','• 🧭 Consultation Method: {method}'
-    ].join('\n') },
-    { key: 'confirmed', text: [
-      'Dear {name},','',
-      '✅ Your appointment for {service} is confirmed on {date} at {time} ({method}).','',
-      '📝 To prepare and provide accurate guidance, please share your horoscope details in reply:','• Birth Date','• Birth Time','• Birth Place','• Gender','',
-      '🆔 Appointment ID: {appointment_id}','',
-      '💬 Feel free to include any specific questions you want us to focus on.','',
-      '🔗 Follow for tips and updates: https://follow.jyotirsetu.com','',
-      'Looking forward to connecting,','JyotirSetu Astrology'
-    ].join('\n') },
-    { key: 'rescheduled', text: [
-      'Dear {name},','',
-      '🔁 Your appointment for {service} has been rescheduled to {date} at {time} ({method}).','',
-      '📝 To prepare and provide accurate guidance, please share your horoscope details in reply:','• Birth Date','• Birth Time','• Birth Place','• Gender','',
-      '🆔 Appointment ID: {appointment_id}','',
-      '🔗 Follow for tips and updates: https://follow.jyotirsetu.com','',
-      'Warm regards,','JyotirSetu Astrology'
-    ].join('\n') },
-    { key: 'cancelled_user', text: [
-      'Dear {name},','',
-      '❌ As per your request, your appointment for {service} has been cancelled.','',
-      '🆔 Appointment ID: {appointment_id}','',
-      'We look forward to connecting with you again. Feel free to reply to this message to book a new slot at your convenience.','',
-      '🔗 Explore updates and insights: https://follow.jyotirsetu.com','',
-      'Warm regards,','JyotirSetu Astrology'
-    ].join('\n') },
-    { key: 'cancelled_provider', text: [
-      'Dear {name},','',
-      '⚠️ We sincerely apologize — your appointment for {service} has been cancelled due to unforeseen circumstances.','',
-      '🆔 Appointment ID: {appointment_id}','',
-      'We value your time and will reach out shortly to offer alternate slots. If you prefer, please reply with your availability.','',
-      'Thank you for your understanding.','',
-      '🔗 Stay connected: https://follow.jyotirsetu.com','',
-      'Warm regards,','JyotirSetu Astrology'
-    ].join('\n') }
+    {
+      key: 'pending',
+      text: [
+        'Dear {name},',
+        '',
+        '🙏 Thank you for choosing JyotirSetu Astrology. We have received your appointment request for {service}.',
+        '',
+        '🕐 Your appointment is currently pending. We will confirm your slot based on availability and inform you shortly.',
+        '',
+        '📋 Appointment Details:',
+        '• 🆔 Appointment ID: {appointment_id}',
+        '• 📆 Date: {date}',
+        '• ⏰ Time: {time}',
+        '• 🧭 Consultation Method: {method}',
+      ].join('\n'),
+    },
+    {
+      key: 'confirmed',
+      text: [
+        'Dear {name},',
+        '',
+        '✅ Your appointment for {service} is confirmed on {date} at {time} ({method}).',
+        '',
+        '📝 To prepare and provide accurate guidance, please share your horoscope details in reply:',
+        '• Birth Date',
+        '• Birth Time',
+        '• Birth Place',
+        '• Gender',
+        '',
+        '🆔 Appointment ID: {appointment_id}',
+        '',
+        '💬 Feel free to include any specific questions you want us to focus on.',
+        '',
+        '🔗 Follow for tips and updates: https://follow.jyotirsetu.com',
+        '',
+        'Looking forward to connecting,',
+        'JyotirSetu Astrology',
+      ].join('\n'),
+    },
+    {
+      key: 'rescheduled',
+      text: [
+        'Dear {name},',
+        '',
+        '🔁 Your appointment for {service} has been rescheduled to {date} at {time} ({method}).',
+        '',
+        '📝 To prepare and provide accurate guidance, please share your horoscope details in reply:',
+        '• Birth Date',
+        '• Birth Time',
+        '• Birth Place',
+        '• Gender',
+        '',
+        '🆔 Appointment ID: {appointment_id}',
+        '',
+        '🔗 Follow for tips and updates: https://follow.jyotirsetu.com',
+        '',
+        'Warm regards,',
+        'JyotirSetu Astrology',
+      ].join('\n'),
+    },
+    {
+      key: 'cancelled_user',
+      text: [
+        'Dear {name},',
+        '',
+        '❌ As per your request, your appointment for {service} has been cancelled.',
+        '',
+        '🆔 Appointment ID: {appointment_id}',
+        '',
+        'We look forward to connecting with you again. Feel free to reply to this message to book a new slot at your convenience.',
+        '',
+        '🔗 Explore updates and insights: https://follow.jyotirsetu.com',
+        '',
+        'Warm regards,',
+        'JyotirSetu Astrology',
+      ].join('\n'),
+    },
+    {
+      key: 'cancelled_provider',
+      text: [
+        'Dear {name},',
+        '',
+        '⚠️ We sincerely apologize — your appointment for {service} has been cancelled due to unforeseen circumstances.',
+        '',
+        '🆔 Appointment ID: {appointment_id}',
+        '',
+        'We value your time and will reach out shortly to offer alternate slots. If you prefer, please reply with your availability.',
+        '',
+        'Thank you for your understanding.',
+        '',
+        '🔗 Stay connected: https://follow.jyotirsetu.com',
+        '',
+        'Warm regards,',
+        'JyotirSetu Astrology',
+      ].join('\n'),
+    },
   ];
 
   function renderQuickTemplates() {
     const container = document.getElementById('quickTemplates');
     if (!container) return;
-    container.innerHTML = defaultTemplates.map(function(t){
-      const short = t.text.length > 120 ? (t.text.slice(0, 120) + '…') : t.text;
-      return '<div class="template-card">' +
-        '<div style="font-weight:600;margin-bottom:4px">' + t.key + '</div>' +
-        '<div class="muted" style="font-size:12px;margin-bottom:8px">' + short + '</div>' +
-        '<div style="display:flex;gap:8px">' +
-          '<button class="btn-sm" data-use="' + t.key + '" style="background:#25d366;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:11px">Use</button>' +
-          '<button class="btn-sm" data-save="' + t.key + '" style="background:#0ea5e9;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:11px">Save</button>' +
-        '</div>' +
-      '</div>';
-    }).join('');
+    container.innerHTML = defaultTemplates
+      .map(function (t) {
+        const short = t.text.length > 120 ? t.text.slice(0, 120) + '…' : t.text;
+        return (
+          '<div class="template-card">' +
+          '<div style="font-weight:600;margin-bottom:4px">' +
+          t.key +
+          '</div>' +
+          '<div class="muted" style="font-size:12px;margin-bottom:8px">' +
+          short +
+          '</div>' +
+          '<div style="display:flex;gap:8px">' +
+          '<button class="btn-sm" data-use="' +
+          t.key +
+          '" style="background:#25d366;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:11px">Use</button>' +
+          '<button class="btn-sm" data-save="' +
+          t.key +
+          '" style="background:#0ea5e9;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:11px">Save</button>' +
+          '</div>' +
+          '</div>'
+        );
+      })
+      .join('');
 
-    container.querySelectorAll('[data-use]').forEach(btn => {
+    container.querySelectorAll('[data-use]').forEach((btn) => {
       btn.addEventListener('click', () => {
         const key = btn.getAttribute('data-use');
-        const t = defaultTemplates.find(x => x.key === key);
+        const t = defaultTemplates.find((x) => x.key === key);
         if (t) {
           const keyEl = document.getElementById('key');
           if (keyEl) keyEl.value = t.key;
@@ -97,10 +165,10 @@
       });
     });
 
-    container.querySelectorAll('[data-save]').forEach(btn => {
+    container.querySelectorAll('[data-save]').forEach((btn) => {
       btn.addEventListener('click', async () => {
         const key = btn.getAttribute('data-save');
-        const t = defaultTemplates.find(x => x.key === key);
+        const t = defaultTemplates.find((x) => x.key === key);
         if (t) {
           await saveTemplate(t.key, t.text);
         }
@@ -114,22 +182,40 @@
     const list = document.getElementById('templateList');
     const templates = json.data || [];
     if (!list) return;
-    list.innerHTML = templates.length ? templates.map(function(t) {
-      return '<div class="template-card" data-key="' + t.key + '">' +
-        '<div style="font-weight:600;margin-bottom:4px">' + t.key + '</div>' +
-        '<div class="muted" style="font-size:12px;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + t.text.slice(0,80) + '...</div>' +
-        '<div class="muted" style="font-size:11px;margin-bottom:8px">Updated: ' + new Date(t.updated_at).toLocaleDateString() + '</div>' +
-        '<div style="display:flex;gap:8px">' +
-          '<button class="btn-sm" data-edit="' + t.key + '" style="background:#25d366;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:11px;flex:1">Edit</button>' +
-          '<button class="btn-sm" data-delete="' + t.key + '" style="background:#ef4444;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:11px">Delete</button>' +
-        '</div>' +
-        '</div>';
-    }).join('') : '<p class="muted">No templates saved yet</p>';
+    list.innerHTML = templates.length
+      ? templates
+          .map(function (t) {
+            return (
+              '<div class="template-card" data-key="' +
+              t.key +
+              '">' +
+              '<div style="font-weight:600;margin-bottom:4px">' +
+              t.key +
+              '</div>' +
+              '<div class="muted" style="font-size:12px;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' +
+              t.text.slice(0, 80) +
+              '...</div>' +
+              '<div class="muted" style="font-size:11px;margin-bottom:8px">Updated: ' +
+              new Date(t.updated_at).toLocaleDateString() +
+              '</div>' +
+              '<div style="display:flex;gap:8px">' +
+              '<button class="btn-sm" data-edit="' +
+              t.key +
+              '" style="background:#25d366;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:11px;flex:1">Edit</button>' +
+              '<button class="btn-sm" data-delete="' +
+              t.key +
+              '" style="background:#ef4444;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:11px">Delete</button>' +
+              '</div>' +
+              '</div>'
+            );
+          })
+          .join('')
+      : '<p class="muted">No templates saved yet</p>';
 
-    list.querySelectorAll('[data-edit]').forEach(b => {
+    list.querySelectorAll('[data-edit]').forEach((b) => {
       b.addEventListener('click', async () => {
         const key = b.getAttribute('data-edit');
-        const t = templates.find(x => x.key === key);
+        const t = templates.find((x) => x.key === key);
         const keyEl = document.getElementById('key');
         if (t && keyEl) {
           keyEl.value = t.key;
@@ -139,10 +225,10 @@
       });
     });
 
-    list.querySelectorAll('[data-delete]').forEach(b => {
+    list.querySelectorAll('[data-delete]').forEach((b) => {
       b.addEventListener('click', () => {
         const key = b.getAttribute('data-delete');
-        const t = templates.find(x => x.key === key) || { key, text: '' };
+        const t = templates.find((x) => x.key === key) || { key, text: '' };
         const snippet = (t.text || '').slice(0, 160) || '(no message)';
         openDeleteConfirm(t.key, snippet);
       });
@@ -157,7 +243,7 @@
     const res = await fetch('/api/admin/templates', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type: 'whatsapp', key, text: text || textArea.value })
+      body: JSON.stringify({ type: 'whatsapp', key, text: text || textArea.value }),
     });
     const json = await res.json();
     if (json.ok) {
@@ -165,7 +251,7 @@
       loadTemplates();
       return true;
     } else {
-      window.AdminNotify?.error('Save failed', (json.error || 'Failed to save template'));
+      window.AdminNotify?.error('Save failed', json.error || 'Failed to save template');
       return false;
     }
   }
@@ -174,11 +260,14 @@
   function openDeleteConfirm(key, messageSnippet) {
     deleteKey = key || '';
     const body = document.getElementById('deleteConfirmBody');
-    if (body) body.innerHTML = [
-      '<div class="muted" style="color:#94a3b8">Template Key</div><div>' + (key || '') + '</div>',
-      '<div class="muted" style="color:#94a3b8">Message</div><div style="max-height:120px;overflow:auto">' + (messageSnippet || '(no message)') + '</div>',
-      '<div class="muted" style="color:#ef4444">Warning</div><div>This will permanently delete the template from the database.</div>'
-    ].join('');
+    if (body)
+      body.innerHTML = [
+        '<div class="muted" style="color:#94a3b8">Template Key</div><div>' + (key || '') + '</div>',
+        '<div class="muted" style="color:#94a3b8">Message</div><div style="max-height:120px;overflow:auto">' +
+          (messageSnippet || '(no message)') +
+          '</div>',
+        '<div class="muted" style="color:#ef4444">Warning</div><div>This will permanently delete the template from the database.</div>',
+      ].join('');
     const modal = document.getElementById('deleteConfirmModal');
     modal?.classList.add('active');
   }
@@ -237,8 +326,8 @@
             recipient_name: 'Test User',
             message,
             type: 'test',
-            status: 'sent'
-          })
+            status: 'sent',
+          }),
         });
       } catch (e) {
         console.warn('Failed to record WhatsApp test history', e);
@@ -263,7 +352,7 @@
   textArea.addEventListener('input', updatePreview);
   textArea.addEventListener('keyup', updatePreview);
 
-  document.querySelectorAll('.variable-tag').forEach(tag => {
+  document.querySelectorAll('.variable-tag').forEach((tag) => {
     tag.addEventListener('click', () => {
       const varName = tag.getAttribute('data-var') || '';
       const start = textArea.selectionStart || 0;
@@ -284,7 +373,7 @@
       const res = await fetch('/api/admin/templates', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'whatsapp', key: deleteKey })
+        body: JSON.stringify({ type: 'whatsapp', key: deleteKey }),
       });
       const json = await res.json();
       if (json.ok) {
@@ -302,7 +391,7 @@
         window.AdminNotify?.error('Delete failed', json.error || 'Unknown error');
       }
     } catch (e) {
-      window.AdminNotify?.error('Delete failed', String(e && (e.message || e) || 'Unknown error'));
+      window.AdminNotify?.error('Delete failed', String((e && (e.message || e)) || 'Unknown error'));
     }
   });
 

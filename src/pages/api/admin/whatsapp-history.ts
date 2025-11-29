@@ -13,7 +13,10 @@ export const GET: APIRoute = async ({ request }) => {
     const data = await getWhatsappHistory(relatedId, relatedType, limit);
     return new Response(JSON.stringify({ ok: true, data }), { headers: { 'Content-Type': 'application/json' } });
   } catch (e) {
-    return new Response(JSON.stringify({ ok: false, error: e instanceof Error ? e.message : String(e) }), { headers: { 'Content-Type': 'application/json' }, status: 500 });
+    return new Response(JSON.stringify({ ok: false, error: e instanceof Error ? e.message : String(e) }), {
+      headers: { 'Content-Type': 'application/json' },
+      status: 500,
+    });
   }
 };
 
@@ -28,11 +31,26 @@ export const POST: APIRoute = async ({ request }) => {
     const status = String(body?.status || 'sent');
     const recipient_name = body?.recipient_name ? String(body.recipient_name) : null;
     if (!recipient_phone || !message) {
-      return new Response(JSON.stringify({ ok: false, error: 'recipient_phone and message required' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+      return new Response(JSON.stringify({ ok: false, error: 'recipient_phone and message required' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
-    const id = await logWhatsapp(recipient_phone, message, type, related_id, related_type, status, null, recipient_name);
+    const id = await logWhatsapp(
+      recipient_phone,
+      message,
+      type,
+      related_id,
+      related_type,
+      status,
+      null,
+      recipient_name
+    );
     return new Response(JSON.stringify({ ok: true, id }), { headers: { 'Content-Type': 'application/json' } });
   } catch (e) {
-    return new Response(JSON.stringify({ ok: false, error: e instanceof Error ? e.message : String(e) }), { headers: { 'Content-Type': 'application/json' }, status: 500 });
+    return new Response(JSON.stringify({ ok: false, error: e instanceof Error ? e.message : String(e) }), {
+      headers: { 'Content-Type': 'application/json' },
+      status: 500,
+    });
   }
 };

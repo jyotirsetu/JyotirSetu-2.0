@@ -9,6 +9,3 @@ export const GET: APIRoute = async () => {
   headers.append('Location', '/admin/login');
   return new Response(null, { status: 302, headers });
 };
-
-
-

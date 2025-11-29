@@ -1,0 +1,118 @@
+---
+export const prerender = false;
+import { getTursoClient, ensureInvoicesTable, ensureInvoiceItemsTable, ensureClientsTable } from '../../lib/turso';
+const { id } = Astro.params;
+type InvoiceRow = {
+  id: string;
+  number: string;
+  client_id: string;
+  status: string;
+  issue_date: string;
+  due_date: string;
+  subtotal: number;
+  gst_total: number;
+  rounding: number;
+  total: number;
+  total_in_words: string;
+};
+type InvoiceItemRow = { title: string; qty: number; unit_price: number; gst_rate: number; amount: number };
+type ClientRow = { id: string; name?: string; email?: string; phone?: string };
+await ensureInvoicesTable();
+await ensureInvoiceItemsTable();
+await ensureClientsTable();
+const db = await getTursoClient();
+const invRes = await db.execute({ sql: `SELECT * FROM invoices WHERE id = ? LIMIT 1`, args: [String(id)] });
+const inv = invRes.rows?.[0] as unknown as InvoiceRow | undefined;
+let items: InvoiceItemRow[] = [];
+if (inv) {
+  const itRes = await db.execute({
+    sql: `SELECT * FROM invoice_items WHERE invoice_id = ? ORDER BY rowid ASC`,
+    args: [String(inv.id)],
+  });
+  items = (itRes.rows || []) as unknown as InvoiceItemRow[];
+}
+const clientRes = inv
+  ? await db.execute({
+      sql: `SELECT id, name, email, phone FROM clients WHERE id = ? LIMIT 1`,
+      args: [String(inv.client_id)],
+    })
+  : null;
+const client: ClientRow | null = clientRes && clientRes.rows ? (clientRes.rows[0] as unknown as ClientRow) : null;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Invoice</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" />
+  </head>
+  <body>
+    <div class="container" style="max-width:900px; padding:20px">
+      {
+        inv ? (
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:center">
+              <div>
+                <h2 style="margin:0">Invoice {inv.number}</h2>
+                <div>Issue: {inv.issue_date}</div>
+                <div>Due: {inv.due_date}</div>
+                <div>Status: {inv.status}</div>
+              </div>
+              <div>
+                <img
+                  src="https://images.unsplash.com/vector-1763306579596-25a002c977df?q=80&w=1979&auto=format&fit=crop&ixlib=rb-4.1.0"
+                  alt="Logo"
+                  style="height:60px"
+                />
+              </div>
+            </div>
+            <hr />
+            <div>
+              <h5>Bill To</h5>
+              <div>{client ? client.name : ''}</div>
+              <div>{client ? client.email : ''}</div>
+              <div>{client ? client.phone : ''}</div>
+            </div>
+            <table class="table table-sm" style="margin-top:20px">
+              <thead>
+                <tr>
+                  <th>Item</th>
+                  <th>Qty</th>
+                  <th>Unit</th>
+                  <th>GST %</th>
+                  <th>Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                {items.map((it) => (
+                  <tr>
+                    <td>{it.title}</td>
+                    <td>{it.qty}</td>
+                    <td>₹{Number(it.unit_price).toFixed(2)}</td>
+                    <td>{Number(it.gst_rate).toFixed(2)}</td>
+                    <td>₹{Number(it.amount).toFixed(2)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div style="display:flex; justify-content:flex-end; gap:20px">
+              <div>
+                <div>Subtotal: ₹{Number(inv.subtotal).toFixed(2)}</div>
+                <div>GST Total: ₹{Number(inv.gst_total).toFixed(2)}</div>
+                <div>Rounding: ₹{Number(inv.rounding).toFixed(2)}</div>
+                <div>
+                  <strong>Grand Total: ₹{Number(inv.total).toFixed(2)}</strong>
+                </div>
+                <div>{inv.total_in_words}</div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div>Invoice not found</div>
+        )
+      }
+    </div>
+  </body>
+</html>

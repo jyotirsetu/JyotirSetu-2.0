@@ -14,16 +14,16 @@ export class NotificationService {
     if (!('Notification' in window)) {
       return false;
     }
-    
+
     if (Notification.permission === 'granted') {
       return true;
     }
-    
+
     if (Notification.permission === 'default') {
       const permission = await Notification.requestPermission();
       return permission === 'granted';
     }
-    
+
     return false;
   }
 
@@ -42,15 +42,19 @@ export class NotificationService {
       icon: icon || '/favicon.ico',
       badge: '/favicon.ico',
       tag: 'admin-notification',
-      requireInteraction: false
+      requireInteraction: false,
     });
   }
 
   async checkForUpdates() {
     try {
       const [apptsRes, contactsRes] = await Promise.all([
-        fetch('/api/admin/appointments?page=1&limit=1').then(r => r.json()).catch(() => ({ data: [] })),
-        fetch('/api/admin/contacts?page=1&limit=1').then(r => r.json()).catch(() => ({ data: [] }))
+        fetch('/api/admin/appointments?page=1&limit=1')
+          .then((r) => r.json())
+          .catch(() => ({ data: [] })),
+        fetch('/api/admin/contacts?page=1&limit=1')
+          .then((r) => r.json())
+          .catch(() => ({ data: [] })),
       ]);
 
       const apptsCount = apptsRes.pagination?.total || 0;
@@ -88,7 +92,7 @@ export class NotificationService {
     if (this.checkInterval) {
       clearInterval(this.checkInterval);
     }
-    
+
     this.checkInterval = window.setInterval(() => {
       this.checkForUpdates();
     }, intervalMs);
@@ -103,15 +107,13 @@ export class NotificationService {
 
   async initialize() {
     await this.requestPermission();
-    
+
     // Initial check
     await this.checkForUpdates();
-    
+
     // Start polling
     this.startPolling(30000); // Check every 30 seconds
   }
 }
 
 export const notificationService = NotificationService.getInstance();
-
-

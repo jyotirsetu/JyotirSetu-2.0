@@ -16,17 +16,29 @@ export const GET: APIRoute = async ({ request }) => {
     const filters: string[] = [];
     const args: (string | number | boolean | bigint | null)[] = [];
     if (from) {
-      if (from.length === 10) { filters.push(`date(created_at) >= date(?)`); }
-      else { filters.push(`created_at >= ?`); }
+      if (from.length === 10) {
+        filters.push(`date(created_at) >= date(?)`);
+      } else {
+        filters.push(`created_at >= ?`);
+      }
       args.push(from);
     }
     if (to) {
-      if (to.length === 10) { filters.push(`date(created_at) <= date(?)`); }
-      else { filters.push(`created_at <= ?`); }
+      if (to.length === 10) {
+        filters.push(`date(created_at) <= date(?)`);
+      } else {
+        filters.push(`created_at <= ?`);
+      }
       args.push(to);
     }
-    if (source) { filters.push(`source = ?`); args.push(source); }
-    if (device) { filters.push(`device = ?`); args.push(device); }
+    if (source) {
+      filters.push(`source = ?`);
+      args.push(source);
+    }
+    if (device) {
+      filters.push(`device = ?`);
+      args.push(device);
+    }
     const where = filters.length ? `WHERE ${filters.join(' AND ')}` : '';
 
     const totalsRes = await client.execute({
@@ -36,7 +48,7 @@ export const GET: APIRoute = async ({ request }) => {
               SUM(CASE WHEN event_type='cta_click' THEN 1 ELSE 0 END) AS cta_clicks,
               SUM(CASE WHEN event_type='share' THEN 1 ELSE 0 END) AS shares
             FROM follow_hub_events ${where}`,
-      args
+      args,
     });
     const t = (totalsRes.rows?.[0] ?? {}) as Record<string, unknown>;
     const page_views = Number((t as Record<string, unknown>).page_views ?? 0);
@@ -48,7 +60,7 @@ export const GET: APIRoute = async ({ request }) => {
                     SUM(CASE WHEN event_type='cta_click' THEN 1 ELSE 0 END) AS clicks
             FROM follow_hub_events ${where}
             GROUP BY cta_clicked ORDER BY clicks DESC`,
-      args
+      args,
     });
 
     // Lightweight sparkline data for page views
@@ -57,19 +69,31 @@ export const GET: APIRoute = async ({ request }) => {
                     SUM(CASE WHEN event_type='page_view' THEN 1 ELSE 0 END) AS views
             FROM follow_hub_events ${where}
             GROUP BY day ORDER BY day DESC LIMIT 10`,
-      args
+      args,
     });
 
     return new Response(
-      JSON.stringify({ ok: true, data: {
-        totals: { page_views, cta_impressions: Number((t as Record<string, unknown>).cta_impressions ?? 0), cta_clicks, shares: Number((t as Record<string, unknown>).shares ?? 0), ctr },
-        cta_breakdown: ctaBreakdownRes.rows || [],
-        sparkline: (sparkRes.rows || []).reverse()
-      }}),
+      JSON.stringify({
+        ok: true,
+        data: {
+          totals: {
+            page_views,
+            cta_impressions: Number((t as Record<string, unknown>).cta_impressions ?? 0),
+            cta_clicks,
+            shares: Number((t as Record<string, unknown>).shares ?? 0),
+            ctr,
+          },
+          cta_breakdown: ctaBreakdownRes.rows || [],
+          sparkline: (sparkRes.rows || []).reverse(),
+        },
+      }),
       { headers: { 'Content-Type': 'application/json' } }
     );
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : 'unknown';
-    return new Response(JSON.stringify({ ok: false, error: msg }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+    return new Response(JSON.stringify({ ok: false, error: msg }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 };

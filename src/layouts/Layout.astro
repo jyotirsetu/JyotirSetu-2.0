@@ -24,6 +24,7 @@ export interface Props {
 
 const { metadata = {} } = Astro.props;
 const { language, textDirection } = I18N;
+const isAdmin = new URL(Astro.request.url).pathname.startsWith('/admin');
 ---
 
 <!doctype html>
@@ -35,6 +36,8 @@ const { language, textDirection } = I18N;
     <CustomStyles />
     <ApplyColorMode />
     <Metadata {...metadata} />
+    {isAdmin && <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@latest/dist/css/adminlte.min.css" />}
+    {isAdmin && <link rel="stylesheet" href="/admin.css?v=20251116" />}
 
 <!-- Paste JSON-LD FAQ here -->
 <script type="application/ld+json">
@@ -109,7 +112,7 @@ const { language, textDirection } = I18N;
     <ClientRouter fallback="swap" />
   </head>
 
-  <body class="antialiased text-default bg-page tracking-tight">
+  <body class={`antialiased text-default bg-page tracking-tight${isAdmin ? ' hold-transition sidebar-mini dark-mode' : ''}`}>
     <slot />
 
     <BasicScripts />
@@ -314,6 +317,25 @@ const { language, textDirection } = I18N;
           });
         });
       }
+    </script>
+
+    <script is:inline>
+      (function(){
+        try {
+          if (!location.pathname.startsWith('/admin')) return;
+          let lastMinute = '';
+          function tick(){
+            const now = new Date();
+            const mm = now.toISOString().slice(0,16);
+            if (mm !== lastMinute) {
+              lastMinute = mm;
+              fetch('/api/admin/automation-run', { method: 'GET', cache: 'no-cache' }).catch(function(err){ void err });
+            }
+          }
+          tick();
+          setInterval(tick, 10_000);
+        } catch (err) { console.warn('Automation scheduler error', err) }
+      })();
     </script>
   </body>
 </html>

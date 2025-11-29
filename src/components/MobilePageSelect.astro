@@ -1,0 +1,45 @@
+<select id="mobilePageSelect" class="select" style="display:none;margin-left:8px;z-index:1000" aria-label="Go to page" title="Go to page" tabindex="0" role="navigation">
+  <option value="">Go to…</option>
+  <option value="/admin/dashboard">Dashboard</option>
+  <option value="/admin/appointments">Appointments</option>
+  <option value="/admin/contacts">Contacts</option>
+  <option value="/admin/newsletter">Newsletter</option>
+  <option value="/admin/calendar">Calendar</option>
+  <option value="/admin/quotes">Quotations</option>
+  <option value="/admin/after-service">After Service</option>
+  <option value="/admin/activity-log">Activity Log</option>
+  <option value="/admin/templates/email">Email Templates</option>
+  <option value="/admin/templates/payment">Payment Templates</option>
+  <option value="/admin/templates/whatsapp">WhatsApp Templates</option>
+  <option value="/admin/client360">Client 360°</option>
+  <option value="/admin/tools/follow-hub/insights">Follow Hub – Insights</option>
+  <option value="/admin/settings">Settings</option>
+</select>
+<script>
+  (function(){
+    const el = document.getElementById('mobilePageSelect');
+    function isMobile(){ return window.innerWidth <= 900; }
+    function sync(){ if (!el) return; el.style.display = isMobile() ? 'inline-flex' : 'none'; }
+    function getSelectedValue(root){
+      try {
+        var opt = root && typeof root.querySelector === 'function' ? root.querySelector('option:checked') : null;
+        return opt ? String(opt.getAttribute('value') || '') : '';
+      } catch { return ''; }
+    }
+    if (el) {
+      el.addEventListener('change', function(e){
+        var t = e && e.target ? e.target : null;
+        var v = getSelectedValue(t || el);
+        if (v) window.location.href = v;
+      });
+      el.addEventListener('keydown', function(e){
+        var v = getSelectedValue(el);
+        if ((e.key === 'Enter' || e.key === ' ') && v) { e.preventDefault(); window.location.href = v; }
+      });
+      el.addEventListener('touchstart', function(){ try { if (el instanceof HTMLSelectElement) el.focus(); } catch {} });
+    }
+    window.addEventListener('resize', sync);
+    document.addEventListener('DOMContentLoaded', sync);
+    sync();
+  })();
+</script>

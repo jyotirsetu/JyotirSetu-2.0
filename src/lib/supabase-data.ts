@@ -12,10 +12,7 @@ export class SupabaseDataService {
   // Get all appointments
   async getAppointments(): Promise<Appointment[]> {
     try {
-      const { data, error } = await supabase
-        .from('appointments')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const { data, error } = await supabase.from('appointments').select('*').order('created_at', { ascending: false });
 
       if (error) {
         console.error('Error fetching appointments:', error);
@@ -32,11 +29,7 @@ export class SupabaseDataService {
   // Get appointment by ID
   async getAppointmentById(id: string): Promise<Appointment | null> {
     try {
-      const { data, error } = await supabase
-        .from('appointments')
-        .select('*')
-        .eq('id', id)
-        .single();
+      const { data, error } = await supabase.from('appointments').select('*').eq('id', id).single();
 
       if (error) {
         console.error('Error fetching appointment:', error);
@@ -66,19 +59,15 @@ export class SupabaseDataService {
           date: appointment.date || '',
           time: appointment.time || '',
           status: 'scheduled' as const,
-          consultation_method: appointment.consultation_method || 'call' as const,
+          consultation_method: appointment.consultation_method || ('call' as const),
           message: appointment.message || undefined,
           service_details: appointment.service_details || undefined,
           created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         } as Appointment;
       }
 
-      const { data, error } = await supabase
-        .from('appointments')
-        .insert(appointment)
-        .select()
-        .single();
+      const { data, error } = await supabase.from('appointments').insert(appointment).select().single();
 
       if (error) {
         console.error('Error creating appointment:', error);
@@ -99,7 +88,7 @@ export class SupabaseDataService {
         .from('appointments')
         .update({
           ...updates,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
         .eq('id', id)
         .select()
@@ -120,10 +109,7 @@ export class SupabaseDataService {
   // Delete appointment
   async deleteAppointment(id: string): Promise<boolean> {
     try {
-      const { error } = await supabase
-        .from('appointments')
-        .delete()
-        .eq('id', id);
+      const { error } = await supabase.from('appointments').delete().eq('id', id);
 
       if (error) {
         console.error('Error deleting appointment:', error);
@@ -144,10 +130,7 @@ export class SupabaseDataService {
     limit?: number;
   }): Promise<Appointment[]> {
     try {
-      let query = supabase
-        .from('appointments')
-        .select('*')
-        .order('created_at', { ascending: false });
+      let query = supabase.from('appointments').select('*').order('created_at', { ascending: false });
 
       if (filters.status) {
         query = query.eq('status', filters.status);
@@ -182,10 +165,7 @@ export class SupabaseDataService {
   // Get all contacts
   async getContacts(): Promise<Contact[]> {
     try {
-      const { data, error } = await supabase
-        .from('contacts')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const { data, error } = await supabase.from('contacts').select('*').order('created_at', { ascending: false });
 
       if (error) {
         console.error('Error fetching contacts:', error);
@@ -202,11 +182,7 @@ export class SupabaseDataService {
   // Get contact by ID
   async getContactById(id: string): Promise<Contact | null> {
     try {
-      const { data, error } = await supabase
-        .from('contacts')
-        .select('*')
-        .eq('id', id)
-        .single();
+      const { data, error } = await supabase.from('contacts').select('*').eq('id', id).single();
 
       if (error) {
         console.error('Error fetching contact:', error);
@@ -239,15 +215,11 @@ export class SupabaseDataService {
           assigned_to: undefined,
           notes: undefined,
           created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         } as Contact;
       }
 
-      const { data, error } = await supabase
-        .from('contacts')
-        .insert(contact)
-        .select()
-        .single();
+      const { data, error } = await supabase.from('contacts').insert(contact).select().single();
 
       if (error) {
         console.error('Error creating contact:', error);
@@ -268,7 +240,7 @@ export class SupabaseDataService {
         .from('contacts')
         .update({
           ...updates,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
         .eq('id', id)
         .select()
@@ -289,10 +261,7 @@ export class SupabaseDataService {
   // Delete contact
   async deleteContact(id: string): Promise<boolean> {
     try {
-      const { error } = await supabase
-        .from('contacts')
-        .delete()
-        .eq('id', id);
+      const { error } = await supabase.from('contacts').delete().eq('id', id);
 
       if (error) {
         console.error('Error deleting contact:', error);
@@ -307,16 +276,9 @@ export class SupabaseDataService {
   }
 
   // Get contacts with filters
-  async getContactsWithFilters(filters: {
-    status?: string;
-    priority?: string;
-    limit?: number;
-  }): Promise<Contact[]> {
+  async getContactsWithFilters(filters: { status?: string; priority?: string; limit?: number }): Promise<Contact[]> {
     try {
-      let query = supabase
-        .from('contacts')
-        .select('*')
-        .order('created_at', { ascending: false });
+      let query = supabase.from('contacts').select('*').order('created_at', { ascending: false });
 
       if (filters.status) {
         query = query.eq('status', filters.status);
@@ -347,10 +309,7 @@ export class SupabaseDataService {
   // Test connection
   async testConnection(): Promise<boolean> {
     try {
-      const { error } = await supabase
-        .from('appointments')
-        .select('count')
-        .limit(1);
+      const { error } = await supabase.from('appointments').select('count').limit(1);
 
       if (error) {
         console.error('Supabase connection test failed:', error);

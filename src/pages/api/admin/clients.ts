@@ -1,5 +1,11 @@
 import type { APIRoute } from 'astro';
-import { getTursoClient, ensureClientsTable, ensureAppointmentsTable, ensureContactsTable, ensurePaymentsTable } from '../../../lib/turso';
+import {
+  getTursoClient,
+  ensureClientsTable,
+  ensureAppointmentsTable,
+  ensureContactsTable,
+  ensurePaymentsTable,
+} from '../../../lib/turso';
 
 export const prerender = false;
 
@@ -12,46 +18,111 @@ export const GET: APIRoute = async ({ request }) => {
     const url = new URL(request.url);
     const id = url.searchParams.get('id');
     const email = url.searchParams.get('email');
+    const phone = url.searchParams.get('phone');
     const page = Math.max(1, parseInt(url.searchParams.get('page') || '1', 10));
     const limit = Math.min(100, Math.max(10, parseInt(url.searchParams.get('limit') || '20', 10)));
     const offset = (page - 1) * limit;
     const client = await getTursoClient();
 
-    if (id || email) {
-      const by = id ? 'id' : 'email';
-      const key = id ? String(id) : String(email);
-      const res = await client.execute({ sql: `SELECT id, name, email, phone, vip, created_at FROM clients WHERE ${by} = ? LIMIT 1`, args: [key] });
-      const c = (res.rows && res.rows[0]) as Record<string, unknown> | undefined;
+    if (id || email || phone) {
+      const by = id ? 'id' : email ? 'email' : 'phone';
+      const key = id ? String(id) : email ? String(email) : String(phone);
+      const res = await client.execute({
+        sql: `SELECT id, name, email, phone, vip, created_at FROM clients WHERE ${by} = ? LIMIT 1`,
+        args: [key],
+      });
+      let c = (res.rows && res.rows[0]) as Record<string, unknown> | undefined;
+      // Fallback: derive client from latest appointment when client record doesn't exist
+      if (!c && email) {
+        const apFind = await client.execute({
+          sql: `SELECT name, email, phone, created_at FROM appointments WHERE email = ? ORDER BY datetime(created_at) DESC LIMIT 1`,
+          args: [String(email)],
+        });
+        const apRow = (apFind.rows && apFind.rows[0]) as
+          | { name?: unknown; email?: unknown; phone?: unknown; created_at?: unknown }
+          | undefined;
+        if (apRow) {
+          c = {
+            id: '',
+            name: String(apRow.name || ''),
+            email: String(apRow.email || ''),
+            phone: apRow.phone != null ? String(apRow.phone) : '',
+            vip: 'no',
+            created_at: String(apRow.created_at || new Date().toISOString()),
+          } as Record<string, unknown>;
+        }
+      }
       if (!c) return new Response(JSON.stringify({ ok: false, error: 'not_found' }), { status: 404 });
-      const cid = String(c.id);
+      const cid = String(c.id || '');
       const [apRes, coRes, payRes, totalPayRes] = await Promise.all([
-        client.execute({ sql: `SELECT id, service, date, time, status, payment_status, created_at FROM appointments WHERE email = ? ORDER BY datetime(created_at) DESC LIMIT 50`, args: [String(c.email || '')] }),
-        client.execute({ sql: `SELECT id, subject, status, priority, created_at FROM contacts WHERE email = ? ORDER BY datetime(created_at) DESC LIMIT 50`, args: [String(c.email || '')] }),
-        client.execute({ sql: `SELECT id, amount, mode, reference, note, created_at, appointment_id FROM payments WHERE client_id = ? ORDER BY datetime(created_at) DESC LIMIT 100`, args: [cid] }),
-        client.execute({ sql: `SELECT COALESCE(SUM(amount),0) AS total FROM payments WHERE client_id = ?`, args: [cid] })
+        client.execute({
+          sql: `SELECT id, name, service, consultation_method, customer_appointment_id, date, time, status, payment_status, created_at FROM appointments WHERE email = ? ORDER BY datetime(created_at) DESC LIMIT 50`,
+          args: [String(c.email || '')],
+        }),
+        client.execute({
+          sql: `SELECT id, subject, status, priority, created_at FROM contacts WHERE email = ? ORDER BY datetime(created_at) DESC LIMIT 50`,
+          args: [String(c.email || '')],
+        }),
+        cid
+          ? client.execute({
+              sql: `SELECT id, amount, mode, reference, note, created_at, appointment_id FROM payments WHERE client_id = ? ORDER BY datetime(created_at) DESC LIMIT 100`,
+              args: [cid],
+            })
+          : Promise.resolve({ rows: [] as Array<Record<string, unknown>> }),
+        cid
+          ? client.execute({
+              sql: `SELECT COALESCE(SUM(amount),0) AS total FROM payments WHERE client_id = ?`,
+              args: [cid],
+            })
+          : Promise.resolve({ rows: [{ total: 0 }] as Array<Record<string, unknown>> }),
       ]);
       const totalPaidRow = (totalPayRes.rows && totalPayRes.rows[0]) as { total?: unknown } | undefined;
       const totalPaid = Number(totalPaidRow?.total ?? 0);
-      return new Response(JSON.stringify({ ok: true, data: { client: c, appointments: apRes.rows || [], contacts: coRes.rows || [], payments: payRes.rows || [], totals: { paid: totalPaid } } }), { headers: { 'Content-Type': 'application/json' } });
+      return new Response(
+        JSON.stringify({
+          ok: true,
+          data: {
+            client: c,
+            appointments: apRes.rows || [],
+            contacts: coRes.rows || [],
+            payments: payRes.rows || [],
+            totals: { paid: totalPaid },
+          },
+        }),
+        { headers: { 'Content-Type': 'application/json' } }
+      );
     }
 
     const [listRes, countRes] = await Promise.all([
-      client.execute({ sql: `SELECT id, name, email, phone, vip, created_at FROM clients ORDER BY datetime(created_at) DESC LIMIT ? OFFSET ?`, args: [limit, offset] }),
-      client.execute({ sql: `SELECT COUNT(*) AS total FROM clients`, args: [] })
+      client.execute({
+        sql: `SELECT id, name, email, phone, vip, created_at FROM clients ORDER BY datetime(created_at) DESC LIMIT ? OFFSET ?`,
+        args: [limit, offset],
+      }),
+      client.execute({ sql: `SELECT COUNT(*) AS total FROM clients`, args: [] }),
     ]);
     const totalsByClient: Record<string, number> = {};
     if (Array.isArray(listRes.rows) && listRes.rows.length) {
-      const ids = (listRes.rows as Array<Record<string, unknown>>).map(r => String(r.id));
+      const ids = (listRes.rows as Array<Record<string, unknown>>).map((r) => String(r.id));
       const inClause = ids.map(() => '?').join(',');
-      const sumRes = await client.execute({ sql: `SELECT client_id, COALESCE(SUM(amount),0) AS total FROM payments WHERE client_id IN (${inClause}) GROUP BY client_id`, args: ids });
-      for (const row of (sumRes.rows || []) as Array<Record<string, unknown>>) totalsByClient[String(row.client_id)] = Number(row.total || 0);
+      const sumRes = await client.execute({
+        sql: `SELECT client_id, COALESCE(SUM(amount),0) AS total FROM payments WHERE client_id IN (${inClause}) GROUP BY client_id`,
+        args: ids,
+      });
+      for (const row of (sumRes.rows || []) as Array<Record<string, unknown>>)
+        totalsByClient[String(row.client_id)] = Number(row.total || 0);
     }
     const totalRow = (countRes.rows && countRes.rows[0]) as { total?: unknown } | undefined;
     const total = Number(totalRow?.total ?? 0);
-    const data = (listRes.rows || []).map((r: Record<string, unknown>) => ({ ...r, total_paid: totalsByClient[String(r.id)] || 0 }));
-    return new Response(JSON.stringify({ ok: true, data, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } }), { headers: { 'Content-Type': 'application/json' } });
+    const data = (listRes.rows || []).map((r: Record<string, unknown>) => ({
+      ...r,
+      total_paid: totalsByClient[String(r.id)] || 0,
+    }));
+    return new Response(
+      JSON.stringify({ ok: true, data, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } }),
+      { headers: { 'Content-Type': 'application/json' } }
+    );
   } catch (e) {
-    const msg = (e && typeof e === 'object' && 'message' in e) ? String((e as Error).message) : 'failed';
+    const msg = e && typeof e === 'object' && 'message' in e ? String((e as Error).message) : 'failed';
     return new Response(JSON.stringify({ ok: false, error: msg }), { status: 500 });
   }
 };
@@ -67,9 +138,12 @@ export const POST: APIRoute = async ({ request }) => {
       const email = String(body.email || '');
       const phone = String(body.phone || '');
       if (!name || !email) return new Response(JSON.stringify({ ok: false, error: 'missing_fields' }), { status: 400 });
-      const id = 'cli_' + Date.now() + Math.random().toString(36).slice(2,8);
+      const id = 'cli_' + Date.now() + Math.random().toString(36).slice(2, 8);
       const created_at = new Date().toISOString();
-      await client.execute({ sql: `INSERT INTO clients (id, name, email, phone, vip, created_at) VALUES (?, ?, ?, ?, 'no', ?)`, args: [id, name, email, phone, created_at] });
+      await client.execute({
+        sql: `INSERT INTO clients (id, name, email, phone, vip, created_at) VALUES (?, ?, ?, ?, 'no', ?)`,
+        args: [id, name, email, phone, created_at],
+      });
       return new Response(JSON.stringify({ ok: true, id }), { headers: { 'Content-Type': 'application/json' } });
     }
     if (action === 'update') {
@@ -77,10 +151,22 @@ export const POST: APIRoute = async ({ request }) => {
       if (!id) return new Response(JSON.stringify({ ok: false, error: 'missing_id' }), { status: 400 });
       const fields: string[] = [];
       const args: Array<string | number | boolean | null> = [];
-      if (body.name) { fields.push('name = ?'); args.push(String(body.name)); }
-      if (body.email) { fields.push('email = ?'); args.push(String(body.email)); }
-      if (body.phone) { fields.push('phone = ?'); args.push(String(body.phone)); }
-      if (body.vip) { fields.push('vip = ?'); args.push(String(body.vip)); }
+      if (body.name) {
+        fields.push('name = ?');
+        args.push(String(body.name));
+      }
+      if (body.email) {
+        fields.push('email = ?');
+        args.push(String(body.email));
+      }
+      if (body.phone) {
+        fields.push('phone = ?');
+        args.push(String(body.phone));
+      }
+      if (body.vip) {
+        fields.push('vip = ?');
+        args.push(String(body.vip));
+      }
       if (!fields.length) return new Response(JSON.stringify({ ok: false, error: 'no_changes' }), { status: 400 });
       await client.execute({ sql: `UPDATE clients SET ${fields.join(', ')} WHERE id = ?`, args: [...args, id] });
       return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json' } });
@@ -96,19 +182,29 @@ export const POST: APIRoute = async ({ request }) => {
         const id = String(row.id);
         const fields: string[] = [];
         const args: Array<string | number | boolean | null> = [];
-        if (name) { fields.push('name = ?'); args.push(name); }
-        if (phone) { fields.push('phone = ?'); args.push(phone); }
-        if (fields.length) await client.execute({ sql: `UPDATE clients SET ${fields.join(', ')} WHERE id = ?`, args: [...args, id] });
+        if (name) {
+          fields.push('name = ?');
+          args.push(name);
+        }
+        if (phone) {
+          fields.push('phone = ?');
+          args.push(phone);
+        }
+        if (fields.length)
+          await client.execute({ sql: `UPDATE clients SET ${fields.join(', ')} WHERE id = ?`, args: [...args, id] });
         return new Response(JSON.stringify({ ok: true, id }), { headers: { 'Content-Type': 'application/json' } });
       }
-      const id = 'cli_' + Date.now() + Math.random().toString(36).slice(2,8);
+      const id = 'cli_' + Date.now() + Math.random().toString(36).slice(2, 8);
       const created_at = new Date().toISOString();
-      await client.execute({ sql: `INSERT INTO clients (id, name, email, phone, vip, created_at) VALUES (?, ?, ?, ?, 'no', ?)`, args: [id, name, email, phone, created_at] });
+      await client.execute({
+        sql: `INSERT INTO clients (id, name, email, phone, vip, created_at) VALUES (?, ?, ?, ?, 'no', ?)`,
+        args: [id, name, email, phone, created_at],
+      });
       return new Response(JSON.stringify({ ok: true, id }), { headers: { 'Content-Type': 'application/json' } });
     }
     return new Response(JSON.stringify({ ok: false, error: 'unknown_action' }), { status: 400 });
   } catch (e) {
-    const msg = (e && typeof e === 'object' && 'message' in e) ? String((e as Error).message) : 'failed';
+    const msg = e && typeof e === 'object' && 'message' in e ? String((e as Error).message) : 'failed';
     return new Response(JSON.stringify({ ok: false, error: msg }), { status: 500 });
   }
 };

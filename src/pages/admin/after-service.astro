@@ -1,0 +1,615 @@
+---
+export const prerender = false;
+import AdminSidebar from '~/components/AdminSidebar.astro';
+import AdminNavbar from '~/components/AdminNavbar.astro';
+import Favicons from '~/components/Favicons.astro';
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>After Service – Feedback & Follow</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@latest/dist/css/adminlte.min.css" />
+    <link rel="stylesheet" href="/admin.css?v=20251129" />
+    <Favicons />
+    <script src="/js/admin-notify.js" defer></script>
+    <style>
+      .template-card {
+        background: #0b1220;
+        border: 1px solid rgba(148, 163, 184, 0.25);
+        border-radius: 12px;
+        padding: 16px;
+        margin-top: 12px;
+      }
+      .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+      .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(2, 6, 23, 0.6);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+      }
+      .modal.active {
+        display: flex;
+      }
+      .modal-content {
+        background: #0f172a;
+        padding: 24px;
+        border-radius: 16px;
+        max-width: 640px;
+        width: 90%;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 30px 80px rgba(15, 23, 42, 0.8);
+        border: 1px solid rgba(148, 163, 184, 0.2);
+      }
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+        padding-bottom: 12px;
+      }
+      .close-btn {
+        background: none;
+        border: none;
+        font-size: 28px;
+        cursor: pointer;
+        padding: 0;
+        width: 32px;
+        height: 32px;
+        color: #94a3b8;
+        line-height: 1;
+      }
+      .close-btn:hover {
+        color: #e2e8f0;
+      }
+      .pill {
+        display: inline-block;
+        padding: 6px 10px;
+        border: 1px solid rgba(148, 163, 184, 0.35);
+        border-radius: 999px;
+        color: #94a3b8;
+        font-size: 12px;
+      }
+      .input {
+        background: #0b1220;
+        border: 1px solid rgba(148, 163, 184, 0.25);
+        border-radius: 8px;
+        padding: 8px;
+        color: #e5e7eb;
+        width: 100%;
+      }
+      .btn {
+        background: #667eea;
+        color: #fff;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .btn-secondary {
+        background: #f3f4f6;
+        color: #374151;
+        border: 1px solid #d1d5db;
+      }
+      .muted {
+        color: #94a3b8;
+      }
+      .toolbar-card {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        margin-bottom: 12px;
+      }
+    </style>
+  </head>
+  <body class="hold-transition sidebar-mini">
+    <button class="sidebar-toggle" aria-label="Open Admin Menu" id="sidebarToggle">☰</button>
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+    <script is:inline>
+      (function () {
+        function applyTheme(theme) {
+          let t = theme;
+          if (t === 'auto') {
+            t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          }
+          document.body.classList.toggle('dark-mode', t === 'dark');
+        }
+        let theme = 'dark';
+        let collapsed = false;
+        try {
+          const stored = localStorage.getItem('adminSettings');
+          if (stored) {
+            const s = JSON.parse(stored);
+            if (s && typeof s === 'object') {
+              if (s.theme) theme = s.theme;
+              if (s.sidebarCollapsed != null) collapsed = !!s.sidebarCollapsed;
+            }
+          }
+        } catch (e) {
+          void e;
+        }
+        applyTheme(theme);
+        document.body.classList.toggle('sidebar-collapse', collapsed);
+      })();
+    </script>
+    <div class="wrapper">
+      <AdminNavbar />
+      <AdminSidebar activePage="/admin/after-service" />
+      <div class="content-wrapper">
+        <section class="content-header">
+          <div class="container-fluid">
+            <div class="row mb-2">
+              <div class="col-sm-6"><h1>After Service</h1></div>
+              <div class="col-sm-6">
+                <div class="float-sm-right">
+                  <span class="pill">Send feedback requests via Email & WhatsApp</span>
+                  
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section class="content">
+          <div class="container-fluid">
+            <div class="card card-primary card-outline">
+              <div class="card-header">Select Customer</div>
+              <div class="card-body">
+                <div class="row" style="gap:12px">
+                  <div class="col-md-5">
+                    <label>Customer <small id="customerCount" class="text-muted">(Loading...)</small></label>
+                    <div class="input-group">
+                      <input
+                        class="form-control"
+                        id="customerSearch"
+                        placeholder="Search by name, email or phone"
+                        autocomplete="off"
+                      />
+                      <button
+                        class="btn btn-outline-secondary"
+                        id="syncCustomers"
+                        title="Sync customers from appointments"
+                        type="button"
+                      >
+                        <i class="fas fa-sync-alt"></i>
+                      </button>
+                    </div>
+                    <div
+                      id="customerDropdown"
+                      class="dropdown-menu"
+                      style="width:100%;display:none;max-height:220px;overflow-y:auto"
+                    >
+                    </div>
+                  </div>
+                  <div class="col-md-7 grid-2">
+                    <div>
+                      <label>Follow Hub URL</label>
+                      <input class="input" id="followUrl" value="https://follow.jyotirsetu.com" />
+                    </div>
+                    <div>
+                      <label>Website URL</label>
+                      <input class="input" id="websiteUrl" value="https://www.jyotirsetu.com" />
+                    </div>
+                    <div>
+                      <label>Google Review URL</label>
+                      <input class="input" id="googleUrl" value="https://g.page/r/CXjH6HavONOeEBM/review" />
+                    </div>
+                    <div>
+                      <label>Instagram URL</label>
+                      <input class="input" id="instaUrl" value="https://www.instagram.com/jyotirsetu" />
+                    </div>
+                    <div>
+                      <label>Facebook URL</label>
+                      <input class="input" id="fbUrl" value="https://www.facebook.com/Jyotirsetu.Astrology/" />
+                    </div>
+                    <div>
+                      <label>Your Customer Number</label>
+                      <input class="input" id="waNumber" placeholder="91XXXXXXXXXX" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid-2">
+              <div class="card card-outline card-secondary">
+                <div class="card-header">Email Template</div>
+                <div class="card-body">
+                  <div class="toolbar-card">
+                    <input class="input" id="emailSubject" value="We’d love your feedback" />
+                    <button class="btn" id="sendEmailBtn">Send Email</button>
+                  </div>
+                  <div class="template-card" id="emailPreview"></div>
+                </div>
+              </div>
+              <div class="card card-outline card-secondary">
+                <div class="card-header">WhatsApp Message</div>
+                <div class="card-body">
+                  <div class="toolbar-card">
+                    <button class="btn" id="openWhatsappBtn">Open in WhatsApp</button>
+                    <span class="muted" id="waHint">Customer number will auto-fill</span>
+                  </div>
+                  <div class="template-card" id="waPreview"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+      <footer class="main-footer">
+        <strong>JyotirSetu Admin</strong><div class="float-end d-none d-sm-inline">AdminLTE theme</div>
+      </footer>
+    </div>
+
+    <script is:inline>
+      (function () {
+        let customers = [];
+        let selected = null;
+        function formatWaPhone(input) {
+          const digits = String(input || '').replace(/\D/g, '');
+          if (!digits) return '';
+          if (digits.startsWith('91')) return digits;
+          if (digits.length === 10) return '91' + digits;
+          return digits;
+        }
+        async function loadCustomers() {
+          let allRows = [];
+          let page = 1;
+          const limit = 100;
+          let hasMore = true;
+          let totalLoaded = 0;
+          while (hasMore) {
+            try {
+              const res = await fetch(`/api/admin/appointments?page=${page}&limit=${limit}`);
+              const j = await res.json();
+              const rows = Array.isArray(j.data) ? j.data : [];
+              const pagination = j.pagination || {};
+              if (!rows.length) {
+                hasMore = false;
+              } else {
+                allRows = allRows.concat(rows);
+                totalLoaded += rows.length;
+                if (pagination.total && totalLoaded >= pagination.total) {
+                  hasMore = false;
+                } else {
+                  page++;
+                  if (page > 50) hasMore = false;
+                }
+              }
+            } catch {
+              hasMore = false;
+            }
+          }
+          const processed = [];
+          const seen = new Set();
+          allRows.forEach(function (r) {
+            const email = String(r.email || '').trim();
+            const name = String(r.name || '').trim();
+            const phone = String(r.phone || '').trim();
+            const key = `${name.toLowerCase()}|${email.toLowerCase()}|${phone.toLowerCase()}`;
+            if (!email || !name) return;
+            if (!seen.has(key)) {
+              seen.add(key);
+              processed.push({ id: r.id, name, email, phone });
+            }
+          });
+          customers = processed.sort(function (a, b) {
+            return String(a.name || '').localeCompare(String(b.name || ''));
+          });
+          const countElement = document.getElementById('customerCount');
+          if (countElement) countElement.textContent = `(${customers.length} customers)`;
+        }
+        function showCustomerDropdown(list) {
+          const dd = document.getElementById('customerDropdown');
+          if (!list.length) {
+            dd.style.display = 'none';
+            return;
+          }
+          dd.innerHTML = list
+            .map(function (c) {
+              return `<a class="dropdown-item" href="#" data-id="${c.id}" data-name="${c.name}" data-email="${c.email}" data-phone="${c.phone}"><strong>${c.name}</strong><br><small class="text-muted">${c.email}${c.phone ? ' • ' + c.phone : ''}</small></a>`;
+            })
+            .join('');
+          dd.style.display = 'block';
+          dd.querySelectorAll('.dropdown-item').forEach(function (it) {
+            it.addEventListener('click', function (e) {
+              e.preventDefault();
+              selected = {
+                id: this.getAttribute('data-id'),
+                name: this.getAttribute('data-name'),
+                email: this.getAttribute('data-email'),
+                phone: this.getAttribute('data-phone'),
+              };
+              document.getElementById('customerSearch').value = selected.name || selected.email || '';
+              const waEl = document.getElementById('waNumber');
+              if (waEl) waEl.value = selected.phone || '';
+              dd.style.display = 'none';
+              renderAll();
+            });
+          });
+        }
+        document.getElementById('customerSearch').addEventListener('input', function () {
+          const q = String(this.value || '')
+            .toLowerCase()
+            .trim();
+          if (!q) {
+            document.getElementById('customerDropdown').style.display = 'none';
+            return;
+          }
+          const filtered = customers.filter(
+            (c) =>
+              String(c.name || '')
+                .toLowerCase()
+                .includes(q) ||
+              String(c.email || '')
+                .toLowerCase()
+                .includes(q) ||
+              String(c.phone || '')
+                .toLowerCase()
+                .includes(q)
+          );
+          showCustomerDropdown(filtered.slice(0, 12));
+        });
+        document.getElementById('customerSearch').addEventListener('focus', function () {
+          const q = String(this.value || '')
+            .toLowerCase()
+            .trim();
+          if (!q) return;
+          const filtered = customers.filter(
+            (c) =>
+              String(c.name || '')
+                .toLowerCase()
+                .includes(q) ||
+              String(c.email || '')
+                .toLowerCase()
+                .includes(q) ||
+              String(c.phone || '')
+                .toLowerCase()
+                .includes(q)
+          );
+          showCustomerDropdown(filtered.slice(0, 12));
+        });
+        document.addEventListener('click', function (e) {
+          if (!e.target.closest('#customerSearch') && !e.target.closest('#customerDropdown')) {
+            document.getElementById('customerDropdown').style.display = 'none';
+          }
+        });
+        document.getElementById('syncCustomers').addEventListener('click', async function () {
+          const icon = this.querySelector('i');
+          icon.classList.add('fa-spin');
+          this.disabled = true;
+          try {
+            await loadCustomers();
+            document.getElementById('customerSearch').value = '';
+            document.getElementById('customerDropdown').style.display = 'none';
+            icon.classList.remove('fa-spin');
+            icon.classList.add('fa-check');
+            setTimeout(() => {
+              icon.classList.remove('fa-check');
+              icon.classList.add('fa-sync-alt');
+            }, 1000);
+          } catch (e) {
+            void e;
+            icon.classList.remove('fa-spin');
+            icon.classList.add('fa-exclamation-triangle');
+            setTimeout(() => {
+              icon.classList.remove('fa-exclamation-triangle');
+              icon.classList.add('fa-sync-alt');
+            }, 2000);
+          } finally {
+            this.disabled = false;
+          }
+        });
+
+        function buildEmailHtml() {
+          const name = selected?.name || 'Customer';
+          const followUrl =
+            String(document.getElementById('followUrl').value || '').trim() || 'https://follow.jyotirsetu.com';
+          const websiteUrl =
+            String(document.getElementById('websiteUrl').value || '').trim() || 'https://www.jyotirsetu.com';
+          const googleUrl = String(document.getElementById('googleUrl').value || '').trim();
+          const instaUrl = String(document.getElementById('instaUrl').value || '').trim();
+          const fbUrl = String(document.getElementById('fbUrl').value || '').trim();
+          return [
+            '<div style="font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#0b1220;color:#e5e7eb;padding:24px">',
+            '<div style="max-width:640px;margin:0 auto;background:#0f172a;border:1px solid rgba(148,163,184,0.25);border-radius:16px;overflow:hidden">',
+            '<div style="padding:20px;text-align:center;border-bottom:1px solid rgba(148,163,184,0.2)">',
+            '<img src="https://images.unsplash.com/vector-1763306579596-25a002c977df?q=80&w=1979&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="JyotirSetu" width="200" style="display:block;margin:0 auto;border:0;outline:none;text-decoration:none" />',
+            '</div>',
+            '<div style="padding:24px">',
+            `<h2 style="margin:0 0 8px;font-size:20px">Dear ${name},</h2>`,
+            '<p style="margin:8px 0 16px;color:#94a3b8">Thank you for choosing JyotirSetu Astrology. We truly value your trust and hope your consultation brought clarity, guidance, and positivity to your journey.</p>',
+            '<p style="margin:8px 0 16px;color:#94a3b8">We would greatly appreciate a quick review from you — it helps us continue supporting more people with care and authenticity.</p>',
+            googleUrl
+              ? `<a href="${googleUrl}" target="_blank" style="display:inline-block;background:#38bdf8;color:#0b1220;font-weight:700;padding:12px 18px;border-radius:12px;text-decoration:none;box-shadow:0 8px 20px rgba(56,189,248,0.35);margin-bottom:14px">⭐ Review on Google</a>`
+              : '',
+            '<div style="margin:18px 0;padding:14px;border:1px dashed rgba(148,163,184,0.35);border-radius:12px">',
+            '<div style="font-weight:700;margin-bottom:10px">Stay Connected with Us</div>',
+            `<a href="${followUrl}" target="_blank" style="display:inline-block;margin:4px 8px 10px 0;background:#a78bfa;color:#0b1220;font-weight:700;padding:10px 14px;border-radius:10px;text-decoration:none">🔗 Follow Hub</a>`,
+            instaUrl
+              ? `<a href="${instaUrl}" target="_blank" style="display:inline-block;margin:4px 8px 10px 0;background:#ec4899;color:#ffffff;font-weight:700;padding:10px 14px;border-radius:10px;text-decoration:none">📸 Instagram</a>`
+              : '',
+            fbUrl
+              ? `<a href="${fbUrl}" target="_blank" style="display:inline-block;margin:4px 8px 10px 0;background:#2563eb;color:#ffffff;font-weight:700;padding:10px 14px;border-radius:10px;text-decoration:none">👍 Facebook</a>`
+              : '',
+            `<a href="${websiteUrl}" target="_blank" style="display:inline-block;margin:4px 8px 0 0;background:#10b981;color:#0b1220;font-weight:700;padding:10px 14px;border-radius:10px;text-decoration:none">🌐 Website</a>`,
+            '</div>',
+            '<p style="margin:0;color:#94a3b8">If you need any assistance, feel free to reply to this email or message us on WhatsApp. We’re always here to help.</p>',
+            '</div>',
+            '<div style="padding:16px;border-top:1px solid rgba(148,163,184,0.2);text-align:center;color:#94a3b8;font-size:12px">',
+            'JyotirSetu Astrology • Guidance for Life',
+            '</div>',
+            '</div>',
+            '</div>',
+          ].join('');
+        }
+        function buildWhatsappText() {
+          const name = selected?.name || '';
+          const followUrl =
+            String(document.getElementById('followUrl').value || '').trim() || 'https://follow.jyotirsetu.com';
+          const googleUrl = String(document.getElementById('googleUrl').value || '').trim();
+          const instaUrl = String(document.getElementById('instaUrl').value || '').trim();
+          const fbUrl = String(document.getElementById('fbUrl').value || '').trim();
+          const websiteUrl =
+            String(document.getElementById('websiteUrl').value || '').trim() || 'https://www.jyotirsetu.com';
+          const lines = [];
+          lines.push(`Dear ${name},`);
+          lines.push('🙏 Thank you for choosing JyotirSetu Astrology ✨');
+          lines.push('');
+          lines.push('We hope your experience with us added clarity and positivity to your journey.');
+          lines.push('Your feedback means a lot to us and helps others find trusted guidance.');
+          lines.push('');
+          lines.push('⭐ Share a quick review:');
+          lines.push('`' + (googleUrl || 'https://g.page/r/CXjH6HavONOeEBM/review') + '`');
+          lines.push('');
+          lines.push('🌐 Stay connected with JyotirSetu:');
+          lines.push('🔗 Follow Hub: `' + followUrl + '`');
+          if (instaUrl) lines.push('📸 Instagram: `' + instaUrl + '`');
+          if (fbUrl) lines.push('👍 Facebook: `' + fbUrl + '`');
+          lines.push('💻 Website: `' + websiteUrl + '`');
+          lines.push('');
+          lines.push('If you ever need guidance or support, we are always here for you. ✨');
+          return lines.join('\n');
+        }
+        function renderEmail() {
+          document.getElementById('emailPreview').innerHTML = buildEmailHtml();
+        }
+        function renderWa() {
+          let text = buildWhatsappText();
+          text = text.replace(/\r?\n/g, '\n').normalize('NFC');
+          const phone = formatWaPhone(document.getElementById('waNumber').value || selected?.phone || '');
+          const hint = document.getElementById('waHint');
+          if (hint) hint.textContent = phone ? `Will open chat with ${phone}` : 'Customer number will auto-fill';
+          document.getElementById('waPreview').innerHTML =
+            `<div class="muted" style="white-space:pre-wrap">${text}</div>`;
+        }
+        function renderAll() {
+          renderEmail();
+          renderWa();
+        }
+        ['followUrl', 'websiteUrl', 'googleUrl', 'instaUrl', 'fbUrl', 'waNumber'].forEach(function (id) {
+          document.getElementById(id).addEventListener('input', renderAll);
+        });
+        document.getElementById('sendEmailBtn').addEventListener('click', async function () {
+          if (!selected || !selected.email) {
+            alert('Please select a customer');
+            return;
+          }
+          const subject =
+            String(document.getElementById('emailSubject').value || '').trim() || 'We’d love your feedback';
+          const html = buildEmailHtml();
+          const body = {
+            action: 'email',
+            to: selected.email,
+            name: selected.name || '',
+            subject,
+            html,
+            related_id: selected.id || null,
+          };
+          this.disabled = true;
+          const original = this.innerText;
+          this.innerText = 'Sending…';
+          this.setAttribute('aria-busy', 'true');
+          try {
+            const res = await fetch('/api/admin/after-service', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(body),
+            });
+            const j = await res.json();
+            if (j.ok) {
+              window.AdminNotify?.success?.('Feedback email sent', selected.email);
+            } else {
+              window.AdminNotify?.error?.('Email failed', j.error || 'Unknown error');
+            }
+          } catch (e) {
+            window.AdminNotify?.error?.('Email failed', e instanceof Error ? e.message : String(e));
+          } finally {
+            this.disabled = false;
+            this.innerText = original;
+            this.removeAttribute('aria-busy');
+          }
+        });
+        document.getElementById('openWhatsappBtn').addEventListener('click', async function () {
+          if (!selected) {
+            alert('Please select a customer');
+            return;
+          }
+          const phone = formatWaPhone(document.getElementById('waNumber').value || selected.phone || '');
+          if (!phone) {
+            alert('Enter a valid WhatsApp number');
+            return;
+          }
+          const text = buildWhatsappText();
+          try {
+            await fetch('/api/admin/after-service?action=log_whatsapp', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                phone,
+                name: selected.name || '',
+                message: text,
+                related_id: selected.id || null,
+              }),
+            });
+          } catch (e) {
+            void e;
+          }
+          const link = `https://api.whatsapp.com/send?phone=${encodeURIComponent(phone)}&text=${encodeURIComponent(text)}`;
+          window.open(link, '_blank');
+        });
+        loadCustomers().then(renderAll);
+      })();
+    </script>
+    <script>
+      const sidebar = document.getElementById('adminSidebar');
+      const backdrop = document.getElementById('sidebarBackdrop');
+      const toggleBtn = document.getElementById('sidebarToggle');
+      let isOpen = false;
+      function openSidebar() {
+        sidebar?.classList.add('active');
+        backdrop?.classList.add('active');
+        toggleBtn?.classList.add('active');
+        if (toggleBtn) toggleBtn.innerHTML = '✕';
+        isOpen = true;
+      }
+      function closeSidebar() {
+        sidebar?.classList.remove('active');
+        backdrop?.classList.remove('active');
+        toggleBtn?.classList.remove('active');
+        if (toggleBtn) toggleBtn.innerHTML = '☰';
+        isOpen = false;
+      }
+      toggleBtn?.addEventListener('click', () => {
+        if (isOpen) closeSidebar();
+        else openSidebar();
+      });
+      backdrop?.addEventListener('click', closeSidebar);
+      sidebar?.querySelectorAll('a').forEach((a) => {
+        a.addEventListener('click', () => {
+          if (window.innerWidth <= 900) closeSidebar();
+        });
+      });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && isOpen) closeSidebar();
+      });
+    </script>
+  </body><script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/admin-lte@latest/dist/js/adminlte.min.js" defer></script>
+</html>

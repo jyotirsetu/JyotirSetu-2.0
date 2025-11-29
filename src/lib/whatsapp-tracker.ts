@@ -18,7 +18,18 @@ export async function logWhatsapp(
     await client.execute({
       sql: `INSERT INTO whatsapp_history (id, recipient_phone, recipient_name, message, type, related_id, related_type, status, sent_at, error_message)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      args: [id, String(recipientPhone), recipientName || null, String(message), String(type), relatedId || null, relatedType || null, String(status), sentAt, errorMessage || null]
+      args: [
+        id,
+        String(recipientPhone),
+        recipientName || null,
+        String(message),
+        String(type),
+        relatedId || null,
+        relatedType || null,
+        String(status),
+        sentAt,
+        errorMessage || null,
+      ],
     });
     return id;
   } catch (error) {

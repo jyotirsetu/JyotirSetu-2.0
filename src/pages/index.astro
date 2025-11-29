@@ -5,7 +5,8 @@ import Layout from '~/layouts/PageLayout.astro';
 
 const metadata = {
   title: 'JyotirSetu Astrology – Bridge to Cosmic Light',
-  description: 'Professional astrology, palmistry & numerology consultations by Astrologer Punita Sharma. Get expert guidance for your life journey.',
+  description:
+    'Professional astrology, palmistry & numerology consultations by Astrologer Punita Sharma. Get expert guidance for your life journey.',
 };
 
 import Hero from '~/components/widgets/Hero.astro';
@@ -20,7 +21,6 @@ import FAQs from '~/components/widgets/FAQs.astro';
 import Stats from '~/components/widgets/Stats.astro';
 import CallToAction from '~/components/widgets/CallToAction.astro';
 import EmailCapture from '~/components/widgets/EmailCapture.astro';
-
 ---
 
 <Layout metadata={metadata}>
@@ -367,7 +367,7 @@ import EmailCapture from '~/components/widgets/EmailCapture.astro';
       src: 'https://media.istockphoto.com/id/2192271334/photo/woman-watching-virtual-meditation-class-at-home.webp?a=1&b=1&s=612x612&w=0&k=20&c=ekYc2FRzpWiAZYDzUnPz9AY-rNum66FE4lJeXeIN-WA=',
       alt: 'Steps image',
       width: 612,
-      height: 612
+      height: 612,
     }}
     height={612}
   />
@@ -394,7 +394,9 @@ import EmailCapture from '~/components/widgets/EmailCapture.astro';
   </section>
 
   <!-- Retention Loop - Email Capture Section -->
-  <section class="py-16 bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-slate-800 dark:via-slate-900 dark:to-slate-800">
+  <section
+    class="py-16 bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-slate-800 dark:via-slate-900 dark:to-slate-800"
+  >
     <div class="max-w-7xl mx-auto px-6">
       <div class="text-center mb-12">
         <h2 class="text-3xl font-bold text-heading mb-4">🌟 Stay Connected with Cosmic Wisdom</h2>
@@ -405,26 +407,30 @@ import EmailCapture from '~/components/widgets/EmailCapture.astro';
     </div>
   </section>
 
-<!-- Blog Preview Section -->
-<section class="py-16 bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-slate-800 dark:via-slate-900 dark:to-slate-800">
-  <div class="max-w-7xl mx-auto px-6">
-    <div class="text-center mb-12">
-      <h2 class="text-3xl font-bold text-heading mb-4">📚 Latest Astrology Insights</h2>
-      <p class="text-lg text-muted">Discover cosmic wisdom, remedies, and guidance from our expert blog</p>
+  <!-- Blog Preview Section -->
+  <section
+    class="py-16 bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-slate-800 dark:via-slate-900 dark:to-slate-800"
+  >
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl font-bold text-heading mb-4">📚 Latest Astrology Insights</h2>
+        <p class="text-lg text-muted">Discover cosmic wisdom, remedies, and guidance from our expert blog</p>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-8 mb-8">
+        <!-- Blog preview cards would go here -->
+      </div>
+
+      <div class="text-center">
+        <a
+          href="https://blog.jyotirsetu.com"
+          class="inline-flex items-center px-6 py-3 text-base font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
+        >
+          Read More Articles →
+        </a>
+      </div>
     </div>
-    
-    <div class="grid md:grid-cols-3 gap-8 mb-8">
-      <!-- Blog preview cards would go here -->
-    </div>
-    
-    <div class="text-center">
-      <a href="https://blog.jyotirsetu.com" 
-         class="inline-flex items-center px-6 py-3 text-base font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors">
-        Read More Articles →
-      </a>
-    </div>
-  </div>
-</section>
+  </section>
 
   <!-- FAQs Widget ******************* -->
 

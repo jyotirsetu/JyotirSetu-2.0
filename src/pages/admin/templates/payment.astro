@@ -1,39 +1,54 @@
 ---
 export const prerender = false;
 import Favicons from '~/components/Favicons.astro';
+import AdminNavbar from '~/components/AdminNavbar.astro';
 ---
-<!DOCTYPE html>
+
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Payment Email Templates – Admin</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/css/all.min.css" />
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" />
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@latest/dist/css/adminlte.min.css" />
-<link rel="stylesheet" href="/admin.css?v=20251116" />
-<Favicons />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@latest/dist/css/adminlte.min.css" />
+    <link rel="stylesheet" href="/admin.css?v=20251116" />
+    <Favicons />
     <script src="https://cdn.jsdelivr.net/npm/tinymce@6/tinymce.min.js"></script>
     <script src="/js/admin-notify.js" defer></script>
     <script>
-      (function(){
-        function defineFallback(){
-          try{
-            if(window.AdminNotify) return;
+      (function () {
+        function defineFallback() {
+          try {
+            if (window.AdminNotify) return;
             window.AdminNotify = {
-              success:function(msg, detail){ console.log('SUCCESS:', detail? (msg+': '+detail) : msg); },
-              error:function(msg, detail){ console.error('ERROR:', detail? (msg+': '+detail) : msg); },
-              info:function(msg, detail){ console.log('INFO:', detail? (msg+': '+detail) : msg); }
+              success: function (msg, detail) {
+                console.log('SUCCESS:', detail ? msg + ': ' + detail : msg);
+              },
+              error: function (msg, detail) {
+                console.error('ERROR:', detail ? msg + ': ' + detail : msg);
+              },
+              info: function (msg, detail) {
+                console.log('INFO:', detail ? msg + ': ' + detail : msg);
+              },
             };
-          }catch(e){ console.error('AdminNotify fallback error:', e); }
+          } catch (e) {
+            console.error('AdminNotify fallback error:', e);
+          }
         }
-        function reinject(){
-          try{
+        function reinject() {
+          try {
             const s = document.createElement('script');
-            s.src = '/js/admin-notify.js'; s.defer = true; document.body.appendChild(s);
-          }catch(e){ console.error('AdminNotify reinject error:', e); }
+            s.src = '/js/admin-notify.js';
+            s.defer = true;
+            document.body.appendChild(s);
+          } catch (e) {
+            console.error('AdminNotify reinject error:', e);
+          }
         }
-        defineFallback(); setTimeout(reinject, 100);
+        defineFallback();
+        setTimeout(reinject, 100);
       })();
     </script>
   </head>
@@ -41,10 +56,12 @@ import Favicons from '~/components/Favicons.astro';
     <button class="sidebar-toggle" aria-label="Open Admin Menu" id="sidebarToggle">☰</button>
     <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
     <script is:inline>
-      (function(){
-        function applyTheme(theme){
+      (function () {
+        function applyTheme(theme) {
           let t = theme;
-          if (t === 'auto') { t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'; }
+          if (t === 'auto') {
+            t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          }
           document.body.classList.toggle('dark-mode', t === 'dark');
         }
         let theme = 'dark';
@@ -58,52 +75,128 @@ import Favicons from '~/components/Favicons.astro';
               if (s.sidebarCollapsed != null) collapsed = !!s.sidebarCollapsed;
             }
           }
-        } catch (e) { console.error('Error loading admin settings:', e); }
+        } catch (e) {
+          console.error('Error loading admin settings:', e);
+        }
         applyTheme(theme);
         document.body.classList.toggle('sidebar-collapse', collapsed);
         try {
           Promise.all([
-            fetch('/api/admin/preferences?key=theme').then(function(r){return r.json();}),
-            fetch('/api/admin/preferences?key=sidebarCollapsed').then(function(r){return r.json();})
-          ]).then(function(rs){
-            const tr = rs[0], sr = rs[1];
-            if (tr && tr.ok && typeof tr.value === 'string') applyTheme(tr.value);
-            if (sr && sr.ok && sr.value != null) document.body.classList.toggle('sidebar-collapse', sr.value === '1');
-          }).catch(function(err){ console.error('Error syncing preferences:', err); });
-        } catch (e) { console.error('Error syncing preferences:', e); }
+            fetch('/api/admin/preferences?key=theme').then(function (r) {
+              return r.json();
+            }),
+            fetch('/api/admin/preferences?key=sidebarCollapsed').then(function (r) {
+              return r.json();
+            }),
+          ])
+            .then(function (rs) {
+              const tr = rs[0],
+                sr = rs[1];
+              if (tr && tr.ok && typeof tr.value === 'string') applyTheme(tr.value);
+              if (sr && sr.ok && sr.value != null) document.body.classList.toggle('sidebar-collapse', sr.value === '1');
+            })
+            .catch(function (err) {
+              console.error('Error syncing preferences:', err);
+            });
+        } catch (e) {
+          console.error('Error syncing preferences:', e);
+        }
       })();
     </script>
     <div class="wrapper">
+      <AdminNavbar />
+      <!-- legacy navbar
       <nav class="main-header navbar navbar-expand navbar-dark">
         <ul class="navbar-nav">
-          <li class="nav-item"><a class="nav-link" data-widget="pushmenu" href="#" role="button" aria-label="Toggle sidebar"><i class="fas fa-bars"></i></a></li>
+          <li class="nav-item">
+            <a class="nav-link" data-widget="pushmenu" href="#" role="button" aria-label="Toggle sidebar"
+              ><i class="fas fa-bars"></i></a
+            >
+          </li>
           <li class="nav-item"><a href="/admin/dashboard" class="nav-link">Dashboard</a></li>
         </ul>
         <ul class="navbar-nav ms-auto">
-          <li class="nav-item"><button class="btn btn-sm btn-outline-secondary" id="toggleSidebarDesktop">Hide sidebar</button></li>
+          <li class="nav-item">
+            <button class="btn btn-sm btn-outline-secondary" id="toggleSidebarDesktop">Hide sidebar</button>
+          </li>
           <li class="nav-item"><a href="/api/admin/logout" class="nav-link">Logout</a></li>
         </ul>
-      </nav>
+      </nav> -->
       <aside class="main-sidebar sidebar-dark-primary elevation-4" id="adminSidebar">
         <a href="/admin/dashboard" class="brand-link" style="display:flex;align-items:center;gap:8px">
-          <img src="https://images.unsplash.com/vector-1763306579596-25a002c977df?q=80&w=1979&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Brand" style="height:40px;width:auto;border-radius:0;box-shadow:0 2px 6px rgba(0,0,0,0.25)" />
+          <img
+            src="https://images.unsplash.com/vector-1763306579596-25a002c977df?q=80&w=1979&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+            alt="Brand"
+            style="height:40px;width:auto;border-radius:0;box-shadow:0 2px 6px rgba(0,0,0,0.25)"
+          />
         </a>
         <div class="sidebar">
-        <nav class="mt-2">
-          <ul class="nav nav-pills nav-sidebar flex-column" role="menu" data-accordion="false" data-widget="treeview">
-            <li class="nav-item"><a href="/admin/dashboard" class="nav-link"><i class="nav-icon fas fa-gauge"></i><p>Dashboard</p></a></li>
-            <li class="nav-item"><a href="/admin/appointments" class="nav-link"><i class="nav-icon fas fa-calendar-check"></i><p>Appointments</p></a></li>
-            <li class="nav-item"><a href="/admin/contacts" class="nav-link"><i class="nav-icon fas fa-comments"></i><p>Contacts</p></a></li>
-            <li class="nav-item"><a href="/admin/newsletter" class="nav-link"><i class="nav-icon fas fa-envelope-open-text"></i><p>Newsletter</p></a></li>
-            <li class="nav-item"><a href="/admin/calendar" class="nav-link"><i class="nav-icon fas fa-calendar"></i><p>Calendar</p></a></li>
-            <li class="nav-item"><a href="/admin/activity-log" class="nav-link"><i class="nav-icon fas fa-list"></i><p>Activity Log</p></a></li>
-            <li class="nav-item"><a href="/admin/templates/email" class="nav-link"><i class="nav-icon fas fa-file-alt"></i><p>Email Templates</p></a></li>
-            <li class="nav-item"><a href="/admin/templates/payment" class="nav-link active"><i class="nav-icon fas fa-file-invoice-dollar"></i><p>Payment Templates</p></a></li>
-            <li class="nav-item"><a href="/admin/templates/whatsapp" class="nav-link"><i class="nav-icon fas fa-file-alt"></i><p>WhatsApp Templates</p></a></li>
-            <li class="nav-item"><a href="/admin/tools/follow-hub/insights" class="nav-link"><i class="nav-icon fas fa-toolbox"></i><p>Follow Hub – Insights</p></a></li>
-            <li class="nav-item"><a href="/admin/settings" class="nav-link"><i class="nav-icon fas fa-gear"></i><p>Settings</p></a></li>
-          </ul>
-        </nav>
+          <nav class="mt-2">
+            <ul class="nav nav-pills nav-sidebar flex-column" role="menu" data-accordion="false" data-widget="treeview">
+              <li class="nav-item">
+                <a href="/admin/dashboard" class="nav-link"><i class="nav-icon fas fa-gauge"></i><p>Dashboard</p></a>
+              </li>
+              <li class="nav-item">
+                <a href="/admin/appointments" class="nav-link"
+                  ><i class="nav-icon fas fa-calendar-check"></i><p>Appointments</p></a
+                >
+              </li>
+              <li class="nav-item">
+                <a href="/admin/contacts" class="nav-link"><i class="nav-icon fas fa-comments"></i><p>Contacts</p></a>
+              </li>
+              <li class="nav-item">
+                <a href="/admin/newsletter" class="nav-link"
+                  ><i class="nav-icon fas fa-envelope-open-text"></i><p>Newsletter</p></a
+                >
+              </li>
+              <li class="nav-item">
+                <a href="/admin/calendar" class="nav-link"><i class="nav-icon fas fa-calendar"></i><p>Calendar</p></a>
+              </li>
+              <li class="nav-item">
+                <a href="/admin/quotes" class="nav-link"
+                  ><i class="nav-icon fas fa-file-invoice"></i><p>Quotations</p></a
+                >
+              </li>
+              <li class="nav-item">
+                <a href="/admin/after-service" class="nav-link"
+                  ><i class="nav-icon fas fa-handshake"></i><p>After Service</p></a
+                >
+              </li>
+              <li class="nav-item">
+                <a href="/admin/activity-log" class="nav-link"
+                  ><i class="nav-icon fas fa-list"></i><p>Activity Log</p></a
+                >
+              </li>
+              <li class="nav-item">
+                <a href="/admin/templates/email" class="nav-link"
+                  ><i class="nav-icon fas fa-file-alt"></i><p>Email Templates</p></a
+                >
+              </li>
+              <li class="nav-item">
+                <a href="/admin/templates/payment" class="nav-link active"
+                  ><i class="nav-icon fas fa-file-invoice-dollar"></i><p>Payment Templates</p></a
+                >
+              </li>
+              <li class="nav-item">
+                <a href="/admin/templates/whatsapp" class="nav-link"
+                  ><i class="nav-icon fas fa-file-alt"></i><p>WhatsApp Templates</p></a
+                >
+              </li>
+              <li class="nav-item">
+                <a href="/admin/client360" class="nav-link"
+                  ><i class="nav-icon fas fa-user-circle"></i><p>Client 360°</p></a
+                >
+              </li>
+              <li class="nav-item">
+                <a href="/admin/tools/follow-hub/insights" class="nav-link"
+                  ><i class="nav-icon fas fa-toolbox"></i><p>Follow Hub – Insights</p></a
+                >
+              </li>
+              <li class="nav-item">
+                <a href="/admin/settings" class="nav-link"><i class="nav-icon fas fa-gear"></i><p>Settings</p></a>
+              </li>
+            </ul>
+          </nav>
         </div>
       </aside>
       <div class="content-wrapper">
@@ -125,78 +218,146 @@ import Favicons from '~/components/Favicons.astro';
             <div class="toolbar toolbar-card">
               <button class="btn btn-sm btn-primary" id="previewBtn">👁️ Preview</button>
               <button class="btn btn-sm btn-success" id="exportBtn">📥 Export</button>
-              <a href="/api/admin/logout" class="btn btn-sm btn-secondary">Logout</a>
+              
             </div>
-        <div class="container-fluid" style="padding-bottom:20px">
-          <style>
-            .modal { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(2,6,23,0.6); z-index:1000; align-items:center; justify-content:center; }
-            .modal.active { display:flex; }
-            .modal-content { background:#0f172a; padding:24px; border-radius:12px; max-width:520px; width:90%; box-shadow:0 30px 80px rgba(15,23,42,0.8); border:1px solid rgba(148,163,184,0.25); }
-            .modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; border-bottom:1px solid rgba(148,163,184,0.2); padding-bottom:10px; }
-            .close-btn { background:none; border:none; font-size:24px; cursor:pointer; padding:0; width:32px; height:32px; color:#94a3b8; line-height:1; }
-            .confirm-row { display:grid; grid-template-columns:140px 1fr; gap:10px; color:#e5e7eb; }
-          </style>
-          <div class="cards" style="grid-template-columns: 1fr 1fr 1fr;">
-            <div class="card">
-              <label>Template Key *</label>
-              <input class="input" id="key" placeholder="e.g. unpaid, partial, paid" />
-              <div class="info-text" style="margin-top: 4px;">Use payment status keys</div>
-            </div>
-            <div class="card">
-              <label>Email Subject *</label>
-              <input class="input" id="subject" placeholder="Email subject line" />
-            </div>
-            <div class="card">
-              <label>Actions</label>
-              <div class="template-actions">
-                <button class="btn" id="saveBtn" style="background:#667eea;color:white;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;flex:1">💾 Save</button>
-                <button class="btn-sm" id="deleteBtn" style="background:#ef4444;color:white;border:none;padding:8px 12px;border-radius:6px;cursor:pointer">🗑️ Delete</button>
+            <div class="container-fluid" style="padding-bottom:20px">
+              <style>
+                .modal {
+                  display: none;
+                  position: fixed;
+                  top: 0;
+                  left: 0;
+                  right: 0;
+                  bottom: 0;
+                  background: rgba(2, 6, 23, 0.6);
+                  z-index: 1000;
+                  align-items: center;
+                  justify-content: center;
+                }
+                .modal.active {
+                  display: flex;
+                }
+                .modal-content {
+                  background: #0f172a;
+                  padding: 24px;
+                  border-radius: 12px;
+                  max-width: 520px;
+                  width: 90%;
+                  box-shadow: 0 30px 80px rgba(15, 23, 42, 0.8);
+                  border: 1px solid rgba(148, 163, 184, 0.25);
+                }
+                .modal-header {
+                  display: flex;
+                  justify-content: space-between;
+                  align-items: center;
+                  margin-bottom: 16px;
+                  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+                  padding-bottom: 10px;
+                }
+                .close-btn {
+                  background: none;
+                  border: none;
+                  font-size: 24px;
+                  cursor: pointer;
+                  padding: 0;
+                  width: 32px;
+                  height: 32px;
+                  color: #94a3b8;
+                  line-height: 1;
+                }
+                .confirm-row {
+                  display: grid;
+                  grid-template-columns: 140px 1fr;
+                  gap: 10px;
+                  color: #e5e7eb;
+                }
+              </style>
+              <div class="cards" style="grid-template-columns: 1fr 1fr 1fr;">
+                <div class="card">
+                  <label>Template Key *</label>
+                  <input class="input" id="key" placeholder="e.g. unpaid, partial, paid" />
+                  <div class="info-text" style="margin-top: 4px;">Use payment status keys</div>
+                </div>
+                <div class="card">
+                  <label>Email Subject *</label>
+                  <input class="input" id="subject" placeholder="Email subject line" />
+                </div>
+                <div class="card">
+                  <label>Actions</label>
+                  <div class="template-actions">
+                    <button
+                      class="btn"
+                      id="saveBtn"
+                      style="background:#667eea;color:white;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;flex:1"
+                      >💾 Save</button
+                    >
+                    <button
+                      class="btn-sm"
+                      id="deleteBtn"
+                      style="background:#ef4444;color:white;border:none;padding:8px 12px;border-radius:6px;cursor:pointer"
+                      >🗑️ Delete</button
+                    >
+                  </div>
+                </div>
+              </div>
+
+              <div class="template-editor">
+                <div>
+                  <label>HTML Content *</label>
+                  <div id="htmlEditor"></div>
+                </div>
+                <div>
+                  <label>Preview</label>
+                  <div id="preview" class="editor-preview"></div>
+                </div>
+              </div>
+
+              <div class="card" style="margin-top:20px">
+                <strong>Variables</strong>
+                <div class="variables-tags">
+                  <span class="variable-tag" data-var="{name}">&lbrace;name&rbrace;</span>
+                  <span class="variable-tag" data-var="{service}">&lbrace;service&rbrace;</span>
+                  <span class="variable-tag" data-var="{date}">&lbrace;date&rbrace;</span>
+                  <span class="variable-tag" data-var="{time}">&lbrace;time&rbrace;</span>
+                  <span class="variable-tag" data-var="{method}">&lbrace;method&rbrace;</span>
+                  <span class="variable-tag" data-var="{status}">&lbrace;status&rbrace;</span>
+                  <span class="variable-tag" data-var="{appointment_id}">&lbrace;appointment_id&rbrace;</span>
+                  <span class="variable-tag" data-var="{follow_link}">&lbrace;follow_link&rbrace;</span>
+                </div>
+              </div>
+
+              <div class="card" style="margin-top:20px">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+                  <strong>Quick Actions</strong>
+                  <button
+                    class="btn-sm"
+                    id="seedDefaults"
+                    style="background:#667eea;color:white;border:none;padding:6px 12px;border-radius:6px;cursor:pointer"
+                    >📦 Load Default Set</button
+                  >
+                </div>
+                <div
+                  id="quickTemplates"
+                  style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px"
+                >
+                </div>
+              </div>
+
+              <div class="card" style="margin-top:20px">
+                <strong>Existing Templates</strong>
+                <div
+                  id="templateList"
+                  style="margin-top:12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px"
+                >
+                </div>
               </div>
             </div>
           </div>
-
-          <div class="template-editor">
-            <div>
-              <label>HTML Content *</label>
-              <div id="htmlEditor"></div>
-            </div>
-            <div>
-              <label>Preview</label>
-              <div id="preview" class="editor-preview"></div>
-            </div>
-          </div>
-
-          <div class="card" style="margin-top:20px">
-            <strong>Variables</strong>
-            <div class="variables-tags">
-              <span class="variable-tag" data-var="&lbrace;name&rbrace;">&lbrace;name&rbrace;</span>
-              <span class="variable-tag" data-var="&lbrace;service&rbrace;">&lbrace;service&rbrace;</span>
-              <span class="variable-tag" data-var="&lbrace;date&rbrace;">&lbrace;date&rbrace;</span>
-              <span class="variable-tag" data-var="&lbrace;time&rbrace;">&lbrace;time&rbrace;</span>
-              <span class="variable-tag" data-var="&lbrace;method&rbrace;">&lbrace;method&rbrace;</span>
-              <span class="variable-tag" data-var="&lbrace;status&rbrace;">&lbrace;status&rbrace;</span>
-              <span class="variable-tag" data-var="&lbrace;appointment_id&rbrace;">&lbrace;appointment_id&rbrace;</span>
-              <span class="variable-tag" data-var="&lbrace;follow_link&rbrace;">&lbrace;follow_link&rbrace;</span>
-            </div>
-          </div>
-
-          <div class="card" style="margin-top:20px">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-              <strong>Quick Actions</strong>
-              <button class="btn-sm" id="seedDefaults" style="background:#667eea;color:white;border:none;padding:6px 12px;border-radius:6px;cursor:pointer">📦 Load Default Set</button>
-            </div>
-            <div id="quickTemplates" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px"></div>
-          </div>
-
-          <div class="card" style="margin-top:20px">
-            <strong>Existing Templates</strong>
-            <div id="templateList" style="margin-top:12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px"></div>
-          </div>
-        </div>
-          </div>
         </section>
       </div>
-      <footer class="main-footer"><strong>JyotirSetu Admin</strong><div class="float-end d-none d-sm-inline">AdminLTE theme</div></footer>
+      <footer class="main-footer">
+        <strong>JyotirSetu Admin</strong><div class="float-end d-none d-sm-inline">AdminLTE theme</div>
+      </footer>
     </div>
 
     <!-- Delete Confirm Modal -->
@@ -207,9 +368,23 @@ import Favicons from '~/components/Favicons.astro';
           <button class="close-btn" id="deleteClose">&times;</button>
         </div>
         <div id="deleteConfirmBody" class="confirm-row"></div>
-        <div style="display:flex; gap:12px; justify-content:flex-end; margin-top:16px; padding-top:12px; border-top:1px solid rgba(148,163,184,0.2);">
-          <button type="button" class="btn-sm" id="deleteCancel" style="background:#f3f4f6;color:#0f172a;border:1px solid #d1d5db;padding:8px 14px;border-radius:8px;cursor:pointer">Cancel</button>
-          <button type="button" class="btn-sm" id="deleteConfirm" style="background:#ef4444;color:#ffffff;border:none;padding:8px 14px;border-radius:8px;cursor:pointer">Delete</button>
+        <div
+          style="display:flex; gap:12px; justify-content:flex-end; margin-top:16px; padding-top:12px; border-top:1px solid rgba(148,163,184,0.2);"
+        >
+          <button
+            type="button"
+            class="btn-sm"
+            id="deleteCancel"
+            style="background:#f3f4f6;color:#0f172a;border:1px solid #d1d5db;padding:8px 14px;border-radius:8px;cursor:pointer"
+            >Cancel</button
+          >
+          <button
+            type="button"
+            class="btn-sm"
+            id="deleteConfirm"
+            style="background:#ef4444;color:#ffffff;border:none;padding:8px 14px;border-radius:8px;cursor:pointer"
+            >Delete</button
+          >
         </div>
       </div>
     </div>
@@ -226,8 +401,8 @@ import Favicons from '~/components/Favicons.astro';
             '<p>Please complete the payment to confirm your booking.</p>',
             '<p><strong>Appointment ID:</strong> {appointment_id}</p>',
             '<p>For assistance, reply to this email or visit <a href="{follow_link}" target="_blank">follow.jyotirsetu.com</a>.</p>',
-            '<p>Warm regards,<br/>JyotirSetu Astrology</p>'
-          ].join('')
+            '<p>Warm regards,<br/>JyotirSetu Astrology</p>',
+          ].join(''),
         },
         {
           key: 'partial',
@@ -238,8 +413,8 @@ import Favicons from '~/components/Favicons.astro';
             '<p>Kindly complete the remaining amount to finalize your booking.</p>',
             '<p><strong>Appointment ID:</strong> {appointment_id}</p>',
             '<p>Need help? Reply to this email or visit <a href="{follow_link}" target="_blank">follow.jyotirsetu.com</a>.</p>',
-            '<p>Warm regards,<br/>JyotirSetu Astrology</p>'
-          ].join('')
+            '<p>Warm regards,<br/>JyotirSetu Astrology</p>',
+          ].join(''),
         },
         {
           key: 'paid',
@@ -250,30 +425,49 @@ import Favicons from '~/components/Favicons.astro';
             '<p>Your appointment remains scheduled as planned.</p>',
             '<p><strong>Appointment ID:</strong> {appointment_id}</p>',
             '<p>We look forward to guiding you. For any queries, reply to this email.</p>',
-            '<p>Warm regards,<br/>JyotirSetu Astrology</p>'
-          ].join('')
-        }
+            '<p>Warm regards,<br/>JyotirSetu Astrology</p>',
+          ].join(''),
+        },
       ];
 
-      document.addEventListener('DOMContentLoaded', function() {
+      document.addEventListener('DOMContentLoaded', function () {
         tinymce.baseURL = 'https://cdn.jsdelivr.net/npm/tinymce@6';
         tinymce.init({
           selector: '#htmlEditor',
           height: 400,
           menubar: false,
           plugins: 'lists link image table code fullscreen advlist',
-          toolbar: 'undo redo | bold italic underline | blocks fontfamily fontsize | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image table | code fullscreen',
+          toolbar:
+            'undo redo | bold italic underline | blocks fontfamily fontsize | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image table | code fullscreen',
           block_formats: 'Paragraph=p; Heading 1=h1; Heading 2=h2; Heading 3=h3',
           toolbar_mode: 'sliding',
           branding: false,
           convert_urls: false,
-          setup: (ed) => { editor = ed; ed.on('change keyup', () => updatePreview()); }
+          setup: (ed) => {
+            editor = ed;
+            ed.on('change keyup', () => updatePreview());
+          },
         });
       });
-      (function(){
+      (function () {
         const btn = document.getElementById('toggleSidebarDesktop');
-        function sync(){ if(!btn) return; const c=document.body.classList.contains('sidebar-collapse'); btn.textContent = c ? 'Show sidebar' : 'Hide sidebar'; }
-        async function toggle(){ const c=document.body.classList.toggle('sidebar-collapse'); sync(); try{ await fetch('/api/admin/preferences', { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ key:'sidebarCollapsed', value: c ? '1':'0' }) }); }catch(e){ console.error(e); }
+        function sync() {
+          if (!btn) return;
+          const c = document.body.classList.contains('sidebar-collapse');
+          btn.textContent = c ? 'Show sidebar' : 'Hide sidebar';
+        }
+        async function toggle() {
+          const c = document.body.classList.toggle('sidebar-collapse');
+          sync();
+          try {
+            await fetch('/api/admin/preferences', {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ key: 'sidebarCollapsed', value: c ? '1' : '0' }),
+            });
+          } catch (e) {
+            console.error(e);
+          }
         }
         btn?.addEventListener('click', toggle);
         sync();
@@ -282,7 +476,13 @@ import Favicons from '~/components/Favicons.astro';
       function updatePreview() {
         const html = editor.getContent();
         const preview = document.getElementById('preview');
-        preview.innerHTML = html.replace(/\{(\w+)\}/g, function(match, varName) { return '<span style="background:#fef3c7;padding:2px 6px;border-radius:3px;font-weight:600">{\'' + varName + '\'}</span>'; });
+        preview.innerHTML = html.replace(/\{(\w+)\}/g, function (match, varName) {
+          return (
+            '<span style="background:#fef3c7;padding:2px 6px;border-radius:3px;font-weight:600">{\'' +
+            varName +
+            "'}</span>"
+          );
+        });
       }
 
       async function loadTemplates() {
@@ -290,21 +490,39 @@ import Favicons from '~/components/Favicons.astro';
         const json = await res.json();
         const list = document.getElementById('templateList');
         const templates = json.data || [];
-        list.innerHTML = templates.length ? templates.map(function(t) {
-          return '<div class="template-card" data-key="' + t.key + '">' +
-            '<div style="font-weight:600;margin-bottom:4px">' + t.key + '</div>' +
-            '<div class="muted" style="font-size:12px;margin-bottom:4px">' + t.subject + '</div>' +
-            '<div class="muted" style="font-size:11px;margin-bottom:8px">Updated: ' + new Date(t.updated_at).toLocaleDateString() + '</div>' +
-            '<div style="display:flex;gap:8px">' +
-              '<button class="btn-sm" data-edit="' + t.key + '" style="background:#667eea;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:11px;flex:1">Edit</button>' +
-              '<button class="btn-sm" data-del="' + t.key + '" style="background:#ef4444;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:11px">Delete</button>' +
-            '</div>' +
-            '</div>';
-        }).join('') : '<p class="muted">No templates saved yet</p>';
-        list.querySelectorAll('[data-edit]').forEach(b => {
+        list.innerHTML = templates.length
+          ? templates
+              .map(function (t) {
+                return (
+                  '<div class="template-card" data-key="' +
+                  t.key +
+                  '">' +
+                  '<div style="font-weight:600;margin-bottom:4px">' +
+                  t.key +
+                  '</div>' +
+                  '<div class="muted" style="font-size:12px;margin-bottom:4px">' +
+                  t.subject +
+                  '</div>' +
+                  '<div class="muted" style="font-size:11px;margin-bottom:8px">Updated: ' +
+                  new Date(t.updated_at).toLocaleDateString() +
+                  '</div>' +
+                  '<div style="display:flex;gap:8px">' +
+                  '<button class="btn-sm" data-edit="' +
+                  t.key +
+                  '" style="background:#667eea;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:11px;flex:1">Edit</button>' +
+                  '<button class="btn-sm" data-del="' +
+                  t.key +
+                  '" style="background:#ef4444;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:11px">Delete</button>' +
+                  '</div>' +
+                  '</div>'
+                );
+              })
+              .join('')
+          : '<p class="muted">No templates saved yet</p>';
+        list.querySelectorAll('[data-edit]').forEach((b) => {
           b.addEventListener('click', async () => {
             const key = b.getAttribute('data-edit');
-            const t = templates.find(x => x.key === key);
+            const t = templates.find((x) => x.key === key);
             if (t) {
               document.getElementById('key').value = t.key;
               document.getElementById('subject').value = t.subject;
@@ -313,46 +531,79 @@ import Favicons from '~/components/Favicons.astro';
             }
           });
         });
-        list.querySelectorAll('[data-del]').forEach(btn => {
+        list.querySelectorAll('[data-del]').forEach((btn) => {
           btn.addEventListener('click', () => {
             const key = btn.getAttribute('data-del');
-            const t = templates.find(x => x.key === key) || { key, subject: '' };
+            const t = templates.find((x) => x.key === key) || { key, subject: '' };
             openDeleteConfirm(t.key, t.subject);
           });
         });
       }
 
       async function saveTemplate(key, subject, html) {
-        if (!key || !subject) { window.AdminNotify?.error('Missing fields', 'Key and Subject are required'); return false; }
-        const res = await fetch('/api/admin/templates', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'email', key, subject, html: html || editor.getContent() }) });
+        if (!key || !subject) {
+          window.AdminNotify?.error('Missing fields', 'Key and Subject are required');
+          return false;
+        }
+        const res = await fetch('/api/admin/templates', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: 'email', key, subject, html: html || editor.getContent() }),
+        });
         const json = await res.json();
-        if (json.ok) { window.AdminNotify?.success('Email template saved', 'Key: ' + key); loadTemplates(); return true; }
-        else { window.AdminNotify?.error('Save failed', (json.error || 'Unknown error')); return false; }
+        if (json.ok) {
+          window.AdminNotify?.success('Email template saved', 'Key: ' + key);
+          loadTemplates();
+          return true;
+        } else {
+          window.AdminNotify?.error('Save failed', json.error || 'Unknown error');
+          return false;
+        }
       }
 
       function renderQuickTemplates() {
         const container = document.getElementById('quickTemplates');
-        container.innerHTML = defaultTemplates.map(function(t) {
-          return '<div class="template-card" data-key="' + t.key + '">' +
-            '<div style="font-weight:600;margin-bottom:4px">' + t.key + '</div>' +
-            '<div class="muted" style="font-size:12px;margin-bottom:8px">' + t.subject + '</div>' +
-            '<div style="display:flex;gap:8px">' +
-              '<button class="btn-sm" data-use="' + t.key + '" style="background:#667eea;color:white;border:none;padding:6px 10px;border-radius:4px;cursor:pointer">Use</button>' +
-              '<button class="btn-sm" data-save="' + t.key + '" style="background:#22c55e;color:white;border:none;padding:6px 10px;border-radius:4px;cursor:pointer">Save</button>' +
-            '</div>' +
-          '</div>';
-        }).join('');
-        container.querySelectorAll('[data-use]').forEach(btn => {
+        container.innerHTML = defaultTemplates
+          .map(function (t) {
+            return (
+              '<div class="template-card" data-key="' +
+              t.key +
+              '">' +
+              '<div style="font-weight:600;margin-bottom:4px">' +
+              t.key +
+              '</div>' +
+              '<div class="muted" style="font-size:12px;margin-bottom:8px">' +
+              t.subject +
+              '</div>' +
+              '<div style="display:flex;gap:8px">' +
+              '<button class="btn-sm" data-use="' +
+              t.key +
+              '" style="background:#667eea;color:white;border:none;padding:6px 10px;border-radius:4px;cursor:pointer">Use</button>' +
+              '<button class="btn-sm" data-save="' +
+              t.key +
+              '" style="background:#22c55e;color:white;border:none;padding:6px 10px;border-radius:4px;cursor:pointer">Save</button>' +
+              '</div>' +
+              '</div>'
+            );
+          })
+          .join('');
+        container.querySelectorAll('[data-use]').forEach((btn) => {
           btn.addEventListener('click', () => {
             const key = btn.getAttribute('data-use');
-            const t = defaultTemplates.find(x => x.key === key);
-            if (t) { document.getElementById('key').value = t.key; document.getElementById('subject').value = t.subject; editor.setContent(t.html || ''); updatePreview(); window.AdminNotify?.info('Loaded template into editor', 'Key: ' + t.key); }
+            const t = defaultTemplates.find((x) => x.key === key);
+            if (t) {
+              document.getElementById('key').value = t.key;
+              document.getElementById('subject').value = t.subject;
+              editor.setContent(t.html || '');
+              updatePreview();
+              window.AdminNotify?.info('Loaded template into editor', 'Key: ' + t.key);
+            }
           });
         });
-        container.querySelectorAll('[data-save]').forEach(btn => {
+        container.querySelectorAll('[data-save]').forEach((btn) => {
           btn.addEventListener('click', async () => {
             const key = btn.getAttribute('data-save');
-            const t = defaultTemplates.find(x => x.key === key);
+            const t = defaultTemplates.find((x) => x.key === key);
             if (t) await saveTemplate(t.key, t.subject, t.html);
           });
         });
@@ -366,10 +617,15 @@ import Favicons from '~/components/Favicons.astro';
       document.getElementById('deleteBtn').addEventListener('click', () => {
         const key = document.getElementById('key').value.trim();
         const subject = document.getElementById('subject').value.trim();
-        if (!key) { window.AdminNotify?.error('Missing key', 'Enter template key to delete'); return; }
+        if (!key) {
+          window.AdminNotify?.error('Missing key', 'Enter template key to delete');
+          return;
+        }
         openDeleteConfirm(key, subject);
       });
-      document.getElementById('previewBtn').addEventListener('click', () => { updatePreview(); });
+      document.getElementById('previewBtn').addEventListener('click', () => {
+        updatePreview();
+      });
       document.getElementById('exportBtn').addEventListener('click', async () => {
         const res = await fetch('/api/admin/templates?type=email');
         const json = await res.json();
@@ -377,20 +633,34 @@ import Favicons from '~/components/Favicons.astro';
         const blob = new Blob([dataStr], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.href = url; a.download = `payment-email-templates-${new Date().toISOString().split('T')[0]}.json`; a.click();
+        a.href = url;
+        a.download = `payment-email-templates-${new Date().toISOString().split('T')[0]}.json`;
+        a.click();
       });
 
-      document.querySelectorAll('.variable-tag').forEach(tag => { tag.addEventListener('click', () => { const varName = tag.getAttribute('data-var'); editor.insertContent(varName); }); });
+      document.querySelectorAll('.variable-tag').forEach((tag) => {
+        tag.addEventListener('click', () => {
+          const varName = tag.getAttribute('data-var');
+          editor.insertContent(varName);
+        });
+      });
 
       document.getElementById('seedDefaults').addEventListener('click', async () => {
         try {
           for (const t of defaultTemplates) {
-            const res = await fetch('/api/admin/templates', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'email', key: t.key, subject: t.subject, html: t.html }) });
-            const json = await res.json(); if (!json.ok) throw new Error(json.error || 'failed');
+            const res = await fetch('/api/admin/templates', {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ type: 'email', key: t.key, subject: t.subject, html: t.html }),
+            });
+            const json = await res.json();
+            if (!json.ok) throw new Error(json.error || 'failed');
           }
           window.AdminNotify?.success('Default payment templates saved');
           await loadTemplates();
-        } catch (e) { window.AdminNotify?.error('Seeding failed', String(e?.message || e || 'Unknown error')); }
+        } catch (e) {
+          window.AdminNotify?.error('Seeding failed', String(e?.message || e || 'Unknown error'));
+        }
       });
 
       // Delete modal logic
@@ -398,28 +668,46 @@ import Favicons from '~/components/Favicons.astro';
       function openDeleteConfirm(key, subject) {
         deleteKey = key || '';
         const body = document.getElementById('deleteConfirmBody');
-        if (body) body.innerHTML = [
-          '<div class="muted" style="color:#94a3b8">Template Key</div><div>' + (key || '') + '</div>',
-          '<div class="muted" style="color:#94a3b8">Subject</div><div>' + (subject || '(no subject)') + '</div>',
-          '<div class="muted" style="color:#ef4444">Warning</div><div>This will permanently delete the template from the database.</div>'
-        ].join('');
+        if (body)
+          body.innerHTML = [
+            '<div class="muted" style="color:#94a3b8">Template Key</div><div>' + (key || '') + '</div>',
+            '<div class="muted" style="color:#94a3b8">Subject</div><div>' + (subject || '(no subject)') + '</div>',
+            '<div class="muted" style="color:#ef4444">Warning</div><div>This will permanently delete the template from the database.</div>',
+          ].join('');
         document.getElementById('deleteConfirmModal')?.classList.add('active');
       }
-      function closeDeleteConfirm() { document.getElementById('deleteConfirmModal')?.classList.remove('active'); deleteKey = ''; }
+      function closeDeleteConfirm() {
+        document.getElementById('deleteConfirmModal')?.classList.remove('active');
+        deleteKey = '';
+      }
       document.getElementById('deleteClose')?.addEventListener('click', closeDeleteConfirm);
       document.getElementById('deleteCancel')?.addEventListener('click', closeDeleteConfirm);
       document.getElementById('deleteConfirm')?.addEventListener('click', async () => {
         if (!deleteKey) return closeDeleteConfirm();
         try {
-          const res = await fetch('/api/admin/templates', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'email', key: deleteKey }) });
+          const res = await fetch('/api/admin/templates', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: 'email', key: deleteKey }),
+          });
           const json = await res.json();
           if (json.ok) {
             window.AdminNotify?.success('Template deleted', deleteKey);
             const currentKey = document.getElementById('key').value.trim();
-            if (currentKey === deleteKey) { document.getElementById('key').value = ''; document.getElementById('subject').value = ''; editor?.setContent(''); updatePreview(); }
-            await loadTemplates(); closeDeleteConfirm();
-          } else { window.AdminNotify?.error('Delete failed', json.error || 'Unknown error'); }
-        } catch (e) { window.AdminNotify?.error('Delete failed', String(e?.message || e || 'Unknown error')); }
+            if (currentKey === deleteKey) {
+              document.getElementById('key').value = '';
+              document.getElementById('subject').value = '';
+              editor?.setContent('');
+              updatePreview();
+            }
+            await loadTemplates();
+            closeDeleteConfirm();
+          } else {
+            window.AdminNotify?.error('Delete failed', json.error || 'Unknown error');
+          }
+        } catch (e) {
+          window.AdminNotify?.error('Delete failed', String(e?.message || e || 'Unknown error'));
+        }
       });
 
       loadTemplates();
@@ -429,12 +717,33 @@ import Favicons from '~/components/Favicons.astro';
       const backdrop = document.getElementById('sidebarBackdrop');
       const toggleBtn = document.getElementById('sidebarToggle');
       let isOpen = false;
-      function openSidebar() { sidebar?.classList.add('active'); backdrop?.classList.add('active'); toggleBtn?.classList.add('active'); toggleBtn.innerHTML = '✕'; isOpen = true; }
-      function closeSidebar() { sidebar?.classList.remove('active'); backdrop?.classList.remove('active'); toggleBtn?.classList.remove('active'); toggleBtn.innerHTML = '☰'; isOpen = false; }
-      toggleBtn?.addEventListener('click', () => { if (isOpen) closeSidebar(); else openSidebar(); });
+      function openSidebar() {
+        sidebar?.classList.add('active');
+        backdrop?.classList.add('active');
+        toggleBtn?.classList.add('active');
+        toggleBtn.innerHTML = '✕';
+        isOpen = true;
+      }
+      function closeSidebar() {
+        sidebar?.classList.remove('active');
+        backdrop?.classList.remove('active');
+        toggleBtn?.classList.remove('active');
+        toggleBtn.innerHTML = '☰';
+        isOpen = false;
+      }
+      toggleBtn?.addEventListener('click', () => {
+        if (isOpen) closeSidebar();
+        else openSidebar();
+      });
       backdrop?.addEventListener('click', closeSidebar);
-      sidebar?.querySelectorAll('a').forEach(a => { a.addEventListener('click', () => { if (window.innerWidth <= 900) closeSidebar(); }); });
-      document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && isOpen) closeSidebar(); });
+      sidebar?.querySelectorAll('a').forEach((a) => {
+        a.addEventListener('click', () => {
+          if (window.innerWidth <= 900) closeSidebar();
+        });
+      });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && isOpen) closeSidebar();
+      });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/admin-lte@latest/dist/js/adminlte.min.js" defer></script>

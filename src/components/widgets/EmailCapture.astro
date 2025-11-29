@@ -1,4 +1,5 @@
 ---
+
 ---
 
 <div class="bg-gray-100 p-8 rounded-xl my-8 text-center">
@@ -7,27 +8,22 @@
     Discover cosmic insights delivered to your inbox daily! Plus, receive your FREE Dosha Balancing Guide!
   </p>
 
-  <form 
-    id="emailCaptureForm"
-    action="/api/newsletter" 
-    method="POST" 
-    class="max-w-md mx-auto"
-  >
+  <form id="emailCaptureForm" action="/api/newsletter" method="POST" class="max-w-md mx-auto">
     <!-- Name Input -->
-    <input 
-      type="text" 
-      name="name" 
-      placeholder="Your Name" 
-      required 
+    <input
+      type="text"
+      name="name"
+      placeholder="Your Name"
+      required
       class="w-full p-3 mb-4 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-purple-400 focus:outline-none"
     />
 
     <!-- Email Input -->
-    <input 
-      type="email" 
-      name="email" 
-      placeholder="Your Email" 
-      required 
+    <input
+      type="email"
+      name="email"
+      placeholder="Your Email"
+      required
       class="w-full p-3 mb-4 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 bg-white focus:ring-2 focus:ring-purple-400 focus:outline-none"
     />
 
@@ -36,21 +32,25 @@
     <input type="hidden" name="type" value="daily_astro_tip" />
 
     <!-- Submit Button with Spinner -->
-    <button 
+    <button
       type="submit"
       id="submitBtn"
       class="w-full py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white font-semibold rounded-lg hover:from-purple-600 hover:to-blue-600 transition-colors duration-200 flex justify-center items-center gap-2"
     >
       <span id="btnText">Get Free Guide & Daily Tips</span>
-      <svg id="btnSpinner" class="w-5 h-5 animate-spin hidden text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+      <svg
+        id="btnSpinner"
+        class="w-5 h-5 animate-spin hidden text-white"
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+      >
         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
       </svg>
     </button>
 
-    <p class="text-xs text-gray-500 mt-2">
-      We respect your privacy. Unsubscribe at any time.
-    </p>
+    <p class="text-xs text-gray-500 mt-2">We respect your privacy. Unsubscribe at any time.</p>
 
     <!-- Success & Error messages -->
     <div id="formSuccess" class="opacity-0 transition-opacity duration-500 mt-4">
@@ -96,8 +96,8 @@
     try {
       const response = await fetch(action, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify(payload)
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify(payload),
       });
 
       if (response.ok) {

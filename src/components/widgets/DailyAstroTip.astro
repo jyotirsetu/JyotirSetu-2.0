@@ -132,7 +132,7 @@
     const dayOfYear = Math.floor((now.getTime() - startOfYear.getTime()) / (1000 * 60 * 60 * 24));
     const hourOfDay = now.getHours();
     const minuteOfHour = now.getMinutes();
-    
+
     // Combine multiple time factors for better distribution
     const randomSeed = (dayOfYear + hourOfDay + minuteOfHour) % dailyTips.length;
     return dailyTips[randomSeed];
@@ -141,11 +141,11 @@
   // Initialize tip widget
   document.addEventListener('DOMContentLoaded', function () {
     const freshTip = getFreshTip();
-    
+
     // Update mobile layout elements
     const mobileTipElement = document.getElementById('daily-tip-text-mobile');
     const mobileCategoryElement = document.getElementById('daily-tip-category-mobile');
-    
+
     // Update desktop layout elements
     const desktopTipElement = document.getElementById('daily-tip-text-desktop');
     const desktopCategoryElement = document.getElementById('daily-tip-category-desktop');
@@ -154,7 +154,7 @@
       mobileTipElement.textContent = freshTip.tip;
       mobileCategoryElement.textContent = freshTip.category;
     }
-    
+
     if (desktopTipElement && desktopCategoryElement) {
       desktopTipElement.textContent = freshTip.tip;
       desktopCategoryElement.textContent = freshTip.category;

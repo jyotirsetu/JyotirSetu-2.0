@@ -45,25 +45,26 @@ export default defineConfig({
         if (page.includes('/admin')) return false;
         // Exclude API routes (non-indexable)
         if (page.includes('/api/')) return false;
-        
+
         // Exclude blog and template demo pages (not used)
-        if (page.includes('/blog') || 
-            page.includes('/category/') || 
-            page.includes('/tag/') ||
-            page.includes('/astrowind-template') ||
-            page.includes('/get-started-website') ||
-            page.includes('/how-to-customize') ||
-            page.includes('/markdown-elements') ||
-            page.includes('/useful-resources')) return false;
-        
+        if (
+          page.includes('/blog') ||
+          page.includes('/category/') ||
+          page.includes('/tag/') ||
+          page.includes('/astrowind-template') ||
+          page.includes('/get-started-website') ||
+          page.includes('/how-to-customize') ||
+          page.includes('/markdown-elements') ||
+          page.includes('/useful-resources')
+        )
+          return false;
+
         // Exclude landing page templates (not used for business)
-        if (page.includes('/landing') || 
-            page.includes('/homes/')) return false;
-        
+        if (page.includes('/landing') || page.includes('/homes/')) return false;
+
         // Exclude pages that don't exist
-        if (page.includes('/pricing') || 
-            page.includes('/resources')) return false;
-        
+        if (page.includes('/pricing') || page.includes('/resources')) return false;
+
         return true;
       },
       // Add custom URLs for blog integration
@@ -71,8 +72,8 @@ export default defineConfig({
         'https://www.blog.jyotirsetu.com',
         'https://www.blog.jyotirsetu.com/blog',
         // Follow hub standalone site
-        'https://follow.jyotirsetu.com/'
-      ]
+        'https://follow.jyotirsetu.com/',
+      ],
     }),
     mdx(),
     icon({

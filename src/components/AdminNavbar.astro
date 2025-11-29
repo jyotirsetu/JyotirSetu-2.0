@@ -1,0 +1,99 @@
+---
+export interface Props {
+  showSwitchAccount?: boolean;
+}
+
+const { showSwitchAccount = true } = Astro.props;
+import MobilePageSelect from './MobilePageSelect.astro';
+---
+
+<nav class="main-header navbar navbar-expand navbar-dark">
+  <ul class="navbar-nav">
+    <li class="nav-item">
+      <a class="nav-link" data-widget="pushmenu" href="#" role="button" aria-label="Toggle sidebar"><i class="fas fa-bars"></i></a>
+    </li>
+    <li class="nav-item"><a href="/admin/dashboard" class="nav-link">Dashboard</a></li>
+  </ul>
+  <ul class="navbar-nav ms-auto">
+    <li class="nav-item dropdown" id="notifDropdown">
+      <a class="nav-link" href="#" role="button" aria-label="Notifications"><i class="fas fa-bell"></i><span id="notifCount" class="badge badge-warning navbar-badge" style="margin-left:4px">0</span></a>
+      <div class="dropdown-menu dropdown-menu-right" id="notifMenu" style="min-width:260px">
+        <span class="dropdown-item dropdown-header">Notifications</span>
+        <div id="notifItems"></div>
+      </div>
+    </li>
+    <li class="nav-item"><MobilePageSelect /></li>
+    <li class="nav-item">
+      <button class="btn btn-sm btn-outline-secondary" id="toggleSidebarDesktop">Hide sidebar</button>
+    </li>
+    {
+      showSwitchAccount && (
+        <li class="nav-item">
+          <a href="/admin/login" class="nav-link">
+            Switch account
+          </a>
+        </li>
+      )
+    }
+    <li class="nav-item"><a href="/api/admin/logout" class="nav-link">Logout</a></li>
+  </ul>
+</nav>
+<style>
+  @media (max-width: 900px) { [data-widget='pushmenu'] { display:none; } }
+</style>
+<script>
+  (function(){
+    async function loadNotif(){
+      try {
+        const res = await fetch('/api/admin/notifications?limit=10', { cache: 'no-store' });
+        const j = await res.json();
+        const c = document.getElementById('notifCount');
+        const list = document.getElementById('notifItems');
+        if (c) c.textContent = String(j.unread || 0);
+        if (list) {
+          list.innerHTML = '';
+          (j.data || []).forEach(function(n){
+            const id = String(n.id||'');
+            const item = document.createElement('a');
+            item.className = 'dropdown-item';
+            item.href = '#';
+            item.textContent = String(n.title||'');
+            item.addEventListener('click', async function(e){ e.preventDefault(); try { await fetch('/api/admin/notifications', { method:'PUT', headers:{ 'Content-Type':'application/json','X-CSRF-Token': (document.cookie.match(/csrf_token=([^;]+)/)||[])[1]||'' }, body: JSON.stringify({ id }) }); loadNotif(); } catch {} });
+            list.appendChild(item);
+          });
+        }
+        try {
+          var items = Array.isArray(j.data) ? j.data : [];
+          var unreadItems = items.filter(function(n){ return Number(n.read||0) === 0; });
+          if (!unreadItems.length) return;
+          var newest = unreadItems[0];
+          var lastId = String(localStorage.getItem('lastNotifId')||'');
+          var id = String(newest.id||'');
+          var type = String(newest.type||'');
+          var allowed = type === 'admin_login' || type === 'appointment_created' || type === 'quote_status_changed';
+          if (!allowed) return;
+          if (id && id !== lastId) {
+            localStorage.setItem('lastNotifId', id);
+            if ('Notification' in window) {
+              if (Notification.permission === 'granted') {
+                new Notification(String(newest.title||'Notification'), { body: String(newest.message||'') });
+              } else if (Notification.permission !== 'denied') {
+                Notification.requestPermission().then(function(p){ if (p==='granted') new Notification(String(newest.title||'Notification'), { body: String(newest.message||'') }); });
+              }
+            }
+          }
+        } catch {}
+      } catch {}
+    }
+    const dd = document.getElementById('notifDropdown');
+    const menu = document.getElementById('notifMenu');
+    dd?.addEventListener('click', function(e){ e.preventDefault(); if (menu) { const vis = getComputedStyle(menu).display !== 'none'; menu.style.display = vis ? 'none' : 'block'; if (!vis) loadNotif(); } });
+    document.addEventListener('click', function(e){
+      var t = e && e.target ? e.target : null;
+      var inside = (t instanceof Node) && dd ? dd.contains(t) : false;
+      if (!inside) { if (menu) menu.style.display = 'none'; }
+    });
+    loadNotif();
+    try { setInterval(loadNotif, 60000); } catch {}
+  })();
+</script>

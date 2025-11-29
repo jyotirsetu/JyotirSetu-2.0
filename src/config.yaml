@@ -40,9 +40,9 @@ i18n:
 # Blog Integration (External)
 blog:
   external:
-    url: "https://www.blog.jyotirsetu.com"
-    name: "JyotirSetu Astrology Blog"
-    description: "Expert astrology insights, remedies, and cosmic guidance"
+    url: 'https://www.blog.jyotirsetu.com'
+    name: 'JyotirSetu Astrology Blog'
+    description: 'Expert astrology insights, remedies, and cosmic guidance'
 
 analytics:
   vendors:

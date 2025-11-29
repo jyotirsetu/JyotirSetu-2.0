@@ -2,10 +2,18 @@ import { defineMiddleware } from 'astro:middleware';
 import { verifySession } from './lib/auth';
 
 const getEnvString = (key: string): string | undefined => {
-  const raw = (typeof process !== 'undefined' && (process as unknown as { env?: Record<string, unknown> }).env?.[key]);
-  if (typeof raw === 'string') return raw;
-  if (raw == null) return undefined;
-  try { return String(raw); } catch { return undefined; }
+  const metaEnv = (import.meta as unknown as { env?: Record<string, unknown> }).env;
+  const fromImportMeta = typeof metaEnv?.[key] === 'string' ? (metaEnv?.[key] as string) : undefined;
+  const fromProcess =
+    typeof process !== 'undefined' && (process as unknown as { env?: Record<string, unknown> }).env?.[key];
+  const val = fromImportMeta ?? (typeof fromProcess === 'string' ? fromProcess : undefined);
+  if (typeof val === 'string') return val;
+  if (val == null) return undefined;
+  try {
+    return String(val);
+  } catch {
+    return undefined;
+  }
 };
 
 export const onRequest = defineMiddleware(async (context, next) => {
@@ -31,6 +39,13 @@ export const onRequest = defineMiddleware(async (context, next) => {
     if (!session || !session.user || session.user !== 'admin') {
       return redirect('/admin/login');
     }
+    const hasCsrf = /csrf_token=([^;]+)/.test(request.headers.get('cookie') || '');
+    const response = await next();
+    if (!hasCsrf) {
+      const token = Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+      response.headers.append('Set-Cookie', `csrf_token=${encodeURIComponent(token)}; Path=/; SameSite=Lax`);
+    }
+    return response;
   }
 
   return next();

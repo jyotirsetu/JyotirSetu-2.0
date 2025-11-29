@@ -17,15 +17,18 @@ export const POST: APIRoute = async ({ request }) => {
     for (const field of requiredFields) {
       if (!appointmentData[field]) {
         console.log(`❌ Missing required field: ${field}`);
-        return new Response(JSON.stringify({
-          success: false,
-          message: `${field} is required`
-        }), {
-          status: 400,
-          headers: {
-            'Content-Type': 'application/json'
+        return new Response(
+          JSON.stringify({
+            success: false,
+            message: `${field} is required`,
+          }),
+          {
+            status: 400,
+            headers: {
+              'Content-Type': 'application/json',
+            },
           }
-        });
+        );
       }
     }
     console.log('✅ All required fields validated');
@@ -39,9 +42,9 @@ export const POST: APIRoute = async ({ request }) => {
       date: appointmentData.date,
       time: appointmentData.time,
       status: 'scheduled' as const,
-      consultation_method: appointmentData.consultation_method || 'call' as const,
+      consultation_method: appointmentData.consultation_method || ('call' as const),
       message: appointmentData.message,
-      service_details: appointmentData.service_details || {}
+      service_details: appointmentData.service_details || {},
     });
 
     console.log('📊 Appointment saved to database:', newAppointment);
@@ -53,9 +56,13 @@ export const POST: APIRoute = async ({ request }) => {
       const makePublicId = (dateStr: string): string => {
         try {
           const yyyymmdd = String(dateStr || '').replace(/-/g, '');
-          const rand = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+          const rand = Math.floor(Math.random() * 1000)
+            .toString()
+            .padStart(3, '0');
           return `${yyyymmdd}${rand}`;
-        } catch { return `${Date.now()}`; }
+        } catch {
+          return `${Date.now()}`;
+        }
       };
       const publicId = makePublicId(String(appointmentData.date));
 
@@ -90,8 +97,8 @@ export const POST: APIRoute = async ({ request }) => {
             newAppointment.message ? String(newAppointment.message) : null,
             'system',
             publicId,
-            new Date().toISOString()
-          ]
+            new Date().toISOString(),
+          ],
         });
       } catch (upErr) {
         console.warn('⚠️ Turso upsert failed (non-blocking):', upErr);
@@ -111,7 +118,7 @@ export const POST: APIRoute = async ({ request }) => {
           consultation_method: appointmentData.consultation_method || 'call',
           message: appointmentData.message,
           service_details: appointmentData.service_details || {},
-          public_id: publicId
+          public_id: publicId,
         });
         console.log('📧 Email service result:', emailSent);
       } catch (emailError) {
@@ -120,19 +127,22 @@ export const POST: APIRoute = async ({ request }) => {
       }
 
       console.log('✅ Appointment created successfully');
-      return new Response(JSON.stringify({
-        success: true,
-        data: newAppointment,
-        message: emailSent 
-          ? 'Appointment created successfully! You will receive a confirmation email shortly.'
-          : 'Appointment created successfully! We will contact you soon.',
-        emailSent: emailSent
-      }), {
-        status: 201,
-        headers: {
-          'Content-Type': 'application/json'
+      return new Response(
+        JSON.stringify({
+          success: true,
+          data: newAppointment,
+          message: emailSent
+            ? 'Appointment created successfully! You will receive a confirmation email shortly.'
+            : 'Appointment created successfully! We will contact you soon.',
+          emailSent: emailSent,
+        }),
+        {
+          status: 201,
+          headers: {
+            'Content-Type': 'application/json',
+          },
         }
-      });
+      );
     } catch (persistErr) {
       console.warn('⚠️ Persist/send block failed; continuing without email:', persistErr);
     }
@@ -149,7 +159,7 @@ export const POST: APIRoute = async ({ request }) => {
         time: appointmentData.time,
         consultation_method: appointmentData.consultation_method || 'call',
         message: appointmentData.message,
-        service_details: appointmentData.service_details || {}
+        service_details: appointmentData.service_details || {},
       });
       console.log('📧 Email service result:', emailSent);
     } catch (emailError) {
@@ -158,29 +168,32 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     console.log('✅ Appointment created successfully');
-    return new Response(JSON.stringify({
-      success: true,
-      data: newAppointment,
-      message: emailSent 
-        ? 'Appointment created successfully! You will receive a confirmation email shortly.'
-        : 'Appointment created successfully! We will contact you soon.',
-      emailSent: emailSent
-    }), {
-      status: 201,
-      headers: {
-        'Content-Type': 'application/json'
+    return new Response(
+      JSON.stringify({
+        success: true,
+        data: newAppointment,
+        message: emailSent
+          ? 'Appointment created successfully! You will receive a confirmation email shortly.'
+          : 'Appointment created successfully! We will contact you soon.',
+        emailSent: emailSent,
+      }),
+      {
+        status: 201,
+        headers: {
+          'Content-Type': 'application/json',
+        },
       }
-    });
+    );
   } catch (error) {
     console.error('Public appointment creation error:', error);
-    
+
     // Enhanced error logging
     console.error('Detailed error information:', {
       message: error.message,
       stack: error.stack,
-      name: error.name
+      name: error.name,
     });
-    
+
     // Return more specific error message
     let errorMessage = 'Failed to create appointment';
     if (error.message.includes('connection') || error.message.includes('network')) {
@@ -190,16 +203,19 @@ export const POST: APIRoute = async ({ request }) => {
     } else if (error.message.includes('duplicate')) {
       errorMessage = 'An appointment with this information already exists.';
     }
-    
-    return new Response(JSON.stringify({
-      success: false,
-      message: errorMessage,
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
-    }), {
-      status: 500,
-      headers: {
-        'Content-Type': 'application/json'
+
+    return new Response(
+      JSON.stringify({
+        success: false,
+        message: errorMessage,
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+      }),
+      {
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+        },
       }
-    });
+    );
   }
 };

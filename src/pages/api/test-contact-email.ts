@@ -9,42 +9,51 @@ export const POST: APIRoute = async ({ request: _request }) => {
       email: 'akansh.pcj@gmail.com',
       phone: '9876543210',
       subject: 'Test Contact Message',
-      message: 'This is a test contact message to verify email functionality.'
+      message: 'This is a test contact message to verify email functionality.',
     };
-    
+
     console.log('🧪 Sending test contact confirmation email to:', testContactData.email);
-    
+
     // Send test contact confirmation email
     const emailSent = await emailService.sendContactConfirmationEmail(testContactData);
-    
+
     if (emailSent) {
       console.log('✅ Test contact confirmation email sent successfully');
-      return new Response(JSON.stringify({
-        success: true,
-        message: 'Test contact confirmation email sent successfully to akansh.pcj@gmail.com'
-      }), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      });
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: 'Test contact confirmation email sent successfully to akansh.pcj@gmail.com',
+        }),
+        {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        }
+      );
     } else {
       console.error('❌ Failed to send test contact confirmation email');
-      return new Response(JSON.stringify({
-        success: false,
-        message: 'Failed to send test contact confirmation email'
-      }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
-      });
+      return new Response(
+        JSON.stringify({
+          success: false,
+          message: 'Failed to send test contact confirmation email',
+        }),
+        {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' },
+        }
+      );
     }
   } catch (error: unknown) {
     console.error('❌ Error in test-contact-email API:', error);
     const message = error instanceof Error ? error.message : String(error);
-    return new Response(JSON.stringify({
-      success: false,
-      message: 'Internal server error: ' + message
-    }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return new Response(
+      JSON.stringify({
+        success: false,
+        message: 'Internal server error: ' + message,
+      }),
+      {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      }
+    );
   }
 };

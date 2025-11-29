@@ -37,7 +37,7 @@ export const getCanonical = (path = ''): string | URL => {
   if (cleanPath.endsWith('/index')) {
     cleanPath = cleanPath.slice(0, -6);
   }
-  
+
   const url = String(new URL(cleanPath, SITE.site));
   if (SITE.trailingSlash == false && cleanPath && url.endsWith('/')) {
     return url.slice(0, -1);

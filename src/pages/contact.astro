@@ -6,7 +6,8 @@ import Hero from '~/components/widgets/Hero.astro';
 
 const metadata = {
   title: 'Contact JyotirSetu Astrology – Book Your Consultation',
-  description: 'Get in touch with JyotirSetu Astrology for expert astrological consultations. Book your appointment with Astrologer Punita Sharma today.',
+  description:
+    'Get in touch with JyotirSetu Astrology for expert astrological consultations. Book your appointment with Astrologer Punita Sharma today.',
 };
 ---
 
@@ -582,7 +583,6 @@ const metadata = {
   </section>
 
   <script>
-
     // FAQ Toggle Function - Global scope
     const toggleFAQ = function (button: HTMLElement) {
       const content = button.nextElementSibling;
@@ -637,7 +637,7 @@ const metadata = {
     async function handleFormSubmission(e) {
       e.preventDefault();
       console.log('📝 Contact form submitted');
-      
+
       const form = document.getElementById('contactForm');
       if (!form) return;
 
@@ -661,7 +661,7 @@ const metadata = {
         const payload = {
           name: (data.fullName || '').trim(),
           email: (data.email || '').trim(),
-          subject: (data.queryType ? `Contact: ${data.queryType}` : 'Contact Inquiry'),
+          subject: data.queryType ? `Contact: ${data.queryType}` : 'Contact Inquiry',
           message: (data.message || '').trim(),
           phone: (data.phone || '').trim(),
         };
@@ -676,13 +676,13 @@ const metadata = {
         const response = await fetch('/api/contact-form', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
+          body: JSON.stringify(payload),
         });
 
         console.log('📡 Contact API response status:', response.status);
         const result = await response.json();
         console.log('📄 Contact API response data:', result);
-        
+
         if (result.success) {
           showSuccessMessage('Thank you for your message! We will get back to you soon.');
           form.reset();
@@ -694,16 +694,16 @@ const metadata = {
         console.error('Error details:', {
           message: error.message,
           stack: error.stack,
-          name: error.name
+          name: error.name,
         });
-        
+
         let errorMessage = 'Sorry, there was an error. Please try again.';
         if (error.message.includes('fetch')) {
           errorMessage = 'Network error. Please check your internet connection and try again.';
         } else if (error.message.includes('JSON')) {
           errorMessage = 'Server response error. Please try again.';
         }
-        
+
         showErrorMessage(errorMessage);
       } finally {
         submitBtn.innerHTML = originalText;
@@ -711,14 +711,13 @@ const metadata = {
       }
     }
 
-
     // Form setup with enhanced debugging
     document.addEventListener('DOMContentLoaded', function () {
       console.log('DOM loaded, initializing contact form...');
-      
+
       const form = document.getElementById('contactForm');
       console.log('Contact form element found:', form);
-      
+
       if (form) {
         console.log('Adding submit event listener to contact form...');
         form.addEventListener('submit', handleFormSubmission);
@@ -729,22 +728,22 @@ const metadata = {
     });
 
     // Fallback: Try to attach event listener after a short delay
-    setTimeout(function() {
+    setTimeout(function () {
       const form = document.getElementById('contactForm');
       const submitBtn = document.querySelector('#contactForm button[type="submit"]');
-      
+
       console.log('🔍 Contact Form Debug Info:');
       console.log('- Form element:', form);
       console.log('- Submit button:', submitBtn);
-      
+
       if (form && submitBtn) {
         console.log('✅ Contact form and submit button found - adding direct click handler');
-        
+
         // Add direct click handler as fallback
-        submitBtn.addEventListener('click', function(e) {
+        submitBtn.addEventListener('click', function (e) {
           console.log('🖱️ Contact submit button clicked!');
           e.preventDefault(); // Prevent default form submission
-          
+
           // Manually trigger our form submission logic
           console.log('🚀 Manually triggering contact form submission...');
           handleFormSubmission(e);

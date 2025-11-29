@@ -1,0 +1,786 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import AdminNavbar from '~/components/AdminNavbar.astro';
+
+interface ClientSummary {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string | null;
+  total_paid?: number;
+}
+
+interface Appointment {
+  id: string;
+  customer_appointment_id?: string;
+  service: string;
+  name?: string | null;
+  date: string;
+  time: string;
+  status: 'pending' | 'confirmed' | 'completed' | 'cancelled' | string;
+  payment_status: 'paid' | 'partial' | 'unpaid' | string;
+  consultation_method?: string | null;
+}
+
+interface Payment {
+  id: string;
+  amount: number;
+  mode: string;
+  reference?: string | null;
+  note?: string | null;
+  created_at: string;
+}
+
+interface ContactEntry {
+  id: string;
+  subject: string;
+  status: 'pending' | 'resolved' | string;
+  priority: 'low' | 'medium' | 'high' | string;
+  created_at: string;
+}
+
+interface ClientInfo {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string | null;
+  vip?: 'yes' | 'no' | string;
+  created_at: string;
+}
+
+interface Totals {
+  paid: number;
+}
+
+interface ClientData {
+  client: ClientInfo;
+  appointments: Appointment[];
+  payments: Payment[];
+  contacts: ContactEntry[];
+  totals: Totals;
+}
+
+const url = new URL(Astro.request.url);
+const email = url.searchParams.get('email') || '';
+const phone = url.searchParams.get('phone') || '';
+
+let clientData: ClientData | null = null;
+let clientList: ClientSummary[] = [];
+let error: string | null = null;
+
+if (email || phone) {
+  try {
+    const apiUrl = new URL('/api/admin/clients', Astro.url.origin);
+    if (email) apiUrl.searchParams.set('email', email);
+    if (phone) apiUrl.searchParams.set('phone', phone);
+
+    const response = await fetch(apiUrl.toString(), {
+      headers: { Cookie: Astro.request.headers.get('Cookie') || '' },
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      if (result.ok && result.data) {
+        clientData = result.data;
+      } else {
+        error = 'Client not found';
+      }
+    } else {
+      error = 'Failed to fetch client data';
+    }
+  } catch (e) {
+    console.error('Failed to fetch client data', e);
+    error = 'Network error';
+  }
+}
+
+if (!email && !phone) {
+  try {
+    const listUrl = new URL('/api/admin/clients', Astro.url.origin);
+    const listRes = await fetch(listUrl.toString(), { headers: { Cookie: Astro.request.headers.get('Cookie') || '' } });
+    if (listRes.ok) {
+      const j = await listRes.json();
+      if (j && j.ok) {
+        clientList = (j.data || []) as ClientSummary[];
+      }
+    }
+  } catch (e) {
+    console.error('Failed to load recent clients', e);
+  }
+}
+---
+
+<Layout>
+  <button class="sidebar-toggle" aria-label="Open Admin Menu" id="sidebarToggle">☰</button>
+  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+  <script is:inline>
+    (function () {
+      function applyTheme(theme) {
+        let t = theme;
+        if (t === 'auto') {
+          t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        document.body.classList.toggle('dark-mode', t === 'dark');
+      }
+      let theme = 'dark';
+      let collapsed = false;
+      try {
+        const stored = localStorage.getItem('adminSettings');
+        if (stored) {
+          const s = JSON.parse(stored);
+          if (s && typeof s === 'object') {
+            if (s.theme) theme = s.theme;
+            if (s.sidebarCollapsed != null) collapsed = !!s.sidebarCollapsed;
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to read adminSettings', e);
+      }
+      applyTheme(theme);
+      document.body.classList.toggle('sidebar-collapse', collapsed);
+      try {
+        Promise.all([
+          fetch('/api/admin/preferences?key=theme').then(function (r) {
+            return r.json();
+          }),
+          fetch('/api/admin/preferences?key=sidebarCollapsed').then(function (r) {
+            return r.json();
+          }),
+        ])
+          .then(function (rs) {
+            const tr = rs[0],
+              sr = rs[1];
+            if (tr && tr.ok && typeof tr.value === 'string') applyTheme(tr.value);
+            if (sr && sr.ok && sr.value != null) document.body.classList.toggle('sidebar-collapse', sr.value === '1');
+          })
+          .catch(function (err) {
+            console.warn('Failed to load admin preferences', err);
+          });
+      } catch (e) {
+        console.warn('Preferences fetch failed', e);
+      }
+    })();
+  </script>
+  <div class="wrapper">
+    <AdminNavbar />
+    <!-- legacy navbar
+    <nav class="main-header navbar navbar-expand navbar-dark">
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a class="nav-link" data-widget="pushmenu" href="#" role="button" aria-label="Toggle sidebar"
+            ><i class="fas fa-bars"></i></a
+          >
+        </li>
+        <li class="nav-item"><a href="/admin/dashboard" class="nav-link">Dashboard</a></li>
+      </ul>
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item">
+          <button class="btn btn-sm btn-outline-secondary" id="toggleSidebarDesktop">Hide sidebar</button>
+        </li>
+        <li class="nav-item"><a href="/api/admin/logout" class="nav-link">Logout</a></li>
+      </ul>
+    </nav> -->
+
+    <aside class="main-sidebar sidebar-dark-primary elevation-4" id="adminSidebar">
+      <a href="/admin/dashboard" class="brand-link" style="display:flex;align-items:center;gap:8px">
+        <img
+          src="https://images.unsplash.com/vector-1763306579596-25a002c977df?q=80&w=1979&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+          alt="Brand"
+          style="height:40px;width:auto;border-radius:0;box-shadow:0 2px 6px rgba(0,0,0,0.25)"
+        />
+      </a>
+      <div class="sidebar">
+        <nav class="mt-2">
+          <ul class="nav nav-pills nav-sidebar flex-column" role="menu" data-accordion="false" data-widget="treeview">
+            <li class="nav-item">
+              <a href="/admin/dashboard" class="nav-link"><i class="nav-icon fas fa-gauge"></i><p>Dashboard</p></a>
+            </li>
+            <li class="nav-item">
+              <a href="/admin/appointments" class="nav-link"
+                ><i class="nav-icon fas fa-calendar-check"></i><p>Appointments</p></a
+              >
+            </li>
+            <li class="nav-item">
+              <a href="/admin/contacts" class="nav-link"><i class="nav-icon fas fa-comments"></i><p>Contacts</p></a>
+            </li>
+            <li class="nav-item">
+              <a href="/admin/newsletter" class="nav-link"
+                ><i class="nav-icon fas fa-envelope-open-text"></i><p>Newsletter</p></a
+              >
+            </li>
+            <li class="nav-item">
+              <a href="/admin/calendar" class="nav-link"><i class="nav-icon fas fa-calendar"></i><p>Calendar</p></a>
+            </li>
+            <li class="nav-item">
+              <a href="/admin/quotes" class="nav-link"><i class="nav-icon fas fa-file-invoice"></i><p>Quotations</p></a>
+            </li>
+            <li class="nav-item">
+              <a href="/admin/activity-log" class="nav-link"><i class="nav-icon fas fa-list"></i><p>Activity Log</p></a>
+            </li>
+            <li class="nav-item">
+              <a href="/admin/templates/email" class="nav-link"
+                ><i class="nav-icon fas fa-file-alt"></i><p>Email Templates</p></a
+              >
+            </li>
+            <li class="nav-item">
+              <a href="/admin/templates/payment" class="nav-link"
+                ><i class="nav-icon fas fa-file-invoice-dollar"></i><p>Payment Templates</p></a
+              >
+            </li>
+            <li class="nav-item">
+              <a href="/admin/templates/whatsapp" class="nav-link"
+                ><i class="nav-icon fas fa-file-alt"></i><p>WhatsApp Templates</p></a
+              >
+            </li>
+            <li class="nav-item">
+              <a href="/admin/client360" class="nav-link active"
+                ><i class="nav-icon fas fa-user-circle"></i><p>Client 360°</p></a
+              >
+            </li>
+            <li class="nav-item">
+              <a href="/admin/tools/follow-hub/insights" class="nav-link"
+                ><i class="nav-icon fas fa-toolbox"></i><p>Follow Hub – Insights</p></a
+              >
+            </li>
+            <li class="nav-item">
+              <a href="/admin/settings" class="nav-link"><i class="nav-icon fas fa-gear"></i><p>Settings</p></a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </aside>
+
+    <div class="content-wrapper">
+      <div class="content-header">
+        <div class="container-fluid">
+          <div class="row mb-2">
+            <div class="col-sm-6">
+              <h1 class="m-0">{clientData ? clientData.client.name : 'Client 360° View'}</h1>
+            </div>
+            <div class="col-sm-6">
+              <ol class="breadcrumb float-sm-right">
+                <li class="breadcrumb-item"><a href="/admin/dashboard">Home</a></li>
+                <li class="breadcrumb-item active">Client 360°</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="container-fluid">
+          {
+            !clientData && (
+              <div class="row">
+                <div class="col-12">
+                  <div class="card">
+                    <div class="card-header">
+                      <h3 class="card-title">Find Client</h3>
+                    </div>
+                    <div class="card-body">
+                      <div class="row" style="gap:12px;margin-bottom:12px">
+                        <div class="col-md-6">
+                          <label>Customer <small id="customerCount" class="text-muted">(Loading...)</small></label>
+                          <div class="input-group">
+                            <input class="form-control" id="customerSearch" placeholder="Search by name, email or phone" autocomplete="off" />
+                            <button class="btn btn-outline-secondary" id="syncCustomers" type="button" title="Sync customers from appointments">
+                              <i class="fas fa-sync-alt"></i>
+                            </button>
+                          </div>
+                          <div id="customerDropdown" class="dropdown-menu" style="width:100%;display:none;max-height:220px;overflow-y:auto"></div>
+                        </div>
+                      </div>
+                      <form method="GET" class="row">
+                        <div class="col-md-5">
+                          <div class="form-group">
+                            <label>Email Address</label>
+                            <input
+                              type="email"
+                              name="email"
+                              value={email}
+                              class="form-control"
+                              placeholder="client@example.com"
+                            />
+                          </div>
+                        </div>
+                        <div class="col-md-5">
+                          <div class="form-group">
+                            <label>Phone Number</label>
+                            <input
+                              type="tel"
+                              name="phone"
+                              value={phone}
+                              class="form-control"
+                              placeholder="+91XXXXXXXXXX"
+                            />
+                          </div>
+                        </div>
+                        <div class="col-md-2">
+                          <div class="form-group">
+                            <label>&nbsp;</label>
+                            <button type="submit" class="btn btn-primary btn-block">
+                              Search
+                            </button>
+                          </div>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )
+          }
+
+          {
+            !clientData && !email && !phone && (
+              <div class="row">
+                <div class="col-12">
+                  <div class="card">
+                    <div class="card-header">
+                      <h3 class="card-title">Recent Clients</h3>
+                    </div>
+                    <div class="card-body">
+                      {Array.isArray(clientList) && clientList.length ? (
+                        <div class="table-responsive">
+                          <table class="table table-bordered">
+                            <thead>
+                              <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Total Paid</th>
+                                <th>Actions</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {clientList.map((c) => (
+                                <tr>
+                                  <td>{c.name || '—'}</td>
+                                  <td>{c.email || '—'}</td>
+                                  <td>{c.phone || '—'}</td>
+                                  <td>{Number(c.total_paid ?? 0).toFixed(2)}</td>
+                                  <td>
+                                    <a
+                                      class="btn btn-sm btn-outline-primary"
+                                      href={`/admin/client360?email=${encodeURIComponent(String(c.email || ''))}`}
+                                    >
+                                      View
+                                    </a>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      ) : (
+                        <p class="text-muted">No clients found</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )
+          }
+
+          {
+            error && (
+              <div class="row">
+                <div class="col-12">
+                  <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-circle" /> {error}
+                  </div>
+                </div>
+              </div>
+            )
+          }
+
+          {
+            clientData && (
+              <div class="row">
+                <div class="col-md-4">
+                  <div class="card card-primary">
+                    <div class="card-header">
+                      <h3 class="card-title">Client Profile</h3>
+                    </div>
+                    <div class="card-body">
+                      <div class="text-center mb-3">
+                        <div
+                          class="profile-avatar bg-primary rounded-circle d-inline-flex align-items-center justify-content-center"
+                          style="width: 80px; height: 80px; font-size: 32px;"
+                        >
+                          {clientData.client.name.charAt(0).toUpperCase()}
+                        </div>
+                      </div>
+                      <h4 class="text-center">{clientData.client.name}</h4>
+                      <div class="mt-3">
+                        <p>
+                          <strong>Email:</strong> {clientData.client.email}
+                        </p>
+                        <p>
+                          <strong>Phone:</strong> {clientData.client.phone || 'N/A'}
+                        </p>
+                        <p>
+                          <strong>Client Since:</strong> {new Date(clientData.client.created_at).toLocaleDateString()}
+                        </p>
+                        <p>
+                          <strong>VIP Status:</strong>
+                          <span
+                            class={`badge ${clientData.client.vip === 'yes' ? 'badge-warning' : 'badge-secondary'}`}
+                          >
+                            {clientData.client.vip === 'yes' ? 'VIP' : 'Regular'}
+                          </span>
+                        </p>
+                        <p>
+                          <strong>Total Spent:</strong>{' '}
+                          <span class="text-success font-weight-bold">₹{clientData.totals.paid.toLocaleString()}</span>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="card card-info">
+                    <div class="card-header">
+                      <h3 class="card-title">Quick Stats</h3>
+                    </div>
+                    <div class="card-body">
+                      <div class="row text-center">
+                        <div class="col-6">
+                          <div class="info-box">
+                            <span class="info-box-icon bg-info">
+                              <i class="fas fa-calendar" />
+                            </span>
+                            <div class="info-box-content">
+                              <span class="info-box-text">Total Appointments</span>
+                              <span class="info-box-number">{clientData.appointments.length}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="col-6">
+                          <div class="info-box">
+                            <span class="info-box-icon bg-success">
+                              <i class="fas fa-comments" />
+                            </span>
+                            <div class="info-box-content">
+                              <span class="info-box-text">Total Contacts</span>
+                              <span class="info-box-number">{clientData.contacts.length}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-md-8">
+                  <div class="card card-success">
+                    <div class="card-header">
+                      <h3 class="card-title">Appointment History</h3>
+                    </div>
+                    <div class="card-body">
+                      {clientData.appointments.length > 0 ? (
+                        <div class="timeline">
+                          {clientData.appointments.map((apt) => (
+                            <Fragment>
+                              <div class="time-label">
+                                <span class="bg-success">{new Date(apt.date).toLocaleDateString()}</span>
+                              </div>
+                              <div>
+                                <i class="fas fa-calendar bg-primary" />
+                                <div class="timeline-item">
+                                  <span class="time">
+                                    <i class="fas fa-clock" /> {apt.time}
+                                  </span>
+                                  <h3 class="timeline-header">
+                                    {apt.service} – {apt.name || clientData.client.name}
+                                  </h3>
+                                  <div class="timeline-body">
+                                    <p>
+                                      <strong>Appt ID:</strong> {apt.customer_appointment_id || apt.id}
+                                    </p>
+                                    <p>
+                                      <strong>Status:</strong>
+                                      <span
+                                        class={`badge ${
+                                          apt.status === 'confirmed'
+                                            ? 'badge-success'
+                                            : apt.status === 'cancelled'
+                                              ? 'badge-danger'
+                                              : apt.status === 'completed'
+                                                ? 'badge-info'
+                                                : 'badge-warning'
+                                        }`}
+                                      >
+                                        {apt.status}
+                                      </span>
+                                    </p>
+                                    <p>
+                                      <strong>Payment:</strong>
+                                      <span
+                                        class={`badge ${
+                                          apt.payment_status === 'paid'
+                                            ? 'badge-success'
+                                            : apt.payment_status === 'partial'
+                                              ? 'badge-warning'
+                                              : 'badge-danger'
+                                        }`}
+                                      >
+                                        {apt.payment_status}
+                                      </span>
+                                    </p>
+                                    {apt.consultation_method && (
+                                      <p>
+                                        <strong>Method:</strong> {apt.consultation_method}
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            </Fragment>
+                          ))}
+                        </div>
+                      ) : (
+                        <p class="text-muted text-center">No appointments found</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div class="card card-warning">
+                    <div class="card-header">
+                      <h3 class="card-title">Payment Ledger</h3>
+                    </div>
+                    <div class="card-body">
+                      {clientData.payments.length > 0 ? (
+                        <div class="table-responsive">
+                          <table class="table table-bordered">
+                            <thead>
+                              <tr>
+                                <th>Date</th>
+                                <th>Amount</th>
+                                <th>Mode</th>
+                                <th>Reference</th>
+                                <th>Note</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {clientData.payments.map((payment) => (
+                                <tr>
+                                  <td>{new Date(payment.created_at).toLocaleDateString()}</td>
+                                  <td>
+                                    <span class="text-success font-weight-bold">
+                                      ₹{payment.amount.toLocaleString()}
+                                    </span>
+                                  </td>
+                                  <td>
+                                    <span class="badge badge-info">{payment.mode}</span>
+                                  </td>
+                                  <td>{payment.reference || 'N/A'}</td>
+                                  <td>{payment.note || 'N/A'}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      ) : (
+                        <p class="text-muted text-center">No payments recorded</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div class="card card-info">
+                    <div class="card-header">
+                      <h3 class="card-title">Contact History</h3>
+                    </div>
+                    <div class="card-body">
+                      {clientData.contacts.length > 0 ? (
+                        <div class="table-responsive">
+                          <table class="table table-bordered">
+                            <thead>
+                              <tr>
+                                <th>Date</th>
+                                <th>Subject</th>
+                                <th>Status</th>
+                                <th>Priority</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {clientData.contacts.map((contact) => (
+                                <tr>
+                                  <td>{new Date(contact.created_at).toLocaleDateString()}</td>
+                                  <td>{contact.subject}</td>
+                                  <td>
+                                    <span
+                                      class={`badge ${
+                                        contact.status === 'resolved'
+                                          ? 'badge-success'
+                                          : contact.status === 'pending'
+                                            ? 'badge-warning'
+                                            : 'badge-info'
+                                      }`}
+                                    >
+                                      {contact.status}
+                                    </span>
+                                  </td>
+                                  <td>
+                                    <span
+                                      class={`badge ${
+                                        contact.priority === 'high'
+                                          ? 'badge-danger'
+                                          : contact.priority === 'medium'
+                                            ? 'badge-warning'
+                                            : 'badge-secondary'
+                                      }`}
+                                    >
+                                      {contact.priority}
+                                    </span>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      ) : (
+                        <p class="text-muted text-center">No contacts found</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@latest/dist/css/adminlte.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/css/all.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/admin-lte@latest/dist/js/adminlte.min.js" defer></script>
+
+  <script is:inline>
+    (function(){
+      if (typeof window === 'undefined') return;
+      let customers = [];
+      async function loadCustomers(){
+        let allRows = [];
+        let page = 1;
+        const limit = 100;
+        let hasMore = true;
+        let totalLoaded = 0;
+        while (hasMore) {
+          try {
+            const res = await fetch(`/api/admin/appointments?page=${page}&limit=${limit}`);
+            const j = await res.json();
+            const rows = Array.isArray(j.data) ? j.data : [];
+            const pagination = j.pagination || {};
+            if (!rows.length) {
+              hasMore = false;
+            } else {
+              allRows = allRows.concat(rows);
+              totalLoaded += rows.length;
+              if (pagination.total && totalLoaded >= pagination.total) {
+                hasMore = false;
+              } else {
+                page++;
+                if (page > 50) hasMore = false;
+              }
+            }
+          } catch {
+            hasMore = false;
+          }
+        }
+        const processed = [];
+        const seen = new Set();
+        allRows.forEach(function(r){
+          const email = String(r.email || '').trim();
+          const name = String(r.name || '').trim();
+          const phone = String(r.phone || '').trim();
+          if (!email || !name) return;
+          const key = `${name.toLowerCase()}|${email.toLowerCase()}|${phone.toLowerCase()}`;
+          if (!seen.has(key)){
+            seen.add(key);
+            processed.push({ name, email, phone });
+          }
+        });
+        customers = processed.sort(function(a,b){ return String(a.name||'').localeCompare(String(b.name||'')); });
+        const countEl = document.getElementById('customerCount');
+        if (countEl) countEl.textContent = `(${customers.length} customers)`;
+      }
+      function showCustomerDropdown(list){
+        const dd = document.getElementById('customerDropdown');
+        if (!dd) return;
+        if (!list.length){ dd.style.display='none'; return; }
+        dd.innerHTML = list.map(function(c){
+          return `<a class="dropdown-item" href="#" data-name="${c.name}" data-email="${c.email}" data-phone="${c.phone}"><strong>${c.name}</strong><br><small class="text-muted">${c.email}${c.phone? ' • '+c.phone:''}</small></a>`;
+        }).join('');
+        dd.style.display='block';
+        dd.querySelectorAll('.dropdown-item').forEach(function(it){
+          it.addEventListener('click', function(e){
+            e.preventDefault();
+            const email = this.getAttribute('data-email') || '';
+            if (email) {
+              window.location.href = `/admin/client360?email=${encodeURIComponent(email)}`;
+            }
+          });
+        });
+      }
+      document.getElementById('customerSearch')?.addEventListener('input', function(){
+        const q = String(this.value||'').toLowerCase().trim();
+        if (!q) { const dd=document.getElementById('customerDropdown'); if(dd) dd.style.display='none'; return; }
+        const filtered = customers.filter(function(c){
+          return String(c.name||'').toLowerCase().includes(q) || String(c.email||'').toLowerCase().includes(q) || String(c.phone||'').toLowerCase().includes(q);
+        });
+        showCustomerDropdown(filtered.slice(0,12));
+      });
+      document.getElementById('customerSearch')?.addEventListener('focus', function(){
+        const q = String(this.value||'').toLowerCase().trim();
+        if (!q) return;
+        const filtered = customers.filter(function(c){
+          return String(c.name||'').toLowerCase().includes(q) || String(c.email||'').toLowerCase().includes(q) || String(c.phone||'').toLowerCase().includes(q);
+        });
+        showCustomerDropdown(filtered.slice(0,12));
+      });
+      document.addEventListener('click', function(e){
+        if (!e.target.closest('#customerSearch') && !e.target.closest('#customerDropdown')) {
+          const dd=document.getElementById('customerDropdown'); if(dd) dd.style.display='none';
+        }
+      });
+      document.getElementById('syncCustomers')?.addEventListener('click', async function(){
+        const icon = this.querySelector('i');
+        icon?.classList.add('fa-spin');
+        this.disabled = true;
+        try { await loadCustomers(); icon?.classList.remove('fa-spin'); icon?.classList.add('fa-check'); setTimeout(()=>{ icon?.classList.remove('fa-check'); icon?.classList.add('fa-sync-alt'); },1000); }
+        catch{ icon?.classList.remove('fa-spin'); icon?.classList.add('fa-exclamation-triangle'); setTimeout(()=>{ icon?.classList.remove('fa-exclamation-triangle'); icon?.classList.add('fa-sync-alt'); },2000); }
+        finally { this.disabled = false; }
+      });
+      loadCustomers();
+    })();
+  </script>
+
+  <style>
+    .profile-avatar {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      font-weight: bold;
+    }
+    .timeline-item {
+      background: linear-gradient(180deg, var(--panel), var(--panel-2));
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 12px;
+      color: var(--text);
+    }
+    .info-box {
+      margin-bottom: 0;
+    }
+    .info-box-icon {
+      height: 60px;
+      width: 60px;
+      line-height: 60px;
+    }
+    .info-box-content {
+      padding: 5px 10px;
+    }
+  </style>
+</Layout>

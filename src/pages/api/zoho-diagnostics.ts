@@ -3,10 +3,14 @@ import type { APIRoute } from 'astro';
 export const prerender = false;
 
 function getEnv(name: string): string | undefined {
-  const raw = (typeof process !== 'undefined' && (process as unknown as { env?: Record<string, unknown> }).env?.[name]);
+  const raw = typeof process !== 'undefined' && (process as unknown as { env?: Record<string, unknown> }).env?.[name];
   if (typeof raw === 'string') return raw;
   if (raw == null) return undefined;
-  try { return String(raw); } catch { return undefined; }
+  try {
+    return String(raw);
+  } catch {
+    return undefined;
+  }
 }
 
 interface ZohoAccount {
@@ -42,10 +46,10 @@ export const GET: APIRoute = async () => {
 
   if (mode === 'development') {
     if (!clientId || !clientSecret || !refreshToken || !region || !fromEmail || !toAdmin) {
-      return new Response(
-        JSON.stringify({ ok: false, stage: 'env-check', missing }),
-        { status: 200, headers: { 'Content-Type': 'application/json' } }
-      );
+      return new Response(JSON.stringify({ ok: false, stage: 'env-check', missing }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
   }
 
@@ -62,40 +66,36 @@ export const GET: APIRoute = async () => {
     });
     if (!tokenRes.ok) {
       const text = await tokenRes.text();
-      return new Response(
-        JSON.stringify({ ok: false, stage: 'token', error: text }),
-        { status: 200, headers: { 'Content-Type': 'application/json' } }
-      );
+      return new Response(JSON.stringify({ ok: false, stage: 'token', error: text }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
-    const tokenJson = await tokenRes.json() as { access_token: string };
+    const tokenJson = (await tokenRes.json()) as { access_token: string };
     const accessToken = tokenJson.access_token;
 
     // 2) Get accounts
     const accountsRes = await fetch(`https://mail.zoho.${region}/api/accounts`, {
       headers: { Authorization: `Zoho-oauthtoken ${accessToken}` },
     });
-    const accountsJson = await accountsRes.json() as { data: ZohoAccount[] | ZohoAccount };
+    const accountsJson = (await accountsRes.json()) as { data: ZohoAccount[] | ZohoAccount };
     const rawAccounts = accountsJson?.data;
-    const accounts: ZohoAccount[] = Array.isArray(rawAccounts)
-      ? rawAccounts
-      : (rawAccounts ? [rawAccounts] : []);
+    const accounts: ZohoAccount[] = Array.isArray(rawAccounts) ? rawAccounts : rawAccounts ? [rawAccounts] : [];
     const primary = accounts.find((a) => a?.status === 'active') || accounts[0];
     if (!primary?.accountId) {
-      return new Response(
-        JSON.stringify({ ok: false, stage: 'accounts', error: accountsJson }),
-        { status: 200, headers: { 'Content-Type': 'application/json' } }
-      );
+      return new Response(JSON.stringify({ ok: false, stage: 'accounts', error: accountsJson }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
 
     // 3) Get aliases for primary account
     const aliasesRes = await fetch(`https://mail.zoho.${region}/api/accounts/${primary.accountId}/aliases`, {
       headers: { Authorization: `Zoho-oauthtoken ${accessToken}` },
     });
-    const aliasesJson = await aliasesRes.json() as { data: ZohoAlias[] | ZohoAlias };
+    const aliasesJson = (await aliasesRes.json()) as { data: ZohoAlias[] | ZohoAlias };
     const rawAliases = aliasesJson?.data;
-    const aliasArr: ZohoAlias[] = Array.isArray(rawAliases)
-      ? rawAliases
-      : (rawAliases ? [rawAliases] : []);
+    const aliasArr: ZohoAlias[] = Array.isArray(rawAliases) ? rawAliases : rawAliases ? [rawAliases] : [];
     const aliases: string[] = aliasArr.map((x) => x?.aliasAddress).filter(Boolean);
     const primaryAddress = primary?.emailAddress || primary?.primaryEmailAddress || primary?.address || '';
     const allowedFroms = [primaryAddress, ...aliases].filter(Boolean);
@@ -118,11 +118,9 @@ export const GET: APIRoute = async () => {
     );
   } catch (e) {
     const error = e as Error;
-    return new Response(
-      JSON.stringify({ ok: false, stage: 'exception', error: error.message || 'unknown' }),
-      { status: 200, headers: { 'Content-Type': 'application/json' } }
-    );
+    return new Response(JSON.stringify({ ok: false, stage: 'exception', error: error.message || 'unknown' }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 };
-
-

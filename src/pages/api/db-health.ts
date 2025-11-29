@@ -4,8 +4,12 @@ import { getTursoClient } from '../../lib/turso';
 export const prerender = false;
 
 export const GET: APIRoute = async () => {
-  const envUrl = (((import.meta.env && import.meta.env.TURSO_DATABASE_URL) || process.env.TURSO_DATABASE_URL) || '').toString().trim();
-  const envToken = (((import.meta.env && import.meta.env.TURSO_AUTH_TOKEN) || process.env.TURSO_AUTH_TOKEN) || '').toString().trim();
+  const envUrl = ((import.meta.env && import.meta.env.TURSO_DATABASE_URL) || process.env.TURSO_DATABASE_URL || '')
+    .toString()
+    .trim();
+  const envToken = ((import.meta.env && import.meta.env.TURSO_AUTH_TOKEN) || process.env.TURSO_AUTH_TOKEN || '')
+    .toString()
+    .trim();
   const hasUrl = Boolean(envUrl);
   const hasToken = Boolean(envToken);
 
@@ -62,5 +66,3 @@ export const GET: APIRoute = async () => {
     );
   }
 };
-
-

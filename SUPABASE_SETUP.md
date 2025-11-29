@@ -57,9 +57,9 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
-CREATE TRIGGER update_appointments_updated_at 
-    BEFORE UPDATE ON appointments 
-    FOR EACH ROW 
+CREATE TRIGGER update_appointments_updated_at
+    BEFORE UPDATE ON appointments
+    FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
 
 -- Insert some test data
@@ -79,6 +79,7 @@ FOR ALL USING (true);
 ## **Step 5: Test the Connection**
 
 After setting up everything, the system will:
+
 1. ✅ Connect to your Supabase database
 2. ✅ Load real data from the database
 3. ✅ Update status changes persistently
@@ -101,6 +102,7 @@ After setting up everything, the system will:
    - Make sure the policy allows all operations
 
 ### **Need Help?**
+
 - Check Supabase logs in the dashboard
 - Verify your environment variables
 - Test the connection in Supabase dashboard

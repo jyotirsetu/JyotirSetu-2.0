@@ -64,6 +64,7 @@ export default [
       '**/.vercel/**',
       '**/dist/**',
       '**/node_modules/**',
+      'src/pages/admin/invoices.astro',
     ],
   },
 ];

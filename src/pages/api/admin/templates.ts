@@ -29,9 +29,9 @@ export const GET: APIRoute = async ({ request }) => {
           '🔗 Stay connected for insights and updates: https://follow.jyotirsetu.com',
           '',
           'Warm regards,',
-          'JyotirSetu Astrology'
+          'JyotirSetu Astrology',
         ].join('\n'),
-        updated_at: nowIso
+        updated_at: nowIso,
       },
       {
         key: 'confirmed',
@@ -53,9 +53,9 @@ export const GET: APIRoute = async ({ request }) => {
           '🔗 Follow for tips and updates: https://follow.jyotirsetu.com',
           '',
           'Looking forward to connecting,',
-          'JyotirSetu Astrology'
+          'JyotirSetu Astrology',
         ].join('\n'),
-        updated_at: nowIso
+        updated_at: nowIso,
       },
       {
         key: 'rescheduled',
@@ -75,9 +75,9 @@ export const GET: APIRoute = async ({ request }) => {
           '🔗 Follow for tips and updates: https://follow.jyotirsetu.com',
           '',
           'Warm regards,',
-          'JyotirSetu Astrology'
+          'JyotirSetu Astrology',
         ].join('\n'),
-        updated_at: nowIso
+        updated_at: nowIso,
       },
       {
         key: 'cancelled_user',
@@ -93,9 +93,9 @@ export const GET: APIRoute = async ({ request }) => {
           '🔗 Explore updates and insights: https://follow.jyotirsetu.com',
           '',
           'Warm regards,',
-          'JyotirSetu Astrology'
+          'JyotirSetu Astrology',
         ].join('\n'),
-        updated_at: nowIso
+        updated_at: nowIso,
       },
       {
         key: 'cancelled_provider',
@@ -113,10 +113,10 @@ export const GET: APIRoute = async ({ request }) => {
           '🔗 Stay connected: https://follow.jyotirsetu.com',
           '',
           'Warm regards,',
-          'JyotirSetu Astrology'
+          'JyotirSetu Astrology',
         ].join('\n'),
-        updated_at: nowIso
-      }
+        updated_at: nowIso,
+      },
     ];
     const defaultEmail = [
       {
@@ -133,9 +133,9 @@ export const GET: APIRoute = async ({ request }) => {
           '<li>Consultation Method: {method}</li>',
           '</ul>',
           '<p>Stay connected for insights and updates: <a href="https://follow.jyotirsetu.com" target="_blank">follow.jyotirsetu.com</a></p>',
-          '<p>Warm regards,<br/>JyotirSetu Astrology</p>'
+          '<p>Warm regards,<br/>JyotirSetu Astrology</p>',
         ].join(''),
-        updated_at: nowIso
+        updated_at: nowIso,
       },
       {
         key: 'confirmed',
@@ -152,9 +152,9 @@ export const GET: APIRoute = async ({ request }) => {
           '</ul>',
           '<p>Feel free to include any specific questions you want us to focus on.</p>',
           '<p>Follow for tips and updates: <a href="https://follow.jyotirsetu.com" target="_blank">follow.jyotirsetu.com</a></p>',
-          '<p>Looking forward to connecting,<br/>JyotirSetu Astrology</p>'
+          '<p>Looking forward to connecting,<br/>JyotirSetu Astrology</p>',
         ].join(''),
-        updated_at: nowIso
+        updated_at: nowIso,
       },
       {
         key: 'rescheduled',
@@ -171,9 +171,9 @@ export const GET: APIRoute = async ({ request }) => {
           '</ul>',
           '<p>If the new schedule does not work for you, please reply with your availability.</p>',
           '<p>Stay connected: <a href="https://follow.jyotirsetu.com" target="_blank">follow.jyotirsetu.com</a></p>',
-          '<p>Warm regards,<br/>JyotirSetu Astrology</p>'
+          '<p>Warm regards,<br/>JyotirSetu Astrology</p>',
         ].join(''),
-        updated_at: nowIso
+        updated_at: nowIso,
       },
       {
         key: 'cancelled_user',
@@ -183,9 +183,9 @@ export const GET: APIRoute = async ({ request }) => {
           '<p>As per your request, your appointment for <strong>{service}</strong> has been <strong>cancelled</strong>.</p>',
           '<p>We look forward to connecting with you again. Feel free to reply to this email to book a new slot at your convenience.</p>',
           '<p>Explore updates and insights: <a href="https://follow.jyotirsetu.com" target="_blank">follow.jyotirsetu.com</a></p>',
-          '<p>Warm regards,<br/>JyotirSetu Astrology</p>'
+          '<p>Warm regards,<br/>JyotirSetu Astrology</p>',
         ].join(''),
-        updated_at: nowIso
+        updated_at: nowIso,
       },
       {
         key: 'cancelled_provider',
@@ -196,10 +196,10 @@ export const GET: APIRoute = async ({ request }) => {
           '<p>We value your time and will reach out shortly to offer alternate slots. If you prefer, please reply with your availability.</p>',
           '<p>Thank you for your understanding.</p>',
           '<p>Stay connected: <a href="https://follow.jyotirsetu.com" target="_blank">follow.jyotirsetu.com</a></p>',
-          '<p>Warm regards,<br/>JyotirSetu Astrology</p>'
+          '<p>Warm regards,<br/>JyotirSetu Astrology</p>',
         ].join(''),
-        updated_at: nowIso
-      }
+        updated_at: nowIso,
+      },
     ];
 
     try {
@@ -214,11 +214,17 @@ export const GET: APIRoute = async ({ request }) => {
       const res = await client.execute({ sql: `SELECT key, subject, html, updated_at FROM email_templates`, args: [] });
       const rows = Array.isArray(res.rows) ? res.rows : [];
       // If DB is configured, do NOT auto-fill defaults when empty.
-      return new Response(JSON.stringify({ ok: true, data: rows }), { headers: { 'Content-Type': 'application/json' } });
+      return new Response(JSON.stringify({ ok: true, data: rows }), {
+        headers: { 'Content-Type': 'application/json' },
+      });
     } catch {
       // DB not configured; return defaults without failing
       return new Response(
-        JSON.stringify({ ok: true, data: type === 'whatsapp' ? defaultWhatsapp : defaultEmail, note: 'using-defaults' }),
+        JSON.stringify({
+          ok: true,
+          data: type === 'whatsapp' ? defaultWhatsapp : defaultEmail,
+          note: 'using-defaults',
+        }),
         { headers: { 'Content-Type': 'application/json' } }
       );
     }
@@ -236,14 +242,22 @@ export const PUT: APIRoute = async ({ request }) => {
     const client = await getTursoClient();
     if (body.type === 'whatsapp') {
       const { key, text } = body;
-      if (!key || !text) return new Response(JSON.stringify({ ok: false, error: 'key and text required' }), { status: 400 });
-      await client.execute({ sql: `INSERT INTO whatsapp_templates (key, text, updated_at) VALUES (?, ?, ?) ON CONFLICT(key) DO UPDATE SET text = excluded.text, updated_at = excluded.updated_at`, args: [String(key), String(text), now] });
+      if (!key || !text)
+        return new Response(JSON.stringify({ ok: false, error: 'key and text required' }), { status: 400 });
+      await client.execute({
+        sql: `INSERT INTO whatsapp_templates (key, text, updated_at) VALUES (?, ?, ?) ON CONFLICT(key) DO UPDATE SET text = excluded.text, updated_at = excluded.updated_at`,
+        args: [String(key), String(text), now],
+      });
       return new Response(JSON.stringify({ ok: true }));
     }
     if (body.type === 'email') {
       const { key, subject, html } = body;
-      if (!key || !subject || !html) return new Response(JSON.stringify({ ok: false, error: 'key, subject, html required' }), { status: 400 });
-      await client.execute({ sql: `INSERT INTO email_templates (key, subject, html, updated_at) VALUES (?, ?, ?, ?) ON CONFLICT(key) DO UPDATE SET subject = excluded.subject, html = excluded.html, updated_at = excluded.updated_at`, args: [String(key), String(subject), String(html), now] });
+      if (!key || !subject || !html)
+        return new Response(JSON.stringify({ ok: false, error: 'key, subject, html required' }), { status: 400 });
+      await client.execute({
+        sql: `INSERT INTO email_templates (key, subject, html, updated_at) VALUES (?, ?, ?, ?) ON CONFLICT(key) DO UPDATE SET subject = excluded.subject, html = excluded.html, updated_at = excluded.updated_at`,
+        args: [String(key), String(subject), String(html), now],
+      });
       return new Response(JSON.stringify({ ok: true }));
     }
     return new Response(JSON.stringify({ ok: false, error: 'invalid type' }), { status: 400 });
@@ -251,7 +265,10 @@ export const PUT: APIRoute = async ({ request }) => {
     const msg = e instanceof Error ? e.message : 'failed';
     const isConfig = /Turso configuration missing/i.test(String(msg));
     return new Response(
-      JSON.stringify({ ok: false, error: isConfig ? 'Database not configured. Set TURSO_DATABASE_URL and TURSO_AUTH_TOKEN.' : msg }),
+      JSON.stringify({
+        ok: false,
+        error: isConfig ? 'Database not configured. Set TURSO_DATABASE_URL and TURSO_AUTH_TOKEN.' : msg,
+      }),
       { status: isConfig ? 503 : 500 }
     );
   }
@@ -279,10 +296,11 @@ export const DELETE: APIRoute = async ({ request }) => {
     const msg = e instanceof Error ? e.message : 'failed';
     const isConfig = /Turso configuration missing/i.test(String(msg));
     return new Response(
-      JSON.stringify({ ok: false, error: isConfig ? 'Database not configured. Set TURSO_DATABASE_URL and TURSO_AUTH_TOKEN.' : msg }),
+      JSON.stringify({
+        ok: false,
+        error: isConfig ? 'Database not configured. Set TURSO_DATABASE_URL and TURSO_AUTH_TOKEN.' : msg,
+      }),
       { status: isConfig ? 503 : 500 }
     );
   }
 };
-
-

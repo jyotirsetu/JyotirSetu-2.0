@@ -1,7 +1,7 @@
 // Global type declarations to fix @astrolib/seo issues
 declare module '@astrolib/seo' {
   import type { Component } from 'astro';
-  
+
   export interface OpenGraph {
     url?: string;
     siteName?: string;
@@ -15,7 +15,7 @@ declare module '@astrolib/seo' {
     locale?: string;
     type?: string;
   }
-  
+
   export interface Props {
     title?: string;
     titleTemplate?: string;
@@ -30,7 +30,7 @@ declare module '@astrolib/seo' {
       cardType?: string;
     };
   }
-  
+
   export const AstroSeo: Component<Props>;
   export default AstroSeo;
 }

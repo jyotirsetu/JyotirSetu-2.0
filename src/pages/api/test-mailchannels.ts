@@ -7,7 +7,7 @@ function getEnv(name: string): string | undefined {
   const metaEnv = (import.meta as unknown as { env?: Record<string, unknown> }).env;
   const fromImportMeta = typeof metaEnv?.[name] === 'string' ? (metaEnv?.[name] as string) : undefined;
   const fromProcess = typeof process !== 'undefined' ? process.env?.[name] : undefined;
-  return (fromImportMeta ?? fromProcess) ?? undefined;
+  return fromImportMeta ?? fromProcess ?? undefined;
 }
 
 export const GET: APIRoute = async () => {
@@ -17,37 +17,50 @@ export const GET: APIRoute = async () => {
   const from = fromRaw.trim();
   const to = toRaw.trim();
   const mcVal = mcRaw.trim().toLowerCase();
-  const mcEnabled = (mcVal === 'true' || mcVal === '1' || mcVal === 'yes');
+  const mcEnabled = mcVal === 'true' || mcVal === '1' || mcVal === 'yes';
 
   if (!mcEnabled) {
-    return new Response(JSON.stringify({ ok: false, stage: 'env-check', error: 'MAILCHANNELS_ENABLED is not true', debug: { mcRaw } }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+    return new Response(
+      JSON.stringify({ ok: false, stage: 'env-check', error: 'MAILCHANNELS_ENABLED is not true', debug: { mcRaw } }),
+      { status: 200, headers: { 'Content-Type': 'application/json' } }
+    );
   }
   if (!from || !to) {
-    return new Response(JSON.stringify({ ok: false, stage: 'env-check', error: 'ZOHO_FROM_EMAIL or ZOHO_TO_ADMIN missing', debug: { fromRaw, toRaw } }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+    return new Response(
+      JSON.stringify({
+        ok: false,
+        stage: 'env-check',
+        error: 'ZOHO_FROM_EMAIL or ZOHO_TO_ADMIN missing',
+        debug: { fromRaw, toRaw },
+      }),
+      { status: 200, headers: { 'Content-Type': 'application/json' } }
+    );
   }
 
   const payload = {
-    personalizations: [
-      { to: [{ email: to }] }
-    ],
+    personalizations: [{ to: [{ email: to }] }],
     from: { email: from },
     subject: 'MailChannels test from JyotirSetu',
     content: [{ type: 'text/html', value: '<p>If you received this, MailChannels works.</p>' }],
-    headers: { 'Reply-To': to }
+    headers: { 'Reply-To': to },
   };
 
   try {
     const res = await fetch('https://api.mailchannels.net/tx/v1/send', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
     });
     const text = await res.text();
-    return new Response(JSON.stringify({ ok: res.ok, status: res.status, body: text }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+    return new Response(JSON.stringify({ ok: res.ok, status: res.status, body: text }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e);
-    return new Response(JSON.stringify({ ok: false, stage: 'fetch', error: msg }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+    return new Response(JSON.stringify({ ok: false, stage: 'fetch', error: msg }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 };
-
-

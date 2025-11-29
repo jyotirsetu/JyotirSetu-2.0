@@ -1,0 +1,828 @@
+---
+export const prerender = false;
+import AdminSidebar from '~/components/AdminSidebar.astro';
+import AdminNavbar from '~/components/AdminNavbar.astro';
+import Favicons from '~/components/Favicons.astro';
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quotations – Admin</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@latest/dist/css/adminlte.min.css" />
+    <link rel="stylesheet" href="/admin.css?v=20251129" />
+    <Favicons />
+    <script src="/js/admin-notify.js" defer></script>
+    <style>
+      .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(2, 6, 23, 0.6);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+      }
+      .modal.active {
+        display: flex;
+      }
+      .modal-content {
+        background: #0f172a;
+        padding: 28px;
+        border-radius: 16px;
+        max-width: 640px;
+        width: 90%;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 30px 80px rgba(15, 23, 42, 0.8);
+        border: 1px solid rgba(148, 163, 184, 0.2);
+      }
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+        padding-bottom: 16px;
+      }
+      .modal-header h3 {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 700;
+        color: #e2e8f0;
+      }
+      .close-btn {
+        background: none;
+        border: none;
+        font-size: 28px;
+        cursor: pointer;
+        padding: 0;
+        width: 32px;
+        height: 32px;
+        color: #94a3b8;
+        line-height: 1;
+      }
+      .close-btn:hover {
+        color: #e2e8f0;
+      }
+      @media (max-width: 576px) {
+        .small-box .inner h3 { font-size: 20px; }
+        .small-box { padding: 10px; }
+        .row > [class*='col-'] { margin-bottom: 8px; }
+      }
+    </style>
+  </head>
+  <body class="hold-transition sidebar-mini">
+    <button class="sidebar-toggle" aria-label="Open Admin Menu" id="sidebarToggle">☰</button>
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+    <script is:inline>
+      (function () {
+        function applyTheme(theme) {
+          let t = theme;
+          if (t === 'auto') {
+            t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          }
+          document.body.classList.toggle('dark-mode', t === 'dark');
+        }
+        let theme = 'dark';
+        let collapsed = false;
+        try {
+          const stored = localStorage.getItem('adminSettings');
+          if (stored) {
+            const s = JSON.parse(stored);
+            if (s && typeof s === 'object') {
+              if (s.theme) theme = s.theme;
+              if (s.sidebarCollapsed != null) collapsed = !!s.sidebarCollapsed;
+            }
+          }
+        } catch {
+          /* ignore theme loading errors */
+        }
+        applyTheme(theme);
+        document.body.classList.toggle('sidebar-collapse', collapsed);
+      })();
+    </script>
+    <div class="wrapper">
+      <AdminNavbar />
+      <AdminSidebar activePage="/admin/quotes" />
+      <div class="content-wrapper">
+        <section class="content-header">
+          <div class="container-fluid">
+            <div class="row mb-2">
+              <div class="col-sm-6"><h1>Quotations</h1></div>
+              <div class="col-sm-6">
+                <div class="float-sm-right">
+                  <button class="btn btn-outline-primary btn-sm mr-2" id="exportReport1">
+                    <i class="fas fa-download"></i> Export Report 1
+                  </button>
+                  <button class="btn btn-outline-primary btn-sm mr-2" id="exportReport2">
+                    <i class="fas fa-download"></i> Export Report 2
+                  </button>
+                </div>
+                <ol class="breadcrumb float-sm-right">
+                  <li class="breadcrumb-item"><a href="/admin/dashboard">Home</a></li>
+                  <li class="breadcrumb-item active">Quotations</li>
+                </ol>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section class="content">
+          <div class="container-fluid">
+            <div class="row">
+              <div class="col-xl-2 col-lg-4 col-md-6 col-sm-6">
+                <div class="small-box bg-info">
+                  <div class="inner">
+                    <h3 id="qTotal">0</h3>
+                    <p>Total Quotations</p>
+                  </div>
+                  <div class="icon"><i class="fas fa-file-invoice"></i></div>
+                </div>
+              </div>
+              <div class="col-xl-2 col-lg-4 col-md-6 col-sm-6">
+                <div class="small-box bg-success">
+                  <div class="inner">
+                    <h3 id="qPurchased">0</h3>
+                    <p>Purchased</p>
+                  </div>
+                  <div class="icon"><i class="fas fa-check"></i></div>
+                </div>
+              </div>
+              <div class="col-xl-2 col-lg-4 col-md-6 col-sm-6">
+                <div class="small-box bg-warning">
+                  <div class="inner">
+                    <h3 id="qNC">0</h3>
+                    <p>NC</p>
+                  </div>
+                  <div class="icon"><i class="fas fa-hourglass-half"></i></div>
+                </div>
+              </div>
+              <div class="col-xl-2 col-lg-4 col-md-6 col-sm-6">
+                <div class="small-box bg-secondary">
+                  <div class="inner">
+                    <h3 id="qNoReply">0</h3>
+                    <p>Quotation Sent</p>
+                  </div>
+                  <div class="icon"><i class="fas fa-comment-slash"></i></div>
+                </div>
+              </div>
+              <div class="col-xl-2 col-lg-4 col-md-6 col-sm-6">
+                <div class="small-box bg-primary">
+                  <div class="inner">
+                    <h3 id="qAmount">₹0.00</h3>
+                    <p>Total Amount</p>
+                  </div>
+                  <div class="icon"><i class="fas fa-indian-rupee-sign"></i></div>
+                </div>
+              </div>
+            </div>
+            <div class="card card-primary card-outline">
+              <div class="card-header">Create Quotation</div>
+              <div class="card-body">
+                <div class="row" style="gap:12px">
+                  <div class="col-md-4">
+                    <label>Customer <small id="customerCount" class="text-muted">(Loading...)</small></label>
+                    <div class="input-group">
+                      <input
+                        class="form-control"
+                        id="customerSearch"
+                        placeholder="Search customer by name"
+                        autocomplete="off"
+                      />
+                      <button
+                        class="btn btn-outline-secondary"
+                        id="syncCustomers"
+                        title="Sync customers from appointments"
+                        type="button"
+                      >
+                        <i class="fas fa-sync-alt"></i>
+                      </button>
+                    </div>
+                    <div
+                      id="customerDropdown"
+                      class="dropdown-menu"
+                      style="width: 100%; display: none; max-height: 200px; overflow-y: auto;"
+                    >
+                    </div>
+                    <select id="customerSelect" class="form-control" style="margin-top:6px; display: none;"></select>
+                  </div>
+                </div>
+                <div class="table-responsive" style="margin-top:16px">
+                  <table class="table table-striped" id="itemsTable">
+                    <thead>
+                      <tr><th>Particular</th><th>Unit</th><th>Unit Price</th><th>Total</th><th></th></tr>
+                    </thead>
+                    <tbody></tbody>
+                  </table>
+                </div>
+                <div style="display:flex; gap:12px; justify-content:space-between; align-items:center">
+                  <button class="btn btn-outline-secondary" id="addItemBtn"
+                    ><i class="fas fa-plus"></i> Add Particular</button
+                  >
+                  <div style="font-weight:700">Grand Total: <span id="grandTotal">₹0.00</span></div>
+                </div>
+                <div style="margin-top:16px; display:flex; gap:12px">
+                  <button class="btn btn-primary" id="saveQuoteBtn">Save Quotation</button>
+                </div>
+              </div>
+            </div>
+            <div class="card card-outline card-secondary">
+              <div class="card-header">Quotation List</div>
+              <div class="card-body" id="quotesList"></div>
+            </div>
+          </div>
+        </section>
+      </div>
+      <footer class="main-footer">
+        <strong>JyotirSetu Admin</strong><div class="float-end d-none d-sm-inline">AdminLTE theme</div>
+      </footer>
+    </div>
+    <div id="editModal" class="modal" aria-hidden="true">
+      <div class="modal-content">
+        <div class="modal-header"><h3>Edit Quotation</h3><button class="close-btn" id="editClose">×</button></div>
+        <div id="editBody"></div>
+        <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:16px">
+          <button class="btn btn-secondary" id="editCancel">Cancel</button>
+          <button class="btn btn-primary" id="editSave">Save</button>
+        </div>
+      </div>
+    </div>
+    <div id="deleteModal" class="modal" aria-hidden="true">
+      <div class="modal-content">
+        <div class="modal-header"><h3>Confirm Delete</h3><button class="close-btn" id="delClose">×</button></div>
+        <div id="deleteBody">Delete this quotation?</div>
+        <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:16px">
+          <button class="btn btn-secondary" id="delCancel">Cancel</button>
+          <button class="btn btn-danger" id="delConfirm">Delete</button>
+        </div>
+      </div>
+    </div>
+    <script is:inline>
+      (function () {
+        let customers = [];
+        let items = [];
+        let editingId = '';
+        let deletingId = '';
+        function fmt(n) {
+          return '₹' + Number(n || 0).toFixed(2);
+        }
+        function openModal(id) {
+          document.getElementById(id).classList.add('active');
+        }
+        function closeModal(id) {
+          document.getElementById(id).classList.remove('active');
+        }
+        async function loadStats() {
+          const res = await fetch('/api/admin/quotes?stats=1');
+          const j = await res.json();
+          const totals = j.totals || { count: 0, amount: 0 };
+          const by = Array.isArray(j.by_status) ? j.by_status : [];
+          document.getElementById('qTotal').textContent = String(totals.count || 0);
+          document.getElementById('qAmount').textContent = fmt(totals.amount || 0);
+          const find = (s) => {
+            const r = by.find((x) => String(x.status || '') === s);
+            return r ? Number(r.count || 0) : 0;
+          };
+          document.getElementById('qPurchased').textContent = String(find('Purchased'));
+          document.getElementById('qNC').textContent = String(find('NC'));
+          const sentCount = Number(find('Quotation Sent')) + Number(find('No Revert'));
+          document.getElementById('qNoReply').textContent = String(sentCount);
+        }
+        async function loadCustomers() {
+          console.log('Starting customer load from appointments...');
+          let allRows = [];
+          let page = 1;
+          const limit = 100; // Load 100 per page for better performance with smaller datasets
+          let hasMore = true;
+          let totalLoaded = 0;
+
+          // Load all pages
+          while (hasMore) {
+            try {
+              console.log(`Loading page ${page}...`);
+              const res = await fetch(`/api/admin/appointments?page=${page}&limit=${limit}`);
+              const j = await res.json();
+              const rows = Array.isArray(j.data) ? j.data : [];
+              const pagination = j.pagination || {};
+
+              console.log(`Page ${page}: loaded ${rows.length} appointments, total: ${pagination.total || 'unknown'}`);
+
+              if (rows.length === 0) {
+                hasMore = false;
+                console.log('No more rows, stopping.');
+              } else {
+                allRows = allRows.concat(rows);
+                totalLoaded += rows.length;
+
+                // Check if we've loaded all available data
+                if (pagination.total && totalLoaded >= pagination.total) {
+                  console.log(`Loaded all ${totalLoaded} appointments.`);
+                  hasMore = false;
+                } else {
+                  page++;
+
+                  // Safety check to prevent infinite loops
+                  if (page > 50) {
+                    // Max 5,000 records
+                    console.log('Safety limit reached, stopping.');
+                    hasMore = false;
+                  }
+                }
+              }
+            } catch (error) {
+              console.error('Error loading page', page, error);
+              hasMore = false;
+            }
+          }
+
+          console.log(`Processing ${allRows.length} total appointments...`);
+
+          // Process customers - handle duplicate emails with different names
+          const processedCustomers = [];
+          const nameEmailMap = new Map(); // Track name+email combinations to avoid duplicates
+          let skippedDuplicates = 0;
+          let skippedInvalid = 0;
+
+          allRows.forEach(function (r, index) {
+            const email = String(r.email || '').trim();
+            const name = String(r.name || '').trim();
+            const phone = String(r.phone || '').trim();
+
+            // Skip invalid entries but log them
+            if (!email || !name) {
+              skippedInvalid++;
+              if (skippedInvalid <= 5)
+                console.log(`Skipping appointment ${index}: missing email or name`, { email, name });
+              return;
+            }
+
+            // Create unique key for name+email combination (include phone to catch exact duplicates)
+            const uniqueKey = `${name.toLowerCase()}|${email.toLowerCase()}|${phone.toLowerCase()}`;
+
+            // Only add if we haven't seen this exact combination before
+            if (!nameEmailMap.has(uniqueKey)) {
+              nameEmailMap.set(uniqueKey, true);
+
+              // For duplicate emails like 'na@gmail.com', create unique identifiers
+              if (email === 'na@gmail.com') {
+                const uniqueEmail = `${email}_${name.toLowerCase().replace(/\s+/g, '_')}`;
+                processedCustomers.push({
+                  email: uniqueEmail, // Use unique email as key
+                  originalEmail: email, // Keep original email for contact
+                  name: name,
+                  phone: phone,
+                });
+              } else {
+                processedCustomers.push({
+                  email: email,
+                  originalEmail: email,
+                  name: name,
+                  phone: phone,
+                });
+              }
+            } else {
+              skippedDuplicates++;
+              if (skippedDuplicates <= 5) console.log(`Skipping duplicate: ${name} | ${email} | ${phone}`);
+            }
+          });
+
+          console.log(`Skipped ${skippedInvalid} invalid entries and ${skippedDuplicates} exact duplicates`);
+
+          customers = processedCustomers;
+          customers.sort(function (a, b) {
+            return String(a.name || '').localeCompare(String(b.name || ''));
+          });
+
+          console.log(`Final result: ${customers.length} unique customers from ${allRows.length} appointments`);
+          console.log('Sample customers:', customers.slice(0, 10));
+
+          // Update customer count display
+          const countElement = document.getElementById('customerCount');
+          if (countElement) {
+            countElement.textContent = `(${customers.length} customers)`;
+          }
+
+          updateCustomerSelect();
+        }
+
+        function updateCustomerSelect() {
+          const sel = document.getElementById('customerSelect');
+          sel.innerHTML = customers
+            .map(function (c) {
+              return `<option value="${c.email}">${c.name || c.email}</option>`;
+            })
+            .join('');
+        }
+
+        function showCustomerDropdown(filteredCustomers) {
+          const dropdown = document.getElementById('customerDropdown');
+          if (filteredCustomers.length === 0) {
+            dropdown.style.display = 'none';
+            return;
+          }
+
+          dropdown.innerHTML = filteredCustomers
+            .map(function (c) {
+              // Use original email for display, not the unique key
+              const displayEmail = c.originalEmail || c.email;
+              return `<a class="dropdown-item" href="#" data-email="${c.email}" data-name="${c.name}" data-phone="${c.phone}" data-original-email="${c.originalEmail}">
+              <strong>${c.name}</strong><br><small class="text-muted">${displayEmail}${c.phone ? ' • ' + c.phone : ''}</small>
+            </a>`;
+            })
+            .join('');
+          dropdown.style.display = 'block';
+
+          // Add click handlers for dropdown items
+          dropdown.querySelectorAll('.dropdown-item').forEach(function (item) {
+            item.addEventListener('click', function (e) {
+              e.preventDefault();
+              const email = this.getAttribute('data-email');
+              const name = this.getAttribute('data-name');
+              document.getElementById('customerSearch').value = name;
+              document.getElementById('customerSelect').value = email;
+              dropdown.style.display = 'none';
+            });
+          });
+        }
+
+        document.getElementById('customerSearch').addEventListener('input', function () {
+          const q = this.value.toLowerCase().trim();
+          if (q === '') {
+            document.getElementById('customerDropdown').style.display = 'none';
+            return;
+          }
+
+          const filtered = customers.filter(
+            (c) =>
+              String(c.name || '')
+                .toLowerCase()
+                .includes(q) ||
+              String(c.email || '')
+                .toLowerCase()
+                .includes(q) ||
+              String(c.phone || '')
+                .toLowerCase()
+                .includes(q)
+          );
+
+          showCustomerDropdown(filtered.slice(0, 10)); // Show max 10 results
+        });
+
+        document.getElementById('customerSearch').addEventListener('focus', function () {
+          const q = this.value.toLowerCase().trim();
+          if (q === '') return;
+
+          const filtered = customers.filter(
+            (c) =>
+              String(c.name || '')
+                .toLowerCase()
+                .includes(q) ||
+              String(c.email || '')
+                .toLowerCase()
+                .includes(q) ||
+              String(c.phone || '')
+                .toLowerCase()
+                .includes(q)
+          );
+
+          showCustomerDropdown(filtered.slice(0, 10));
+        });
+
+        // Hide dropdown when clicking outside
+        document.addEventListener('click', function (e) {
+          if (!e.target.closest('#customerSearch') && !e.target.closest('#customerDropdown')) {
+            document.getElementById('customerDropdown').style.display = 'none';
+          }
+        });
+
+        // Sync button functionality
+        document.getElementById('syncCustomers').addEventListener('click', async function () {
+          const icon = this.querySelector('i');
+
+          // Show loading state
+          icon.classList.add('fa-spin');
+          this.disabled = true;
+
+          try {
+            await loadCustomers();
+            document.getElementById('customerSearch').value = '';
+            document.getElementById('customerDropdown').style.display = 'none';
+
+            // Show success feedback
+            icon.classList.remove('fa-spin');
+            icon.classList.add('fa-check');
+            setTimeout(function () {
+              icon.classList.remove('fa-check');
+              icon.classList.add('fa-sync-alt');
+            }, 1000);
+          } catch (error) {
+            console.error('Failed to sync customers:', error);
+            icon.classList.remove('fa-spin');
+            icon.classList.add('fa-exclamation-triangle');
+            setTimeout(function () {
+              icon.classList.remove('fa-exclamation-triangle');
+              icon.classList.add('fa-sync-alt');
+            }, 2000);
+          } finally {
+            this.disabled = false;
+          }
+        });
+        function addItemRow(it) {
+          const tbody = document.querySelector('#itemsTable tbody');
+          const idx = items.length;
+          items.push({
+            title: it?.title || '',
+            unit: Number(it?.unit || it?.carat || 0),
+            unit_price: Number(it?.unit_price || it?.rate_per_carat || 0),
+          });
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td><input class="form-control" value="${items[idx].title}" data-idx="${idx}" data-key="title" /></td>
+            <td><input class="form-control" type="number" step="0.01" value="${items[idx].unit}" data-idx="${idx}" data-key="unit" /></td>
+            <td><input class="form-control" type="number" step="0.01" value="${items[idx].unit_price}" data-idx="${idx}" data-key="unit_price" /></td>
+            <td class="lineTotal">${fmt(items[idx].unit * items[idx].unit_price)}</td>
+            <td><button class="btn btn-sm btn-outline-danger delItem" data-idx="${idx}"><i class="fas fa-trash"></i></button></td>`;
+          tbody.appendChild(row);
+        }
+        function recalc() {
+          let total = 0;
+          document.querySelectorAll('#itemsTable tbody tr').forEach(function (tr, i) {
+            const it = items[i] || { unit: 0, unit_price: 0 };
+            const t = Number(it.unit || 0) * Number(it.unit_price || 0);
+            tr.querySelector('.lineTotal').textContent = fmt(t);
+            total += t;
+          });
+          document.getElementById('grandTotal').textContent = fmt(total);
+        }
+        document.getElementById('addItemBtn').addEventListener('click', function () {
+          addItemRow({});
+          recalc();
+        });
+        document.querySelector('#itemsTable tbody').addEventListener('input', function (e) {
+          const t = e.target;
+          const idx = Number(t.getAttribute('data-idx'));
+          const key = t.getAttribute('data-key');
+          let val = t.value;
+          if (key === 'unit' || key === 'unit_price') val = String(Number(val || 0));
+          items[idx][key] = key === 'title' ? val : Number(val);
+          recalc();
+        });
+        document.querySelector('#itemsTable tbody').addEventListener('click', function (e) {
+          const t = e.target.closest('.delItem');
+          if (!t) return;
+          const idx = Number(t.getAttribute('data-idx'));
+          items.splice(idx, 1);
+          const tbody = document.querySelector('#itemsTable tbody');
+          tbody.innerHTML = '';
+          items.forEach(function (it) {
+            addItemRow(it);
+          });
+          recalc();
+        });
+        async function loadQuotes() {
+          const res = await fetch('/api/admin/quotes');
+          const j = await res.json();
+          const list = Array.isArray(j.data) ? j.data : [];
+          const el = document.getElementById('quotesList');
+          el.innerHTML = `<table class="table"><thead><tr><th>No</th><th>Client</th><th>Status</th><th>Total</th><th>Created</th><th></th></tr></thead><tbody>${list
+            .map(function (r) {
+              return `
+            <tr>
+              <td>${r.number}</td>
+              <td>${r.client_name} <div class="muted">${r.client_email}</div></td>
+              <td>
+                <select class="form-control form-control-sm rowStatus" data-id="${r.id}">
+                  <option ${String(r.status || '') === 'Created' ? 'selected' : ''}>Created</option>
+                  <option ${String(r.status || '') === 'Purchased' ? 'selected' : ''}>Purchased</option>
+                  <option ${['Quotation Sent', 'No Revert'].includes(String(r.status || '')) ? 'selected' : ''}>Quotation Sent</option>
+                  <option ${String(r.status || '') === 'NC' ? 'selected' : ''}>NC</option>
+                  <option ${String(r.status || '') === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
+                </select>
+              </td>
+              <td>${fmt(r.total)}</td>
+              <td>${new Date(r.created_at).toLocaleString()}</td>
+              <td>
+                <button class="btn btn-sm btn-outline-primary editQuote" data-id="${r.id}">Edit</button>
+                <button class="btn btn-sm btn-outline-danger delQuote" data-id="${r.id}">Delete</button>
+                <button class="btn btn-sm btn-outline-success pdfQuote" data-id="${r.id}" title="Export PDF">
+                  <i class="fas fa-file-pdf"></i> PDF
+                </button>
+              </td>
+            </tr>`;
+            })
+            .join('')}</tbody></table>`;
+          el.querySelectorAll('.rowStatus').forEach(function (s) {
+            s.addEventListener('change', async function () {
+              const id = s.getAttribute('data-id');
+              const status = s.value;
+              await fetch('/api/admin/quotes', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id, status }),
+              });
+              try { localStorage.setItem('quotesStatsUpdated', String(Date.now())); } catch (e) { void e; }
+              loadStats();
+            });
+          });
+          el.querySelectorAll('.editQuote').forEach(function (b) {
+            b.addEventListener('click', async function () {
+              editingId = b.getAttribute('data-id');
+              const rr = await fetch('/api/admin/quotes?id=' + encodeURIComponent(editingId));
+              const jr = await rr.json();
+              const q = jr.data || {};
+              const its = Array.isArray(jr.items) ? jr.items : [];
+              const body = document.getElementById('editBody');
+              body.innerHTML = `
+                <div class="form-group"><label>Status</label>
+                  <select id="editStatus" class="form-control">
+                    <option ${String(q.status || '') === 'Purchased' ? 'selected' : ''}>Purchased</option>
+                    <option ${['Quotation Sent', 'No Revert'].includes(String(q.status || '')) ? 'selected' : ''}>Quotation Sent</option>
+                    <option ${String(q.status || '') === 'NC' ? 'selected' : ''}>NC</option>
+                    <option ${String(q.status || '') === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
+                  </select>
+                </div>
+                <div class="table-responsive" style="margin-top:16px">
+                  <table class="table" id="editItems">
+                    <thead><tr><th>Particular</th><th>Unit</th><th>Unit Price</th><th>Total</th><th></th></tr></thead>
+                    <tbody>${its
+                      .map(function (it, i) {
+                        return `
+                      <tr>
+                        <td><input class="form-control" value="${String(it.title || '')}" data-idx="${i}" data-key="title" /></td>
+                        <td><input class="form-control" type="number" step="0.01" value="${Number(it.carat || 0)}" data-idx="${i}" data-key="unit" /></td>
+                        <td><input class="form-control" type="number" step="0.01" value="${Number(it.rate_per_carat || 0)}" data-idx="${i}" data-key="unit_price" /></td>
+                        <td class="eLine">${fmt(Number(it.carat || 0) * Number(it.rate_per_carat || 0))}</td>
+                        <td><button class="btn btn-sm btn-outline-danger eDel" data-idx="${i}"><i class="fas fa-trash"></i></button></td>
+                      </tr>`;
+                      })
+                      .join('')}</tbody>
+                  </table>
+                </div>
+                <button class="btn btn-outline-secondary" id="editAdd">Add Particular</button>
+              `;
+              openModal('editModal');
+              document.getElementById('editAdd').addEventListener('click', function () {
+                const tb = document.querySelector('#editItems tbody');
+                const i = tb.querySelectorAll('tr').length;
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                  <td><input class="form-control" value="" data-idx="${i}" data-key="title" /></td>
+                  <td><input class="form-control" type="number" step="0.01" value="0" data-idx="${i}" data-key="unit" /></td>
+                  <td><input class="form-control" type="number" step="0.01" value="0" data-idx="${i}" data-key="unit_price" /></td>
+                  <td class="eLine">${fmt(0)}</td>
+                  <td><button class="btn btn-sm btn-outline-danger eDel" data-idx="${i}"><i class="fas fa-trash"></i></button></td>`;
+                tb.appendChild(tr);
+              });
+              document.querySelector('#editItems tbody').addEventListener('input', function (e) {
+                const t = e.target;
+                const row = t.closest('tr');
+                const unit = Number(row.querySelector('input[data-key="unit"]').value || 0);
+                const rate = Number(row.querySelector('input[data-key="unit_price"]').value || 0);
+                row.querySelector('.eLine').textContent = fmt(unit * rate);
+              });
+              document.querySelector('#editItems tbody').addEventListener('click', function (e) {
+                const b = e.target.closest('.eDel');
+                if (!b) return;
+                const tr = b.closest('tr');
+                tr.remove();
+              });
+            });
+          });
+          el.querySelectorAll('.delQuote').forEach(function (b) {
+            b.addEventListener('click', function () {
+              deletingId = b.getAttribute('data-id');
+              openModal('deleteModal');
+            });
+          });
+        }
+        document.getElementById('editClose').addEventListener('click', function () {
+          closeModal('editModal');
+        });
+        document.getElementById('editCancel').addEventListener('click', function () {
+          closeModal('editModal');
+        });
+        document.getElementById('delClose').addEventListener('click', function () {
+          closeModal('deleteModal');
+        });
+        document.getElementById('delCancel').addEventListener('click', function () {
+          closeModal('deleteModal');
+        });
+        document.getElementById('delConfirm').addEventListener('click', async function () {
+          if (!deletingId) return;
+          await fetch('/api/admin/quotes?id=' + encodeURIComponent(deletingId), { method: 'DELETE' });
+          closeModal('deleteModal');
+          loadQuotes();
+          try { localStorage.setItem('quotesStatsUpdated', String(Date.now())); } catch (e) { void e; }
+          loadStats();
+        });
+        document.getElementById('editSave').addEventListener('click', async function () {
+          const status = String(document.getElementById('editStatus').value || '');
+          const its = Array.from(document.querySelectorAll('#editItems tbody tr')).map(function (tr) {
+            return {
+              title: tr.querySelector('input[data-key="title"]').value,
+              unit: Number(tr.querySelector('input[data-key="unit"]').value || 0),
+              unit_price: Number(tr.querySelector('input[data-key="unit_price"]').value || 0),
+            };
+          });
+          await fetch('/api/admin/quotes', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: editingId, status, items: its }),
+          });
+          closeModal('editModal');
+          loadQuotes();
+          try { localStorage.setItem('quotesStatsUpdated', String(Date.now())); } catch (e) { void e; }
+          loadStats();
+        });
+        document.getElementById('saveQuoteBtn').addEventListener('click', async function () {
+          const searchInput = document.getElementById('customerSearch');
+          const searchValue = searchInput.value.trim();
+
+          if (!searchValue) {
+            alert('Please select a customer');
+            return;
+          }
+
+          // Find customer by name or email
+          const cust = customers.find(function (c) {
+            return (
+              String(c.name || '').toLowerCase() === searchValue.toLowerCase() ||
+              String(c.email || '').toLowerCase() === searchValue.toLowerCase()
+            );
+          });
+
+          if (!cust) {
+            alert('Please select a valid customer from the search results');
+            return;
+          }
+
+          // Use original email for actual contact, unique email as identifier
+          const email = cust.originalEmail || cust.email;
+          const name = String(cust.name || '');
+          const phone = String(cust.phone || '');
+          const body = { client_name: name, client_email: email, client_phone: phone, status: 'Created', items };
+          const res = await fetch('/api/admin/quotes', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+          });
+          const result = await res.json();
+
+          if (!result.ok) {
+            alert('Failed to create quotation: ' + (result.error || 'Unknown error'));
+            return;
+          }
+
+          // Reset form
+          items = [];
+          document.querySelector('#itemsTable tbody').innerHTML = '';
+          document.getElementById('grandTotal').textContent = fmt(0);
+          document.getElementById('customerSearch').value = '';
+          document.getElementById('customerDropdown').style.display = 'none';
+
+          // Add one empty item row
+          addItemRow({});
+          recalc();
+
+          // Reload data
+          loadQuotes();
+          try { localStorage.setItem('quotesStatsUpdated', String(Date.now())); } catch (e) { void e; }
+          loadStats();
+        });
+        // Export functionality
+        document.getElementById('exportReport1').addEventListener('click', function () {
+          window.open('/api/admin/quotes?export=report1', '_blank');
+        });
+
+        document.getElementById('exportReport2').addEventListener('click', function () {
+          window.open('/api/admin/quotes?export=report2', '_blank');
+        });
+
+        // PDF export functionality
+        document.addEventListener('click', function (e) {
+          if (e.target.closest('.pdfQuote')) {
+            e.preventDefault();
+            const button = e.target.closest('.pdfQuote');
+            const id = button.getAttribute('data-id');
+            if (id) {
+              window.open('/api/admin/quotes/pdf?id=' + encodeURIComponent(id), '_blank');
+            }
+          }
+        });
+
+        loadCustomers();
+        addItemRow({});
+        recalc();
+        loadQuotes();
+        loadStats();
+      })();
+    </script>
+  </body>
+</html>

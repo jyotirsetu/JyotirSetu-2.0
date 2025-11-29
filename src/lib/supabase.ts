@@ -2,7 +2,9 @@ import { createClient } from '@supabase/supabase-js';
 
 // Supabase configuration
 const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL || 'https://mholipxwywbkrqdzqhyy.supabase.co';
-const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ob2xpcHh3eXdia3JxZHpxaHl5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcxNjA5ODYsImV4cCI6MjA3MjczNjk4Nn0.FjZ4Rxr6sJIE6jJUgSd6jqzjAenw8Bpqhy0M9R0UVPU';
+const supabaseAnonKey =
+  import.meta.env.PUBLIC_SUPABASE_ANON_KEY ||
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ob2xpcHh3eXdia3JxZHpxaHl5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcxNjA5ODYsImV4cCI6MjA3MjczNjk4Nn0.FjZ4Rxr6sJIE6jJUgSd6jqzjAenw8Bpqhy0M9R0UVPU';
 
 // Create Supabase client
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);

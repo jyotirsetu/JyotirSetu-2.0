@@ -18,6 +18,9 @@ export const GET: APIRoute = async ({ request }) => {
     return new Response(png, { headers });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : 'failed';
-    return new Response(JSON.stringify({ ok: false, error: msg }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+    return new Response(JSON.stringify({ ok: false, error: msg }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 };

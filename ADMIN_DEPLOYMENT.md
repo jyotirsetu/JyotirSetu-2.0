@@ -5,6 +5,7 @@ This guide lists all files required for the admin dashboard to work on a live we
 ## Required Files for Admin Dashboard
 
 ### 1. Core Admin Pages (src/pages/admin/)
+
 ```
 src/pages/admin/
 ├── login.astro                    # Admin login page
@@ -18,6 +19,7 @@ src/pages/admin/
 ```
 
 ### 2. API Routes (src/pages/api/admin/)
+
 ```
 src/pages/api/admin/
 ├── login.ts                       # Authentication endpoint
@@ -28,6 +30,7 @@ src/pages/api/admin/
 ```
 
 ### 3. Library Files (src/lib/)
+
 ```
 src/lib/
 ├── auth.ts                        # Session management
@@ -36,11 +39,13 @@ src/lib/
 ```
 
 ### 4. Middleware (src/)
+
 ```
 src/middleware.ts                  # Admin route protection
 ```
 
 ### 5. Static Assets (public/)
+
 ```
 public/
 ├── admin.css                      # Admin dashboard styles
@@ -48,6 +53,7 @@ public/
 ```
 
 ### 6. Configuration Files
+
 ```
 ├── astro.config.ts                # Astro configuration
 ├── package.json                   # Dependencies
@@ -77,12 +83,14 @@ EMAIL_FROM=your_email@domain.com
 ## Deployment Steps
 
 ### For Vercel:
+
 1. Push all files to your Git repository
 2. Connect repository to Vercel
 3. Set environment variables in Vercel dashboard
 4. Deploy
 
 ### For Other Platforms:
+
 1. Ensure Node.js 18+ is available
 2. Install dependencies: `npm install`
 3. Build: `npm run build`
@@ -92,6 +100,7 @@ EMAIL_FROM=your_email@domain.com
 ## Files to Exclude from Git (.gitignore)
 
 Make sure these are NOT committed:
+
 - `.env` (local environment file)
 - `node_modules/`
 - `.astro/`
@@ -100,6 +109,7 @@ Make sure these are NOT committed:
 ## Database Setup
 
 The admin dashboard requires a Turso database:
+
 1. Create a Turso database at https://turso.tech
 2. Get your database URL and auth token
 3. Set `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN` environment variables
@@ -139,9 +149,13 @@ The admin dashboard requires a Turso database:
       if (!styleApplied || styleApplied === 'rgba(0, 0, 0, 0)') {
         console.warn('admin.css may not be applied. Check <link> href and Network tab.');
       }
-      window.addEventListener('error', (e) => {
-        console.error('Resource load error:', e);
-      }, true);
+      window.addEventListener(
+        'error',
+        (e) => {
+          console.error('Resource load error:', e);
+        },
+        true
+      );
     }
   </script>
   ```
@@ -163,16 +177,19 @@ The admin dashboard requires a Turso database:
 ## Troubleshooting
 
 ### Admin pages return 500 errors:
+
 - Check environment variables are set
 - Verify database connection
 - Check server logs for specific errors
 
 ### Cannot log in:
+
 - Verify ADMIN_USERNAME and ADMIN_PASSWORD are correct
 - Check SESSION_SECRET is set
 - Clear browser cookies and try again
 
 ### Database errors:
+
 - Verify TURSO_DATABASE_URL and TURSO_AUTH_TOKEN
 - Check database is accessible
 - Ensure tables are created (they auto-create on first use)
@@ -180,8 +197,7 @@ The admin dashboard requires a Turso database:
 ## Support
 
 For issues, check:
+
 - Server logs
 - Browser console errors
 - Network tab for API errors
-
-

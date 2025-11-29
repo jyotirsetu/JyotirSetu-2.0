@@ -1,8 +1,11 @@
 ---
 export const prerender = false;
 import Favicons from '~/components/Favicons.astro';
+import AdminNavbar from '~/components/AdminNavbar.astro';
+import MobilePageSelect from '~/components/MobilePageSelect.astro';
 ---
-<!DOCTYPE html>
+
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -11,22 +14,34 @@ import Favicons from '~/components/Favicons.astro';
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/css/all.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@latest/dist/css/adminlte.min.css" />
-    <link rel="stylesheet" href="/admin.css?v=20251116" />
+    <link rel="stylesheet" href="/admin.css?v=20251129" />
     <Favicons />
     <style>
-      .status { padding:2px 8px; border-radius:999px; font-size:12px; }
-      .status.pending { background: rgba(124,58,237,0.15); color:#93c5fd; }
-      .status.read { background: rgba(34,197,94,0.15); color:#a7f3d0; }
+      .status {
+        padding: 2px 8px;
+        border-radius: 999px;
+        font-size: 12px;
+      }
+      .status.pending {
+        background: rgba(124, 58, 237, 0.15);
+        color: #93c5fd;
+      }
+      .status.read {
+        background: rgba(34, 197, 94, 0.15);
+        color: #a7f3d0;
+      }
     </style>
   </head>
   <body class="hold-transition sidebar-mini">
     <button class="sidebar-toggle" aria-label="Open Admin Menu" id="sidebarToggle">☰</button>
     <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
     <script is:inline>
-      (function(){
-        function applyTheme(theme){
+      (function () {
+        function applyTheme(theme) {
           let t = theme;
-          if (t === 'auto') { t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'; }
+          if (t === 'auto') {
+            t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          }
           document.body.classList.toggle('dark-mode', t === 'dark');
         }
         let theme = 'dark';
@@ -40,52 +55,130 @@ import Favicons from '~/components/Favicons.astro';
               if (s.sidebarCollapsed != null) collapsed = !!s.sidebarCollapsed;
             }
           }
-        } catch (e) { console.error('Error loading admin settings:', e); }
+        } catch (e) {
+          console.error('Error loading admin settings:', e);
+        }
         applyTheme(theme);
         document.body.classList.toggle('sidebar-collapse', collapsed);
         try {
           Promise.all([
-            fetch('/api/admin/preferences?key=theme').then(function(r){return r.json();}),
-            fetch('/api/admin/preferences?key=sidebarCollapsed').then(function(r){return r.json();})
-          ]).then(function(rs){
-            const tr = rs[0], sr = rs[1];
-            if (tr && tr.ok && typeof tr.value === 'string') applyTheme(tr.value);
-            if (sr && sr.ok && sr.value != null) document.body.classList.toggle('sidebar-collapse', sr.value === '1');
-          }).catch(function(err){ console.error('Error syncing preferences:', err); });
-        } catch (e) { console.error('Error syncing preferences:', e); }
+            fetch('/api/admin/preferences?key=theme').then(function (r) {
+              return r.json();
+            }),
+            fetch('/api/admin/preferences?key=sidebarCollapsed').then(function (r) {
+              return r.json();
+            }),
+          ])
+            .then(function (rs) {
+              const tr = rs[0],
+                sr = rs[1];
+              if (tr && tr.ok && typeof tr.value === 'string') applyTheme(tr.value);
+              if (sr && sr.ok && sr.value != null) document.body.classList.toggle('sidebar-collapse', sr.value === '1');
+            })
+            .catch(function (err) {
+              console.error('Error syncing preferences:', err);
+            });
+        } catch (e) {
+          console.error('Error syncing preferences:', e);
+        }
       })();
     </script>
     <div class="wrapper">
+      
+      <AdminNavbar />
+      <!-- legacy navbar
       <nav class="main-header navbar navbar-expand navbar-dark">
         <ul class="navbar-nav">
-          <li class="nav-item"><a class="nav-link" data-widget="pushmenu" href="#" role="button" aria-label="Toggle sidebar"><i class="fas fa-bars"></i></a></li>
+          <li class="nav-item">
+            <a class="nav-link" data-widget="pushmenu" href="#" role="button" aria-label="Toggle sidebar"
+              ><i class="fas fa-bars"></i></a
+            >
+          </li>
           <li class="nav-item"><a href="/admin/dashboard" class="nav-link">Dashboard</a></li>
         </ul>
         <ul class="navbar-nav ms-auto">
-          <li class="nav-item"><button class="btn btn-sm btn-outline-secondary" id="toggleSidebarDesktop">Hide sidebar</button></li>
+          <li class="nav-item"><MobilePageSelect /></li>
+          <li class="nav-item">
+            <button class="btn btn-sm btn-outline-secondary" id="toggleSidebarDesktop">Hide sidebar</button>
+          </li>
           <li class="nav-item"><a href="/api/admin/logout" class="nav-link">Logout</a></li>
         </ul>
-      </nav>
+      </nav> -->
       <aside class="main-sidebar sidebar-dark-primary elevation-4" id="adminSidebar">
         <a href="/admin/dashboard" class="brand-link" style="display:flex;align-items:center;gap:8px">
-          <img src="https://images.unsplash.com/vector-1763306579596-25a002c977df?q=80&w=1979&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Brand" style="height:40px;width:auto;border-radius:0;box-shadow:0 2px 6px rgba(0,0,0,0.25)" />
+          <img
+            src="https://images.unsplash.com/vector-1763306579596-25a002c977df?q=80&w=1979&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+            alt="Brand"
+            style="height:40px;width:auto;border-radius:0;box-shadow:0 2px 6px rgba(0,0,0,0.25)"
+          />
         </a>
         <div class="sidebar">
-        <nav class="mt-2">
-          <ul class="nav nav-pills nav-sidebar flex-column" role="menu" data-accordion="false" data-widget="treeview">
-            <li class="nav-item"><a href="/admin/dashboard" class="nav-link"><i class="nav-icon fas fa-gauge"></i><p>Dashboard</p></a></li>
-            <li class="nav-item"><a href="/admin/appointments" class="nav-link"><i class="nav-icon fas fa-calendar-check"></i><p>Appointments</p></a></li>
-            <li class="nav-item"><a href="/admin/contacts" class="nav-link"><i class="nav-icon fas fa-comments"></i><p>Contacts</p></a></li>
-            <li class="nav-item"><a href="/admin/newsletter" class="nav-link active"><i class="nav-icon fas fa-envelope-open-text"></i><p>Newsletter</p></a></li>
-            <li class="nav-item"><a href="/admin/calendar" class="nav-link"><i class="nav-icon fas fa-calendar"></i><p>Calendar</p></a></li>
-            <li class="nav-item"><a href="/admin/activity-log" class="nav-link"><i class="nav-icon fas fa-list"></i><p>Activity Log</p></a></li>
-            <li class="nav-item"><a href="/admin/templates/email" class="nav-link"><i class="nav-icon fas fa-file-alt"></i><p>Email Templates</p></a></li>
-            <li class="nav-item"><a href="/admin/templates/payment" class="nav-link"><i class="nav-icon fas fa-file-invoice-dollar"></i><p>Payment Templates</p></a></li>
-            <li class="nav-item"><a href="/admin/templates/whatsapp" class="nav-link"><i class="nav-icon fas fa-file-alt"></i><p>WhatsApp Templates</p></a></li>
-            <li class="nav-item"><a href="/admin/tools/follow-hub/insights" class="nav-link"><i class="nav-icon fas fa-toolbox"></i><p>Follow Hub – Insights</p></a></li>
-            <li class="nav-item"><a href="/admin/settings" class="nav-link"><i class="nav-icon fas fa-gear"></i><p>Settings</p></a></li>
-          </ul>
-        </nav>
+          <nav class="mt-2">
+            <ul class="nav nav-pills nav-sidebar flex-column" role="menu" data-accordion="false" data-widget="treeview">
+              <li class="nav-item">
+                <a href="/admin/dashboard" class="nav-link"><i class="nav-icon fas fa-gauge"></i><p>Dashboard</p></a>
+              </li>
+              <li class="nav-item">
+                <a href="/admin/appointments" class="nav-link"
+                  ><i class="nav-icon fas fa-calendar-check"></i><p>Appointments</p></a
+                >
+              </li>
+              <li class="nav-item">
+                <a href="/admin/contacts" class="nav-link"><i class="nav-icon fas fa-comments"></i><p>Contacts</p></a>
+              </li>
+              <li class="nav-item">
+                <a href="/admin/newsletter" class="nav-link active"
+                  ><i class="nav-icon fas fa-envelope-open-text"></i><p>Newsletter</p></a
+                >
+              </li>
+              <li class="nav-item">
+                <a href="/admin/calendar" class="nav-link"><i class="nav-icon fas fa-calendar"></i><p>Calendar</p></a>
+              </li>
+              <li class="nav-item">
+                <a href="/admin/quotes" class="nav-link"
+                  ><i class="nav-icon fas fa-file-invoice"></i><p>Quotations</p></a
+                >
+              </li>
+              <li class="nav-item">
+                <a href="/admin/after-service" class="nav-link"
+                  ><i class="nav-icon fas fa-handshake"></i><p>After Service</p></a
+                >
+              </li>
+              <li class="nav-item">
+                <a href="/admin/activity-log" class="nav-link"
+                  ><i class="nav-icon fas fa-list"></i><p>Activity Log</p></a
+                >
+              </li>
+              <li class="nav-item">
+                <a href="/admin/templates/email" class="nav-link"
+                  ><i class="nav-icon fas fa-file-alt"></i><p>Email Templates</p></a
+                >
+              </li>
+              <li class="nav-item">
+                <a href="/admin/templates/payment" class="nav-link"
+                  ><i class="nav-icon fas fa-file-invoice-dollar"></i><p>Payment Templates</p></a
+                >
+              </li>
+              <li class="nav-item">
+                <a href="/admin/templates/whatsapp" class="nav-link"
+                  ><i class="nav-icon fas fa-file-alt"></i><p>WhatsApp Templates</p></a
+                >
+              </li>
+              <li class="nav-item">
+                <a href="/admin/client360" class="nav-link"
+                  ><i class="nav-icon fas fa-user-circle"></i><p>Client 360°</p></a
+                >
+              </li>
+              <li class="nav-item">
+                <a href="/admin/tools/follow-hub/insights" class="nav-link"
+                  ><i class="nav-icon fas fa-toolbox"></i><p>Follow Hub – Insights</p></a
+                >
+              </li>
+              <li class="nav-item">
+                <a href="/admin/settings" class="nav-link"><i class="nav-icon fas fa-gear"></i><p>Settings</p></a>
+              </li>
+            </ul>
+          </nav>
         </div>
       </aside>
       <div class="content-wrapper">
@@ -113,7 +206,9 @@ import Favicons from '~/components/Favicons.astro';
               </div>
               <div class="card-body">
                 <div class="row g-2">
-                  <div class="col-md-4"><input class="form-control" id="search" placeholder="Search name or email" /></div>
+                  <div class="col-md-4">
+                    <input class="form-control" id="search" placeholder="Search name or email" />
+                  </div>
                   <div class="col-md-3">
                     <select class="form-select form-select-sm" id="statusFilter">
                       <option value="">All status</option>
@@ -147,36 +242,44 @@ import Favicons from '~/components/Favicons.astro';
           </div>
         </section>
       </div>
-      <footer class="main-footer"><strong>JyotirSetu Admin</strong><div class="float-end d-none d-sm-inline">AdminLTE theme</div></footer>
+      <footer class="main-footer">
+        <strong>JyotirSetu Admin</strong><div class="float-end d-none d-sm-inline">AdminLTE theme</div>
+      </footer>
     </div>
 
     <script is:inline>
       let allData = [];
 
       function fmtDate(dt) {
-        try { return new Date(dt).toLocaleString(); } catch { return String(dt || ''); }
+        try {
+          return new Date(dt).toLocaleString();
+        } catch {
+          return String(dt || '');
+        }
       }
 
       function renderRows(rows) {
         const tbody = document.getElementById('rows');
         if (!tbody) return;
-        tbody.innerHTML = rows.map(r => {
-          const badgeClass = r.status === 'read' ? 'badge text-bg-success' : 'badge text-bg-secondary';
-          return `<tr>
-            <td>${(r.name||'').toString()}</td>
+        tbody.innerHTML = rows
+          .map((r) => {
+            const badgeClass = r.status === 'read' ? 'badge text-bg-success' : 'badge text-bg-secondary';
+            return `<tr>
+            <td>${(r.name || '').toString()}</td>
             <td>${r.email}</td>
             <td><span class="${badgeClass}">${r.status}</span></td>
             <td>${fmtDate(r.subscribed_at)}</td>
             <td>
               <select data-id="${r.id}" class="form-select form-select-sm statusSel">
-                <option value="pending" ${r.status==='pending'?'selected':''}>pending</option>
-                <option value="read" ${r.status==='read'?'selected':''}>read</option>
+                <option value="pending" ${r.status === 'pending' ? 'selected' : ''}>pending</option>
+                <option value="read" ${r.status === 'read' ? 'selected' : ''}>read</option>
               </select>
             </td>
           </tr>`;
-        }).join('');
+          })
+          .join('');
 
-        [...document.querySelectorAll('.statusSel')].forEach(sel => {
+        [...document.querySelectorAll('.statusSel')].forEach((sel) => {
           sel.addEventListener('change', async (e) => {
             const id = sel.getAttribute('data-id');
             const target = e && e.target ? e.target : null;
@@ -185,9 +288,11 @@ import Favicons from '~/components/Favicons.astro';
               await fetch('/api/admin/newsletter', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id, status })
+                body: JSON.stringify({ id, status }),
               });
-            } catch (err) { console.debug('newsletter status update failed', err); }
+            } catch (err) {
+              console.debug('newsletter status update failed', err);
+            }
           });
         });
       }
@@ -197,10 +302,11 @@ import Favicons from '~/components/Favicons.astro';
         const statusEl = document.getElementById('statusFilter');
         const q = (searchEl && searchEl.value ? searchEl.value.toLowerCase() : '') || '';
         const status = (statusEl && statusEl.value) || '';
-        return rows.filter(r => (
-          (!q || (r.email||'').toLowerCase().includes(q) || (r.name||'').toLowerCase().includes(q)) &&
-          (!status || r.status === status)
-        ));
+        return rows.filter(
+          (r) =>
+            (!q || (r.email || '').toLowerCase().includes(q) || (r.name || '').toLowerCase().includes(q)) &&
+            (!status || r.status === status)
+        );
       }
 
       async function loadPage(page) {
@@ -214,7 +320,9 @@ import Favicons from '~/components/Favicons.astro';
           const json = await res.json();
           allData = json.data || [];
           renderRows(applyFilters(allData));
-        } catch (e) { console.debug('failed to load newsletter', e); }
+        } catch (e) {
+          console.debug('failed to load newsletter', e);
+        }
       }
 
       document.getElementById('refreshBtn')?.addEventListener('click', () => loadPage(1));
@@ -230,10 +338,26 @@ import Favicons from '~/components/Favicons.astro';
       });
 
       loadPage(1);
-      (function(){
+      (function () {
         const btn = document.getElementById('toggleSidebarDesktop');
-        function sync(){ if(!btn) return; const c=document.body.classList.contains('sidebar-collapse'); btn.textContent = c ? 'Show sidebar' : 'Hide sidebar'; }
-        async function toggle(){ const c=document.body.classList.toggle('sidebar-collapse'); sync(); try{ await fetch('/api/admin/preferences', { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ key:'sidebarCollapsed', value: c ? '1':'0' }) }); }catch(e){ console.error('Error saving sidebarCollapsed:', e); } }
+        function sync() {
+          if (!btn) return;
+          const c = document.body.classList.contains('sidebar-collapse');
+          btn.textContent = c ? 'Show sidebar' : 'Hide sidebar';
+        }
+        async function toggle() {
+          const c = document.body.classList.toggle('sidebar-collapse');
+          sync();
+          try {
+            await fetch('/api/admin/preferences', {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ key: 'sidebarCollapsed', value: c ? '1' : '0' }),
+            });
+          } catch (e) {
+            console.error('Error saving sidebarCollapsed:', e);
+          }
+        }
         btn?.addEventListener('click', toggle);
         sync();
       })();

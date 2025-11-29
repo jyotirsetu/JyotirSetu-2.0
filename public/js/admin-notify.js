@@ -1,11 +1,11 @@
 // Minimal AdminNotify helper used by Admin pages
 // Provides window.AdminNotify.success/error/info to show lightweight toasts
-(function(){
-  try{
+(function () {
+  try {
     const rootId = 'admin-toast-root';
-    function ensureRoot(){
+    function ensureRoot() {
       let r = document.getElementById(rootId);
-      if(!r){
+      if (!r) {
         r = document.createElement('div');
         r.id = rootId;
         r.style.position = 'fixed';
@@ -20,7 +20,7 @@
       return r;
     }
 
-    function makeToast(kind, title, message){
+    function makeToast(kind, title, message) {
       const r = ensureRoot();
       const el = document.createElement('div');
       el.role = 'status';
@@ -42,41 +42,61 @@
       dot.style.height = '10px';
       dot.style.borderRadius = '50%';
       dot.style.marginTop = '4px';
-      if(kind === 'success') dot.style.background = '#22c55e';
-      else if(kind === 'error') dot.style.background = '#ef4444';
+      if (kind === 'success') dot.style.background = '#22c55e';
+      else if (kind === 'error') dot.style.background = '#ef4444';
       else dot.style.background = '#3498db';
       const content = document.createElement('div');
       const strong = document.createElement('strong');
-      strong.textContent = String(title|| (kind==='success'?'Success':'Notice'));
+      strong.textContent = String(title || (kind === 'success' ? 'Success' : 'Notice'));
       strong.style.display = 'block';
       strong.style.marginBottom = '2px';
       const p = document.createElement('div');
-      p.textContent = String(message||'');
+      p.textContent = String(message || '');
       p.style.fontSize = '13px';
       p.style.color = '#8bb0b3';
       content.appendChild(strong);
       content.appendChild(p);
       const close = document.createElement('button');
       close.textContent = '×';
-      close.setAttribute('aria-label','Dismiss');
+      close.setAttribute('aria-label', 'Dismiss');
       close.style.marginLeft = 'auto';
       close.style.background = 'transparent';
       close.style.border = 'none';
       close.style.color = '#cfe8ea';
       close.style.cursor = 'pointer';
       close.style.fontSize = '16px';
-      close.addEventListener('click', ()=>{ try{ r.removeChild(el); }catch(err){ void err; } });
+      close.addEventListener('click', () => {
+        try {
+          r.removeChild(el);
+        } catch (err) {
+          void err;
+        }
+      });
       el.appendChild(dot);
       el.appendChild(content);
       el.appendChild(close);
       r.appendChild(el);
-      setTimeout(()=>{ try{ r.removeChild(el); }catch(err){ void err; } }, 4000);
+      setTimeout(() => {
+        try {
+          r.removeChild(el);
+        } catch (err) {
+          void err;
+        }
+      }, 4000);
     }
 
     window.AdminNotify = {
-      success(msg, detail){ makeToast('success', 'Success', detail? (msg+': '+detail) : msg); },
-      error(msg, detail){ makeToast('error', 'Error', detail? (msg+': '+detail) : msg); },
-      info(msg, detail){ makeToast('info', 'Info', detail? (msg+': '+detail) : msg); }
+      success(msg, detail) {
+        makeToast('success', 'Success', detail ? msg + ': ' + detail : msg);
+      },
+      error(msg, detail) {
+        makeToast('error', 'Error', detail ? msg + ': ' + detail : msg);
+      },
+      info(msg, detail) {
+        makeToast('info', 'Info', detail ? msg + ': ' + detail : msg);
+      },
     };
-  }catch(e){ void e; }
+  } catch (e) {
+    void e;
+  }
 })();

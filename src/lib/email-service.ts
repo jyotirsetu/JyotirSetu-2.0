@@ -56,14 +56,18 @@ export class EmailService {
     this.region = (import.meta.env.ZOHO_REGION || 'com').trim();
     this.fromEmail = import.meta.env.ZOHO_FROM_EMAIL || 'noreply@jyotirsetu.com';
     this.toAdmin = import.meta.env.ZOHO_TO_ADMIN || 'guidance@jyotirsetu.com';
-    this.useMailChannels = (import.meta.env.MAILCHANNELS_ENABLED || process.env.MAILCHANNELS_ENABLED || 'false').toString().toLowerCase() === 'true';
-    this.mailChannelsWorkerUrl = (import.meta.env.MAILCHANNELS_WORKER_URL || process.env.MAILCHANNELS_WORKER_URL || '').toString().trim() || undefined;
+    this.useMailChannels =
+      (import.meta.env.MAILCHANNELS_ENABLED || process.env.MAILCHANNELS_ENABLED || 'false').toString().toLowerCase() ===
+      'true';
+    this.mailChannelsWorkerUrl =
+      (import.meta.env.MAILCHANNELS_WORKER_URL || process.env.MAILCHANNELS_WORKER_URL || '').toString().trim() ||
+      undefined;
 
     // SMTP (Zoho) configuration
     this.smtpHost = (import.meta.env.SMTP_HOST || process.env.SMTP_HOST || '').toString().trim() || undefined;
     this.smtpPort = Number((import.meta.env.SMTP_PORT || process.env.SMTP_PORT || '').toString().trim()) || undefined;
     const secureRaw = (import.meta.env.SMTP_SECURE || process.env.SMTP_SECURE || '').toString().trim().toLowerCase();
-    this.smtpSecure = secureRaw ? (secureRaw === 'true' || secureRaw === '1' || secureRaw === 'yes') : undefined;
+    this.smtpSecure = secureRaw ? secureRaw === 'true' || secureRaw === '1' || secureRaw === 'yes' : undefined;
     this.smtpUser = (import.meta.env.SMTP_USER || process.env.SMTP_USER || '').toString().trim() || undefined;
     this.smtpPass = (import.meta.env.SMTP_PASS || process.env.SMTP_PASS || '').toString().trim() || undefined;
 
@@ -80,7 +84,10 @@ export class EmailService {
     } else {
       this.logoUrl = `${siteUrl}/assets/images/JyotirSetu%20Astrology%20Text.png`;
     }
-    const headerRaw = (import.meta.env.EMAIL_LOGO_HEADER || process.env.EMAIL_LOGO_HEADER || 'true').toString().trim().toLowerCase();
+    const headerRaw = (import.meta.env.EMAIL_LOGO_HEADER || process.env.EMAIL_LOGO_HEADER || 'true')
+      .toString()
+      .trim()
+      .toLowerCase();
     this.includeBrandLogoHeader = headerRaw === 'true' || headerRaw === '1' || headerRaw === 'yes';
   }
 
@@ -89,11 +96,15 @@ export class EmailService {
   // Replace occurrences of the known logo URL in img tags with a new, validated URL
   private replaceLogoUrlInHtml(html: string, newUrl: string): string {
     try {
-      const pattern = new RegExp(
-        String(this.logoUrl).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
-        'g'
-      );
-      return html.replace(pattern, newUrl);
+      const alt =
+        'https://images.unsplash.com/vector-1763306579596-25a002c977df?q=80&w=1979&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D';
+      const candidates = [this.logoUrl, alt];
+      let out = html;
+      for (const c of candidates) {
+        const pattern = new RegExp(String(c).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
+        out = out.replace(pattern, newUrl);
+      }
+      return out;
     } catch {
       return html;
     }
@@ -113,7 +124,9 @@ export class EmailService {
       }
       if (!buf) return html;
       const dataUrl = `data:image/png;base64,${buf.toString('base64')}`;
-      const candidates = Array.from(new Set([this.logoUrl, resolvedLogoUrl].filter(Boolean)));
+      const alt =
+        'https://images.unsplash.com/vector-1763306579596-25a002c977df?q=80&w=1979&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D';
+      const candidates = Array.from(new Set([this.logoUrl, resolvedLogoUrl, alt].filter(Boolean)));
       let out = html;
       for (const c of candidates) {
         const pattern = new RegExp(String(c).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
@@ -192,7 +205,10 @@ export class EmailService {
       const { ensureTemplatesTables, getTursoClient } = await import('./turso');
       await ensureTemplatesTables();
       const client = await getTursoClient();
-      const res = await client.execute({ sql: `SELECT subject, html FROM email_templates WHERE key = ? LIMIT 1`, args: [String(key)] });
+      const res = await client.execute({
+        sql: `SELECT subject, html FROM email_templates WHERE key = ? LIMIT 1`,
+        args: [String(key)],
+      });
       const row = (res.rows && res.rows[0]) as { subject?: unknown; html?: unknown } | undefined;
       if (!row) return null;
       return { subject: String(row.subject ?? ''), html: String(row.html ?? '') };
@@ -201,7 +217,12 @@ export class EmailService {
     }
   }
 
-  private replaceVars(html: string, data: AppointmentData, extras: Record<string, string> = {}, status?: string): string {
+  private replaceVars(
+    html: string,
+    data: AppointmentData,
+    extras: Record<string, string> = {},
+    status?: string
+  ): string {
     const vars: Record<string, string> = {
       name: String(data.name || ''),
       service: String(data.service || ''),
@@ -216,7 +237,7 @@ export class EmailService {
       new_date: String(extras.new_date || data.date || ''),
       new_time: String(extras.new_time || data.time || ''),
     };
-    return html.replace(/\{(\w+)\}/g, (_, k) => (vars[k] ?? `{${k}}`));
+    return html.replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? `{${k}}`);
   }
 
   private wrapBranded(subject: string, innerHtml: string): string {
@@ -323,13 +344,13 @@ export class EmailService {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
-      });
+    });
     if (!res.ok) {
       const text = await res.text();
       console.error('MailChannels send error:', text);
-        return false;
-      }
-      return true;
+      return false;
+    }
+    return true;
   }
 
   private async sendViaSmtp(to: string, subject: string, html: string): Promise<boolean> {
@@ -349,20 +370,30 @@ export class EmailService {
     try {
       // First try to read the logo directly from the repo (local asset)
       const logoBuf = await this.getLogoBuffer();
-      const srcPattern = new RegExp(String(this.logoUrl).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
+      const alt =
+        'https://images.unsplash.com/vector-1763306579596-25a002c977df?q=80&w=1979&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D';
+      const patterns = [this.logoUrl, alt].map(
+        (u) => new RegExp(String(u).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')
+      );
       if (logoBuf) {
-        const replaced = htmlWithCid.replace(srcPattern, 'cid:js-logo');
-        const used = replaced !== htmlWithCid;
-        htmlWithCid = replaced;
+        let used = false;
+        for (const p of patterns) {
+          const replaced = htmlWithCid.replace(p, 'cid:js-logo');
+          if (replaced !== htmlWithCid) used = true;
+          htmlWithCid = replaced;
+        }
         if (used) attachments = [{ filename: 'logo.png', content: logoBuf, cid: 'js-logo' }];
       } else {
         const resolvedLogoUrl = await this.getResolvedLogoUrl().catch(() => this.logoUrl);
         const res = await fetch(resolvedLogoUrl);
         if (res.ok) {
           const buf = Buffer.from(await res.arrayBuffer());
-          const replaced = htmlWithCid.replace(srcPattern, 'cid:js-logo');
-          const used = replaced !== htmlWithCid;
-          htmlWithCid = replaced;
+          let used = false;
+          for (const p of patterns) {
+            const replaced = htmlWithCid.replace(p, 'cid:js-logo');
+            if (replaced !== htmlWithCid) used = true;
+            htmlWithCid = replaced;
+          }
           if (used) attachments = [{ filename: 'logo.png', content: buf, cid: 'js-logo' }];
         }
       }
@@ -407,13 +438,13 @@ export class EmailService {
       ...(this.toAdmin ? { bccAddress: this.toAdmin } : {}),
     };
     const res = await fetch(`https://mail.zoho.${this.region}/api/accounts/${accountId}/messages`, {
-        method: 'POST',
-        headers: {
-        'Authorization': `Zoho-oauthtoken ${accessToken}`,
-          'Content-Type': 'application/json',
-        },
+      method: 'POST',
+      headers: {
+        Authorization: `Zoho-oauthtoken ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify(payload),
-      });
+    });
     if (!res.ok) {
       const err = await res.text();
       console.error('Zoho send error:', err);
@@ -425,7 +456,7 @@ export class EmailService {
   async sendContactConfirmationEmail(contactData: ContactData): Promise<boolean> {
     try {
       const emailHtml = this.generateContactConfirmationEmailHTMLBranded(contactData);
-      const subject = 'Thank you for contacting JyotirSetu - We\'ll be in touch soon!';
+      const subject = "Thank you for contacting JyotirSetu - We'll be in touch soon!";
       return await this.sendWithAvailableTransports(contactData.email, subject, emailHtml);
     } catch {
       return false;
@@ -581,12 +612,16 @@ export class EmailService {
     }
   }
 
-  async sendAppointmentTemplateEmail(appointmentData: AppointmentData, templateKey: string, extras: Record<string, string> = {}): Promise<boolean> {
+  async sendAppointmentTemplateEmail(
+    appointmentData: AppointmentData,
+    templateKey: string,
+    extras: Record<string, string> = {}
+  ): Promise<boolean> {
     try {
       const key = String(templateKey || '').toLowerCase();
       const tpl = await this.loadEmailTemplate(key);
       const subject = tpl?.subject || `Appointment ${key} - JyotirSetu`;
-      const replaced = this.replaceVars((tpl?.html || ''), appointmentData, extras, key);
+      const replaced = this.replaceVars(tpl?.html || '', appointmentData, extras, key);
       const html = this.wrapBranded(subject, replaced);
       return await this.sendWithAvailableTransports(appointmentData.email, subject, html);
     } catch {
@@ -594,7 +629,12 @@ export class EmailService {
     }
   }
 
-  async sendAppointmentCustomEmail(appointmentData: AppointmentData, subject: string, innerHtml: string, extras: Record<string, string> = {}): Promise<boolean> {
+  async sendAppointmentCustomEmail(
+    appointmentData: AppointmentData,
+    subject: string,
+    innerHtml: string,
+    extras: Record<string, string> = {}
+  ): Promise<boolean> {
     try {
       const replaced = this.replaceVars(innerHtml || '', appointmentData, extras);
       const html = this.wrapBranded(subject || 'Appointment Update - JyotirSetu', replaced);
@@ -604,14 +644,24 @@ export class EmailService {
     }
   }
 
+  async sendGenericHtml(to: string, subject: string, html: string): Promise<boolean> {
+    return await this.sendWithAvailableTransports(to, subject, html);
+  }
+
   private async sendWithAvailableTransports(to: string, subject: string, html: string): Promise<boolean> {
     const methods: Array<'smtp' | 'mc' | 'zoho'> = [];
-    if (this.smtpHost && this.smtpPort && this.smtpSecure !== undefined && this.smtpUser && this.smtpPass) methods.push('smtp');
+    if (this.smtpHost && this.smtpPort && this.smtpSecure !== undefined && this.smtpUser && this.smtpPass)
+      methods.push('smtp');
     if (this.useMailChannels) methods.push('mc');
     methods.push('zoho');
     for (const m of methods) {
       try {
-        const ok = m === 'smtp' ? await this.sendViaSmtp(to, subject, html) : m === 'mc' ? await this.sendViaMailChannels(to, subject, html) : await this.sendViaZoho(to, subject, html);
+        const ok =
+          m === 'smtp'
+            ? await this.sendViaSmtp(to, subject, html)
+            : m === 'mc'
+              ? await this.sendViaMailChannels(to, subject, html)
+              : await this.sendViaZoho(to, subject, html);
         if (ok) return true;
       } catch {
         void 0;
@@ -622,13 +672,25 @@ export class EmailService {
 
   private generateStatusEmailHTML(data: AppointmentData, status: string): string {
     const statusInfo: Record<string, { title: string; message: string; color: string }> = {
-      'pending': { title: 'Appointment Request Received', message: 'We have received your appointment request and it is pending confirmation.', color: '#f59e0b' },
-      'confirmed': { title: 'Appointment Confirmed', message: 'Your appointment has been confirmed!', color: '#22c55e' },
-      'rescheduled': { title: 'Appointment Rescheduled', message: 'Your appointment has been rescheduled.', color: '#3b82f6' },
-      'cancelled': { title: 'Appointment Cancelled', message: 'Your appointment has been cancelled.', color: '#ef4444' }
+      pending: {
+        title: 'Appointment Request Received',
+        message: 'We have received your appointment request and it is pending confirmation.',
+        color: '#f59e0b',
+      },
+      confirmed: { title: 'Appointment Confirmed', message: 'Your appointment has been confirmed!', color: '#22c55e' },
+      rescheduled: {
+        title: 'Appointment Rescheduled',
+        message: 'Your appointment has been rescheduled.',
+        color: '#3b82f6',
+      },
+      cancelled: { title: 'Appointment Cancelled', message: 'Your appointment has been cancelled.', color: '#ef4444' },
     };
-    const info = statusInfo[status.toLowerCase()] || { title: `Appointment ${status}`, message: `Your appointment status is ${status}.`, color: '#667eea' };
-    
+    const info = statusInfo[status.toLowerCase()] || {
+      title: `Appointment ${status}`,
+      message: `Your appointment status is ${status}.`,
+      color: '#667eea',
+    };
+
     return `
     <!DOCTYPE html>
     <html lang="en">
@@ -658,7 +720,13 @@ export class EmailService {
           <div class="details">
             <div class="detail-row">
               <span class="detail-label">Appointment ID:</span>
-              <span class="detail-value"><span class="appointment-id">${(data.public_id || String(data.date).replace(/-/g, '') + Math.floor(Math.random() * 1000).toString().padStart(3, '0'))}</span></span>
+              <span class="detail-value"><span class="appointment-id">${
+                data.public_id ||
+                String(data.date).replace(/-/g, '') +
+                  Math.floor(Math.random() * 1000)
+                    .toString()
+                    .padStart(3, '0')
+              }</span></span>
             </div>
             <div class="detail-row">
               <span class="detail-label">Name:</span>
@@ -693,22 +761,36 @@ export class EmailService {
 
   // New V2 layout for ScheduleAppointment confirmations with clearer sections and friendly labels
   private generateAppointmentEmailHTMLV2(data: AppointmentData): string {
-    const prettyService = String(data.service || '').replace(/^[\s\n]+|[\s\n]+$/g, '').replace(/-/g, ' ');
+    const prettyService = String(data.service || '')
+      .replace(/^[\s\n]+|[\s\n]+$/g, '')
+      .replace(/-/g, ' ');
     const serviceName = prettyService ? prettyService.replace(/\b\w/g, (l) => l.toUpperCase()) : 'Consultation';
-    const appointmentId = String(data.public_id || '').trim() || `${String(data.date || '').replace(/-/g, '')}${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`;
+    const appointmentId =
+      String(data.public_id || '').trim() ||
+      `${String(data.date || '').replace(/-/g, '')}${Math.floor(Math.random() * 1000)
+        .toString()
+        .padStart(3, '0')}`;
     const preferredDate = (() => {
       try {
         return new Date(String(data.date)).toLocaleDateString('en-US', {
-          weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
+          weekday: 'long',
+          month: 'long',
+          day: 'numeric',
+          year: 'numeric',
         });
-      } catch { return String(data.date || ''); }
+      } catch {
+        return String(data.date || '');
+      }
     })();
     const bookingDate = new Date().toLocaleDateString('en-US', {
-      weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
     });
     const bookingTime = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 
-    const msg = (String(data.message || '').trim() || 'No');
+    const msg = String(data.message || '').trim() || 'No';
 
     // Map corporate service details to friendly labels if present
     const sd = (data.service_details || {}) as Record<string, unknown>;
@@ -738,10 +820,12 @@ export class EmailService {
       person2POB: "Partner's Place of Birth",
     };
     const serviceDetailsHtml = Object.keys(sd).length
-      ? Object.entries(sd).map(([key, value]) => {
-          const label = labelMap[key] || key.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
-          return `<div><strong>${label}:</strong> ${String(value ?? '')}</div>`;
-        }).join('')
+      ? Object.entries(sd)
+          .map(([key, value]) => {
+            const label = labelMap[key] || key.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
+            return `<div><strong>${label}:</strong> ${String(value ?? '')}</div>`;
+          })
+          .join('')
       : '';
 
     // Build the content sections exactly as requested, wrapped in the branded shell
@@ -851,7 +935,7 @@ export class EmailService {
         </div>
       </div>
     `;
-    return this.wrapBranded("We Received Your Message - JyotirSetu", inner);
+    return this.wrapBranded('We Received Your Message - JyotirSetu', inner);
   }
 
   private generateContactConfirmationEmailHTML(data: ContactData): string {
@@ -1133,12 +1217,16 @@ export class EmailService {
                 <span class="detail-label">Message:</span>
                 <span class="detail-value">${data.message}</span>
               </div>
-              ${data.phone ? `
+              ${
+                data.phone
+                  ? `
               <div class="detail-row">
                 <span class="detail-label">Phone:</span>
                 <span class="detail-value">${data.phone}</span>
               </div>
-              ` : ''}
+              `
+                  : ''
+              }
             </div>
             
             <div class="next-steps">
@@ -1181,18 +1269,18 @@ export class EmailService {
   private generateConfirmationEmailHTML(data: AppointmentData): string {
     const serviceEmojis: Record<string, string> = {
       'kundli-analysis': '🔮',
-      'palmistry': '✋',
-      'matchmaking': '💕',
-      'numerology': '🔢',
+      palmistry: '✋',
+      matchmaking: '💕',
+      numerology: '🔢',
       'gemstone-consultation': '💎',
       'career-finance': '💼',
       'spiritual-guidance': '🕉️',
       'remedial-solutions': '🛡️',
-      'dosha-analysis': '⚖️'
+      'dosha-analysis': '⚖️',
     };
 
     const serviceEmoji = serviceEmojis[data.service] || '🔮';
-    const serviceName = data.service.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    const serviceName = data.service.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
 
     return `
       <!DOCTYPE html>
@@ -1522,11 +1610,11 @@ export class EmailService {
                     </div>
                     <div class="detail-row">
                         <span class="detail-label">Preferred Date:</span>
-                        <span class="detail-value">${new Date(data.date).toLocaleDateString('en-US', { 
-                            weekday: 'long', 
-                            year: 'numeric', 
-                            month: 'long', 
-                            day: 'numeric' 
+                        <span class="detail-value">${new Date(data.date).toLocaleDateString('en-US', {
+                          weekday: 'long',
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
                         })}</span>
                     </div>
                     <div class="detail-row">
@@ -1541,22 +1629,33 @@ export class EmailService {
                         <span class="detail-label">Contact Number:</span>
                         <span class="detail-value">${data.phone}</span>
                     </div>
-                    ${data.message ? `
+                    ${
+                      data.message
+                        ? `
                     <div class="detail-row">
                         <span class="detail-label">Your Message:</span>
                         <span class="detail-value">${data.message}</span>
                     </div>
-                    ` : ''}
-                    ${data.service_details ? `
+                    `
+                        : ''
+                    }
+                    ${
+                      data.service_details
+                        ? `
                     <div class="detail-row">
                         <span class="detail-label">Service Details:</span>
                         <span class="detail-value">
-                            ${Object.entries(data.service_details).map(([key, value]) => 
-                                `<div style="margin: 5px 0;"><strong>${key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}:</strong> ${value}</div>`
-                            ).join('')}
+                            ${Object.entries(data.service_details)
+                              .map(
+                                ([key, value]) =>
+                                  `<div style="margin: 5px 0;"><strong>${key.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}:</strong> ${value}</div>`
+                              )
+                              .join('')}
                         </span>
                     </div>
-                    ` : ''}
+                    `
+                        : ''
+                    }
           </div>
           
                 <div class="next-steps">
@@ -1572,16 +1671,22 @@ export class EmailService {
                 <div class="info-box">
                     <h3>📋 Important Information</h3>
                     <div style="color: #0c4a6e;">
-                        <p><strong>⏰ Appointment ID:</strong> <span class="appointment-id">${(data.public_id || String(data.date).replace(/-/g, '') + Math.floor(Math.random() * 1000).toString().padStart(3, '0'))}</span></p>
-                        <p><strong>📅 Booking Date:</strong> ${new Date().toLocaleDateString('en-US', { 
-                            weekday: 'long', 
-                            year: 'numeric', 
-                            month: 'long', 
-                            day: 'numeric' 
+                        <p><strong>⏰ Appointment ID:</strong> <span class="appointment-id">${
+                          data.public_id ||
+                          String(data.date).replace(/-/g, '') +
+                            Math.floor(Math.random() * 1000)
+                              .toString()
+                              .padStart(3, '0')
+                        }</span></p>
+                        <p><strong>📅 Booking Date:</strong> ${new Date().toLocaleDateString('en-US', {
+                          weekday: 'long',
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
                         })}</p>
-                        <p><strong>⏱️ Booking Time:</strong> ${new Date().toLocaleTimeString('en-US', { 
-                            hour: '2-digit', 
-                            minute: '2-digit' 
+                        <p><strong>⏱️ Booking Time:</strong> ${new Date().toLocaleTimeString('en-US', {
+                          hour: '2-digit',
+                          minute: '2-digit',
                         })}</p>
                         <p><strong>🔮 Consultation Duration:</strong> 45-60 minutes</p>
                         <p><strong>💰 Consultation Fee:</strong> Will be discussed during confirmation call</p>

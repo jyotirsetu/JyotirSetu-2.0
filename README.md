@@ -9,20 +9,24 @@
 ## ��️ **Website Preview**
 
 ### **Homepage**
+
 ![JyotirSetu Homepage](screenshots/homepage.png)
-*Modern, responsive homepage showcasing our astrology services and expert guidance*
+_Modern, responsive homepage showcasing our astrology services and expert guidance_
 
 ### **Services Page**
+
 ![Services Page](screenshots/services.png)
-*Comprehensive overview of all our astrology services including Kundli Analysis, Palmistry, Numerology, and more*
+_Comprehensive overview of all our astrology services including Kundli Analysis, Palmistry, Numerology, and more_
 
 ### **About Page**
+
 ![About Page](screenshots/about.png)
-*Learn about our expert Astrologer Punita Sharma and her 25+ years of experience*
+_Learn about our expert Astrologer Punita Sharma and her 25+ years of experience_
 
 ### **Blog**
+
 ![Blog Page](screenshots/blog.png)
-*Expert astrology insights, remedies, and cosmic guidance on our dedicated blog*
+_Expert astrology insights, remedies, and cosmic guidance on our dedicated blog_
 
 ## 🚀 **Live Website**
 
@@ -34,7 +38,7 @@
 JyotirSetu is a professional astrology consultation platform offering expert guidance in:
 
 - **Vedic Astrology** - Birth chart analysis and predictions
-- ✋ **Palmistry** - Hand reading and destiny analysis  
+- ✋ **Palmistry** - Hand reading and destiny analysis
 - 🔢 **Numerology** - Number-based life guidance
 - 💎 **Gemstone Consultation** - Personalized gemstone recommendations
 - ❤️ **Matchmaking (Kundli Milan)** - Relationship compatibility analysis
@@ -48,6 +52,7 @@ JyotirSetu is a professional astrology consultation platform offering expert gui
 ![Astrologer Punita Sharma](screenshots/punita-sharma.jpg)
 
 **Astrologer Punita Sharma** - M.A. Sanskrit
+
 - ✅ Certified Astrologer – Bharatiya Vidya Bhavan
 - ✅ Diploma in Palmistry – Indian Council of Astrological Sciences (ICAS)
 - ✅ Certified Numerologist – All India Federation of Astrologers' Societies (AIFAS)
@@ -58,29 +63,33 @@ JyotirSetu is a professional astrology consultation platform offering expert gui
 ## 🏢 **Our Office**
 
 ![JyotirSetu Office](screenshots/office.jpg)
-*Professional consultation space in Sector-15, Gurugram, Haryana*
+_Professional consultation space in Sector-15, Gurugram, Haryana_
 
 ## 🛠️ **Technology Stack**
 
 ### **Frontend**
+
 - **Framework**: [Astro 5.0](https://astro.build/) - Modern static site generator
 - **Styling**: [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS framework
 - **Icons**: [Tabler Icons](https://tabler-icons.io/) & [Flat Color Icons](https://iconify.design/)
 - **Typography**: [Inter Font](https://rsms.me/inter/) - Modern, readable font
 
 ### **Backend & Deployment**
+
 - **Hosting**: [Vercel](https://vercel.com/) - Edge-first platform
 - **Analytics**: [Vercel Analytics](https://vercel.com/analytics) & [Speed Insights](https://vercel.com/speed-insights)
 - **Database**: [Supabase](https://supabase.com/) - Open source Firebase alternative
 - **Email**: [Resend](https://resend.com/) - Modern email API
 
 ### **SEO & Performance**
+
 - **SEO**: [AstroLib SEO](https://github.com/onwidget/astrolib) - Advanced SEO optimization
 - **Sitemap**: Automatic XML sitemap generation
 - **Compression**: [Astro Compress](https://github.com/astro-community/astro-compress) - Asset optimization
 - **Images**: [Unpic](https://unpic.pics/) - Universal image optimization
 
 ## **Project Structure**
+
 JyotirSetu-2.0-main/
 ├── src/
 │ ├── components/ # Reusable UI components
@@ -101,27 +110,30 @@ JyotirSetu-2.0-main/
 ├── vercel.json # Vercel deployment config
 └── package.json # Dependencies
 
-
 ## **Getting Started**
 
 ### **Prerequisites**
+
 - Node.js >= 20.0.0
 - npm or yarn
 
 ### **Installation**
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/yourusername/jyotirsetu-website.git
    cd jyotirsetu-website
    ```
 
 2. **Install dependencies**
+
    ```bash
    npm install
    ```
 
 3. **Start development server**
+
    ```bash
    npm run dev
    ```
@@ -174,6 +186,7 @@ npm run fix:prettier # Fix Prettier formatting
 ### **Other Platforms**
 
 The site can be deployed to any static hosting platform:
+
 - Netlify
 - GitHub Pages
 - Cloudflare Pages
@@ -189,19 +202,24 @@ The site can be deployed to any static hosting platform:
 ## 🔧 **Configuration**
 
 ### **Site Settings**
+
 Edit `src/config.yaml` to customize:
+
 - Site name and description
 - SEO metadata
 - Social media links
 - Analytics configuration
 
 ### **Navigation**
+
 Edit `src/navigation.ts` to modify:
+
 - Header navigation
 - Footer links
 - Social media links
 
 ### **Styling**
+
 - **Colors**: Edit `tailwind.config.js`
 - **Components**: Modify files in `src/components/`
 - **Layouts**: Update files in `src/layouts/`
@@ -257,6 +275,3 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 [Website](https://www.jyotirsetu.com) • [Blog](https://www.blog.jyotirsetu.com) • [Contact](https://www.jyotirsetu.com/contact)
 
 </div>
-
-
-

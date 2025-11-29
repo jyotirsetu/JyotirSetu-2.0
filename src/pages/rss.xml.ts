@@ -5,7 +5,7 @@ export const GET: APIRoute = () => {
   return new Response(null, {
     status: 302,
     headers: {
-      Location: 'https://www.blog.jyotirsetu.com/rss.xml'
-    }
+      Location: 'https://www.blog.jyotirsetu.com/rss.xml',
+    },
   });
 };

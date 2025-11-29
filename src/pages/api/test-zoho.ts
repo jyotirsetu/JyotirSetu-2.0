@@ -4,7 +4,10 @@ import { emailService } from '../../lib/email-service';
 export const prerender = false;
 
 export const GET: APIRoute = async () => {
-  const mcEnabled = ((import.meta.env && import.meta.env.MAILCHANNELS_ENABLED) || process.env.MAILCHANNELS_ENABLED || 'false').toString().toLowerCase() === 'true';
+  const mcEnabled =
+    ((import.meta.env && import.meta.env.MAILCHANNELS_ENABLED) || process.env.MAILCHANNELS_ENABLED || 'false')
+      .toString()
+      .toLowerCase() === 'true';
   const clientId = (import.meta.env && import.meta.env.ZOHO_CLIENT_ID) || process.env.ZOHO_CLIENT_ID;
   const clientSecret = (import.meta.env && import.meta.env.ZOHO_CLIENT_SECRET) || process.env.ZOHO_CLIENT_SECRET;
   const refreshToken = (import.meta.env && import.meta.env.ZOHO_REFRESH_TOKEN) || process.env.ZOHO_REFRESH_TOKEN;
@@ -14,10 +17,18 @@ export const GET: APIRoute = async () => {
 
   if (!mcEnabled && (!clientId || !clientSecret || !refreshToken || !region || !fromEmail || !toAdmin)) {
     return new Response(
-      JSON.stringify({ ok: false, stage: 'env-check', missing: {
-        clientId: !!clientId, clientSecret: !!clientSecret, refreshToken: !!refreshToken,
-        region: !!region, fromEmail: !!fromEmail, toAdmin: !!toAdmin
-      }}),
+      JSON.stringify({
+        ok: false,
+        stage: 'env-check',
+        missing: {
+          clientId: !!clientId,
+          clientSecret: !!clientSecret,
+          refreshToken: !!refreshToken,
+          region: !!region,
+          fromEmail: !!fromEmail,
+          toAdmin: !!toAdmin,
+        },
+      }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
   }
@@ -29,11 +40,15 @@ export const GET: APIRoute = async () => {
       subject: 'Zoho mail test from API',
       message: 'If you received this, Zoho OAuth and sending are working.',
     });
-    return new Response(JSON.stringify({ ok, stage: 'send' }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+    return new Response(JSON.stringify({ ok, stage: 'send' }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e);
-    return new Response(JSON.stringify({ ok: false, stage: 'send', error: msg }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+    return new Response(JSON.stringify({ ok: false, stage: 'send', error: msg }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 };
-
-

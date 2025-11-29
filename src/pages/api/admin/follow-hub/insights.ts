@@ -17,7 +17,8 @@ export const GET: APIRoute = async ({ request }) => {
     const args: (string | number | boolean | bigint | null)[] = [];
     // Accept date-only values and compare against created_at reliably
     if (from) {
-      if (from.length === 10) { // YYYY-MM-DD
+      if (from.length === 10) {
+        // YYYY-MM-DD
         filters.push(`date(created_at) >= date(?)`);
       } else {
         filters.push(`created_at >= ?`);
@@ -25,15 +26,22 @@ export const GET: APIRoute = async ({ request }) => {
       args.push(from);
     }
     if (to) {
-      if (to.length === 10) { // YYYY-MM-DD
+      if (to.length === 10) {
+        // YYYY-MM-DD
         filters.push(`date(created_at) <= date(?)`);
       } else {
         filters.push(`created_at <= ?`);
       }
       args.push(to);
     }
-    if (source) { filters.push(`source = ?`); args.push(source); }
-    if (device) { filters.push(`device = ?`); args.push(device); }
+    if (source) {
+      filters.push(`source = ?`);
+      args.push(source);
+    }
+    if (device) {
+      filters.push(`device = ?`);
+      args.push(device);
+    }
     const where = filters.length ? `WHERE ${filters.join(' AND ')}` : '';
 
     const totalsRes = await client.execute({
@@ -41,7 +49,7 @@ export const GET: APIRoute = async ({ request }) => {
               SUM(CASE WHEN event_type='page_view' THEN 1 ELSE 0 END) AS views,
               SUM(CASE WHEN event_type='cta_click' THEN 1 ELSE 0 END) AS clicks
             FROM follow_hub_events ${where}`,
-      args
+      args,
     });
     const t = (totalsRes.rows?.[0] ?? {}) as Record<string, unknown>;
     const views = Number((t as Record<string, unknown>).views ?? 0);
@@ -54,7 +62,7 @@ export const GET: APIRoute = async ({ request }) => {
                     SUM(CASE WHEN event_type='cta_click' THEN 1 ELSE 0 END) AS clicks
             FROM follow_hub_events ${where}
             GROUP BY day ORDER BY day ASC`,
-      args
+      args,
     });
 
     const byVariant = await client.execute({
@@ -63,7 +71,7 @@ export const GET: APIRoute = async ({ request }) => {
                     SUM(CASE WHEN event_type='cta_click' THEN 1 ELSE 0 END) AS clicks
             FROM follow_hub_events ${where}
             GROUP BY cta_variant`,
-      args
+      args,
     });
 
     const byDevice = await client.execute({
@@ -72,7 +80,7 @@ export const GET: APIRoute = async ({ request }) => {
                     SUM(CASE WHEN event_type='cta_click' THEN 1 ELSE 0 END) AS clicks
             FROM follow_hub_events ${where}
             GROUP BY device ORDER BY views DESC`,
-      args
+      args,
     });
 
     const bySource = await client.execute({
@@ -81,21 +89,27 @@ export const GET: APIRoute = async ({ request }) => {
                     SUM(CASE WHEN event_type='cta_click' THEN 1 ELSE 0 END) AS clicks
             FROM follow_hub_events ${where}
             GROUP BY source ORDER BY views DESC`,
-      args
+      args,
     });
 
     return new Response(
-      JSON.stringify({ ok: true, data: {
-        totals: { views, clicks, ctr },
-        daily: daily.rows || [],
-        variants: byVariant.rows || [],
-        devices: byDevice.rows || [],
-        sources: bySource.rows || []
-      }}),
+      JSON.stringify({
+        ok: true,
+        data: {
+          totals: { views, clicks, ctr },
+          daily: daily.rows || [],
+          variants: byVariant.rows || [],
+          devices: byDevice.rows || [],
+          sources: bySource.rows || [],
+        },
+      }),
       { headers: { 'Content-Type': 'application/json' } }
     );
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : 'unknown';
-    return new Response(JSON.stringify({ ok: false, error: msg }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+    return new Response(JSON.stringify({ ok: false, error: msg }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 };
