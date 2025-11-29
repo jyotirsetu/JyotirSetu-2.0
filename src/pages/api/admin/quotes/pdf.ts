@@ -447,13 +447,13 @@ export const GET: APIRoute = async ({ request }) => {
 
     let browser: import('puppeteer-core').Browser | import('puppeteer').Browser;
     if (isProd) {
-      const chromium = await import('@sparticuz/chromium');
+      const chromium = (await import('@sparticuz/chromium')).default;
       const puppeteerCore = (await import('puppeteer-core')).default;
       const executablePath = await chromium.executablePath();
       browser = await puppeteerCore.launch({
-        headless: true,
+        headless: chromium.headless,
         args: chromium.args,
-        executablePath: executablePath || undefined,
+        executablePath,
         defaultViewport: chromium.defaultViewport,
       });
     } else {
