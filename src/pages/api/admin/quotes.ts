@@ -172,10 +172,13 @@ export const GET: APIRoute = async ({ request }) => {
     }
     if (stats) {
       const [totalsRes, byStatusRes] = await Promise.all([
-        // Exclude Cancelled from amount to reflect deduction
+        // Exclude Cancelled AND Purchased from main amount (Pending Amount)
+        // We calculate Purchased amount separately
         client.execute({
-          sql: `SELECT COUNT(*) AS count,
-                       COALESCE(SUM(CASE WHEN status = 'Cancelled' THEN 0 ELSE total END),0) AS amount
+          sql: `SELECT 
+                  COUNT(*) AS count,
+                  COALESCE(SUM(CASE WHEN status NOT IN ('Cancelled', 'Purchased') THEN total ELSE 0 END), 0) AS pending_amount,
+                  COALESCE(SUM(CASE WHEN status = 'Purchased' THEN total ELSE 0 END), 0) AS purchased_amount
                 FROM quotes`,
           args: [],
         }),
@@ -184,10 +187,11 @@ export const GET: APIRoute = async ({ request }) => {
           args: [],
         }),
       ]);
-      const totalsRow = (totalsRes.rows?.[0] || { count: 0, amount: 0 }) as Record<string, unknown>;
+      const totalsRow = (totalsRes.rows?.[0] || { count: 0, pending_amount: 0, purchased_amount: 0 }) as Record<string, unknown>;
       const totals = {
         count: Number((totalsRow as Record<string, unknown>).count || 0),
-        amount: Math.max(0, Number((totalsRow as Record<string, unknown>).amount || 0)),
+        amount: Math.max(0, Number((totalsRow as Record<string, unknown>).pending_amount || 0)),
+        purchased_amount: Math.max(0, Number((totalsRow as Record<string, unknown>).purchased_amount || 0)),
       };
       return new Response(JSON.stringify({ ok: true, totals, by_status: byStatusRes.rows || [] }), {
         headers: { 'Content-Type': 'application/json' },

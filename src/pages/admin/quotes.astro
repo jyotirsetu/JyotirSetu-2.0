@@ -156,6 +156,15 @@ import Favicons from '~/components/Favicons.astro';
                 </div>
               </div>
               <div class="col-xl-2 col-lg-4 col-md-6 col-sm-6">
+                <div class="small-box bg-success">
+                  <div class="inner">
+                    <h3 id="qPurchasedAmount">₹0.00</h3>
+                    <p>Purchased Amount</p>
+                  </div>
+                  <div class="icon"><i class="fas fa-indian-rupee-sign"></i></div>
+                </div>
+              </div>
+              <div class="col-xl-2 col-lg-4 col-md-6 col-sm-6">
                 <div class="small-box bg-warning">
                   <div class="inner">
                     <h3 id="qNC">0</h3>
@@ -282,10 +291,11 @@ import Favicons from '~/components/Favicons.astro';
         async function loadStats() {
           const res = await fetch('/api/admin/quotes?stats=1');
           const j = await res.json();
-          const totals = j.totals || { count: 0, amount: 0 };
+          const totals = j.totals || { count: 0, amount: 0, purchased_amount: 0 };
           const by = Array.isArray(j.by_status) ? j.by_status : [];
           document.getElementById('qTotal').textContent = String(totals.count || 0);
           document.getElementById('qAmount').textContent = fmt(totals.amount || 0);
+          document.getElementById('qPurchasedAmount').textContent = fmt(totals.purchased_amount || 0);
           const find = (s) => {
             const r = by.find((x) => String(x.status || '') === s);
             return r ? Number(r.count || 0) : 0;
@@ -629,6 +639,7 @@ import Favicons from '~/components/Favicons.astro';
               });
               try { localStorage.setItem('quotesStatsUpdated', String(Date.now())); } catch (e) { void e; }
               loadStats();
+              loadQuotes();
             });
           });
           el.querySelectorAll('.editQuote').forEach(function (b) {
