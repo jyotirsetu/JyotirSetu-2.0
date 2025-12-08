@@ -22,21 +22,21 @@
     function sync(){ if (!el) return; el.style.display = isMobile() ? 'inline-flex' : 'none'; }
     function getSelectedValue(root){
       try {
-        var opt = root && typeof root.querySelector === 'function' ? root.querySelector('option:checked') : null;
+        const opt = root && typeof root.querySelector === 'function' ? root.querySelector('option:checked') : null;
         return opt ? String(opt.getAttribute('value') || '') : '';
       } catch { return ''; }
     }
     if (el) {
       el.addEventListener('change', function(e){
-        var t = e && e.target ? e.target : null;
-        var v = getSelectedValue(t || el);
+        const t = e && e.target ? e.target : null;
+        const v = getSelectedValue(t || el);
         if (v) window.location.href = v;
       });
       el.addEventListener('keydown', function(e){
-        var v = getSelectedValue(el);
+        const v = getSelectedValue(el);
         if ((e.key === 'Enter' || e.key === ' ') && v) { e.preventDefault(); window.location.href = v; }
       });
-      el.addEventListener('touchstart', function(){ try { if (el instanceof HTMLSelectElement) el.focus(); } catch {} });
+      el.addEventListener('touchstart', function(){ try { if (el instanceof HTMLSelectElement) el.focus(); } catch { void 0; } });
     }
     window.addEventListener('resize', sync);
     document.addEventListener('DOMContentLoaded', sync);

@@ -10,6 +10,12 @@ function formatCurrency(amount: number | null): string {
   }).format(amount);
 }
 
+function formatNumber(n: number | null): string {
+  const num = typeof n === 'number' && isFinite(n) ? n : 0;
+  const s = num.toFixed(2);
+  return s.replace(/\.00$/, '');
+}
+
 function formatDate(dateString: string | null): string {
   if (!dateString) return 'N/A';
   return new Date(dateString).toLocaleDateString('en-IN', {
@@ -35,7 +41,7 @@ export const GET: APIRoute = async ({ request }) => {
     const client = await getTursoClient();
     const [quoteRes, itemsRes] = await Promise.all([
       client.execute({
-        sql: `SELECT id, number, client_name, client_email, client_phone, status, total, created_at, updated_at 
+        sql: `SELECT id, number, client_name, client_email, client_phone, status, total, purchased_amount, created_at, updated_at 
               FROM quotes WHERE id = ? LIMIT 1`,
         args: [String(id)],
       }),
@@ -194,6 +200,7 @@ export const GET: APIRoute = async ({ request }) => {
             font-weight: 600;
             font-size: 10px;
         }
+        .items-table th.numeric-cell { text-align: right; }
         
         .items-table td {
             padding: 6px;
@@ -226,7 +233,7 @@ export const GET: APIRoute = async ({ request }) => {
         .grand-total {
             display: flex;
             justify-content: flex-end;
-            margin-top: 10px;
+            margin-top: 14px;
         }
         
         .grand-total-box {
@@ -250,6 +257,27 @@ export const GET: APIRoute = async ({ request }) => {
             font-size: 18px;
             font-weight: bold;
         }
+        .received-total-box {
+            background: #22c55e;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 6px;
+            text-align: right;
+            min-width: 200px;
+            margin-left: 10px;
+        }
+        .received-total-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 2px;
+            opacity: 0.9;
+        }
+        .received-total-amount {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .difference-note { font-size: 10px; color: #64748b; text-align: right; margin-top: 6px; }
         
         .terms-section {
             margin-top: 15px;
@@ -296,6 +324,13 @@ export const GET: APIRoute = async ({ request }) => {
             color: #7f1d1d;
             line-height: 1.2;
         }
+
+        /* Alignment fixes and accent bars */
+        .terms-section { padding: 12px 12px 12px 16px; position: relative; overflow: hidden; }
+        .terms-section::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: #f59e0b; }
+        .price-lock-notice { padding: 10px 12px 10px 16px; position: relative; overflow: hidden; }
+        .price-lock-notice::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: #ef4444; }
+        .detail-label { min-width: 60px; }
         
         .footer {
             margin-top: 15px;
@@ -343,7 +378,7 @@ export const GET: APIRoute = async ({ request }) => {
         <div class="header">
             <div class="company-info">
                 <div class="company-name">JyotirSetu Astrology</div>
-                <div class="company-tagline">Bridge to comic light</div>
+                <div class="company-tagline">Bridge to cosmic light</div>
                 <div class="company-details">
                     📧 guidance@jyotirsetu.com<br>
                     📱 +91-9266991298<br>
@@ -390,7 +425,7 @@ export const GET: APIRoute = async ({ request }) => {
                     (item) => `
                 <tr>
                     <td class="particular-cell">${item.title}</td>
-                    <td class="numeric-cell">${item.carat}</td>
+                    <td class="numeric-cell">${formatNumber(Number(item.carat))}</td>
                     <td class="numeric-cell">${formatCurrency(Number(item.rate_per_carat))}</td>
                     <td class="numeric-cell">${formatCurrency(Number(item.amount))}</td>
                 </tr>
@@ -405,7 +440,14 @@ export const GET: APIRoute = async ({ request }) => {
                 <div class="grand-total-label">Grand Total</div>
                 <div class="grand-total-amount">${formatCurrency(Number(quote.total))}</div>
             </div>
+            ${quote.purchased_amount != null ? `
+            <div class="received-total-box">
+                <div class="received-total-label">Received Amount</div>
+                <div class="received-total-amount">${formatCurrency(Number(quote.purchased_amount))}</div>
+            </div>` : ''}
         </div>
+        ${quote.purchased_amount != null && Number(quote.purchased_amount) !== Number(quote.total) ? `
+        <div class="difference-note">Difference vs quoted: ${formatCurrency(Number(quote.total) - Number(quote.purchased_amount))}</div>` : ''}
 
         <div class="footer">
             <div class="terms-section">

@@ -92,6 +92,10 @@ export const GET: APIRoute = async ({ request }) => {
 
 export const POST: APIRoute = async ({ request }) => {
   try {
+    const { isValidCsrf } = await import('../../../lib/csrf');
+    if (!isValidCsrf(request)) {
+      return new Response(JSON.stringify({ ok: false, error: 'csrf_failed' }), { status: 403 });
+    }
     await ensurePaymentsTable();
     const db = await getTursoClient();
     const body = await request.json();

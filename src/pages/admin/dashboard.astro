@@ -239,6 +239,30 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
         .stat-card-modern .stat-value-modern { font-size: 28px; }
         .stat-card-modern .icon-modern { width: 48px; height: 48px; }
       }
+      .analytics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 12px;
+        margin-top: 8px;
+      }
+      .analytics-section {
+        background: var(--panel-2);
+        padding: 12px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        font-size: 0.9rem;
+        line-height: 1.4;
+      }
+      .analytics-section strong {
+        color: var(--text);
+        display: block;
+        margin-bottom: 4px;
+      }
+      @media (max-width: 768px) {
+        .analytics-grid {
+          grid-template-columns: 1fr;
+        }
+      }
     </style>
   </head>
   <body class="hold-transition sidebar-mini">
@@ -333,6 +357,11 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
               </li>
 
               <li class="nav-item">
+                <a href="/admin/leads" class="nav-link"
+                  ><i class="nav-icon fas fa-route"></i><p>Leads</p></a
+                >
+              </li>
+              <li class="nav-item">
                 <a href="/admin/appointments" class="nav-link"
                   ><i class="nav-icon fas fa-calendar-check"></i><p>Appointments</p></a
                 >
@@ -345,9 +374,9 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
                   ><i class="nav-icon fas fa-envelope-open-text"></i><p>Newsletter</p></a
                 >
               </li>
-              <li class="nav-item">
-                <a href="/admin/calendar" class="nav-link"><i class="nav-icon fas fa-calendar"></i><p>Calendar</p></a>
-              </li>
+          <li class="nav-item">
+            <a href="/admin/calendar" class="nav-link"><i class="nav-icon fas fa-calendar"></i><p>Calendar</p></a>
+          </li>
               <li class="nav-item">
                 <a href="/admin/quotes" class="nav-link"
                   ><i class="nav-icon fas fa-file-invoice"></i><p>Quotations</p></a
@@ -496,6 +525,7 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
                   <div class="stat-change-modern"><i class="fas fa-arrow-up arrow"></i><span>Total value</span></div>
                 </div>
               </div>
+              
             </div>
 
             <div class="cards-row mt-3">
@@ -532,6 +562,14 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
                   <h5 class="card-title">Payment Templates</h5>
                   <p class="card-text">Configure payment email messages</p>
                   <a href="/admin/templates/payment" class="stretched-link"></a>
+                </div>
+              </div>
+              
+              <div class="card card-outline card-dark h-100">
+                <div class="card-body">
+                  <h5 class="card-title">Documents</h5>
+                  <p class="card-text">Manage documents and sharing</p>
+                  <a href="/admin/client360" class="stretched-link"></a>
                 </div>
               </div>
             </div>
@@ -791,6 +829,7 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
           }
         }
         loadRecentActivity();
+        
 
         // Initialize notifications
         if (typeof window !== 'undefined' && 'Notification' in window) {
@@ -909,4 +948,55 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
     </script>
   </body><script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/admin-lte@latest/dist/js/adminlte.min.js" defer></script>
+  <script is:inline>
+    (function(){
+          async function loadAnalytics(){
+            try {
+              const res = await fetch('/api/admin/analytics?days=30', { credentials: 'include' });
+              const j = await res.json();
+              const el = document.getElementById('analyticsSummary');
+              if (!el) return;
+              if (!res.ok || !j || j.ok===false) { el.textContent = 'Analytics unavailable'; return; }
+              var funnel = Array.isArray(j.funnel) ? j.funnel : [];
+              var leads = Array.isArray(j.leads) ? j.leads : [];
+              var ltv = j.ltv || {};
+              var sla = j.sla || {};
+              var staffPerf = Array.isArray(j.staff_performance) ? j.staff_performance : [];
+              var docStats = j.document_stats || {};
+              var trends = Array.isArray(j.appointment_trends) ? j.appointment_trends : [];
+              
+              var funnelStr = funnel.map(function(x){ return String(x.status||'')+': '+String(x.count||0); }).join(' • ');
+              var leadsStr = leads.map(function(x){ return String(x.stage||'')+': '+String(x.count||0); }).join(' • ');
+              var top = Object.entries(ltv).sort(function(a,b){ return Number(b[1])-Number(a[1]); }).slice(0,3);
+              var ltvStr = top.map(function(p){ return String(p[0])+': ₹'+Number(p[1]).toFixed(0); }).join(' • ');
+              
+              // Enhanced analytics display
+              var html = '<div class="analytics-grid">';
+              html += '<div class="analytics-section"><strong>Funnel</strong>: '+(funnelStr||'—')+'</div>';
+              html += '<div class="analytics-section"><strong>Leads</strong>: '+(leadsStr||'—')+'</div>';
+              html += '<div class="analytics-section"><strong>Top LTV</strong>: '+(ltvStr||'—')+'</div>';
+              html += '<div class="analytics-section"><strong>SLA</strong>: '+String(sla.total_breaches||0)+' breaches, '+String(sla.fulfillment_overdue||0)+' overdue</div>';
+              
+              if (staffPerf.length > 0) {
+                var staffStr = staffPerf.slice(0,3).map(function(s){ return s.staff_name+': '+s.appointment_count+' appts ('+s.completion_rate+'%)'; }).join(' • ');
+                html += '<div class="analytics-section"><strong>Staff Performance</strong>: '+(staffStr||'—')+'</div>';
+              }
+              
+              if (docStats.total_documents > 0) {
+                html += '<div class="analytics-section"><strong>Documents</strong>: '+String(docStats.total_documents||0)+' total, '+String(docStats.shared_documents||0)+' shared</div>';
+              }
+              
+              if (trends.length > 0) {
+                var recentTrends = trends.slice(0,7).reverse();
+                var trendStr = recentTrends.map(function(t){ return t.date.split('-').slice(1).join('/')+': '+String(t.total||0); }).join(' • ');
+                html += '<div class="analytics-section"><strong>Recent Activity</strong>: '+(trendStr||'—')+'</div>';
+              }
+              
+              html += '</div>';
+              el.innerHTML = html;
+            } catch { var el = document.getElementById('analyticsSummary'); if (el) el.textContent = 'Analytics unavailable'; }
+          }
+      try { loadAnalytics(); } catch {}
+    })();
+  </script>
 </html>

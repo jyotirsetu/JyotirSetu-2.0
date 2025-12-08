@@ -63,7 +63,7 @@ export async function ensureAppointmentsTable() {
   }
   try {
     await client.execute(`CREATE INDEX IF NOT EXISTS idx_appointments_date ON appointments(date)`);
-  } catch {}
+  } catch { void 0; }
 }
 
 export async function ensureContactsTable() {
@@ -81,7 +81,7 @@ export async function ensureContactsTable() {
       created_at TEXT NOT NULL
     );
   `);
-  try { await client.execute(`CREATE INDEX IF NOT EXISTS idx_contacts_email ON contacts(email)`); } catch {}
+  try { await client.execute(`CREATE INDEX IF NOT EXISTS idx_contacts_email ON contacts(email)`); } catch { void 0; }
 }
 
 export async function ensureNewsletterSubscribersTable() {
@@ -272,7 +272,7 @@ export async function ensureNotificationsTable() {
       created_at TEXT NOT NULL
     );
   `);
-  try { await client.execute(`CREATE INDEX IF NOT EXISTS idx_notifications_read_created ON notifications(read, created_at)`); } catch {}
+  try { await client.execute(`CREATE INDEX IF NOT EXISTS idx_notifications_read_created ON notifications(read, created_at)`); } catch { void 0; }
 }
 
 export async function ensureAutomationRulesTable() {
@@ -466,11 +466,15 @@ export async function ensureQuotesTable() {
       client_phone TEXT,
       status TEXT NOT NULL DEFAULT 'NC',
       total REAL NOT NULL DEFAULT 0,
+      purchased_amount REAL,
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL
     );
   `);
   await client.execute(`CREATE INDEX IF NOT EXISTS idx_quotes_email ON quotes(client_email);`);
+  try {
+    await client.execute(`ALTER TABLE quotes ADD COLUMN purchased_amount REAL`);
+  } catch { void 0; }
 }
 
 export async function ensureQuoteItemsTable() {
@@ -487,4 +491,198 @@ export async function ensureQuoteItemsTable() {
     );
   `);
   await client.execute(`CREATE INDEX IF NOT EXISTS idx_quote_items_quote ON quote_items(quote_id);`);
+}
+
+export async function ensureLeadsTables() {
+  const client = await getTursoClient();
+  await client.execute(`
+    CREATE TABLE IF NOT EXISTS leads (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      email TEXT,
+      phone TEXT,
+      source TEXT NOT NULL DEFAULT 'manual',
+      stage TEXT NOT NULL DEFAULT 'prospect',
+      owner TEXT NOT NULL DEFAULT 'admin',
+      sla_due_at TEXT,
+      notes TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+  `);
+  await client.execute(`CREATE INDEX IF NOT EXISTS idx_leads_stage ON leads(stage);`);
+  await client.execute(`CREATE INDEX IF NOT EXISTS idx_leads_owner ON leads(owner);`);
+  await client.execute(`
+    CREATE TABLE IF NOT EXISTS lead_stage_history (
+      id TEXT PRIMARY KEY,
+      lead_id TEXT NOT NULL,
+      from_stage TEXT,
+      to_stage TEXT NOT NULL,
+      changed_at TEXT NOT NULL,
+      changed_by TEXT NOT NULL DEFAULT 'admin',
+      note TEXT,
+      FOREIGN KEY (lead_id) REFERENCES leads(id)
+    );
+  `);
+  await client.execute(`CREATE INDEX IF NOT EXISTS idx_lead_history_lead ON lead_stage_history(lead_id);`);
+}
+
+export async function ensureRemediesTable() {
+  const client = await getTursoClient();
+  await client.execute(`
+    CREATE TABLE IF NOT EXISTS remedies (
+      id TEXT PRIMARY KEY,
+      client_id TEXT NOT NULL,
+      type TEXT NOT NULL, -- gemstone, mantra, puja
+      title TEXT NOT NULL,
+      start_date TEXT,
+      end_date TEXT,
+      adherence INTEGER NOT NULL DEFAULT 0, -- percentage adherence
+      notes TEXT,
+      status TEXT NOT NULL DEFAULT 'planned',
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      FOREIGN KEY (client_id) REFERENCES clients(id)
+    );
+  `);
+  await client.execute(`CREATE INDEX IF NOT EXISTS idx_remedies_client ON remedies(client_id);`);
+}
+
+export async function ensureFulfillmentTables() {
+  const client = await getTursoClient();
+  await client.execute(`
+    CREATE TABLE IF NOT EXISTS fulfillment_tasks (
+      id TEXT PRIMARY KEY,
+      client_id TEXT NOT NULL,
+      service TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'pending',
+      due_date TEXT,
+      checklist JSON,
+      notes TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      FOREIGN KEY (client_id) REFERENCES clients(id)
+    );
+  `);
+  await client.execute(`CREATE INDEX IF NOT EXISTS idx_fulfillment_client ON fulfillment_tasks(client_id);`);
+}
+
+export async function ensureDocumentsTables() {
+  const client = await getTursoClient();
+  await client.execute(`
+    CREATE TABLE IF NOT EXISTS documents (
+      id TEXT PRIMARY KEY,
+      client_id TEXT,
+      entity_type TEXT,
+      entity_id TEXT,
+      title TEXT NOT NULL,
+      mime_type TEXT,
+      size INTEGER,
+      storage_url TEXT,
+      created_at TEXT NOT NULL,
+      FOREIGN KEY (client_id) REFERENCES clients(id)
+    );
+  `);
+  await client.execute(`CREATE INDEX IF NOT EXISTS idx_documents_entity ON documents(entity_type, entity_id);`);
+  await client.execute(`
+    CREATE TABLE IF NOT EXISTS consent_forms (
+      id TEXT PRIMARY KEY,
+      client_id TEXT NOT NULL,
+      form_title TEXT NOT NULL,
+      signed_at TEXT,
+      file_url TEXT,
+      created_at TEXT NOT NULL,
+      FOREIGN KEY (client_id) REFERENCES clients(id)
+    );
+  `);
+}
+
+export async function ensureStaffTables() {
+  const client = await getTursoClient();
+  await client.execute(`
+    CREATE TABLE IF NOT EXISTS staff (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      email TEXT,
+      phone TEXT,
+      role TEXT NOT NULL DEFAULT 'consultant',
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+  `);
+  await client.execute(`CREATE INDEX IF NOT EXISTS idx_staff_role ON staff(role);`);
+}
+
+export async function ensureUsersTables() {
+  const client = await getTursoClient();
+  await client.execute(`
+    CREATE TABLE IF NOT EXISTS admin_users (
+      id TEXT PRIMARY KEY,
+      username TEXT UNIQUE NOT NULL,
+      password_hash TEXT NOT NULL,
+      role TEXT NOT NULL DEFAULT 'support',
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+  `);
+  await client.execute(`CREATE INDEX IF NOT EXISTS idx_admin_users_username ON admin_users(username);`);
+  await client.execute(`
+    CREATE TABLE IF NOT EXISTS admin_permissions (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      permission TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      FOREIGN KEY (user_id) REFERENCES admin_users(id)
+    );
+  `);
+  await client.execute(`CREATE INDEX IF NOT EXISTS idx_admin_permissions_user ON admin_permissions(user_id);`);
+}
+
+export async function ensureDocumentShareTables() {
+  const client = await getTursoClient();
+  await client.execute(`
+    CREATE TABLE IF NOT EXISTS document_share_links (
+      token TEXT PRIMARY KEY,
+      document_id TEXT NOT NULL,
+      expires_at TEXT,
+      created_at TEXT NOT NULL,
+      FOREIGN KEY (document_id) REFERENCES documents(id)
+    );
+  `);
+  await client.execute(`CREATE INDEX IF NOT EXISTS idx_doc_share_expires ON document_share_links(expires_at);`);
+  await client.execute(`
+    CREATE TABLE IF NOT EXISTS document_downloads (
+      id TEXT PRIMARY KEY,
+      document_id TEXT NOT NULL,
+      by_user TEXT,
+      downloaded_at TEXT NOT NULL,
+      ip TEXT,
+      FOREIGN KEY (document_id) REFERENCES documents(id)
+    );
+  `);
+  await client.execute(`CREATE INDEX IF NOT EXISTS idx_doc_downloads_doc ON document_downloads(document_id);`);
+}
+
+export async function ensureClientHoroscopesTable() {
+  const client = await getTursoClient();
+  await client.execute(`
+    CREATE TABLE IF NOT EXISTS client_horoscopes (
+      id TEXT PRIMARY KEY,
+      client_id TEXT NOT NULL,
+      name TEXT NOT NULL,
+      relation TEXT NOT NULL DEFAULT 'self',
+      gender TEXT,
+      dob TEXT,
+      tob TEXT,
+      pob TEXT,
+      latitude REAL,
+      longitude REAL,
+      timezone TEXT,
+      notes TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      FOREIGN KEY (client_id) REFERENCES clients(id)
+    );
+  `);
+  await client.execute(`CREATE INDEX IF NOT EXISTS idx_client_horoscopes_client ON client_horoscopes(client_id);`);
 }

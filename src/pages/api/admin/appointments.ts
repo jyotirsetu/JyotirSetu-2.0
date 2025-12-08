@@ -219,6 +219,10 @@ export const PUT: APIRoute = async ({ request }) => {
 
 export const POST: APIRoute = async ({ request }) => {
   try {
+    const { isValidCsrf } = await import('../../../lib/csrf');
+    if (!isValidCsrf(request)) {
+      return new Response(JSON.stringify({ ok: false, error: 'csrf_failed' }), { status: 403 });
+    }
     const body = (await request.json()) as unknown;
     const req =
       (body as {

@@ -33,6 +33,8 @@ export const GET: APIRoute = async ({ request }) => {
     const offset = (page - 1) * limit;
     const status = url.searchParams.get('status');
     const email = url.searchParams.get('email');
+    const phone = url.searchParams.get('phone');
+    const name = url.searchParams.get('name');
     const client = await getTursoClient();
 
     // Handle export requests
@@ -157,7 +159,7 @@ export const GET: APIRoute = async ({ request }) => {
     if (id) {
       const [qRes, itemsRes] = await Promise.all([
         client.execute({
-          sql: `SELECT id, number, client_name, client_email, client_phone, status, total, created_at, updated_at FROM quotes WHERE id = ? LIMIT 1`,
+          sql: `SELECT id, number, client_name, client_email, client_phone, status, total, purchased_amount, created_at, updated_at FROM quotes WHERE id = ? LIMIT 1`,
           args: [String(id)],
         }),
         client.execute({
@@ -178,7 +180,7 @@ export const GET: APIRoute = async ({ request }) => {
           sql: `SELECT 
                   COUNT(*) AS count,
                   COALESCE(SUM(CASE WHEN status NOT IN ('Cancelled', 'Purchased') THEN total ELSE 0 END), 0) AS pending_amount,
-                  COALESCE(SUM(CASE WHEN status = 'Purchased' THEN total ELSE 0 END), 0) AS purchased_amount
+                  COALESCE(SUM(CASE WHEN status = 'Purchased' THEN COALESCE(purchased_amount, total) ELSE 0 END), 0) AS purchased_amount
                 FROM quotes`,
           args: [],
         }),
@@ -199,18 +201,43 @@ export const GET: APIRoute = async ({ request }) => {
     }
     const filters: string[] = [];
     const args: (string | number | boolean | bigint | null)[] = [];
+    const q_name = url.searchParams.get('q_name');
+    const q_email = url.searchParams.get('q_email');
+    const q_phone = url.searchParams.get('q_phone');
     if (status) {
       filters.push('status = ?');
       args.push(String(status));
     }
     if (email) {
-      filters.push('client_email = ?');
+      filters.push('LOWER(client_email) = LOWER(?)');
       args.push(String(email));
     }
+    if (phone) {
+      const digits = String(phone).replace(/[^0-9]/g, '');
+      const tail = digits.slice(-10);
+      filters.push('client_phone LIKE ?');
+      args.push('%' + (tail || String(phone)) + '%');
+    }
+    if (name) {
+      filters.push('LOWER(client_name) LIKE LOWER(?)');
+      args.push('%' + String(name) + '%');
+    }
+    // Composite OR search across name/email/phone
+    const orParts: string[] = [];
+    const orArgs: (string | number | boolean | bigint | null)[] = [];
+    if (q_name) { orParts.push('LOWER(client_name) LIKE LOWER(?)'); orArgs.push('%' + String(q_name) + '%'); }
+    if (q_email) { orParts.push('LOWER(client_email) = LOWER(?)'); orArgs.push(String(q_email)); }
+    if (q_phone) {
+      const digits = String(q_phone).replace(/[^0-9]/g, '');
+      const tail = digits.slice(-10);
+      orParts.push('client_phone LIKE ?');
+      orArgs.push('%' + (tail || String(q_phone)) + '%');
+    }
+    if (orParts.length) { filters.push('(' + orParts.join(' OR ') + ')'); args.push(...orArgs); }
     const where = filters.length ? `WHERE ${filters.join(' AND ')}` : '';
     const [dataRes, countRes] = await Promise.all([
       client.execute({
-        sql: `SELECT id, number, client_name, client_email, client_phone, status, total, created_at, updated_at FROM quotes ${where} ORDER BY datetime(created_at) DESC LIMIT ? OFFSET ?`,
+        sql: `SELECT id, number, client_name, client_email, client_phone, status, total, purchased_amount, created_at, updated_at FROM quotes ${where} ORDER BY datetime(created_at) DESC LIMIT ? OFFSET ?`,
         args: [...args, limit, offset],
       }),
       client.execute({ sql: `SELECT COUNT(*) AS total FROM quotes ${where}`, args }),
@@ -232,6 +259,21 @@ export const GET: APIRoute = async ({ request }) => {
 
 export const POST: APIRoute = async ({ request }) => {
   try {
+    const metaEnv = (import.meta as unknown as { env?: Record<string, unknown> }).env;
+    const getEnv = (name: string): string | undefined => {
+      const fromImportMeta = typeof metaEnv?.[name] === 'string' ? (metaEnv?.[name] as string) : undefined;
+      const fromProcess = typeof process !== 'undefined' ? process.env?.[name] : undefined;
+      return fromImportMeta ?? fromProcess ?? undefined;
+    };
+    const secret = getEnv('SESSION_SECRET') || 'change-me';
+    const { requireRole } = await import('../../../lib/rbac');
+    if (!(await requireRole(request, String(secret), ['admin']))) {
+      return new Response(JSON.stringify({ ok: false, error: 'forbidden' }), { status: 403 });
+    }
+    const { isValidCsrf } = await import('../../../lib/csrf');
+    if (!isValidCsrf(request)) {
+      return new Response(JSON.stringify({ ok: false, error: 'csrf_failed' }), { status: 403 });
+    }
     await ensureQuotesTable();
     await ensureQuoteItemsTable();
     const body = await request.json();
@@ -240,8 +282,8 @@ export const POST: APIRoute = async ({ request }) => {
     const client_phone = String(body.client_phone || '');
     const status = 'Created';
     const items = Array.isArray(body.items) ? body.items : [];
-    if (!client_name || !client_email)
-      return new Response(JSON.stringify({ ok: false, error: 'client required' }), { status: 400 });
+    if (!client_name || (!client_email && !client_phone))
+      return new Response(JSON.stringify({ ok: false, error: 'client_name and one of email/phone required' }), { status: 400 });
     const id = 'quote_' + Date.now() + Math.random().toString(36).slice(2, 8);
     const number =
       'Q' +
@@ -272,7 +314,7 @@ export const POST: APIRoute = async ({ request }) => {
         args: [qid, id, title, carat, rate, amount],
       });
     }
-    await logActivity('quote_created', 'quote', id, `Quote created for ${client_name} (${client_email})`);
+    await logActivity('quote_created', 'quote', id, `Quote created for ${client_name}${client_email? ' <'+client_email+'>':''}${client_phone? ' '+client_phone:''}`);
     return new Response(JSON.stringify({ ok: true, id, number, total }), {
       headers: { 'Content-Type': 'application/json' },
     });
@@ -287,6 +329,17 @@ export const POST: APIRoute = async ({ request }) => {
 
 export const PUT: APIRoute = async ({ request }) => {
   try {
+    const metaEnv = (import.meta as unknown as { env?: Record<string, unknown> }).env;
+    const getEnv = (name: string): string | undefined => {
+      const fromImportMeta = typeof metaEnv?.[name] === 'string' ? (metaEnv?.[name] as string) : undefined;
+      const fromProcess = typeof process !== 'undefined' ? process.env?.[name] : undefined;
+      return fromImportMeta ?? fromProcess ?? undefined;
+    };
+    const secret = getEnv('SESSION_SECRET') || 'change-me';
+    const { requireRole } = await import('../../../lib/rbac');
+    if (!(await requireRole(request, String(secret), ['admin']))) {
+      return new Response(JSON.stringify({ ok: false, error: 'forbidden' }), { status: 403 });
+    }
     const { isValidCsrf } = await import('../../../lib/csrf');
     if (!isValidCsrf(request)) {
       return new Response(JSON.stringify({ ok: false, error: 'csrf_failed' }), { status: 403 });
@@ -313,6 +366,10 @@ export const PUT: APIRoute = async ({ request }) => {
     if (body.status != null) {
       updates.push('status = ?');
       args.push(String(body.status));
+    }
+    if (body.purchased_amount != null) {
+      updates.push('purchased_amount = ?');
+      args.push(Number(body.purchased_amount));
     }
     if (Array.isArray(body.items)) {
       let total = 0;
@@ -379,6 +436,21 @@ export const PUT: APIRoute = async ({ request }) => {
 
 export const DELETE: APIRoute = async ({ request }) => {
   try {
+    const metaEnv = (import.meta as unknown as { env?: Record<string, unknown> }).env;
+    const getEnv = (name: string): string | undefined => {
+      const fromImportMeta = typeof metaEnv?.[name] === 'string' ? (metaEnv?.[name] as string) : undefined;
+      const fromProcess = typeof process !== 'undefined' ? process.env?.[name] : undefined;
+      return fromImportMeta ?? fromProcess ?? undefined;
+    };
+    const secret = getEnv('SESSION_SECRET') || 'change-me';
+    const { requireRole } = await import('../../../lib/rbac');
+    if (!(await requireRole(request, String(secret), ['admin']))) {
+      return new Response(JSON.stringify({ ok: false, error: 'forbidden' }), { status: 403 });
+    }
+    const { isValidCsrf } = await import('../../../lib/csrf');
+    if (!isValidCsrf(request)) {
+      return new Response(JSON.stringify({ ok: false, error: 'csrf_failed' }), { status: 403 });
+    }
     await ensureQuotesTable();
     await ensureQuoteItemsTable();
     const url = new URL(request.url);

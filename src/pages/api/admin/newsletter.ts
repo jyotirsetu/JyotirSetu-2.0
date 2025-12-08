@@ -77,6 +77,17 @@ export const GET: APIRoute = async ({ request }) => {
 
 export const PUT: APIRoute = async ({ request }) => {
   try {
+    const metaEnv = (import.meta as unknown as { env?: Record<string, unknown> }).env;
+    const getEnv = (name: string): string | undefined => {
+      const fromImportMeta = typeof metaEnv?.[name] === 'string' ? (metaEnv?.[name] as string) : undefined;
+      const fromProcess = typeof process !== 'undefined' ? process.env?.[name] : undefined;
+      return fromImportMeta ?? fromProcess ?? undefined;
+    };
+    const secret = getEnv('SESSION_SECRET') || 'change-me';
+    const { requireRole } = await import('../../../lib/rbac');
+    const { isValidCsrf } = await import('../../../lib/csrf');
+    if (!(await requireRole(request, String(secret), ['admin']))) return new Response(JSON.stringify({ ok: false, error: 'forbidden' }), { status: 403 });
+    if (!isValidCsrf(request)) return new Response(JSON.stringify({ ok: false, error: 'csrf_failed' }), { status: 403 });
     const body = await request.json();
     const { id, status } = body || {};
     if (!id) return new Response(JSON.stringify({ ok: false, error: 'id required' }), { status: 400 });
@@ -107,6 +118,17 @@ export const PUT: APIRoute = async ({ request }) => {
 
 export const POST: APIRoute = async ({ request }) => {
   try {
+    const metaEnv = (import.meta as unknown as { env?: Record<string, unknown> }).env;
+    const getEnv = (name: string): string | undefined => {
+      const fromImportMeta = typeof metaEnv?.[name] === 'string' ? (metaEnv?.[name] as string) : undefined;
+      const fromProcess = typeof process !== 'undefined' ? process.env?.[name] : undefined;
+      return fromImportMeta ?? fromProcess ?? undefined;
+    };
+    const secret = getEnv('SESSION_SECRET') || 'change-me';
+    const { requireRole } = await import('../../../lib/rbac');
+    const { isValidCsrf } = await import('../../../lib/csrf');
+    if (!(await requireRole(request, String(secret), ['admin']))) return new Response(JSON.stringify({ ok: false, error: 'forbidden' }), { status: 403 });
+    if (!isValidCsrf(request)) return new Response(JSON.stringify({ ok: false, error: 'csrf_failed' }), { status: 403 });
     const body = await request.json();
     const { action, name, email, status } = body || {};
     if (action === 'create') {
@@ -134,6 +156,17 @@ export const POST: APIRoute = async ({ request }) => {
 
 export const DELETE: APIRoute = async ({ request }) => {
   try {
+    const metaEnv = (import.meta as unknown as { env?: Record<string, unknown> }).env;
+    const getEnv = (name: string): string | undefined => {
+      const fromImportMeta = typeof metaEnv?.[name] === 'string' ? (metaEnv?.[name] as string) : undefined;
+      const fromProcess = typeof process !== 'undefined' ? process.env?.[name] : undefined;
+      return fromImportMeta ?? fromProcess ?? undefined;
+    };
+    const secret = getEnv('SESSION_SECRET') || 'change-me';
+    const { requireRole } = await import('../../../lib/rbac');
+    const { isValidCsrf } = await import('../../../lib/csrf');
+    if (!(await requireRole(request, String(secret), ['admin']))) return new Response(JSON.stringify({ ok: false, error: 'forbidden' }), { status: 403 });
+    if (!isValidCsrf(request)) return new Response(JSON.stringify({ ok: false, error: 'csrf_failed' }), { status: 403 });
     const url = new URL(request.url);
     const id = url.searchParams.get('id');
     if (!id) return new Response(JSON.stringify({ ok: false, error: 'id required' }), { status: 400 });

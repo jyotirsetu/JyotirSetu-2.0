@@ -23,7 +23,7 @@ export const POST: APIRoute = async ({ request }) => {
     return new Response('Unauthorized', { status: 401 });
   }
 
-  const token = await signSession({ user: 'admin', ts: Date.now() }, String(secret));
+  const token = await signSession({ user: 'admin', role: 'admin', ts: Date.now() }, String(secret));
   const headers = new Headers();
   const proto = new URL(request.url).protocol;
   const secureFlag = proto === 'https:' ? '; Secure' : '';

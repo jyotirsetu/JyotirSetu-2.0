@@ -304,6 +304,9 @@ import MobilePageSelect from '~/components/MobilePageSelect.astro';
                 <a href="/admin/dashboard" class="nav-link"><i class="nav-icon fas fa-gauge"></i><p>Dashboard</p></a>
               </li>
               <li class="nav-item">
+                <a href="/admin/leads" class="nav-link"><i class="nav-icon fas fa-route"></i><p>Leads</p></a>
+              </li>
+              <li class="nav-item">
                 <a href="/admin/appointments" class="nav-link"
                   ><i class="nav-icon fas fa-calendar-check"></i><p>Appointments</p></a
                 >
@@ -434,6 +437,10 @@ import MobilePageSelect from '~/components/MobilePageSelect.astro';
         'December',
       ];
 
+      let staffAvailability = [];
+      let staffCapacity = [];
+      let staffList = [];
+
       async function loadAppointments() {
         const res = await fetch('/api/admin/appointments?page=1&limit=1000', { credentials: 'include' });
         const json = await res.json();
@@ -442,12 +449,21 @@ import MobilePageSelect from '~/components/MobilePageSelect.astro';
         renderCalendar();
       }
 
+      async function loadStaffData() {
+        try {
+          const staffRes = await fetch('/api/admin/staff', { credentials: 'include' });
+          const staffJson = await staffRes.json();
+          staffList = Array.isArray(staffJson?.data) ? staffJson.data : [];
+          renderCalendar();
+        } catch (e) {
+          console.error('Error loading staff data:', e);
+        }
+      }
+
       function renderCalendar() {
         const year = currentDate.getFullYear();
         const month = currentDate.getMonth();
         const firstDay = new Date(year, month, 1);
-        // Removed unused lastDay to satisfy linter
-        // const lastDay = new Date(year, month + 1, 0);
         const startDate = new Date(firstDay);
         startDate.setDate(startDate.getDate() - startDate.getDay());
 
@@ -474,8 +490,11 @@ import MobilePageSelect from '~/components/MobilePageSelect.astro';
             return apptDate === dateStr;
           });
 
-          html += `<div class="calendar-day ${isOtherMonth ? 'other-month' : ''} ${isToday ? 'today' : ''}">
+          let availabilityIndicator = '';
+
+          html += `<div class="calendar-day ${isOtherMonth ? 'other-month' : ''} ${isToday ? 'today' : ''}" data-date="${dateStr}">
             <div class="day-number">${date.getDate()}</div>
+            ${availabilityIndicator}
             ${dayAppointments
               .slice(0, 3)
               .map(
@@ -492,6 +511,53 @@ import MobilePageSelect from '~/components/MobilePageSelect.astro';
 
         const gridEl = document.getElementById('calendarGrid');
         if (gridEl) gridEl.innerHTML = html;
+
+        // Add click handlers for calendar days
+        document.querySelectorAll('.calendar-day[data-date]').forEach(dayEl => {
+          dayEl.addEventListener('click', (e) => {
+            const dateStr = e.currentTarget.getAttribute('data-date');
+            if (dateStr) {
+              showDayDetails(dateStr);
+            }
+          });
+        });
+      }
+
+      function showDayDetails(dateStr) {
+        const date = new Date(dateStr + 'T00:00:00');
+        const dayAppointments = appointments.filter((a) => {
+          const apptDate = a && a['date'] ? new Date(String(a['date'])).toISOString().split('T')[0] : null;
+          return apptDate === dateStr;
+        });
+        
+        const dayAvailability = [];
+
+        let detailsHtml = `
+          <div style="max-width:600px">
+            <h4>${date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</h4>
+            
+            <div style="margin:16px 0">
+              <h5>Appointments (${dayAppointments.length})</h5>
+              ${dayAppointments.length === 0 ? '<p>No appointments scheduled</p>' : 
+                dayAppointments.map(appt => `
+                  <div style="padding:8px;margin:4px 0;border:1px solid var(--border);border-radius:6px">
+                    <strong>${appt['time']}</strong> - ${appt['name']} (${appt['service']})
+                    <span class="badge bg-${appt['status'] === 'confirmed' ? 'success' : appt['status'] === 'cancelled' ? 'danger' : 'warning'}">${appt['status']}</span>
+                  </div>
+                `).join('')
+              }
+            </div>
+
+            
+
+            <div style="margin-top:16px">
+              <button class="btn btn-primary" onclick="window.AdminNotify.close(); window.location.href='/admin/appointments?date=${dateStr}'">Manage Appointments</button>
+              
+            </div>
+          </div>
+        `;
+
+        window.AdminNotify?.info('Day Details', detailsHtml);
       }
 
       document.getElementById('prevMonth')?.addEventListener('click', () => {
@@ -547,8 +613,11 @@ import MobilePageSelect from '~/components/MobilePageSelect.astro';
       desktopToggle2?.addEventListener('click', toggleSidebar);
       syncSidebarBtn();
 
-      loadAppointments();
-      setInterval(loadAppointments, 60000); // Refresh every minute
+      Promise.all([loadAppointments(), loadStaffData()]);
+      setInterval(() => {
+        loadAppointments();
+        loadStaffData();
+      }, 60000); // Refresh every minute
 
       // Mobile drawer
       const sidebar = document.getElementById('adminSidebar');

@@ -199,6 +199,12 @@ The site can be deployed to any static hosting platform:
 - **Phone**: +91-9266991298
 - **Address**: 40A/5, Sector-15, Part-2, Gurugram, Haryana
 
+## Admin Portal Notes
+
+- Users management page is available for Super Admins under the admin portal.
+- Legacy Staff Availability and Service Capacity features have been removed (pages, APIs, database tables). Calendar focuses on appointments.
+- API routes `/api/admin/availability` and `/api/admin/capacity` are no longer present. Database tables `staff_availability` and `staff_capacity` are deprecated.
+
 ## 🔧 **Configuration**
 
 ### **Site Settings**

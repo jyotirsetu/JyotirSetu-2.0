@@ -5,6 +5,7 @@ import {
   ensureAppointmentsTable,
   ensureContactsTable,
   ensurePaymentsTable,
+  ensureClientHoroscopesTable,
 } from '../../../lib/turso';
 
 export const prerender = false;
@@ -15,6 +16,7 @@ export const GET: APIRoute = async ({ request }) => {
     await ensurePaymentsTable();
     await ensureAppointmentsTable();
     await ensureContactsTable();
+    await ensureClientHoroscopesTable();
     const url = new URL(request.url);
     const id = url.searchParams.get('id');
     const email = url.searchParams.get('email');
@@ -25,14 +27,33 @@ export const GET: APIRoute = async ({ request }) => {
     const client = await getTursoClient();
 
     if (id || email || phone) {
-      const by = id ? 'id' : email ? 'email' : 'phone';
-      const key = id ? String(id) : email ? String(email) : String(phone);
+      const by = id ? 'id' : phone ? 'phone' : 'email';
+      const key = id ? String(id) : phone ? String(phone) : String(email);
       const res = await client.execute({
         sql: `SELECT id, name, email, phone, vip, created_at FROM clients WHERE ${by} = ? LIMIT 1`,
         args: [key],
       });
       let c = (res.rows && res.rows[0]) as Record<string, unknown> | undefined;
       // Fallback: derive client from latest appointment when client record doesn't exist
+      if (!c && phone) {
+        const apFind = await client.execute({
+          sql: `SELECT name, email, phone, created_at FROM appointments WHERE phone = ? ORDER BY datetime(created_at) DESC LIMIT 1`,
+          args: [String(phone)],
+        });
+        const apRow = (apFind.rows && apFind.rows[0]) as
+          | { name?: unknown; email?: unknown; phone?: unknown; created_at?: unknown }
+          | undefined;
+        if (apRow) {
+          c = {
+            id: '',
+            name: String(apRow.name || ''),
+            email: String(apRow.email || ''),
+            phone: apRow.phone != null ? String(apRow.phone) : '',
+            vip: 'no',
+            created_at: String(apRow.created_at || new Date().toISOString()),
+          } as Record<string, unknown>;
+        }
+      }
       if (!c && email) {
         const apFind = await client.execute({
           sql: `SELECT name, email, phone, created_at FROM appointments WHERE email = ? ORDER BY datetime(created_at) DESC LIMIT 1`,
@@ -54,14 +75,20 @@ export const GET: APIRoute = async ({ request }) => {
       }
       if (!c) return new Response(JSON.stringify({ ok: false, error: 'not_found' }), { status: 404 });
       const cid = String(c.id || '');
-      const [apRes, coRes, payRes, totalPayRes] = await Promise.all([
+      const preferPhone = String(c.phone || '').trim();
+      const preferEmail = String(c.email || '').trim();
+      const [apRes, coRes, payRes, totalPayRes, horRes] = await Promise.all([
         client.execute({
-          sql: `SELECT id, name, service, consultation_method, customer_appointment_id, date, time, status, payment_status, created_at FROM appointments WHERE email = ? ORDER BY datetime(created_at) DESC LIMIT 50`,
-          args: [String(c.email || '')],
+          sql: preferPhone
+            ? `SELECT id, name, service, consultation_method, customer_appointment_id, date, time, status, payment_status, created_at FROM appointments WHERE phone = ? ORDER BY datetime(created_at) DESC LIMIT 50`
+            : `SELECT id, name, service, consultation_method, customer_appointment_id, date, time, status, payment_status, created_at FROM appointments WHERE email = ? ORDER BY datetime(created_at) DESC LIMIT 50`,
+          args: [preferPhone || preferEmail],
         }),
         client.execute({
-          sql: `SELECT id, subject, status, priority, created_at FROM contacts WHERE email = ? ORDER BY datetime(created_at) DESC LIMIT 50`,
-          args: [String(c.email || '')],
+          sql: preferPhone
+            ? `SELECT id, subject, status, priority, created_at FROM contacts WHERE phone = ? ORDER BY datetime(created_at) DESC LIMIT 50`
+            : `SELECT id, subject, status, priority, created_at FROM contacts WHERE email = ? ORDER BY datetime(created_at) DESC LIMIT 50`,
+          args: [preferPhone || preferEmail],
         }),
         cid
           ? client.execute({
@@ -75,6 +102,12 @@ export const GET: APIRoute = async ({ request }) => {
               args: [cid],
             })
           : Promise.resolve({ rows: [{ total: 0 }] as Array<Record<string, unknown>> }),
+        cid
+          ? client.execute({
+              sql: `SELECT id, name, relation, gender, dob, tob, pob, latitude, longitude, timezone, notes, created_at, updated_at FROM client_horoscopes WHERE client_id = ? ORDER BY datetime(created_at) DESC`,
+              args: [cid],
+            })
+          : Promise.resolve({ rows: [] as Array<Record<string, unknown>> }),
       ]);
       const totalPaidRow = (totalPayRes.rows && totalPayRes.rows[0]) as { total?: unknown } | undefined;
       const totalPaid = Number(totalPaidRow?.total ?? 0);
@@ -86,6 +119,7 @@ export const GET: APIRoute = async ({ request }) => {
             appointments: apRes.rows || [],
             contacts: coRes.rows || [],
             payments: payRes.rows || [],
+            horoscopes: horRes.rows || [],
             totals: { paid: totalPaid },
           },
         }),
@@ -95,7 +129,25 @@ export const GET: APIRoute = async ({ request }) => {
 
     const [listRes, countRes] = await Promise.all([
       client.execute({
-        sql: `SELECT id, name, email, phone, vip, created_at FROM clients ORDER BY datetime(created_at) DESC LIMIT ? OFFSET ?`,
+        sql: `
+          SELECT c.id,
+                 COALESCE(NULLIF(c.name,''), ap.name) AS name,
+                 c.email,
+                 COALESCE(NULLIF(c.phone,''), ap.phone) AS phone,
+                 c.vip,
+                 c.created_at
+          FROM clients c
+          LEFT JOIN (
+            SELECT email, MAX(datetime(created_at)) AS last_created,
+                   (SELECT name FROM appointments a2 WHERE a2.email = a.email ORDER BY datetime(a2.created_at) DESC LIMIT 1) AS name,
+                   (SELECT phone FROM appointments a3 WHERE a3.email = a.email ORDER BY datetime(a3.created_at) DESC LIMIT 1) AS phone
+            FROM appointments a
+            WHERE email IS NOT NULL AND email <> ''
+            GROUP BY email
+          ) ap ON ap.email = c.email
+          ORDER BY datetime(c.created_at) DESC
+          LIMIT ? OFFSET ?
+        `,
         args: [limit, offset],
       }),
       client.execute({ sql: `SELECT COUNT(*) AS total FROM clients`, args: [] }),
@@ -129,6 +181,16 @@ export const GET: APIRoute = async ({ request }) => {
 
 export const POST: APIRoute = async ({ request }) => {
   try {
+    const secret = (() => {
+      const metaEnv = (import.meta as unknown as { env?: Record<string, unknown> }).env;
+      const fromImportMeta = typeof metaEnv?.['SESSION_SECRET'] === 'string' ? (metaEnv?.['SESSION_SECRET'] as string) : undefined;
+      const fromProcess = typeof process !== 'undefined' ? process.env?.['SESSION_SECRET'] : undefined;
+      return fromImportMeta ?? fromProcess ?? 'change-me';
+    })();
+    const { requireRole } = await import('../../../lib/rbac');
+    const { isValidCsrf } = await import('../../../lib/csrf');
+    if (!(await requireRole(request, String(secret), ['admin']))) return new Response(JSON.stringify({ ok: false, error: 'forbidden' }), { status: 403 });
+    if (!isValidCsrf(request)) return new Response(JSON.stringify({ ok: false, error: 'csrf_failed' }), { status: 403 });
     await ensureClientsTable();
     const client = await getTursoClient();
     const body = await request.json();

@@ -1,5 +1,6 @@
 import { defineMiddleware } from 'astro:middleware';
 import { verifySession } from './lib/auth';
+// RBAC is handled via session role; fine-grained permissions deferred
 
 const getEnvString = (key: string): string | undefined => {
   const metaEnv = (import.meta as unknown as { env?: Record<string, unknown> }).env;
@@ -36,8 +37,33 @@ export const onRequest = defineMiddleware(async (context, next) => {
       return redirect('/admin/login');
     }
     const session = await verifySession(token, String(secret));
-    if (!session || !session.user || session.user !== 'admin') {
+    const s: Record<string, unknown> | null = session as Record<string, unknown> | null;
+    const userRole = typeof s?.['role'] === 'string' ? String(s?.['role']) : (typeof s?.['user'] === 'string' ? String(s?.['user']) : '');
+    
+    if (!session) {
       return redirect('/admin/login');
+    }
+    
+    // Check RBAC for specific admin routes
+    
+    // Staff management routes - require admin or manager role
+    if (pathname.startsWith('/admin/staff') || pathname.startsWith('/api/admin/staff')) {
+      if (userRole !== 'admin') { return new Response('Forbidden', { status: 403 }); }
+    }
+    
+    // Users management routes - require super_admin
+    if (pathname.startsWith('/admin/users') || pathname.startsWith('/api/admin/users')) {
+      if (userRole !== 'super_admin') { return new Response('Forbidden', { status: 403 }); }
+    }
+    
+    // Document sharing routes - require admin or manager role
+    if (pathname.startsWith('/admin/documents-share') || pathname.startsWith('/api/admin/documents-share')) {
+      if (userRole !== 'admin') { return new Response('Forbidden', { status: 403 }); }
+    }
+    
+    // Document audit routes - require admin or manager role
+    if (pathname.startsWith('/api/admin/documents-audit')) {
+      if (userRole !== 'admin') { return new Response('Forbidden', { status: 403 }); }
     }
     const hasCsrf = /csrf_token=([^;]+)/.test(request.headers.get('cookie') || '');
     const response = await next();

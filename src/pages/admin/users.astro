@@ -1,0 +1,130 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import AdminNavbar from '~/components/AdminNavbar.astro';
+import AdminSidebar from '~/components/AdminSidebar.astro';
+
+export const prerender = false;
+
+const secret = ((import.meta as unknown as { env?: Record<string, unknown> }).env?.['SESSION_SECRET'] as string) || (process.env?.['SESSION_SECRET'] || 'change-me');
+const { requireRole } = await import('../../lib/rbac');
+const allowed = await requireRole(Astro.request, String(secret), ['super_admin']);
+let users: Array<Record<string, unknown>> = [];
+let error: string | null = null;
+if (allowed) {
+  try {
+    const res = await fetch(new URL('/api/admin/users', Astro.url.origin).toString(), { headers: { Cookie: Astro.request.headers.get('Cookie') || '' } });
+    const j = await res.json();
+    users = Array.isArray(j.data) ? j.data : [];
+  } catch { error = 'Failed to load users'; }
+}
+---
+
+<Layout>
+  <AdminNavbar />
+  <div class="wrapper">
+    <AdminSidebar activePage="/admin/users" />
+    <div class="content-wrapper">
+      <div class="content-header">
+        <div class="container-fluid">
+          <div class="row mb-2">
+            <div class="col-sm-6">
+              <h1 class="m-0">User Management</h1>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="content">
+        <div class="container-fluid">
+          { !allowed ? (
+            <div class="alert alert-danger">Access denied. Only Super Admin can manage users.</div>
+          ) : (
+            <div class="row">
+              <div class="col-md-4">
+                <div class="card">
+                  <div class="card-header"><strong>Add User</strong></div>
+                  <div class="card-body">
+                    <div class="mb-2"><input id="username" class="form-control" placeholder="Username" /></div>
+                    <div class="mb-2"><input id="password" type="password" class="form-control" placeholder="Password" /></div>
+                    <div class="mb-2">
+                      <select id="role" class="form-select">
+                        <option value="support">Support</option>
+                        <option value="consultant">Consultant</option>
+                        <option value="manager">Manager</option>
+                        <option value="admin">Admin</option>
+                        <option value="super_admin">Super Admin</option>
+                      </select>
+                    </div>
+                    <button class="btn btn-primary" id="createUserBtn">Create</button>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-8">
+                <div class="card">
+                  <div class="card-header"><strong>Users</strong></div>
+                  <div class="card-body">
+                    { error && (<div class="alert alert-danger">{error}</div>) }
+                    <div class="table-responsive">
+                      <table class="table table-bordered">
+                        <thead>
+                          <tr><th>Username</th><th>Role</th><th>Actions</th></tr>
+                        </thead>
+                        <tbody>
+                          { users.map((u) => (
+                            <tr>
+                              <td>{String(u.username||'')}</td>
+                              <td>{String(u.role||'')}</td>
+                              <td>
+                                <button class="btn btn-sm btn-outline-secondary editUser" data-id={String(u.id||'')}>Edit</button>
+                              </td>
+                            </tr>
+                          )) }
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script is:inline>
+    (function(){
+      function getCsrf(){ const m=document.cookie.match(/csrf_token=([^;]+)/); return m? m[1] : ''; }
+      document.getElementById('createUserBtn')?.addEventListener('click', async function(){
+        const uEl = document.getElementById('username');
+        const pEl = document.getElementById('password');
+        const rEl = document.getElementById('role');
+        const username = (uEl instanceof HTMLInputElement) ? String(uEl.value||'').trim() : '';
+        const password = (pEl instanceof HTMLInputElement) ? String(pEl.value||'') : '';
+        const role = (rEl instanceof HTMLSelectElement) ? String(rEl.value||'support') : 'support';
+        if (!username || !password) { alert('Please enter username and password'); return; }
+        try {
+          const res = await fetch('/api/admin/users', { method:'POST', credentials:'include', headers:{ 'Content-Type':'application/json','X-CSRF-Token': getCsrf() }, body: JSON.stringify({ username, password, role }) });
+          const j = await res.json();
+          if (res.ok && j && j.ok) { location.reload(); } else { alert('Failed to create user'); }
+        } catch { alert('Failed to create user'); }
+      });
+      document.addEventListener('click', function(e){
+        const target = e && e.target ? e.target : null;
+        if (!(target instanceof Element)) return;
+        const btn = target.closest('.editUser');
+        if (!btn) return;
+        const id = btn && btn['dataset'] ? String((btn['dataset']['id']||'')) : '';
+        const role = prompt('New role (support/consultant/manager/admin/super_admin)')||'';
+        if (!id || !role) return;
+        const perms = prompt('Comma separated extra permissions (optional)')||'';
+        const permissions = perms ? perms.split(',').map(function(p){ return p.trim(); }).filter(Boolean) : [];
+        fetch('/api/admin/users', { method:'PUT', credentials:'include', headers:{ 'Content-Type':'application/json','X-CSRF-Token': getCsrf() }, body: JSON.stringify({ id, role, permissions }) })
+          .then(function(res){ return res.json().then(function(j){ if (res.ok && j && j.ok) location.reload(); else alert('Failed to update user'); }); })
+          .catch(function(){ alert('Failed to update user'); });
+      });
+    })();
+  </script>
+  <style>
+    .card { background: var(--panel); color: var(--text); border-color: var(--border); }
+  </style>
+</Layout>

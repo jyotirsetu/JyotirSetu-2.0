@@ -58,6 +58,22 @@ interface ClientData {
   payments: Payment[];
   contacts: ContactEntry[];
   totals: Totals;
+  horoscopes?: Horoscope[];
+}
+
+interface Horoscope {
+  id: string;
+  name: string;
+  relation: string;
+  gender?: string | null;
+  dob?: string | null;
+  tob?: string | null;
+  pob?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  timezone?: string | null;
+  notes?: string | null;
+  created_at?: string;
 }
 
 const url = new URL(Astro.request.url);
@@ -67,6 +83,10 @@ const phone = url.searchParams.get('phone') || '';
 let clientData: ClientData | null = null;
 let clientList: ClientSummary[] = [];
 let error: string | null = null;
+let remedies: Array<Record<string, unknown>> = [];
+let fulfillments: Array<Record<string, unknown>> = [];
+let documents: Array<Record<string, unknown>> = [];
+let quotes: Array<Record<string, unknown>> = [];
 
 if (email || phone) {
   try {
@@ -78,16 +98,72 @@ if (email || phone) {
       headers: { Cookie: Astro.request.headers.get('Cookie') || '' },
     });
 
-    if (response.ok) {
-      const result = await response.json();
-      if (result.ok && result.data) {
-        clientData = result.data;
-      } else {
-        error = 'Client not found';
+  if (response.ok) {
+    const result = await response.json();
+    if (result.ok && result.data) {
+      clientData = result.data;
+      try {
+        const cid = String(result.data.client.id || '').trim();
+        if (cid) {
+          const [remR, fulR, docR] = await Promise.all([
+            fetch(new URL('/api/admin/remedies?client_id=' + encodeURIComponent(cid), Astro.url.origin).toString(), { headers: { Cookie: Astro.request.headers.get('Cookie') || '' } }),
+            fetch(new URL('/api/admin/fulfillment?client_id=' + encodeURIComponent(cid), Astro.url.origin).toString(), { headers: { Cookie: Astro.request.headers.get('Cookie') || '' } }),
+            fetch(new URL('/api/admin/documents?client_id=' + encodeURIComponent(cid), Astro.url.origin).toString(), { headers: { Cookie: Astro.request.headers.get('Cookie') || '' } }),
+          ]);
+          {
+            const jr: { data?: unknown } = await remR.json().catch(() => ({ data: [] }));
+            remedies = Array.isArray(jr.data)
+              ? (jr.data as unknown[])
+                  .filter((v) => v != null && typeof v === 'object')
+                  .map((v) => v as Record<string, unknown>)
+              : [];
+          }
+          {
+            const jf: { data?: unknown } = await fulR.json().catch(() => ({ data: [] }));
+            fulfillments = Array.isArray(jf.data)
+              ? (jf.data as unknown[])
+                  .filter((v) => v != null && typeof v === 'object')
+                  .map((v) => v as Record<string, unknown>)
+              : [];
+          }
+          {
+            const jd: { data?: unknown } = await docR.json().catch(() => ({ data: [] }));
+            documents = Array.isArray(jd.data)
+              ? (jd.data as unknown[])
+                  .filter((v) => v != null && typeof v === 'object')
+                  .map((v) => v as Record<string, unknown>)
+              : [];
+          }
+          try {
+            const clientEmail = String(result.data.client.email||'').trim();
+            const clientPhone = String(result.data.client.phone||'').trim();
+            const clientName = String(result.data.client.name||'').trim();
+            const searchUrl = new URL('/api/admin/quotes', Astro.url.origin);
+            if (clientEmail) searchUrl.searchParams.set('q_email', clientEmail);
+            if (clientPhone) searchUrl.searchParams.set('q_phone', clientPhone);
+            if (clientName) searchUrl.searchParams.set('q_name', clientName);
+            const r = await fetch(searchUrl.toString(), { headers: { Cookie: Astro.request.headers.get('Cookie') || '' } });
+            const j = await r.json();
+            quotes = Array.isArray(j.data) ? j.data : [];
+          } catch (err) { console.warn(err); }
+        }
+      } catch (err) { console.warn(err); }
+      if (!quotes.length) {
+        try {
+          const searchUrl = new URL('/api/admin/quotes', Astro.url.origin);
+          if (email) searchUrl.searchParams.set('q_email', String(email));
+          if (phone) searchUrl.searchParams.set('q_phone', String(phone));
+          const r = await fetch(searchUrl.toString(), { headers: { Cookie: Astro.request.headers.get('Cookie') || '' } });
+          const j = await r.json();
+          quotes = Array.isArray(j.data) ? j.data : [];
+        } catch (err) { console.warn(err); }
       }
     } else {
-      error = 'Failed to fetch client data';
+      error = 'Client not found';
     }
+  } else {
+    error = 'Failed to fetch client data';
+  }
   } catch (e) {
     console.error('Failed to fetch client data', e);
     error = 'Network error';
@@ -196,6 +272,9 @@ if (!email && !phone) {
               <a href="/admin/dashboard" class="nav-link"><i class="nav-icon fas fa-gauge"></i><p>Dashboard</p></a>
             </li>
             <li class="nav-item">
+              <a href="/admin/leads" class="nav-link"><i class="nav-icon fas fa-route"></i><p>Leads</p></a>
+            </li>
+            <li class="nav-item">
               <a href="/admin/appointments" class="nav-link"
                 ><i class="nav-icon fas fa-calendar-check"></i><p>Appointments</p></a
               >
@@ -256,6 +335,7 @@ if (!email && !phone) {
           <div class="row mb-2">
             <div class="col-sm-6">
               <h1 class="m-0">{clientData ? clientData.client.name : 'Client 360° View'}</h1>
+              {clientData && (<div id="clientCtx" data-client-id={clientData.client.id} style="display:none"></div>)}
             </div>
             <div class="col-sm-6">
               <ol class="breadcrumb float-sm-right">
@@ -331,18 +411,19 @@ if (!email && !phone) {
             )
           }
 
-          {
+        {
             !clientData && !email && !phone && (
               <div class="row">
                 <div class="col-12">
                   <div class="card">
                     <div class="card-header">
                       <h3 class="card-title">Recent Clients</h3>
+                      <button class="btn btn-sm btn-outline-secondary" id="refreshRecent" style="float:right">Refresh</button>
                     </div>
                     <div class="card-body">
                       {Array.isArray(clientList) && clientList.length ? (
                         <div class="table-responsive">
-                          <table class="table table-bordered">
+                          <table class="table table-bordered" id="recentClientsTable">
                             <thead>
                               <tr>
                                 <th>Name</th>
@@ -360,9 +441,9 @@ if (!email && !phone) {
                                   <td>{c.phone || '—'}</td>
                                   <td>{Number(c.total_paid ?? 0).toFixed(2)}</td>
                                   <td>
-                                    <a
+                                  <a
                                       class="btn btn-sm btn-outline-primary"
-                                      href={`/admin/client360?email=${encodeURIComponent(String(c.email || ''))}`}
+                                      href={`/admin/client360?phone=${encodeURIComponent(String(c.phone || ''))}`}
                                     >
                                       View
                                     </a>
@@ -435,40 +516,106 @@ if (!email && !phone) {
                           <span class="text-success font-weight-bold">₹{clientData.totals.paid.toLocaleString()}</span>
                         </p>
                       </div>
-                    </div>
-                  </div>
+                </div>
+              </div>
 
-                  <div class="card card-info">
-                    <div class="card-header">
-                      <h3 class="card-title">Quick Stats</h3>
-                    </div>
-                    <div class="card-body">
-                      <div class="row text-center">
-                        <div class="col-6">
-                          <div class="info-box">
-                            <span class="info-box-icon bg-info">
-                              <i class="fas fa-calendar" />
-                            </span>
-                            <div class="info-box-content">
-                              <span class="info-box-text">Total Appointments</span>
-                              <span class="info-box-number">{clientData.appointments.length}</span>
-                            </div>
-                          </div>
+              <div class="card card-indigo">
+                <div class="card-header"><h3 class="card-title">Quotations</h3></div>
+                <div class="card-body">
+                  <div id="quotesTableContainer">
+                    {Array.isArray(quotes) && quotes.length ? (
+                      <div class="table-responsive">
+                        <table class="table table-bordered">
+                          <thead><tr><th>No</th><th>Status</th><th>Total</th><th>Created</th><th>Actions</th></tr></thead>
+                          <tbody>
+                            {quotes.map((q) => (
+                              <tr>
+                                <td>{String(q.number||'')}</td>
+                                <td>{String(q.status||'')}</td>
+                                <td>₹{Number(q.total||0).toFixed(2)}</td>
+                                <td>{new Date(String(q.created_at||'')).toLocaleString()}</td>
+                                <td><a class="btn btn-sm btn-outline-success" target="_blank" href={`/api/admin/quotes/pdf?id=${encodeURIComponent(String(q.id||''))}`}>Open PDF</a></td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <p class="text-muted">No quotations found</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div class="card card-info">
+                <div class="card-header">
+                  <h3 class="card-title">Quick Stats</h3>
+                </div>
+                <div class="card-body">
+                  <div class="row text-center">
+                    <div class="col-6">
+                      <div class="info-box">
+                        <span class="info-box-icon bg-info">
+                          <i class="fas fa-calendar" />
+                        </span>
+                        <div class="info-box-content">
+                          <span class="info-box-text">Total Appointments</span>
+                          <span class="info-box-number">{clientData.appointments.length}</span>
                         </div>
-                        <div class="col-6">
-                          <div class="info-box">
-                            <span class="info-box-icon bg-success">
-                              <i class="fas fa-comments" />
-                            </span>
-                            <div class="info-box-content">
-                              <span class="info-box-text">Total Contacts</span>
-                              <span class="info-box-number">{clientData.contacts.length}</span>
-                            </div>
-                          </div>
+                      </div>
+                    </div>
+                    <div class="col-6">
+                      <div class="info-box">
+                        <span class="info-box-icon bg-success">
+                          <i class="fas fa-comments" />
+                        </span>
+                        <div class="info-box-content">
+                          <span class="info-box-text">Total Contacts</span>
+                          <span class="info-box-number">{clientData.contacts.length}</span>
                         </div>
                       </div>
                     </div>
                   </div>
+                </div>
+              </div>
+
+              {clientData.horoscopes && clientData.horoscopes.length > 0 && (
+                <div class="card card-secondary">
+                  <div class="card-header">
+                    <h3 class="card-title">Horoscope Profiles</h3>
+                  </div>
+                  <div class="card-body">
+                    <div class="table-responsive">
+                      <table class="table table-bordered">
+                        <thead>
+                          <tr>
+                            <th>Name</th>
+                            <th>Relation</th>
+                            <th>DOB</th>
+                            <th>TOB</th>
+                            <th>POB</th>
+                            <th>Coords</th>
+                            <th>Timezone</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {clientData.horoscopes.map((h) => (
+                            <tr>
+                              <td>{h.name}</td>
+                              <td>{h.relation}</td>
+                              <td>{h.dob || '—'}</td>
+                              <td>{h.tob || '—'}</td>
+                              <td>{h.pob || '—'}</td>
+                              <td>{h.latitude != null && h.longitude != null ? `${h.latitude}, ${h.longitude}` : '—'}</td>
+                              <td>{h.timezone || '—'}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              )}
                 </div>
 
                 <div class="col-md-8">
@@ -583,14 +730,14 @@ if (!email && !phone) {
                       ) : (
                         <p class="text-muted text-center">No payments recorded</p>
                       )}
-                    </div>
-                  </div>
+                </div>
+              </div>
 
-                  <div class="card card-info">
-                    <div class="card-header">
-                      <h3 class="card-title">Contact History</h3>
-                    </div>
-                    <div class="card-body">
+              <div class="card card-info">
+                <div class="card-header">
+                  <h3 class="card-title">Contact History</h3>
+                </div>
+                <div class="card-body">
                       {clientData.contacts.length > 0 ? (
                         <div class="table-responsive">
                           <table class="table table-bordered">
@@ -639,10 +786,95 @@ if (!email && !phone) {
                           </table>
                         </div>
                       ) : (
-                        <p class="text-muted text-center">No contacts found</p>
-                      )}
+                    <p class="text-muted text-center">No contacts found</p>
+                  )}
+                </div>
+              </div>
+
+              <div class="card card-primary">
+                <div class="card-header"><h3 class="card-title">Remedies</h3></div>
+                <div class="card-body">
+                  <div style="margin-bottom:12px"><button class="btn btn-sm btn-outline-primary" id="addRemBtn">Add Remedy</button></div>
+                  {Array.isArray(remedies) && remedies.length ? (
+                    <div class="table-responsive">
+                      <table class="table table-bordered">
+                        <thead><tr><th>Title</th><th>Type</th><th>Status</th><th>Adherence</th><th>Duration</th></tr></thead>
+                        <tbody>
+                          {remedies.map((r) => (
+                            <tr>
+                              <td>{String(r.title||'')}</td>
+                              <td>{String(r.type||'')}</td>
+                              <td>{String(r.status||'')}</td>
+                              <td>{Number(r.adherence||0)}%</td>
+                              <td>{String(r.start_date||'')} {r.end_date? '→ '+String(r.end_date): ''}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
                     </div>
-                  </div>
+                  ) : (
+                    <p class="text-muted">No remedies recorded</p>
+                  )}
+                </div>
+              </div>
+
+              <div class="card card-secondary">
+                <div class="card-header"><h3 class="card-title">Fulfillment Tasks</h3></div>
+                <div class="card-body">
+                  <div style="margin-bottom:12px"><button class="btn btn-sm btn-outline-primary" id="addFulBtn">Add Task</button></div>
+                  {Array.isArray(fulfillments) && fulfillments.length ? (
+                    <div class="table-responsive">
+                      <table class="table table-bordered">
+                        <thead><tr><th>Service</th><th>Status</th><th>Due</th><th>Checklist</th></tr></thead>
+                        <tbody>
+                          {fulfillments.map((f) => (
+                            <tr>
+                              <td>{String(f.service||'')}</td>
+                              <td>{String(f.status||'')}</td>
+                              <td>{String(f.due_date||'')}</td>
+                              <td>{String(f.checklist||'')}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <p class="text-muted">No fulfillment tasks</p>
+                  )}
+                </div>
+              </div>
+
+              <div class="card card-warning">
+                <div class="card-header"><h3 class="card-title">Documents</h3></div>
+                <div class="card-body">
+                  <div style="margin-bottom:12px"><button class="btn btn-sm btn-outline-primary" id="addDocBtn">Add Document</button></div>
+                  {Array.isArray(documents) && documents.length ? (
+                    <div class="table-responsive">
+                      <table class="table table-bordered">
+                        <thead><tr><th>Title</th><th>Type</th><th>Size</th><th>Link</th><th>Created</th><th>Share</th></tr></thead>
+                        <tbody>
+                          {documents.map((d) => (
+                            <tr>
+                              <td>{String(d.title||'')}</td>
+                              <td>{String(d.mime_type||'')}</td>
+                              <td>{d.size != null ? Number(d.size) : ''}</td>
+                              <td>{String(d.storage_url||'')}</td>
+                              <td>{String(d.created_at||'')}</td>
+                              <td>
+                                <button class="btn btn-sm btn-outline-primary createShare" data-doc-id={String(d.id||'')} title="Create share link"><i class="fas fa-link"></i></button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <p class="text-muted">No documents</p>
+                  )}
+                </div>
+              </div>
+
+              
                 </div>
               </div>
             )
@@ -660,6 +892,8 @@ if (!email && !phone) {
   <script is:inline>
     (function(){
       if (typeof window === 'undefined') return;
+      try { window.addEventListener('unhandledrejection', function(e){ try { e.preventDefault(); console.warn('Unhandled promise rejection suppressed'); } catch (err) { console.warn(err); } }); } catch (err) { console.warn(err); }
+      try { window.addEventListener('error', function(_e){ try { console.warn('Window error'); } catch (err) { console.warn(err); } }); } catch (err) { console.warn(err); }
       let customers = [];
       async function loadCustomers(){
         let allRows = [];
@@ -717,8 +951,11 @@ if (!email && !phone) {
         dd.querySelectorAll('.dropdown-item').forEach(function(it){
           it.addEventListener('click', function(e){
             e.preventDefault();
+            const phone = this.getAttribute('data-phone') || '';
             const email = this.getAttribute('data-email') || '';
-            if (email) {
+            if (phone) {
+              window.location.href = `/admin/client360?phone=${encodeURIComponent(phone)}`;
+            } else if (email) {
               window.location.href = `/admin/client360?email=${encodeURIComponent(email)}`;
             }
           });
@@ -741,7 +978,10 @@ if (!email && !phone) {
         showCustomerDropdown(filtered.slice(0,12));
       });
       document.addEventListener('click', function(e){
-        if (!e.target.closest('#customerSearch') && !e.target.closest('#customerDropdown')) {
+        const target = e && e.target ? e.target : null;
+        const isInsideSearch = (target instanceof Element) && !!target.closest('#customerSearch');
+        const isInsideDD = (target instanceof Element) && !!target.closest('#customerDropdown');
+        if (!isInsideSearch && !isInsideDD) {
           const dd=document.getElementById('customerDropdown'); if(dd) dd.style.display='none';
         }
       });
@@ -754,6 +994,78 @@ if (!email && !phone) {
         finally { this.disabled = false; }
       });
       loadCustomers();
+
+      async function refreshRecentClients(){
+        try {
+          const res = await fetch('/api/admin/clients?limit=20', { credentials:'include' });
+          const j = await res.json();
+          const rows = Array.isArray(j.data)? j.data: [];
+          const tb = document.querySelector('#recentClientsTable tbody');
+          if (!tb) return;
+          tb.innerHTML = rows.map(function(c){ return `<tr>
+            <td>${c.name||'—'}</td>
+            <td>${c.email||'—'}</td>
+            <td>${c.phone||'—'}</td>
+            <td>${Number(c.total_paid||0).toFixed(2)}</td>
+            <td><a class="btn btn-sm btn-outline-primary" href="/admin/client360?phone=${encodeURIComponent(String(c.phone||''))}">View</a></td>
+          </tr>`; }).join('');
+        } catch { void 0; }
+      }
+      document.getElementById('refreshRecent')?.addEventListener('click', function(){ refreshRecentClients(); });
+      try { setInterval(refreshRecentClients, 60000); } catch { void 0; }
+
+      document.addEventListener('click', async function(ev){
+        const t = ev && ev.target ? ev.target : null;
+        const btn = (t instanceof Element) && t.closest ? t.closest('.createShare') : null;
+        if (!btn) return;
+        ev.preventDefault();
+        try {
+          const id = btn ? (btn['getAttribute'] ? String(btn['getAttribute']('data-doc-id')||'') : '') : '';
+          if (!id) return;
+          const res = await fetch('/api/admin/documents-share', { method:'POST', headers:{ 'Content-Type':'application/json', 'X-CSRF-Token': (document.cookie.match(/csrf_token=([^;]+)/)||[])[1]||'' }, body: JSON.stringify({ document_id: id, ttl_hours: 48 }) });
+          const j = await res.json();
+          if (res.ok && j && j.ok) {
+            const url = window.location.origin + '/api/admin/documents-share?token=' + encodeURIComponent(String(j.token||''));
+            alert('Share link created:\n'+url);
+          } else {
+            alert('Failed to create share link');
+          }
+        } catch { alert('Failed to create share link'); }
+      });
+
+      
+
+      const csrf = () => (document.cookie.match(/csrf_token=([^;]+)/)||[])[1]||'';
+      document.getElementById('addDocBtn')?.addEventListener('click', async function(){
+        const title = prompt('Document title'); if (title == null) return;
+        const url = prompt('Document URL'); if (!url) return;
+        const clientId = (document.querySelector('#clientCtx')?.getAttribute('data-client-id'))||'';
+        try {
+          const res = await fetch('/api/admin/documents', { method:'POST', headers:{ 'Content-Type':'application/json','X-CSRF-Token': csrf() }, body: JSON.stringify({ action:'add', client_id: clientId, title, storage_url: url }) });
+          const j = await res.json(); if (res.ok && j && j.ok) location.reload(); else alert('Failed to add document');
+        } catch { alert('Failed to add document'); }
+      });
+
+      document.getElementById('addFulBtn')?.addEventListener('click', async function(){
+        const service = prompt('Service'); if (!service) return;
+        const due = prompt('Due date (YYYY-MM-DD)');
+        const notes = prompt('Notes');
+        const clientId = (document.querySelector('#clientCtx')?.getAttribute('data-client-id'))||'';
+        try {
+          const res = await fetch('/api/admin/fulfillment', { method:'POST', headers:{ 'Content-Type':'application/json','X-CSRF-Token': csrf() }, body: JSON.stringify({ action:'create', client_id: clientId, service, due_date: due, checklist: [], notes }) });
+          const j = await res.json(); if (res.ok && j && j.ok) location.reload(); else alert('Failed to add task');
+        } catch { alert('Failed to add task'); }
+      });
+      document.getElementById('addRemBtn')?.addEventListener('click', async function(){
+        const title = prompt('Remedy title'); if (!title) return;
+        const type = prompt('Type (gemstone/mantra/puja)')||'gemstone';
+        const notes = prompt('Notes')||'';
+        const clientId = (document.querySelector('#clientCtx')?.getAttribute('data-client-id'))||'';
+        try {
+          const res = await fetch('/api/admin/remedies', { method:'POST', headers:{ 'Content-Type':'application/json','X-CSRF-Token': csrf() }, body: JSON.stringify({ action:'create', client_id: clientId, type, title, notes }) });
+          const j = await res.json(); if (res.ok && j && j.ok) location.reload(); else alert('Failed to add remedy');
+        } catch { alert('Failed to add remedy'); }
+      });
     })();
   </script>
 

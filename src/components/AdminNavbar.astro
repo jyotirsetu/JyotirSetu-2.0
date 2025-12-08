@@ -15,6 +15,10 @@ import MobilePageSelect from './MobilePageSelect.astro';
     <li class="nav-item"><a href="/admin/dashboard" class="nav-link">Dashboard</a></li>
   </ul>
   <ul class="navbar-nav ms-auto">
+    <li class="nav-item" style="margin-right:8px;position:relative">
+      <input id="globalSearch" class="form-control form-control-sm" placeholder="Search clients, quotes, appointments" style="min-width:280px" />
+      <div id="globalSearchDD" class="dropdown-menu dropdown-menu-right" style="display:none;min-width:320px;max-height:260px;overflow:auto"></div>
+    </li>
     <li class="nav-item dropdown" id="notifDropdown">
       <a class="nav-link" href="#" role="button" aria-label="Notifications"><i class="fas fa-bell"></i><span id="notifCount" class="badge badge-warning navbar-badge" style="margin-left:4px">0</span></a>
       <div class="dropdown-menu dropdown-menu-right" id="notifMenu" style="min-width:260px">
@@ -41,8 +45,73 @@ import MobilePageSelect from './MobilePageSelect.astro';
 <style>
   @media (max-width: 900px) { [data-widget='pushmenu'] { display:none; } }
 </style>
-<script>
-  (function(){
+  <script>
+    (function(){
+    async function fetchSearch(q){
+      try {
+        const res = await fetch('/api/admin/search?q='+encodeURIComponent(q));
+        const j = await res.json();
+        const dd = document.getElementById('globalSearchDD');
+        if (!dd) return;
+        let html = '';
+        (j.clients||[]).forEach(function(c){
+          const phone = String(c.phone||'');
+          const email = String(c.email||'');
+          const name = String(c.name||'');
+          const href = '/admin/client360?phone='+encodeURIComponent(phone);
+          html += '<a class="dropdown-item" href="'+href+'">'+name+' • '+(phone||'')+' • '+(email||'')+'</a>';
+        });
+        (j.quotes||[]).forEach(function(qt){
+          const label = 'Quote '+String(qt.number||'')+' • '+String(qt.client_name||'');
+          const id = String(qt.id||'');
+          const href = '/admin/quotes'+(id? ('?edit='+encodeURIComponent(id)) : '');
+          html += '<a class="dropdown-item" href="'+href+'">'+label+'</a>';
+        });
+        (j.appointments||[]).forEach(function(ap){
+          const label = String(ap.service||'')+' • '+String(ap.name||'')+' • '+String(ap.phone||'');
+          const href = '/admin/client360?phone='+encodeURIComponent(String(ap.phone||''));
+          html += '<a class="dropdown-item" href="'+href+'">'+label+'</a>';
+        });
+        if (!html) { dd.style.display='none'; dd.innerHTML=''; return; }
+        dd.innerHTML = html;
+        const items = Array.prototype.slice.call(dd.querySelectorAll('.dropdown-item'));
+        items.forEach(function(a, i){ if (i===0) a.classList.add('active'); });
+        dd.style.display='block';
+      } catch {
+        const ddEl = document.getElementById('globalSearchDD'); if (ddEl) { ddEl.style.display='none'; ddEl.innerHTML=''; }
+      }
+    }
+    const inp = document.getElementById('globalSearch');
+    let searchTimer = 0;
+    function hideDD(){ const dd=document.getElementById('globalSearchDD'); if(dd){ dd.style.display='none'; dd.innerHTML=''; } }
+    inp?.addEventListener('input', function(e){
+      let v = '';
+      const t = e && e.target ? e.target : null;
+      if (t && t['value'] != null) v = String(t['value']); else if (inp && inp && inp['value'] != null) v = String(inp['value']);
+      v = v.trim();
+      if (searchTimer) { try { window.clearTimeout(searchTimer); } catch { void 0; } }
+      if (v.length<2){ hideDD(); return; }
+      searchTimer = window.setTimeout(function(){ fetchSearch(v); }, 200);
+    });
+    inp?.addEventListener('keydown', function(e){
+      const dd = document.getElementById('globalSearchDD'); if (!dd || dd.style.display==='none') return;
+      const items = Array.prototype.slice.call(dd.querySelectorAll('.dropdown-item'));
+      if (!items.length) return;
+      const activeIdx = items.findIndex(function(a){ return a.classList.contains('active'); });
+      function setActive(i){ items.forEach(function(a){ a.classList.remove('active'); }); if (i>=0 && i<items.length) items[i].classList.add('active'); }
+      if (e.key === 'ArrowDown'){ e.preventDefault(); setActive(activeIdx<items.length-1 ? activeIdx+1 : 0); }
+      else if (e.key === 'ArrowUp'){ e.preventDefault(); setActive(activeIdx>0 ? activeIdx-1 : items.length-1); }
+      else if (e.key === 'Enter'){ e.preventDefault(); const a = items[activeIdx>=0 ? activeIdx : 0]; if (a && a.href) window.location.href = a.href; }
+    });
+    document.addEventListener('click', function(e){
+      const t = e && e.target ? e.target : null;
+      const dd = document.getElementById('globalSearchDD');
+      const input = document.getElementById('globalSearch');
+      let inside = false;
+      if (t && input && input['contains']) { inside = input['contains'](t); }
+      if (!inside && t && dd && dd['contains']) { inside = dd['contains'](t); }
+      if (!inside) { if (dd) { dd.style.display = 'none'; } }
+    });
     async function loadNotif(){
       try {
         const res = await fetch('/api/admin/notifications?limit=10', { cache: 'no-store' });
@@ -58,19 +127,19 @@ import MobilePageSelect from './MobilePageSelect.astro';
             item.className = 'dropdown-item';
             item.href = '#';
             item.textContent = String(n.title||'');
-            item.addEventListener('click', async function(e){ e.preventDefault(); try { await fetch('/api/admin/notifications', { method:'PUT', headers:{ 'Content-Type':'application/json','X-CSRF-Token': (document.cookie.match(/csrf_token=([^;]+)/)||[])[1]||'' }, body: JSON.stringify({ id }) }); loadNotif(); } catch {} });
+            item.addEventListener('click', async function(e){ e.preventDefault(); try { await fetch('/api/admin/notifications', { method:'PUT', headers:{ 'Content-Type':'application/json','X-CSRF-Token': (document.cookie.match(/csrf_token=([^;]+)/)||[])[1]||'' }, body: JSON.stringify({ id }) }); loadNotif(); } catch { void 0; } });
             list.appendChild(item);
           });
         }
         try {
-          var items = Array.isArray(j.data) ? j.data : [];
-          var unreadItems = items.filter(function(n){ return Number(n.read||0) === 0; });
+          const items = Array.isArray(j.data) ? j.data : [];
+          const unreadItems = items.filter(function(n){ return Number(n.read||0) === 0; });
           if (!unreadItems.length) return;
-          var newest = unreadItems[0];
-          var lastId = String(localStorage.getItem('lastNotifId')||'');
-          var id = String(newest.id||'');
-          var type = String(newest.type||'');
-          var allowed = type === 'admin_login' || type === 'appointment_created' || type === 'quote_status_changed';
+          const newest = unreadItems[0];
+          const lastId = String(localStorage.getItem('lastNotifId')||'');
+          const id = String(newest.id||'');
+          const type = String(newest.type||'');
+          const allowed = type === 'admin_login' || type === 'appointment_created' || type === 'quote_status_changed';
           if (!allowed) return;
           if (id && id !== lastId) {
             localStorage.setItem('lastNotifId', id);
@@ -82,18 +151,18 @@ import MobilePageSelect from './MobilePageSelect.astro';
               }
             }
           }
-        } catch {}
-      } catch {}
+        } catch { void 0; }
+      } catch { void 0; }
     }
     const dd = document.getElementById('notifDropdown');
     const menu = document.getElementById('notifMenu');
     dd?.addEventListener('click', function(e){ e.preventDefault(); if (menu) { const vis = getComputedStyle(menu).display !== 'none'; menu.style.display = vis ? 'none' : 'block'; if (!vis) loadNotif(); } });
     document.addEventListener('click', function(e){
-      var t = e && e.target ? e.target : null;
-      var inside = (t instanceof Node) && dd ? dd.contains(t) : false;
+      const t = e && e.target ? e.target : null;
+      const inside = (t instanceof Node) && dd ? dd.contains(t) : false;
       if (!inside) { if (menu) menu.style.display = 'none'; }
     });
     loadNotif();
-    try { setInterval(loadNotif, 60000); } catch {}
+    try { setInterval(loadNotif, 60000); } catch { void 0; }
   })();
-</script>
+  </script>

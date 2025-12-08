@@ -85,6 +85,10 @@ export const GET: APIRoute = async ({ request }) => {
 
 export const PUT: APIRoute = async ({ request }) => {
   try {
+    const { isValidCsrf } = await import('../../../lib/csrf');
+    if (!isValidCsrf(request)) {
+      return new Response(JSON.stringify({ ok: false, error: 'csrf_failed' }), { status: 403 });
+    }
     const body = await request.json();
     const { id, status, priority } = body || {};
     if (!id) return new Response(JSON.stringify({ ok: false, error: 'id required' }), { status: 400 });
@@ -120,6 +124,10 @@ export const PUT: APIRoute = async ({ request }) => {
 
 export const POST: APIRoute = async ({ request }) => {
   try {
+    const { isValidCsrf } = await import('../../../lib/csrf');
+    if (!isValidCsrf(request)) {
+      return new Response(JSON.stringify({ ok: false, error: 'csrf_failed' }), { status: 403 });
+    }
     const body = await request.json();
     const { action, name, email, phone, subject, message, status, priority } = body || {};
 
@@ -171,6 +179,10 @@ export const POST: APIRoute = async ({ request }) => {
 
 export const DELETE: APIRoute = async ({ request }) => {
   try {
+    const { isValidCsrf } = await import('../../../lib/csrf');
+    if (!isValidCsrf(request)) {
+      return new Response(JSON.stringify({ ok: false, error: 'csrf_failed' }), { status: 403 });
+    }
     const url = new URL(request.url);
     const id = url.searchParams.get('id');
     if (!id) return new Response(JSON.stringify({ ok: false, error: 'id required' }), { status: 400 });

@@ -279,6 +279,12 @@ import Favicons from '~/components/Favicons.astro';
         let items = [];
         let editingId = '';
         let deletingId = '';
+        function getCookie(name) {
+          const value = `; ${document.cookie}`;
+          const parts = value.split(`; ${name}=`);
+          if (parts.length === 2) return parts.pop().split(';').shift();
+          return '';
+        }
         function fmt(n) {
           return '₹' + Number(n || 0).toFixed(2);
         }
@@ -601,12 +607,13 @@ import Favicons from '~/components/Favicons.astro';
           const j = await res.json();
           const list = Array.isArray(j.data) ? j.data : [];
           const el = document.getElementById('quotesList');
-          el.innerHTML = `<table class="table"><thead><tr><th>No</th><th>Client</th><th>Status</th><th>Total</th><th>Created</th><th></th></tr></thead><tbody>${list
-            .map(function (r) {
+          el.innerHTML = `<table class="table"><thead><tr><th>No</th><th>Client</th><th>Status</th><th>Total</th><th>Received</th><th>Created</th><th></th></tr></thead><tbody>${list
+              .map(function (r) {
+              const sub = String(r.client_phone||'').trim() || String(r.client_email||'').trim();
               return `
             <tr>
               <td>${r.number}</td>
-              <td>${r.client_name} <div class="muted">${r.client_email}</div></td>
+              <td>${r.client_name} <div class="muted">${sub||''}</div></td>
               <td>
                 <select class="form-control form-control-sm rowStatus" data-id="${r.id}">
                   <option ${String(r.status || '') === 'Created' ? 'selected' : ''}>Created</option>
@@ -617,6 +624,12 @@ import Favicons from '~/components/Favicons.astro';
                 </select>
               </td>
               <td>${fmt(r.total)}</td>
+              <td>
+                <div class="input-group input-group-sm">
+                  <input type="number" step="0.01" class="form-control purchasedAmount" data-id="${r.id}" value="${r.purchased_amount != null ? Number(r.purchased_amount) : ''}" placeholder="₹" />
+                  <button class="btn btn-outline-success savePurchased" data-id="${r.id}"><i class="fas fa-check"></i></button>
+                </div>
+              </td>
               <td>${new Date(r.created_at).toLocaleString()}</td>
               <td>
                 <button class="btn btn-sm btn-outline-primary editQuote" data-id="${r.id}">Edit</button>
@@ -632,11 +645,33 @@ import Favicons from '~/components/Favicons.astro';
             s.addEventListener('change', async function () {
               const id = s.getAttribute('data-id');
               const status = s.value;
+              const csrfToken = getCookie('csrf_token');
               await fetch('/api/admin/quotes', {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                  'Content-Type': 'application/json',
+                  'x-csrf-token': csrfToken || ''
+                },
                 body: JSON.stringify({ id, status }),
               });
+              try { localStorage.setItem('quotesStatsUpdated', String(Date.now())); } catch (e) { void e; }
+              loadStats();
+              loadQuotes();
+            });
+          });
+          el.querySelectorAll('.savePurchased').forEach(function (b) {
+            b.addEventListener('click', async function () {
+              const id = b.getAttribute('data-id');
+              const input = el.querySelector(`.purchasedAmount[data-id="${id}"]`);
+              if (!input) return;
+              const amount = Number(input.value || 0);
+              const csrfToken = getCookie('csrf_token');
+              const res = await fetch('/api/admin/quotes', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'x-csrf-token': csrfToken || '' },
+                body: JSON.stringify({ id, purchased_amount: amount, status: 'Purchased' }),
+              });
+              try { const j = await res.json(); if (!j || j.ok === false) alert('Failed to save received amount'); } catch (e) { void e; }
               try { localStorage.setItem('quotesStatsUpdated', String(Date.now())); } catch (e) { void e; }
               loadStats();
               loadQuotes();
@@ -653,6 +688,7 @@ import Favicons from '~/components/Favicons.astro';
               body.innerHTML = `
                 <div class="form-group"><label>Status</label>
                   <select id="editStatus" class="form-control">
+                    <option ${String(q.status || '') === 'Created' ? 'selected' : ''}>Created</option>
                     <option ${String(q.status || '') === 'Purchased' ? 'selected' : ''}>Purchased</option>
                     <option ${['Quotation Sent', 'No Revert'].includes(String(q.status || '')) ? 'selected' : ''}>Quotation Sent</option>
                     <option ${String(q.status || '') === 'NC' ? 'selected' : ''}>NC</option>
@@ -727,7 +763,8 @@ import Favicons from '~/components/Favicons.astro';
         });
         document.getElementById('delConfirm').addEventListener('click', async function () {
           if (!deletingId) return;
-          await fetch('/api/admin/quotes?id=' + encodeURIComponent(deletingId), { method: 'DELETE' });
+          const csrfToken = getCookie('csrf_token');
+          await fetch('/api/admin/quotes?id=' + encodeURIComponent(deletingId), { method: 'DELETE', headers: { 'x-csrf-token': csrfToken || '' } });
           closeModal('deleteModal');
           loadQuotes();
           try { localStorage.setItem('quotesStatsUpdated', String(Date.now())); } catch (e) { void e; }
@@ -742,11 +779,24 @@ import Favicons from '~/components/Favicons.astro';
               unit_price: Number(tr.querySelector('input[data-key="unit_price"]').value || 0),
             };
           });
-          await fetch('/api/admin/quotes', {
+          const csrfToken = getCookie('csrf_token');
+          const res = await fetch('/api/admin/quotes', {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+              'Content-Type': 'application/json',
+              'x-csrf-token': csrfToken || ''
+            },
             body: JSON.stringify({ id: editingId, status, items: its }),
           });
+          try {
+            const j = await res.json();
+            if (!res.ok || !j || j.ok === false) {
+              alert('Failed to save quotation changes');
+              return;
+            }
+          } catch (e) {
+            console.warn('Failed to parse save response', e);
+          }
           closeModal('editModal');
           loadQuotes();
           try { localStorage.setItem('quotesStatsUpdated', String(Date.now())); } catch (e) { void e; }
@@ -781,7 +831,7 @@ import Favicons from '~/components/Favicons.astro';
           const body = { client_name: name, client_email: email, client_phone: phone, status: 'Created', items };
           const res = await fetch('/api/admin/quotes', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', 'x-csrf-token': getCookie('csrf_token') || '' },
             body: JSON.stringify(body),
           });
           const result = await res.json();
@@ -828,11 +878,83 @@ import Favicons from '~/components/Favicons.astro';
           }
         });
 
+        
+
         loadCustomers();
         addItemRow({});
         recalc();
         loadQuotes();
         loadStats();
+        (function(){
+          async function autoOpenEditFromQuery(){
+            try {
+              const params = new URLSearchParams(window.location.search||'');
+              const id = params.get('edit');
+              if (!id) return;
+              const rr = await fetch('/api/admin/quotes?id=' + encodeURIComponent(id));
+              const jr = await rr.json();
+              const q = jr.data || {};
+              const its = Array.isArray(jr.items) ? jr.items : [];
+              const body = document.getElementById('editBody');
+              body.innerHTML = `
+                <div class="form-group"><label>Status</label>
+                  <select id="editStatus" class="form-control">
+                    <option ${String(q.status || '') === 'Created' ? 'selected' : ''}>Created</option>
+                    <option ${String(q.status || '') === 'Purchased' ? 'selected' : ''}>Purchased</option>
+                    <option ${['Quotation Sent', 'No Revert'].includes(String(q.status || '')) ? 'selected' : ''}>Quotation Sent</option>
+                    <option ${String(q.status || '') === 'NC' ? 'selected' : ''}>NC</option>
+                    <option ${String(q.status || '') === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
+                  </select>
+                </div>
+                <div class="table-responsive" style="margin-top:16px">
+                  <table class="table" id="editItems">
+                    <thead><tr><th>Particular</th><th>Unit</th><th>Unit Price</th><th>Total</th><th></th></tr></thead>
+                    <tbody>${its
+                      .map(function (it, i) {
+                        return `
+                      <tr>
+                        <td><input class="form-control" value="${String(it.title || '')}" data-idx="${i}" data-key="title" /></td>
+                        <td><input class="form-control" type="number" step="0.01" value="${Number(it.carat || 0)}" data-idx="${i}" data-key="unit" /></td>
+                        <td><input class="form-control" type="number" step="0.01" value="${Number(it.rate_per_carat || 0)}" data-idx="${i}" data-key="unit_price" /></td>
+                        <td class="eLine">${fmt(Number(it.carat || 0) * Number(it.rate_per_carat || 0))}</td>
+                        <td><button class="btn btn-sm btn-outline-danger eDel" data-idx="${i}"><i class="fas fa-trash"></i></button></td>
+                      </tr>`;
+                      })
+                      .join('')}</tbody>
+                  </table>
+                </div>
+                <button class="btn btn-outline-secondary" id="editAdd">Add Particular</button>
+              `;
+              openModal('editModal');
+              document.getElementById('editAdd').addEventListener('click', function () {
+                const tb = document.querySelector('#editItems tbody');
+                const i = tb.querySelectorAll('tr').length;
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                  <td><input class="form-control" value="" data-idx="${i}" data-key="title" /></td>
+                  <td><input class="form-control" type="number" step="0.01" value="0" data-idx="${i}" data-key="unit" /></td>
+                  <td><input class="form-control" type="number" step="0.01" value="0" data-idx="${i}" data-key="unit_price" /></td>
+                  <td class="eLine">${fmt(0)}</td>
+                  <td><button class="btn btn-sm btn-outline-danger eDel" data-idx="${i}"><i class="fas fa-trash"></i></button></td>`;
+                tb.appendChild(tr);
+              });
+              document.querySelector('#editItems tbody').addEventListener('input', function (e) {
+                const t = e.target;
+                const row = t.closest('tr');
+                const unit = Number(row.querySelector('input[data-key="unit"]').value || 0);
+                const rate = Number(row.querySelector('input[data-key="unit_price"]').value || 0);
+                row.querySelector('.eLine').textContent = fmt(unit * rate);
+              });
+              document.querySelector('#editItems tbody').addEventListener('click', function (e) {
+                const b = e.target.closest('.eDel');
+                if (!b) return;
+                const tr = b.closest('tr');
+                tr.remove();
+              });
+            } catch { void 0; }
+          }
+          try { autoOpenEditFromQuery(); } catch { void 0; }
+        })();
       })();
     </script>
   </body>

@@ -38,6 +38,20 @@ export const GET: APIRoute = async ({ request }) => {
 
 export const PUT: APIRoute = async ({ request }) => {
   try {
+    const metaEnv = (import.meta as unknown as { env?: Record<string, unknown> }).env;
+    const getEnv = (name: string): string | undefined => {
+      const fromImportMeta = typeof metaEnv?.[name] === 'string' ? (metaEnv?.[name] as string) : undefined;
+      const fromProcess = typeof process !== 'undefined' ? process.env?.[name] : undefined;
+      return fromImportMeta ?? fromProcess ?? undefined;
+    };
+    const secret = getEnv('SESSION_SECRET') || 'change-me';
+    const { requireRole } = await import('../../../lib/rbac');
+    const okRole = await requireRole(request, String(secret), ['admin']);
+    if (!okRole) return new Response(JSON.stringify({ ok: false, error: 'forbidden' }), { status: 403 });
+    const { isValidCsrf } = await import('../../../lib/csrf');
+    if (!isValidCsrf(request)) {
+      return new Response(JSON.stringify({ ok: false, error: 'csrf_failed' }), { status: 403 });
+    }
     await ensureAdminPreferencesTable();
     const body = await request.json();
     const { key, value } = (body || {}) as { key?: string; value?: string };
