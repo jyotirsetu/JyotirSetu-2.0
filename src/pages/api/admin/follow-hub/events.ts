@@ -3,6 +3,49 @@ import { getTursoClient, ensureFollowHubEventsTable } from '../../../../lib/turs
 
 export const prerender = false;
 
+async function sanitizeIp(raw: string): Promise<string> {
+  try {
+    let s = String(raw || '').trim();
+    if (!s) return '';
+    const m6 = s.match(/^\[([^\]]+)\](?::\d+)?$/);
+    if (m6) s = m6[1];
+    const m4 = s.match(/^(\d{1,3}(?:\.\d{1,3}){3})(?::\d+)?$/);
+    if (m4) s = m4[1];
+    const { isIP } = await import('node:net');
+    return isIP(s) ? s : '';
+  } catch {
+    return '';
+  }
+}
+
+async function geo(ip: string): Promise<string> {
+  if (!ip) return '';
+  try {
+    const c = new AbortController();
+    const t = setTimeout(() => { try { c.abort(); } catch { /* abort may throw if already settled */ } }, 1800);
+    const r = await fetch(`https://ipapi.co/${encodeURIComponent(ip)}/json/`, { signal: c.signal });
+    clearTimeout(t);
+    const j = await r.json();
+    const city = String(j.city || '').trim();
+    const region = String(j.region || j.region_code || '').trim();
+    const country = String(j.country_name || j.country || '').trim();
+    let loc = [city, region, country].filter(Boolean).join(', ');
+    if (!loc) {
+      const r2 = await fetch(`http://ip-api.com/json/${encodeURIComponent(ip)}?fields=status,country,region,regionName,city`);
+      const j2 = await r2.json();
+      if (String(j2.status || '').toLowerCase() === 'success') {
+        const city2 = String(j2.city || '').trim();
+        const region2 = String(j2.regionName || j2.region || '').trim();
+        const country2 = String(j2.country || '').trim();
+        loc = [city2, region2, country2].filter(Boolean).join(', ');
+      }
+    }
+    return loc;
+  } catch {
+    return '';
+  }
+}
+
 export const GET: APIRoute = async ({ request }) => {
   try {
     await ensureFollowHubEventsTable();
@@ -56,47 +99,6 @@ export const GET: APIRoute = async ({ request }) => {
       args: [...args, limit, offset],
     });
     const rows = (res.rows || []) as Array<Record<string, unknown>>;
-    async function sanitizeIp(raw: string): Promise<string> {
-      try {
-        let s = String(raw || '').trim();
-        if (!s) return '';
-        const m6 = s.match(/^\[([^\]]+)\](?::\d+)?$/);
-        if (m6) s = m6[1];
-        const m4 = s.match(/^(\d{1,3}(?:\.\d{1,3}){3})(?::\d+)?$/);
-        if (m4) s = m4[1];
-        const { isIP } = await import('node:net');
-        return isIP(s) ? s : '';
-      } catch {
-        return '';
-      }
-    }
-    async function geo(ip: string): Promise<string> {
-      if (!ip) return '';
-      try {
-        const c = new AbortController();
-        const t = setTimeout(() => { try { c.abort(); } catch {} }, 1800);
-        const r = await fetch(`https://ipapi.co/${encodeURIComponent(ip)}/json/`, { signal: c.signal });
-        clearTimeout(t);
-        const j = await r.json();
-        const city = String(j.city || '').trim();
-        const region = String(j.region || j.region_code || '').trim();
-        const country = String(j.country_name || j.country || '').trim();
-        let loc = [city, region, country].filter(Boolean).join(', ');
-        if (!loc) {
-          const r2 = await fetch(`http://ip-api.com/json/${encodeURIComponent(ip)}?fields=status,country,region,regionName,city`);
-          const j2 = await r2.json();
-          if (String(j2.status || '').toLowerCase() === 'success') {
-            const city2 = String(j2.city || '').trim();
-            const region2 = String(j2.regionName || j2.region || '').trim();
-            const country2 = String(j2.country || '').trim();
-            loc = [city2, region2, country2].filter(Boolean).join(', ');
-          }
-        }
-        return loc;
-      } catch {
-        return '';
-      }
-    }
     const enriched = await Promise.all(
       rows.map(async (r) => {
         const loc = String(r.location || '').trim();
@@ -119,7 +121,7 @@ export const GET: APIRoute = async ({ request }) => {
           await client2.execute({ sql: `UPDATE follow_hub_events SET geo_location = ? WHERE id = ?`, args: [loc, id] });
         }
       }
-    } catch {}
+    } catch { /* best-effort persistence of geo_location; ignore errors */ }
     return new Response(JSON.stringify({ ok: true, data: enriched }), {
       headers: { 'Content-Type': 'application/json' },
     });

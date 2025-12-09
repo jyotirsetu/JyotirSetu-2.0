@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getTursoClient, ensureDocumentsTables } from '../../../lib/turso';
+import { logActivity } from '../../../lib/activity-logger';
 
 export const prerender = false;
 
@@ -27,7 +28,16 @@ export const GET: APIRoute = async ({ request }) => {
 
 export const POST: APIRoute = async ({ request }) => {
   try {
+    const metaEnv = (import.meta as unknown as { env?: Record<string, unknown> }).env;
+    const getEnv = (name: string): string | undefined => {
+      const fromImportMeta = typeof metaEnv?.[name] === 'string' ? (metaEnv?.[name] as string) : undefined;
+      const fromProcess = typeof process !== 'undefined' ? process.env?.[name] : undefined;
+      return fromImportMeta ?? fromProcess ?? undefined;
+    };
+    const secret = getEnv('SESSION_SECRET') || 'change-me';
+    const { requireRole } = await import('../../../lib/rbac');
     const { isValidCsrf } = await import('../../../lib/csrf');
+    if (!(await requireRole(request, String(secret), ['super_admin','admin','manager','consultant']))) return new Response(JSON.stringify({ ok: false, error: 'forbidden' }), { status: 403 });
     if (!isValidCsrf(request)) {
       return new Response(JSON.stringify({ ok: false, error: 'csrf_failed' }), { status: 403 });
     }
@@ -47,6 +57,7 @@ export const POST: APIRoute = async ({ request }) => {
       const id = 'doc_' + Date.now() + Math.random().toString(36).slice(2, 8);
       const ts = new Date().toISOString();
       await db.execute({ sql: `INSERT INTO documents (id, client_id, entity_type, entity_id, title, mime_type, size, storage_url, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`, args: [id, client_id, entity_type, entity_id, title, mime_type, size, storage_url, ts] });
+      await logActivity('document_created', 'document', id, JSON.stringify({ client_id, title }));
       return new Response(JSON.stringify({ ok: true, id }), { headers: { 'Content-Type': 'application/json' } });
     }
     if (action === 'consent') {
@@ -60,10 +71,30 @@ export const POST: APIRoute = async ({ request }) => {
       await db.execute({ sql: `INSERT INTO consent_forms (id, client_id, form_title, signed_at, file_url, created_at) VALUES (?, ?, ?, ?, ?, ?)`, args: [id, client_id, form_title, signed_at, file_url, ts] });
       return new Response(JSON.stringify({ ok: true, id }), { headers: { 'Content-Type': 'application/json' } });
     }
+    if (action === 'update') {
+      const id = String(body.id || '');
+      if (!id) return new Response(JSON.stringify({ ok: false, error: 'id required' }), { status: 400 });
+      const title = body.title != null ? String(body.title) : null;
+      const storage_url = body.storage_url != null ? String(body.storage_url) : null;
+      const sets: string[] = [];
+      const args: (string | number | boolean | bigint | null)[] = [];
+      if (title !== null) { sets.push('title = ?'); args.push(title); }
+      if (storage_url !== null) { sets.push('storage_url = ?'); args.push(storage_url); }
+      if (!sets.length) return new Response(JSON.stringify({ ok: false, error: 'no_fields' }), { status: 400 });
+      await db.execute({ sql: `UPDATE documents SET ${sets.join(', ')} WHERE id = ?`, args: [...args, id] });
+      await logActivity('document_updated', 'document', id, JSON.stringify({ title, storage_url }));
+      return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json' } });
+    }
+    if (action === 'delete') {
+      const id = String(body.id || '');
+      if (!id) return new Response(JSON.stringify({ ok: false, error: 'id required' }), { status: 400 });
+      await db.execute({ sql: `DELETE FROM documents WHERE id = ?`, args: [id] });
+      await logActivity('document_deleted', 'document', id);
+      return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json' } });
+    }
     return new Response(JSON.stringify({ ok: false, error: 'unknown_action' }), { status: 400 });
   } catch (e) {
     const msg = e && typeof e === 'object' && 'message' in e ? String((e as Error).message) : 'failed';
     return new Response(JSON.stringify({ ok: false, error: msg }), { status: 500 });
   }
 };
-

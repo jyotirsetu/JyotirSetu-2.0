@@ -5,28 +5,40 @@ export const prerender = false;
 
 export const GET: APIRoute = async ({ request }) => {
   try {
-    await ensureAdminPreferencesTable();
+    try { await ensureAdminPreferencesTable(); } catch { /* read-only deployments */ }
     const url = new URL(request.url);
     const key = url.searchParams.get('key');
     const client = await getTursoClient();
     if (key) {
+      try {
+        const res = await client.execute({
+          sql: `SELECT value FROM admin_preferences WHERE key = ? AND user = ? LIMIT 1`,
+          args: [String(key), 'admin'],
+        });
+        const row = (res.rows?.[0] ?? {}) as Record<string, unknown>;
+        const value = typeof row.value === 'string' ? row.value : null;
+        return new Response(JSON.stringify({ ok: true, key, value }), {
+          headers: { 'Content-Type': 'application/json' },
+        });
+      } catch {
+        return new Response(JSON.stringify({ ok: true, key, value: null }), {
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+    }
+    try {
       const res = await client.execute({
-        sql: `SELECT value FROM admin_preferences WHERE key = ? AND user = ? LIMIT 1`,
-        args: [String(key), 'admin'],
+        sql: `SELECT key, value FROM admin_preferences WHERE user = ?`,
+        args: ['admin'],
       });
-      const row = (res.rows?.[0] ?? {}) as Record<string, unknown>;
-      const value = typeof row.value === 'string' ? row.value : null;
-      return new Response(JSON.stringify({ ok: true, key, value }), {
+      return new Response(JSON.stringify({ ok: true, data: res.rows || [] }), {
+        headers: { 'Content-Type': 'application/json' },
+      });
+    } catch {
+      return new Response(JSON.stringify({ ok: true, data: [] }), {
         headers: { 'Content-Type': 'application/json' },
       });
     }
-    const res = await client.execute({
-      sql: `SELECT key, value FROM admin_preferences WHERE user = ?`,
-      args: ['admin'],
-    });
-    return new Response(JSON.stringify({ ok: true, data: res.rows || [] }), {
-      headers: { 'Content-Type': 'application/json' },
-    });
   } catch (e) {
     const err = e as Error;
     return new Response(JSON.stringify({ ok: false, error: err.message || 'failed' }), {

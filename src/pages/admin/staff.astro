@@ -101,6 +101,9 @@ try {
             <a href="/admin/client360" class="nav-link"><i class="nav-icon fas fa-user-circle"></i><p>Client 360°</p></a>
           </li>
           <li class="nav-item">
+            <a href="/admin/users" class="nav-link"><i class="nav-icon fas fa-users-cog"></i><p>Users</p></a>
+          </li>
+          <li class="nav-item">
             <a href="/admin/tools/follow-hub/insights" class="nav-link"><i class="nav-icon fas fa-toolbox"></i><p>Follow Hub – Insights</p></a>
           </li>
           <li class="nav-item">
@@ -112,7 +115,7 @@ try {
   </aside>
 
   <div class="content-wrapper">
-    <AdminNavbar title="Staff Management" />
+    <AdminNavbar />
     <section class="content">
       <div class="container-fluid">
         <div class="row">
@@ -314,11 +317,15 @@ try {
           if (!ok && staffForm['reportValidity']) { staffForm['reportValidity'](); return; }
         }
 
-        const staffData = {
-          name: staffName.value.trim(),
-          email: staffEmail.value.trim() || null,
-          phone: staffPhone.value.trim() || null,
-          role: staffRole.value
+        const nameVal = (staffName instanceof HTMLInputElement) ? String(staffName.value||'').trim() : '';
+        const emailVal = (staffEmail instanceof HTMLInputElement) ? String(staffEmail.value||'').trim() : '';
+        const phoneVal = (staffPhone instanceof HTMLInputElement) ? String(staffPhone.value||'').trim() : '';
+        const roleVal = (staffRole instanceof HTMLSelectElement) ? String(staffRole.value||'consultant') : 'consultant';
+        const staffData: Record<string, unknown> = {
+          name: nameVal,
+          email: emailVal || null,
+          phone: phoneVal || null,
+          role: roleVal
         };
 
         if (staffId && staffId['value']) {
@@ -326,7 +333,7 @@ try {
         }
 
         try {
-          const method = staffId.value ? 'PUT' : 'POST';
+          const method = (staffId && staffId['value']) ? 'PUT' : 'POST';
           const url = '/api/admin/staff';
           
           const res = await fetch(url, {

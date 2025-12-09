@@ -128,7 +128,7 @@ export const POST: APIRoute = async ({ request }) => {
       if (!key || key === 'unknown') return '';
       try {
         const c = new AbortController();
-        const t = setTimeout(() => { try { c.abort(); } catch {} }, 1800);
+        const t = setTimeout(() => { try { c.abort(); } catch { /* ignore abort errors */ } }, 1800);
         const r = await fetch(`https://ipapi.co/${encodeURIComponent(key)}/json/`, {
           signal: c.signal,
           headers: { 'User-Agent': 'JyotirSetuAdmin/1.0' },
@@ -141,7 +141,7 @@ export const POST: APIRoute = async ({ request }) => {
         let loc = [city, region, country].filter(Boolean).join(', ');
         if (!loc) {
           const c2 = new AbortController();
-          const t2 = setTimeout(() => { try { c2.abort(); } catch {} }, 1800);
+          const t2 = setTimeout(() => { try { c2.abort(); } catch { /* ignore abort errors */ } }, 1800);
           const r2 = await fetch(`http://ip-api.com/json/${encodeURIComponent(key)}?fields=status,country,countryCode,region,regionName,city`, {
             signal: c2.signal,
             headers: { 'User-Agent': 'JyotirSetuAdmin/1.0' },

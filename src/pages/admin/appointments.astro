@@ -202,6 +202,12 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
     <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
     <script is:inline>
       (function () {
+        try {
+          if (!('render' in window)) {
+            window.__realRender = window.__realRender || function(){};
+            window.render = function(rows){ try { window.__realRender(rows); } catch { /* ignore */ } };
+          }
+        } catch { /* ignore */ }
         function applyTheme(theme) {
           let t = theme;
           if (t === 'auto') {
@@ -328,9 +334,12 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
                 >
               </li>
               <li class="nav-item">
-                <a href="/admin/templates/whatsapp" class="nav-link"
-                  ><i class="nav-icon fas fa-file-alt"></i><p>WhatsApp Templates</p></a
+                <a href="/admin/client360" class="nav-link"
+                  ><i class="nav-icon fas fa-user-circle"></i><p>Client 360°</p></a
                 >
+              </li>
+              <li class="nav-item">
+                <a href="/admin/users" class="nav-link"><i class="nav-icon fas fa-users-cog"></i><p>Users</p></a>
               </li>
               <li class="nav-item">
                 <a href="/admin/tools/follow-hub/insights" class="nav-link"
@@ -387,6 +396,7 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
                 <option>rescheduled</option>
                 <option>cancelled</option>
                 <option>scheduled</option>
+                <option>completed</option>
               </select>
               <!-- Moved view controls alongside All status (row 1) -->
               <input class="input" id="viewName" placeholder="View name" style="width:140px" />
@@ -430,6 +440,7 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
               </div>
             </div>
             <div id="activeChips" class="callout callout-info" style="display:flex; gap:8px; flex-wrap:wrap"></div>
+            <div id="debugBanner" class="callout callout-warning" style="display:none"></div>
             <div id="statsCards" class="container-fluid" style="padding-bottom:10px"></div>
             <div class="container-fluid" style="padding-bottom:20px">
               <div id="tableWrap"></div>
@@ -508,6 +519,7 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
               <option value="confirmed">Confirmed</option>
               <option value="rescheduled">Rescheduled</option>
               <option value="cancelled">Cancelled</option>
+              <option value="completed">Completed</option>
             </select>
           </div>
           <div class="form-group">
@@ -724,7 +736,7 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
       </div>
     </div>
 
-    <div class="modal" id="deleteConfirmModal">
+  <div class="modal" id="deleteConfirmModal">
       <div class="modal-content" style="max-width:420px">
         <div class="modal-header">
           <h3>Confirm Delete</h3>
@@ -750,6 +762,52 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
       </div>
     </div>
 
+  <div class="modal" id="paymentModal" style="position:fixed;inset:0;display:none">
+    <div class="modal-content" style="max-width:520px">
+      <div class="modal-header">
+        <h3>Record Payment</h3>
+        <button type="button" class="modal-close" data-close>×</button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-danger" id="paymentError" style="display:none"></div>
+        <input type="hidden" id="paymentApptId" />
+        <div class="mb-2">
+          <label>Status</label>
+          <select class="form-select" id="paymentStatusSel">
+            <option value="unpaid">Unpaid</option>
+            <option value="partial">Partial</option>
+            <option value="paid">Paid</option>
+          </select>
+        </div>
+        <div class="mb-2">
+          <label>Amount (₹)</label>
+          <input type="number" class="form-control" id="paymentAmount" min="0" step="1" />
+        </div>
+        <div class="mb-2">
+          <label>Mode</label>
+          <select class="form-select" id="paymentMode">
+            <option value="cash">Cash</option>
+            <option value="card">Card</option>
+            <option value="upi">UPI</option>
+            <option value="bank">Bank</option>
+          </select>
+        </div>
+        <div class="mb-2">
+          <label>Reference</label>
+          <input type="text" class="form-control" id="paymentRef" />
+        </div>
+        <div class="mb-2">
+          <label>Note</label>
+          <textarea class="form-control" id="paymentNote" rows="2">Recorded from appointment page</textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" data-close>Cancel</button>
+        <button class="btn btn-primary" id="paymentSaveBtn">Save Payment</button>
+      </div>
+    </div>
+  </div>
+
     <!-- Export Columns Modal -->
     <div class="modal" id="columnsModal">
       <div class="modal-content">
@@ -769,9 +827,17 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
     </div>
 
     <script is:inline>
+      // Global Error Handler - Removed
+      // Debug logging - Removed
       let currentPage = 1;
       let paginationData = { page: 1, totalPages: 1, total: 0 };
+      let statusCounts = {};
       let allData = [];
+
+      function getCsrfToken() {
+        const match = document.cookie.match(/csrf_token=([^;]+)/);
+        return match ? decodeURIComponent(match[1]) : '';
+      }
 
       function formatWaPhone(input) {
         const digits = String(input || '').replace(/\D/g, '');
@@ -783,31 +849,52 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
       async function fetchData(page = 1) {
         const fromEl = document.getElementById('fromDate');
         const toEl = document.getElementById('toDate');
-        const params = new URLSearchParams({ page: String(page), limit: '20' });
+        const searchEl = document.getElementById('search');
+        const params = new URLSearchParams({ page: String(page), limit: '50' }); // Increased limit for better visibility
         if (fromEl?.value) params.set('from', fromEl.value);
         if (toEl?.value) params.set('to', toEl.value);
-        // Avoid starting a network request if we are in the middle of a navigation/unload
-        if (document.visibilityState === 'hidden') {
-          return allData;
-        }
+        if (searchEl?.value) params.set('q', searchEl.value);
         try {
           const res = await fetch(`/api/admin/appointments?${params.toString()}`, {
             credentials: 'include',
-            keepalive: true,
+            keepalive: false,
+            cache: 'no-store',
           });
+          if (!res.ok) throw new Error(`HTTP error ${res.status}`);
           const json = await res.json();
           paginationData = json.pagination || { page: 1, totalPages: 1, total: 0 };
+          statusCounts = json.statusCounts || {};
           return Array.isArray(json?.data) ? json.data : [];
-        } catch (e) {
-          const msg = e instanceof Error ? e.message : String(e);
-          // Ignore navigation aborts; otherwise show a lightweight notification and keep the UI responsive
-          if (!msg.includes('ERR_ABORTED')) {
-            console.debug('appointments fetch error', e);
-            window.AdminNotify?.error?.('Failed to load appointments', 'Please try Refresh');
+        } catch (e1) {
+          const msg1 = e1 instanceof Error ? e1.message : String(e1);
+          console.error('fetchData error:', msg1);
+          if (
+            msg1.includes('ERR_ABORTED') ||
+            msg1.includes('The user aborted a request') ||
+            msg1.includes('AbortError') ||
+            msg1.includes('Failed to fetch')
+          ) {
+            await new Promise(function (r) { setTimeout(r, 250); });
+            try {
+              const res2 = await fetch(`/api/admin/appointments?${params.toString()}`, {
+                credentials: 'include',
+                keepalive: false,
+                cache: 'no-store',
+              });
+              if (!res2.ok) throw new Error(`Retry HTTP error ${res2.status}`);
+              const json2 = await res2.json();
+              paginationData = json2.pagination || { page: 1, totalPages: 1, total: 0 };
+              statusCounts = json2.statusCounts || {};
+              return Array.isArray(json2?.data) ? json2.data : [];
+            } catch (e2) {
+              console.debug('appointments fetch retry error', e2);
+            }
+          } else {
+            console.debug('appointments fetch error', e1);
+            window.AdminNotify?.error?.('Failed to load appointments', msg1);
             const wrap = document.getElementById('tableWrap');
-            if (wrap) wrap.innerHTML = '<p class="muted">Failed to load appointments. Please click Refresh.</p>';
+            if (wrap) wrap.innerHTML = `<div class="alert alert-danger">Failed to load appointments: ${msg1}</div>`;
           }
-          // Preserve previous data to avoid blank UI
           return allData || [];
         }
       }
@@ -849,54 +936,74 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
 
       const STATUS_BADGE = {
         pending: 'badge text-bg-warning',
-        confirmed: 'badge text-bg-success',
+        confirmed: 'badge text-bg-primary',
         rescheduled: 'badge text-bg-info',
         cancelled: 'badge text-bg-danger',
-        scheduled: 'badge text-bg-primary',
+        scheduled: 'badge text-bg-info',
+        completed: 'badge text-bg-success',
       };
       function statusBadgeClass(s) {
         return STATUS_BADGE[(s || 'pending').toLowerCase()] || 'badge badge-secondary';
       }
+
       function renderStatusCell(r) {
         const s = (r.status || 'pending').toLowerCase();
         return `<span class="${statusBadgeClass(s)}">${s}</span> <button class="btn btn-sm btn-outline-secondary statusEdit" data-id="${r.id}" title="Edit"><i class="fas fa-pen"></i></button>`;
       }
+
+      function paymentBadgeClass(s) {
+        const v = (s || 'unpaid').toLowerCase();
+        if (v === 'paid') return 'badge badge-success';
+        if (v === 'partial') return 'badge badge-warning';
+        return 'badge badge-danger';
+      }
+      function renderPaymentCell(r) {
+        const p = (r.payment_status || 'unpaid').toLowerCase();
+        return `<span class="${paymentBadgeClass(p)} payBadge" data-id="${r.id}" title="Edit payment">${p}</span> <button class="btn btn-sm btn-outline-secondary payEdit" data-id="${r.id}" title="Edit"><i class="fas fa-pen"></i></button>`;
+      }
+
       function render(rows) {
         const wrap = document.getElementById('tableWrap');
         if (!wrap) return;
-        if (!rows.length) {
-          wrap.innerHTML = '<p class="muted">No appointments found.</p>';
-          return;
-        }
+        try { console.log('Render invoked with rows:', Array.isArray(rows) ? rows.length : 0); } catch (e) { console.debug(e); }
+        try {
+          const count = Array.isArray(rows) ? rows.length : 0;
+          if (!count) {
+            wrap.innerHTML = '<p class="muted">No appointments found.</p>';
+          }
+        } catch (e) { console.debug(e); }
+        
         const uniqueServices = Array.from(new Set(rows.map((r) => r.service))).filter(Boolean);
         const serviceFilter = document.getElementById('serviceFilter');
-        const currentService = serviceFilter?.value || '';
-        if (serviceFilter) {
-          serviceFilter.innerHTML =
-            '<option value="">All services</option>' +
-            uniqueServices.map((s) => `<option ${s === currentService ? 'selected' : ''}>${s}</option>`).join('');
+        if (serviceFilter && uniqueServices.length > 0) {
+           // Only update if we have new services, but maybe better to not overwrite if user selected one?
+           // The original code overwrote it. Let's keep original behavior but be careful.
+           // Actually original code re-renders options.
+           const currentOptions = new Set(Array.from(serviceFilter.options).map(o => o.value));
+           uniqueServices.forEach(s => {
+             if (!currentOptions.has(s)) {
+                const opt = document.createElement('option');
+                opt.value = s;
+                opt.textContent = s;
+                serviceFilter.appendChild(opt);
+             }
+           });
         }
-
-        function paymentBadgeClass(s) {
-          const v = (s || 'unpaid').toLowerCase();
-          if (v === 'paid') return 'badge badge-success';
-          if (v === 'partial') return 'badge badge-warning';
-          return 'badge badge-danger';
-        }
-        function renderPaymentCell(r) {
-          const p = (r.payment_status || 'unpaid').toLowerCase();
-          return `<span class="${paymentBadgeClass(p)}">${p}</span> <button class="btn btn-sm btn-outline-secondary payEdit" data-id="${r.id}" title="Edit"><i class="fas fa-pen"></i></button>`;
-        }
-        const html = [
+        
+        let tableHtml = '';
+        try {
+          tableHtml = !rows.length ? '<p class="muted">No appointments found.</p>' : [
           `<table class="table table-striped"><thead><tr>
           <th>Appt ID</th><th>Name</th><th>Contact</th><th>Service</th><th>Date/Time</th><th>Method</th><th>Status</th><th>Payment</th><th>Source</th><th>Created</th><th>Actions</th>
         </tr></thead><tbody>`,
           ...rows.map(
-            (r) => `<tr>
+            (r) => {
+              const clientLink = r.phone ? `/admin/client360?phone=${encodeURIComponent(r.phone)}` : `/admin/client360?email=${encodeURIComponent(r.email)}`;
+              return `<tr>
             <td>${r.customer_appointment_id || ''}</td>
-            <td><a href="/admin/client360?email=${encodeURIComponent(r.email)}" class="text-decoration-none">${r.name}</a></td>
+            <td><a href="${clientLink}" class="text-decoration-none">${r.name}</a></td>
             <td>
-              <div><a href="/admin/client360?email=${encodeURIComponent(r.email)}" class="text-decoration-none">${r.email}</a></div>
+              <div><a href="${clientLink}" class="text-decoration-none">${r.email}</a></div>
               <div class="muted">${r.phone}</div>
             </td>
             <td><span class="badge text-bg-info">${r.service}</span></td>
@@ -915,207 +1022,351 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
               <a class="btn-sm" href="#" data-notes-id="${r.id}" style="color:#f59e0b">📝 Notes</a>
             </td>
           </tr>`
-          ),
+          }),
           '</tbody></table>',
         ].join('');
-        if (wrap) wrap.innerHTML = html;
+        } catch (err) {
+          console.error('Render error:', err);
+          wrap.innerHTML = '<p class="muted">Unable to render rows.</p>';
+          return;
+        }
+        
+        if (wrap) {
+          wrap.innerHTML = tableHtml;
+          try { console.log('Render completed: DOM updated'); } catch (e) { console.debug(e); }
+          try {
+            document.querySelectorAll('.payEdit, .payBadge').forEach(function(btn){
+              btn.addEventListener('click', function(ev){
+                ev.preventDefault();
+                const id = btn.getAttribute('data-id') || '';
+                const current = (btn instanceof Element && btn.previousElementSibling ? btn.previousElementSibling.textContent : 'unpaid') || 'unpaid';
+                const apIdEl = document.getElementById('paymentApptId'); if (apIdEl) apIdEl.value = id;
+                const statusEl = document.getElementById('paymentStatusSel'); if (statusEl) statusEl.value = String(current).trim();
+                const amtEl = document.getElementById('paymentAmount'); if (amtEl) amtEl.value = '';
+                const modeEl = document.getElementById('paymentMode'); if (modeEl) modeEl.value = 'cash';
+                const refEl = document.getElementById('paymentRef'); if (refEl) refEl.value = '';
+                const noteEl = document.getElementById('paymentNote'); if (noteEl) noteEl.value = 'Recorded from appointment page';
+                const errEl = document.getElementById('paymentError'); if (errEl) { errEl.style.display='none'; errEl.textContent=''; }
+                const modal = document.getElementById('paymentModal');
+                modal?.classList.add('active');
+                modal?.setAttribute('style','position:fixed;inset:0;display:block');
+              });
+            });
+          } catch { /* ignore */ }
+        }
+        
         const statsEl = document.getElementById('statsCards');
         if (statsEl) {
           const total = paginationData.total;
-          const byStatus = (s) => rows.filter((r) => String(r.status || '').toLowerCase() === s).length;
+          const pending = statusCounts['pending'] || 0;
+          const confirmed = statusCounts['confirmed'] || 0;
+          const completed = statusCounts['completed'] || 0;
+          const cancelled = statusCounts['cancelled'] || 0;
+          
+          // Payment stats from current page (legacy behavior)
           const paid = rows.filter((r) => String(r.payment_status || '').toLowerCase() === 'paid').length;
           const partial = rows.filter((r) => String(r.payment_status || '').toLowerCase() === 'partial').length;
           const unpaid = rows.filter((r) => String(r.payment_status || '').toLowerCase() === 'unpaid').length;
+
           statsEl.innerHTML = `
             <div style="display:flex; gap:12px; flex-wrap:nowrap; overflow-x:auto; padding:8px 0">
-              <div style="flex:0 0 180px"><div class="small-box bg-info"><div class="inner"><h3>${total}</h3><p>Total</p></div><div class="icon"><i class="fas fa-calendar-check"></i></div></div></div>
-              <div style="flex:0 0 180px"><div class="small-box bg-warning"><div class="inner"><h3>${byStatus('pending')}</h3><p>Pending</p></div><div class="icon"><i class="fas fa-hourglass-half"></i></div></div></div>
-              <div style="flex:0 0 180px"><div class="small-box bg-success"><div class="inner"><h3>${byStatus('confirmed')}</h3><p>Confirmed</p></div><div class="icon"><i class="fas fa-check"></i></div></div></div>
-              <div style="flex:0 0 180px"><div class="small-box bg-danger"><div class="inner"><h3>${byStatus('cancelled')}</h3><p>Cancelled</p></div><div class="icon"><i class="fas fa-times"></i></div></div></div>
-              <div style="flex:0 0 180px"><div class="small-box bg-primary"><div class="inner"><h3>${paid}</h3><p>Paid</p></div><div class="icon"><i class="fas fa-indian-rupee-sign"></i></div></div></div>
-              <div style="flex:0 0 180px"><div class="small-box bg-warning"><div class="inner"><h3>${partial}</h3><p>Partial</p></div><div class="icon"><i class="fas fa-chart-line"></i></div></div></div>
-              <div style="flex:0 0 180px"><div class="small-box bg-secondary"><div class="inner"><h3>${unpaid}</h3><p>Unpaid</p></div><div class="icon"><i class="fas fa-wallet"></i></div></div></div>
+              <div style="flex:0 0 160px"><div class="small-box bg-info"><div class="inner"><h3>${total}</h3><p>Total</p></div><div class="icon"><i class="fas fa-calendar-check"></i></div></div></div>
+              <div style="flex:0 0 160px"><div class="small-box bg-warning"><div class="inner"><h3>${pending}</h3><p>Pending</p></div><div class="icon"><i class="fas fa-hourglass-half"></i></div></div></div>
+              <div style="flex:0 0 160px"><div class="small-box bg-primary"><div class="inner"><h3>${confirmed}</h3><p>Confirmed</p></div><div class="icon"><i class="fas fa-check"></i></div></div></div>
+              <div style="flex:0 0 160px"><div class="small-box bg-success"><div class="inner"><h3>${completed}</h3><p>Completed</p></div><div class="icon"><i class="fas fa-check-double"></i></div></div></div>
+              <div style="flex:0 0 160px"><div class="small-box bg-danger"><div class="inner"><h3>${cancelled}</h3><p>Cancelled</p></div><div class="icon"><i class="fas fa-times"></i></div></div></div>
+              <div style="flex:0 0 160px"><div class="small-box bg-primary"><div class="inner"><h3>${paid}</h3><p>Paid</p></div><div class="icon"><i class="fas fa-indian-rupee-sign"></i></div></div></div>
+              <div style="flex:0 0 160px"><div class="small-box bg-warning"><div class="inner"><h3>${partial}</h3><p>Partial</p></div><div class="icon"><i class="fas fa-chart-line"></i></div></div></div>
+              <div style="flex:0 0 160px"><div class="small-box bg-secondary"><div class="inner"><h3>${unpaid}</h3><p>Unpaid</p></div><div class="icon"><i class="fas fa-wallet"></i></div></div></div>
             </div>`;
         }
+      }
+      try { window.render = render; window.__realRender = render; } catch { /* ignore */ }
 
-        document.querySelectorAll('.statusEdit').forEach((el) => {
-          el.addEventListener('click', (e) => {
-            e.preventDefault();
-            const target = e.target;
-            const id = target?.getAttribute('data-id') || '';
-            const cell = target?.closest('td');
-            if (!cell) return;
-            const current = (target?.previousElementSibling?.textContent || 'pending').trim();
-            cell.innerHTML = `
-              <div style="display:flex; gap:6px; align-items:center">
-                <select data-id="${id}" class="form-select form-select-sm statusSel">
-                  ${['pending', 'confirmed', 'rescheduled', 'cancelled', 'scheduled'].map((s) => `<option ${current === s ? 'selected' : ''}>${s}</option>`).join('')}
-                </select>
-                <button class="btn-sm statusSave" data-id="${id}">Save</button>
-                <button class="btn-sm statusCancel" data-id="${id}">Cancel</button>
-              </div>`;
-            attachStatusHandlers(cell, id);
-          });
-        });
-        function attachStatusHandlers(cell, id) {
-          cell.querySelector('.statusSave')?.addEventListener('click', async () => {
-            const sel = cell.querySelector('.statusSel');
-            const status = sel?.value || 'pending';
+      // Unified Event Delegation for Table Actions
+  document.addEventListener('click', async (e) => {
+    const target = e.target instanceof Element ? e.target : null;
+    if (!target) return;
+        
+        // --- Status Edit ---
+        const statusEditBtn = target.closest('.statusEdit');
+        if (statusEditBtn) {
+          e.preventDefault();
+          const id = statusEditBtn.getAttribute('data-id') || '';
+          const cell = statusEditBtn.closest('td');
+          if (!cell) return;
+          const current = (statusEditBtn.previousElementSibling?.textContent || 'pending').trim();
+          cell.innerHTML = `
+            <div style="display:flex; gap:6px; align-items:center">
+              <select data-id="${id}" class="form-select form-select-sm statusSel">
+                ${['pending', 'confirmed', 'rescheduled', 'cancelled', 'scheduled', 'completed'].map((s) => `<option ${current === s ? 'selected' : ''}>${s}</option>`).join('')}
+              </select>
+              <button class="btn-sm statusSave" data-id="${id}">Save</button>
+              <button class="btn-sm statusCancel" data-id="${id}">Cancel</button>
+            </div>`;
+          return;
+        }
+
+        const statusSaveBtn = target.closest('.statusSave');
+        if (statusSaveBtn) {
+          e.preventDefault();
+          const id = statusSaveBtn.getAttribute('data-id');
+          const cell = statusSaveBtn.closest('td');
+          if (!cell || !id) return;
+          const sel = cell.querySelector('.statusSel');
+          const status = sel?.value || 'pending';
+          try {
             await fetch('/api/admin/appointments', {
               method: 'PUT',
-              headers: { 'Content-Type': 'application/json' },
+              headers: { 
+                'Content-Type': 'application/json',
+                'x-csrf-token': getCsrfToken()
+              },
               body: JSON.stringify({ id, status }),
             });
-            const fakeRow = { id, status };
-            cell.innerHTML = renderStatusCell(fakeRow);
-            cell.querySelector('.statusEdit')?.addEventListener('click', (e) => {
-              e.preventDefault();
-              const a = e.target;
-              const current = (a?.previousElementSibling?.textContent || 'pending').trim();
-              cell.innerHTML = `
-                <div style="display:flex; gap:6px; align-items:center">
-                  <select data-id="${id}" class="form-select form-select-sm statusSel">
-                    ${['pending', 'confirmed', 'rescheduled', 'cancelled', 'scheduled'].map((s) => `<option ${current === s ? 'selected' : ''}>${s}</option>`).join('')}
-                  </select>
-                  <button class="btn-sm statusSave" data-id="${id}">Save</button>
-                  <button class="btn-sm statusCancel" data-id="${id}">Cancel</button>
-                </div>`;
-              attachStatusHandlers(cell, id);
-            });
-          });
-          cell.querySelector('.statusCancel')?.addEventListener('click', () => {
-            const sel = cell.querySelector('.statusSel');
-            const status = sel?.value || 'pending';
-            const fakeRow = { id, status };
-            cell.innerHTML = renderStatusCell(fakeRow);
-            cell.querySelector('.statusEdit')?.addEventListener('click', (e) => {
-              e.preventDefault();
-              const a = e.target;
-              const current = (a?.previousElementSibling?.textContent || 'pending').trim();
-              cell.innerHTML = `
-                <div style="display:flex; gap:6px; align-items:center">
-                  <select data-id="${id}" class="form-select form-select-sm statusSel">
-                    ${['pending', 'confirmed', 'rescheduled', 'cancelled', 'scheduled'].map((s) => `<option ${current === s ? 'selected' : ''}>${s}</option>`).join('')}
-                  </select>
-                  <button class="btn-sm statusSave" data-id="${id}">Save</button>
-                  <button class="btn-sm statusCancel" data-id="${id}">Cancel</button>
-                </div>`;
-              attachStatusHandlers(cell, id);
-            });
-          });
+            loadPage(currentPage);
+          } catch(err) {
+             console.error('Failed to update status', err);
+             window.AdminNotify?.error?.('Update failed');
+          }
+          return;
         }
-        document.querySelectorAll('.payEdit').forEach((el) => {
-          el.addEventListener('click', (e) => {
-            e.preventDefault();
-            const id = el.getAttribute('data-id') || '';
-            const cell = el.closest('td');
-            if (!cell) return;
-            const current = (el.previousElementSibling?.textContent || 'unpaid').trim();
-            cell.innerHTML = `
-              <div style="display:flex; gap:6px; align-items:center">
-                <select data-id="${id}" class="form-select form-select-sm paySel">
-                  ${['unpaid', 'partial', 'paid'].map((s) => `<option ${current === s ? 'selected' : ''}>${s}</option>`).join('')}
-                </select>
-                <button class="btn-sm paySave" data-id="${id}">Save</button>
-                <button class="btn-sm payCancel" data-id="${id}">Cancel</button>
-              </div>`;
-            attachPayHandlers(cell, id);
-          });
-        });
-        function attachPayHandlers(cell, id) {
-          cell.querySelector('.paySave')?.addEventListener('click', async () => {
-            const sel = cell.querySelector('.paySel');
-            const payment_status = sel?.value || 'unpaid';
+
+        const statusCancelBtn = target.closest('.statusCancel');
+        if (statusCancelBtn) {
+          e.preventDefault();
+          const id = statusCancelBtn.getAttribute('data-id');
+          const cell = statusCancelBtn.closest('td');
+          if (!cell) return;
+          const sel = cell.querySelector('.statusSel');
+          const originalOption = sel ? Array.from(sel.options).find(o => o.defaultSelected) : null;
+          const status = originalOption ? originalOption.value : (sel?.value || 'pending');
+          const fakeRow = { id, status };
+          cell.innerHTML = renderStatusCell(fakeRow);
+          return;
+        }
+
+        // --- Payment Edit ---
+        const payEditBtn = target.closest('.payEdit') || target.closest('.payBadge');
+        if (payEditBtn) {
+          e.preventDefault();
+          const id = payEditBtn.getAttribute('data-id') || '';
+          const current = (payEditBtn.previousElementSibling?.textContent || 'unpaid').trim();
+          const apIdEl = document.getElementById('paymentApptId'); if (apIdEl) apIdEl.value = id;
+          const amtEl = document.getElementById('paymentAmount'); if (amtEl) amtEl.value = '';
+          const modeEl = document.getElementById('paymentMode'); if (modeEl) modeEl.value = 'cash';
+          const refEl = document.getElementById('paymentRef'); if (refEl) refEl.value = '';
+          const noteEl = document.getElementById('paymentNote'); if (noteEl) noteEl.value = 'Recorded from appointment page';
+          const statusEl = document.getElementById('paymentStatusSel'); if (statusEl) statusEl.value = current;
+          const errEl = document.getElementById('paymentError'); if (errEl) { errEl.style.display='none'; errEl.textContent=''; }
+          const modal = document.getElementById('paymentModal');
+          modal?.classList.add('active');
+          modal?.setAttribute('style','position:fixed;inset:0;display:block');
+          return;
+        }
+
+        const paySaveBtn = target.closest('.paySave');
+        if (paySaveBtn) {
+          e.preventDefault();
+          const id = paySaveBtn.getAttribute('data-id');
+          const cell = paySaveBtn.closest('td');
+          if (!cell || !id) return;
+          const sel = cell.querySelector('.paySel');
+          const payment_status = sel?.value || 'unpaid';
+          try {
             await fetch('/api/admin/appointments', {
               method: 'PUT',
-              headers: { 'Content-Type': 'application/json' },
+              headers: { 
+                'Content-Type': 'application/json',
+                'x-csrf-token': getCsrfToken()
+              },
               body: JSON.stringify({ id, payment_status }),
             });
-            const fakeRow = { id, payment_status };
-            cell.innerHTML = renderPaymentCell(fakeRow);
-            cell.querySelector('.payEdit')?.addEventListener('click', (e) => {
-              e.preventDefault();
-              const a = e.target;
-              const current = (a?.previousElementSibling?.textContent || 'unpaid').trim();
-              cell.innerHTML = `
-                <div style="display:flex; gap:6px; align-items:center">
-                  <select data-id="${id}" class="form-select form-select-sm paySel">
-                    ${['unpaid', 'partial', 'paid'].map((s) => `<option ${current === s ? 'selected' : ''}>${s}</option>`).join('')}
-                  </select>
-                  <button class="btn-sm paySave" data-id="${id}">Save</button>
-                  <button class="btn-sm payCancel" data-id="${id}">Cancel</button>
-                </div>`;
-              attachPayHandlers(cell, id);
-            });
-          });
-          cell.querySelector('.payCancel')?.addEventListener('click', () => {
-            const sel = cell.querySelector('.paySel');
-            const payment_status = sel?.value || 'unpaid';
-            const fakeRow = { id, payment_status };
-            cell.innerHTML = renderPaymentCell(fakeRow);
-            cell.querySelector('.payEdit')?.addEventListener('click', (e) => {
-              e.preventDefault();
-              const a = e.target;
-              const current = (a?.previousElementSibling?.textContent || 'unpaid').trim();
-              cell.innerHTML = `
-                <div style="display:flex; gap:6px; align-items:center">
-                  <select data-id="${id}" class="form-select form-select-sm paySel">
-                    ${['unpaid', 'partial', 'paid'].map((s) => `<option ${current === s ? 'selected' : ''}>${s}</option>`).join('')}
-                  </select>
-                  <button class="btn-sm paySave" data-id="${id}">Save</button>
-                  <button class="btn-sm payCancel" data-id="${id}">Cancel</button>
-                </div>`;
-              attachPayHandlers(cell, id);
-            });
-          });
+            if (payment_status === 'paid' || payment_status === 'partial') {
+              const row = allData.find((r) => r.id === id) || {};
+              document.getElementById('paymentApptId').value = String(row.customer_appointment_id || id);
+              document.getElementById('paymentAmount').value = '';
+              document.getElementById('paymentMode').value = 'cash';
+              document.getElementById('paymentRef').value = '';
+              const modal = document.getElementById('paymentModal');
+              modal?.classList.add('active');
+              modal?.setAttribute('style','position:fixed;inset:0;display:block');
+              modal.dataset.status = payment_status;
+            }
+            loadPage(currentPage);
+          } catch(err) {
+             console.error('Failed to update payment', err);
+             window.AdminNotify?.error?.('Update failed');
+          }
+          return;
         }
-        document.querySelectorAll('[data-edit-id]').forEach((el) => {
-          el.addEventListener('click', (e) => {
+
+        const payCancelBtn = target.closest('.payCancel');
+        if (payCancelBtn) {
+          e.preventDefault();
+          const id = payCancelBtn.getAttribute('data-id');
+          const cell = payCancelBtn.closest('td');
+          if (!cell) return;
+          const sel = cell.querySelector('.paySel');
+          const originalOption = sel ? Array.from(sel.options).find(o => o.defaultSelected) : null;
+          const payment_status = originalOption ? originalOption.value : (sel?.value || 'unpaid');
+          const fakeRow = { id, payment_status };
+          cell.innerHTML = renderPaymentCell(fakeRow);
+          return;
+        }
+
+        // --- General Edit ---
+        const editBtn = target.closest('[data-edit-id]');
+        if (editBtn) {
+          e.preventDefault();
+          const id = editBtn.getAttribute('data-edit-id') || '';
+          const row = allData.find((r) => r.id === id);
+          if (!row) return;
+          const modal = document.getElementById('editModal');
+          document.getElementById('editId').value = id;
+          document.getElementById('editName').value = row.name || '';
+          document.getElementById('editEmail').value = row.email || '';
+          document.getElementById('editPhone').value = row.phone || '';
+          document.getElementById('editService').value = row.service || '';
+          document.getElementById('editDate').value = row.date || '';
+          document.getElementById('editTime').value = row.time || '';
+          document.getElementById('editMethod').value = row.consultation_method || '';
+          modal?.classList.add('active');
+          return;
+        }
+
+        // --- Delete ---
+        const deleteBtn = target.closest('[data-delete-id]');
+        if (deleteBtn) {
+          e.preventDefault();
+          const id = deleteBtn.getAttribute('data-delete-id') || '';
+          if (!id) return;
+          openDeleteConfirm(id);
+          return;
+        }
+
+        // --- Email Appointment ---
+        const emailApptBtn = target.closest('[data-email-appt-id]');
+        if (emailApptBtn) {
+          e.preventDefault();
+          const id = emailApptBtn.getAttribute('data-email-appt-id') || '';
+          const row = allData.find((r) => r.id === id);
+          if (!row) return;
+          openEmailConfirm({ id, status: String(row.status || 'pending'), row, type: 'appointment' });
+          return;
+        }
+
+    // --- Email Payment ---
+        const emailPayBtn = target.closest('[data-email-pay-id]');
+        if (emailPayBtn) {
+          e.preventDefault();
+          const id = emailPayBtn.getAttribute('data-email-pay-id') || '';
+          const row = allData.find((r) => r.id === id);
+          if (!row) return;
+          const status = row.payment_status || 'unpaid';
+          openEmailConfirm({ id, status, row, type: 'payment', template_key: status });
+          return;
+        }
+
+        // --- WhatsApp ---
+        const waBtn = target.closest('a[href^="/admin/whatsapp"]');
+        if (waBtn) {
             e.preventDefault();
-            const id = el.getAttribute('data-edit-id') || '';
-            const row = rows.find((r) => r.id === id);
-            if (!row) return;
-            const modal = document.getElementById('editModal');
-            document.getElementById('editId').value = id;
-            document.getElementById('editName').value = row.name || '';
-            document.getElementById('editEmail').value = row.email || '';
-            document.getElementById('editPhone').value = row.phone || '';
-            document.getElementById('editService').value = row.service || '';
-            document.getElementById('editDate').value = row.date || '';
-            document.getElementById('editTime').value = row.time || '';
-            document.getElementById('editMethod').value = row.consultation_method || '';
-            modal?.classList.add('active');
-          });
-        });
-        document.querySelectorAll('[data-delete-id]').forEach((el) => {
-          el.addEventListener('click', (e) => {
-            e.preventDefault();
-            const id = el.getAttribute('data-delete-id') || '';
-            if (!id) return;
-            openDeleteConfirm(id);
-          });
-        });
-        document.querySelectorAll('[data-email-appt-id]').forEach((el) => {
-          el.addEventListener('click', (e) => {
-            e.preventDefault();
-            const id = el.getAttribute('data-email-appt-id') || '';
-            const row = rows.find((r) => r.id === id);
-            if (!row) return;
-            openEmailConfirm({ id, status: String(row.status || 'pending'), row, type: 'appointment' });
-          });
-        });
-        document.querySelectorAll('[data-email-pay-id]').forEach((el) => {
-          el.addEventListener('click', (e) => {
-            e.preventDefault();
-            const id = el.getAttribute('data-email-pay-id') || '';
-            const statusEl = document.querySelector(`select[data-id="${id}"]`);
-            const status = statusEl instanceof HTMLSelectElement ? statusEl.value : 'unpaid';
-            const row = rows.find((r) => r.id === id);
-            if (!row) return;
-            openEmailConfirm({ id, status, row, type: 'payment', template_key: status });
-          });
-        });
-        document.getElementById('closeEditModal')?.addEventListener('click', () => {
+            const href = waBtn.getAttribute('href') || '';
+            if (!href) return;
+            const url = new URL(href, location.origin);
+            const params = Object.fromEntries(url.searchParams.entries());
+            
+            try {
+              const res = await fetch('/api/admin/templates?type=whatsapp');
+              const tpl = await res.json();
+              const m = (tpl.data || []).find((x) => x.key === params.status);
+              const base = (m?.text || `Hello {name}, your appointment for {service} is {status}.`)
+                .replaceAll('{name}', params.name || '')
+                .replaceAll('{service}', params.service || '')
+                .replaceAll('{status}', params.status || '')
+                .replaceAll('{date}', params.date || '')
+                .replaceAll('{time}', params.time || '')
+                .replaceAll('{method}', params.method || '')
+                .replaceAll('{appointment_id}', params.appointment_id || params.id || '');
+              const text = base.replace(/\r?\n/g, '\n').normalize('NFC');
+              const link = `https://api.whatsapp.com/send?phone=${encodeURIComponent(formatWaPhone(params.phone))}&text=${encodeURIComponent(text)}`;
+              
+              fetch('/api/admin/activity', {
+                  method: 'POST',
+                  headers: { 
+                    'Content-Type': 'application/json',
+                    'x-csrf-token': getCsrfToken()
+                  },
+                  body: JSON.stringify({
+                    action: 'whatsapp_sent',
+                    entity_type: 'appointment',
+                    entity_id: params.id || null,
+                    details: `WhatsApp sent to ${params.name} (${params.phone}) for ${params.service} – ${params.status}`,
+                  }),
+                }).catch(console.warn);
+                
+              fetch('/api/admin/whatsapp-history', {
+                  method: 'POST',
+                  headers: { 
+                    'Content-Type': 'application/json',
+                    'x-csrf-token': getCsrfToken()
+                  },
+                  body: JSON.stringify({
+                    recipient_phone: formatWaPhone(params.phone || ''),
+                    recipient_name: params.name || null,
+                    message: text,
+                    type: 'appointment',
+                    related_id: params.id || null,
+                    related_type: 'appointment',
+                    status: 'sent',
+                  }),
+                }).catch(console.warn);
+
+              window.open(link, '_blank');
+            } catch (err) {
+              console.error('WhatsApp template error', err);
+               const link = `https://api.whatsapp.com/send?phone=${encodeURIComponent(formatWaPhone(params.phone))}`;
+               window.open(link, '_blank');
+            }
+        }
+  });
+
+  document.getElementById('paymentSaveBtn')?.addEventListener('click', async function(){
+    const apptId = document.getElementById('paymentApptId')?.value || '';
+    const statusSel = document.getElementById('paymentStatusSel');
+    const newStatus = statusSel?.value || 'paid';
+    const amount = Number(document.getElementById('paymentAmount')?.value || '0');
+    const mode = document.getElementById('paymentMode')?.value || 'cash';
+    const reference = document.getElementById('paymentRef')?.value || '';
+    const note = document.getElementById('paymentNote')?.value || '';
+    const err = document.getElementById('paymentError'); if (err) { err.style.display='none'; err.textContent=''; }
+    if (!apptId) { if (err) { err.textContent='Missing appointment ID'; err.style.display='block'; } return; }
+    // Update appointment payment_status first
+    try {
+      await fetch('/api/admin/appointments', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'x-csrf-token': getCsrfToken() },
+        body: JSON.stringify({ id: apptId, payment_status: newStatus })
+      });
+    } catch { /* ignore */ }
+    if (amount <= 0) { if (err) { err.textContent='Enter a valid amount'; err.style.display='block'; } return; }
+    try {
+      const res = await fetch('/api/admin/payments', { method:'POST', headers:{ 'Content-Type':'application/json', 'X-CSRF-Token': getCsrfToken() }, body: JSON.stringify({ action:'add', client_id: null, appointment_id: apptId, amount, total_due: null, balance: null, entry_type: 'appointment', status: newStatus, mode, reference, note }) });
+      const j = await res.json();
+      if (!res.ok || !j.ok) throw new Error(j.error||'Failed');
+      const modal = document.getElementById('paymentModal');
+      modal?.classList.remove('active');
+      modal?.setAttribute('style','position:fixed;inset:0;display:none');
+      loadPage(currentPage);
+    } catch { if (err) { err.textContent='Failed to record payment'; err.style.display='block'; } }
+  });
+  document.querySelectorAll('#paymentModal [data-close]')?.forEach((btn)=>{
+    btn.addEventListener('click', function(){ const modal = document.getElementById('paymentModal'); modal?.classList.remove('active'); modal?.setAttribute('style','position:fixed;inset:0;display:none'); });
+  });
+      
+      // Keep Modal Handlers
+      document.getElementById('closeEditModal')?.addEventListener('click', () => {
           document.getElementById('editModal')?.classList.remove('active');
         });
         document.getElementById('cancelEditBtn')?.addEventListener('click', () => {
@@ -1133,66 +1384,15 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
           const consultation_method = document.getElementById('editMethod').value;
           await fetch('/api/admin/appointments', {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+              'Content-Type': 'application/json',
+              'x-csrf-token': getCsrfToken()
+            },
             body: JSON.stringify({ id, name, email, phone, service, date, time, consultation_method }),
           });
           document.getElementById('editModal')?.classList.remove('active');
-          loadPage(1);
+          loadPage(currentPage);
         });
-        document.querySelectorAll('a.btn-sm[href^="/admin/whatsapp"]').forEach((a) => {
-          a.addEventListener('click', async (e) => {
-            e.preventDefault();
-            const href = a.getAttribute('href') || '';
-            if (!href) return;
-            const url = new URL(href, location.origin);
-            const params = Object.fromEntries(url.searchParams.entries());
-            const res = await fetch('/api/admin/templates?type=whatsapp');
-            const tpl = await res.json();
-            const m = (tpl.data || []).find((x) => x.key === params.status);
-            // Substitute all supported variables from params
-            const base = (m?.text || `Hello {name}, your appointment for {service} is {status}.`)
-              .replaceAll('{name}', params.name || '')
-              .replaceAll('{service}', params.service || '')
-              .replaceAll('{status}', params.status || '')
-              .replaceAll('{date}', params.date || '')
-              .replaceAll('{time}', params.time || '')
-              .replaceAll('{method}', params.method || '')
-              .replaceAll('{appointment_id}', params.appointment_id || params.id || '');
-            const text = base.replace(/\r?\n/g, '\n').normalize('NFC');
-            const link = `https://api.whatsapp.com/send?phone=${encodeURIComponent(formatWaPhone(params.phone))}&text=${encodeURIComponent(text)}`;
-            // Log WhatsApp send to activity log
-            try {
-              await fetch('/api/admin/activity', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  action: 'whatsapp_sent',
-                  entity_type: 'appointment',
-                  entity_id: params.id || null,
-                  details: `WhatsApp sent to ${params.name} (${params.phone}) for ${params.service} – ${params.status}`,
-                }),
-              });
-              // Also record WhatsApp history for notes modal
-              await fetch('/api/admin/whatsapp-history', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  recipient_phone: formatWaPhone(params.phone || ''),
-                  recipient_name: params.name || null,
-                  message: text,
-                  type: 'appointment',
-                  related_id: params.id || null,
-                  related_type: 'appointment',
-                  status: 'sent',
-                }),
-              });
-            } catch (err) {
-              console.warn('Failed to log WhatsApp send', err);
-            }
-            window.open(link, '_blank');
-          });
-        });
-      }
 
       function applyFilters(all) {
         const qEl = document.getElementById('search');
@@ -1202,13 +1402,13 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
         const q = (qEl?.value || '').toLowerCase();
         const s = sEl?.value || '';
         const src = srcEl?.value || '';
-        const st = stEl?.value || '';
+        const st = (stEl?.value || '').toLowerCase();
         return all.filter(
           (r) =>
             (!q || (r.name + ' ' + r.email + ' ' + r.phone).toLowerCase().includes(q)) &&
             (!s || r.service === s) &&
             (!src || (r.source || 'system') === src) &&
-            (!st || (r.status || 'pending') === st)
+            (!st || (r.status || 'pending').toLowerCase() === st)
         );
       }
 
@@ -1217,17 +1417,46 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
         showLoading(true);
         try {
           allData = await fetchData(page);
-          render(applyFilters(allData));
+          const filtered = applyFilters(allData);
+          showLoading(false);
+          render(filtered);
+          try { if(typeof window.render === 'function') window.render(filtered); } catch (e) { console.debug(e); }
+          requestAnimationFrame(function(){
+            try { render(filtered); } catch (e) { console.debug(e); }
+          });
           renderPagination();
+          if ((filtered?.length || 0) === 0 && (paginationData?.total || 0) > 0) {
+            try {
+              await new Promise(function (r) { setTimeout(r, 300); });
+              const again = await fetchData(page);
+              const filtered2 = applyFilters(again);
+              if (filtered2.length) {
+                render(filtered2);
+                try { if(typeof window.render === 'function') window.render(filtered2); } catch (e) { console.debug(e); }
+                renderPagination();
+              }
+            } catch (e) { console.debug(e); }
+          }
         } catch (e) {
-          console.debug('loadPage error', e);
+          console.error('loadPage error', e);
           const wrap = document.getElementById('tableWrap');
           if (wrap) wrap.innerHTML = '<p class="muted">Unable to render appointments at the moment.</p>';
         }
+        // ensure loading overlay stays off
         showLoading(false);
       }
       // Expose for other script blocks on the page
       window.loadPage = loadPage;
+      window.AppointmentsRender = render;
+
+      // Search handler with debounce
+      let searchTimeout;
+      document.getElementById('search')?.addEventListener('input', (_e) => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+          loadPage(1);
+        }, 500);
+      });
 
       function showLoading(on) {
         const overlay = document.getElementById('loadingOverlay');
@@ -1302,12 +1531,15 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
         try {
           await fetch('/api/admin/appointments', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+              'Content-Type': 'application/json',
+              'x-csrf-token': getCsrfToken()
+            },
             body: JSON.stringify({ action: 'delete', id }),
           });
           window.AdminNotify?.success?.('Appointment deleted');
           closeDeleteConfirm();
-          loadPage(1);
+          loadPage(currentPage);
         } catch (e) {
           const msg = e instanceof Error ? e.message : String(e);
           window.AdminNotify?.error?.('Delete failed', msg);
@@ -1344,7 +1576,10 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
           }
           const res = await fetch('/api/admin/appointments', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+              'Content-Type': 'application/json',
+              'x-csrf-token': getCsrfToken()
+            },
             body: JSON.stringify(payload),
           });
           const j = await res.json();
@@ -1388,7 +1623,10 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
         const data = Object.fromEntries(formData.entries());
         const res = await fetch('/api/admin/appointments', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'x-csrf-token': getCsrfToken()
+          },
           body: JSON.stringify({ action: 'create', ...data }),
         });
         const json = await res.json();
@@ -1507,7 +1745,10 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
 
         const res = await fetch('/api/admin/notes', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'x-csrf-token': getCsrfToken()
+          },
           body: JSON.stringify({
             entity_type: currentNotesEntityType,
             entity_id: currentNotesEntityId,
@@ -1642,7 +1883,10 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
         try {
           const res = await fetch('/api/admin/notes', {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+              'Content-Type': 'application/json',
+              'x-csrf-token': getCsrfToken()
+            },
             body: JSON.stringify({ id, note_text: next }),
           });
           const json = await res.json();
@@ -1672,7 +1916,12 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
         const id = btn.getAttribute('data-id') || '';
         if (!id) return;
         try {
-          const res = await fetch('/api/admin/notes?id=' + encodeURIComponent(id), { method: 'DELETE' });
+          const res = await fetch('/api/admin/notes?id=' + encodeURIComponent(id), { 
+            method: 'DELETE',
+            headers: {
+              'x-csrf-token': getCsrfToken()
+            }
+          });
           const json = await res.json();
           if (json.ok) {
             {
@@ -1687,10 +1936,10 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
       });
 
       // Filter handlers
-      document.getElementById('search')?.addEventListener('input', () => render(applyFilters(allData)));
-      document.getElementById('serviceFilter')?.addEventListener('change', () => render(applyFilters(allData)));
-      document.getElementById('sourceFilter')?.addEventListener('change', () => render(applyFilters(allData)));
-      document.getElementById('statusFilter')?.addEventListener('change', () => render(applyFilters(allData)));
+      document.getElementById('search')?.addEventListener('input', () => window.render(applyFilters(allData)));
+      document.getElementById('serviceFilter')?.addEventListener('change', () => window.render(applyFilters(allData)));
+      document.getElementById('sourceFilter')?.addEventListener('change', () => window.render(applyFilters(allData)));
+      document.getElementById('statusFilter')?.addEventListener('change', () => window.render(applyFilters(allData)));
       document.getElementById('fromDate')?.addEventListener('change', () => loadPage(1));
       document.getElementById('toDate')?.addEventListener('change', () => loadPage(1));
 
@@ -1741,6 +1990,14 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
       // Manual refresh button
       document.getElementById('refreshBtn')?.addEventListener('click', () => {
         loadPage(currentPage || 1);
+      });
+
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          const wrap = document.getElementById('tableWrap');
+          const empty = !wrap || !wrap.innerHTML || wrap.innerHTML.trim() === '' || wrap.innerText.includes('No appointments');
+          if (empty) loadPage(currentPage || 1);
+        }
       });
 
       document.getElementById('waUpcomingBtn')?.addEventListener('click', async () => {

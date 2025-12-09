@@ -74,14 +74,25 @@ export const GET: APIRoute = async ({ request }) => {
         }
       }
       if (!c) return new Response(JSON.stringify({ ok: false, error: 'not_found' }), { status: 404 });
+      if (!c.id || !String(c.id)) {
+        const newId = 'cli_' + Date.now() + Math.random().toString(36).slice(2, 8);
+        const created_at = String((c.created_at as string) || new Date().toISOString());
+        await client.execute({
+          sql: `INSERT INTO clients (id, name, email, phone, vip, created_at) VALUES (?, ?, ?, ?, 'no', ?)`,
+          args: [newId, String(c.name || ''), String(c.email || ''), String(c.phone || ''), created_at],
+        });
+        c.id = newId;
+      }
       const cid = String(c.id || '');
       const preferPhone = String(c.phone || '').trim();
       const preferEmail = String(c.email || '').trim();
+      const usePhone = !!preferPhone;
+      
       const [apRes, coRes, payRes, totalPayRes, horRes] = await Promise.all([
         client.execute({
           sql: preferPhone
-            ? `SELECT id, name, service, consultation_method, customer_appointment_id, date, time, status, payment_status, created_at FROM appointments WHERE phone = ? ORDER BY datetime(created_at) DESC LIMIT 50`
-            : `SELECT id, name, service, consultation_method, customer_appointment_id, date, time, status, payment_status, created_at FROM appointments WHERE email = ? ORDER BY datetime(created_at) DESC LIMIT 50`,
+            ? `SELECT id, name, email, service, consultation_method, customer_appointment_id, date, time, status, payment_status, message, service_details, created_at FROM appointments WHERE phone = ? ORDER BY datetime(created_at) DESC LIMIT 50`
+            : `SELECT id, name, email, service, consultation_method, customer_appointment_id, date, time, status, payment_status, message, service_details, created_at FROM appointments WHERE email = ? ORDER BY datetime(created_at) DESC LIMIT 50`,
           args: [preferPhone || preferEmail],
         }),
         client.execute({
@@ -92,16 +103,64 @@ export const GET: APIRoute = async ({ request }) => {
         }),
         cid
           ? client.execute({
-              sql: `SELECT id, amount, mode, reference, note, created_at, appointment_id FROM payments WHERE client_id = ? ORDER BY datetime(created_at) DESC LIMIT 100`,
-              args: [cid],
+              sql: `
+                SELECT * FROM (
+                  SELECT id, amount, mode, reference, note, created_at, appointment_id FROM payments WHERE client_id = ?
+                  UNION ALL
+                  SELECT id, amount, mode, reference, note, created_at, appointment_id FROM payments WHERE appointment_id IN (
+                    SELECT id FROM appointments WHERE ${usePhone ? 'phone = ?' : 'email = ?'}
+                  ) OR appointment_id IN (
+                    SELECT customer_appointment_id FROM appointments WHERE ${usePhone ? 'phone = ?' : 'email = ?'}
+                  )
+                  UNION ALL
+                  SELECT id, purchased_amount as amount, 'quote' as mode, number as reference, 'Quote Payment' as note, updated_at as created_at, NULL as appointment_id 
+                  FROM quotes 
+                  WHERE purchased_amount > 0 AND (${usePhone ? 'client_phone = ?' : 'client_email = ?'})
+                ) ORDER BY datetime(created_at) DESC LIMIT 100`,
+              args: [
+                cid,
+                usePhone ? preferPhone : preferEmail,
+                usePhone ? preferPhone : preferEmail,
+                usePhone ? preferPhone : preferEmail
+              ],
             })
-          : Promise.resolve({ rows: [] as Array<Record<string, unknown>> }),
+          : (preferPhone || preferEmail)
+            ? client.execute({
+                sql: `
+                  SELECT * FROM (
+                    SELECT id, amount, mode, reference, note, created_at, appointment_id FROM payments WHERE appointment_id IN (SELECT id FROM appointments WHERE ${usePhone ? 'phone' : 'email'} = ?)
+                    UNION ALL
+                    SELECT id, purchased_amount as amount, 'quote' as mode, number as reference, 'Quote Payment' as note, updated_at as created_at, NULL as appointment_id 
+                    FROM quotes 
+                    WHERE purchased_amount > 0 AND (${usePhone ? 'client_phone' : 'client_email'} = ?)
+                  ) ORDER BY datetime(created_at) DESC LIMIT 100`,
+                args: [usePhone ? preferPhone : preferEmail, usePhone ? preferPhone : preferEmail],
+              })
+            : Promise.resolve({ rows: [] as Array<Record<string, unknown>> }),
         cid
           ? client.execute({
-              sql: `SELECT COALESCE(SUM(amount),0) AS total FROM payments WHERE client_id = ?`,
-              args: [cid],
+              sql: `SELECT (
+                (SELECT COALESCE(SUM(amount),0) FROM payments WHERE client_id = ?) +
+                (SELECT COALESCE(SUM(amount),0) FROM payments WHERE appointment_id IN (SELECT id FROM appointments WHERE ${usePhone ? 'phone = ?' : 'email = ?'})) +
+                (SELECT COALESCE(SUM(amount),0) FROM payments WHERE appointment_id IN (SELECT customer_appointment_id FROM appointments WHERE ${usePhone ? 'phone = ?' : 'email = ?'})) +
+                (SELECT COALESCE(SUM(purchased_amount),0) FROM quotes WHERE purchased_amount > 0 AND (${usePhone ? 'client_phone = ?' : 'client_email = ?'}))
+              ) AS total`,
+              args: [
+                cid,
+                usePhone ? preferPhone : preferEmail,
+                usePhone ? preferPhone : preferEmail,
+                usePhone ? preferPhone : preferEmail
+              ],
             })
-          : Promise.resolve({ rows: [{ total: 0 }] as Array<Record<string, unknown>> }),
+          : (preferPhone || preferEmail)
+            ? client.execute({
+                sql: `SELECT (
+                  (SELECT COALESCE(SUM(amount),0) FROM payments WHERE appointment_id IN (SELECT id FROM appointments WHERE ${usePhone ? 'phone' : 'email'} = ?)) +
+                  (SELECT COALESCE(SUM(purchased_amount),0) FROM quotes WHERE purchased_amount > 0 AND (${usePhone ? 'client_phone' : 'client_email'} = ?))
+                ) AS total`,
+                args: [usePhone ? preferPhone : preferEmail, usePhone ? preferPhone : preferEmail],
+              })
+            : Promise.resolve({ rows: [{ total: 0 }] as Array<Record<string, unknown>> }),
         cid
           ? client.execute({
               sql: `SELECT id, name, relation, gender, dob, tob, pob, latitude, longitude, timezone, notes, created_at, updated_at FROM client_horoscopes WHERE client_id = ? ORDER BY datetime(created_at) DESC`,

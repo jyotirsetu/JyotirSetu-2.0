@@ -2,7 +2,6 @@
 export const prerender = false;
 import Favicons from '~/components/Favicons.astro';
 import AdminNavbar from '~/components/AdminNavbar.astro';
-import MobilePageSelect from '~/components/MobilePageSelect.astro';
 ---
 
 <!doctype html>
@@ -171,6 +170,9 @@ import MobilePageSelect from '~/components/MobilePageSelect.astro';
                 <a href="/admin/client360" class="nav-link"
                   ><i class="nav-icon fas fa-user-circle"></i><p>Client 360°</p></a
                 >
+              </li>
+              <li class="nav-item">
+                <a href="/admin/users" class="nav-link"><i class="nav-icon fas fa-users-cog"></i><p>Users</p></a>
               </li>
               <li class="nav-item">
                 <a href="/admin/tools/follow-hub/insights" class="nav-link"

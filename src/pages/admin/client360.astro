@@ -408,6 +408,9 @@ if (!email && !phone) {
                   </div>
                 </div>
               </div>
+
+              <!-- Modals -->
+
             )
           }
 
@@ -475,6 +478,8 @@ if (!email && !phone) {
             )
           }
 
+          <div id="clientCtx" data-client-id={clientData ? clientData.client.id : ''} style="display:none;"></div>
+
           {
             clientData && (
               <div class="row">
@@ -497,9 +502,10 @@ if (!email && !phone) {
                         <p>
                           <strong>Email:</strong> {clientData.client.email}
                         </p>
-                        <p>
-                          <strong>Phone:</strong> {clientData.client.phone || 'N/A'}
-                        </p>
+                      <p>
+                        <strong>Phone:</strong> {clientData.client.phone || 'N/A'}
+                      </p>
+                      <p id="linkedProfilesIndicator" style="display:none"><span class="badge badge-info">Linked profiles</span></p>
                         <p>
                           <strong>Client Since:</strong> {new Date(clientData.client.created_at).toLocaleDateString()}
                         </p>
@@ -691,46 +697,48 @@ if (!email && !phone) {
                     </div>
                   </div>
 
-                  <div class="card card-warning">
-                    <div class="card-header">
-                      <h3 class="card-title">Payment Ledger</h3>
-                    </div>
-                    <div class="card-body">
-                      {clientData.payments.length > 0 ? (
-                        <div class="table-responsive">
-                          <table class="table table-bordered">
-                            <thead>
-                              <tr>
-                                <th>Date</th>
-                                <th>Amount</th>
-                                <th>Mode</th>
-                                <th>Reference</th>
-                                <th>Note</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {clientData.payments.map((payment) => (
-                                <tr>
-                                  <td>{new Date(payment.created_at).toLocaleDateString()}</td>
-                                  <td>
-                                    <span class="text-success font-weight-bold">
-                                      ₹{payment.amount.toLocaleString()}
-                                    </span>
-                                  </td>
-                                  <td>
-                                    <span class="badge badge-info">{payment.mode}</span>
-                                  </td>
-                                  <td>{payment.reference || 'N/A'}</td>
-                                  <td>{payment.note || 'N/A'}</td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      ) : (
-                        <p class="text-muted text-center">No payments recorded</p>
-                      )}
+              <div class="card card-warning">
+                <div class="card-header">
+                  <h3 class="card-title">Payment Ledger</h3>
+                  <button class="btn btn-sm btn-outline-secondary" id="refreshPayments" style="float:right">Refresh</button>
                 </div>
+                <div class="card-body">
+                  <div id="paymentsLoading" class="text-center" style="display:none"><i class="fas fa-spinner fa-spin"></i> Loading payments…</div>
+                  {clientData.payments.length > 0 ? (
+                    <div class="table-responsive">
+                      <table class="table table-bordered" id="paymentsTable">
+                        <thead>
+                          <tr>
+                            <th>Date</th>
+                            <th>Amount</th>
+                            <th>Mode</th>
+                            <th>Reference</th>
+                            <th>Note</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {clientData.payments.map((payment) => (
+                            <tr>
+                              <td>{new Date(payment.created_at).toLocaleDateString()}</td>
+                              <td>
+                                <span class="text-success font-weight-bold">
+                                  ₹{payment.amount.toLocaleString()}
+                                </span>
+                              </td>
+                              <td>
+                                <span class="badge badge-info">{payment.mode}</span>
+                              </td>
+                              <td>{payment.reference || 'N/A'}</td>
+                              <td>{payment.note || 'N/A'}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <p class="text-muted text-center">No payments recorded</p>
+                  )}
+              </div>
               </div>
 
               <div class="card card-info">
@@ -798,15 +806,20 @@ if (!email && !phone) {
                   {Array.isArray(remedies) && remedies.length ? (
                     <div class="table-responsive">
                       <table class="table table-bordered">
-                        <thead><tr><th>Title</th><th>Type</th><th>Status</th><th>Adherence</th><th>Duration</th></tr></thead>
+                        <thead><tr><th>Title</th><th>Type</th><th>Status</th><th>Adherence</th><th>Duration</th><th>Actions</th></tr></thead>
                         <tbody>
                           {remedies.map((r) => (
                             <tr>
                               <td>{String(r.title||'')}</td>
                               <td>{String(r.type||'')}</td>
                               <td>{String(r.status||'')}</td>
-                              <td>{Number(r.adherence||0)}%</td>
-                              <td>{String(r.start_date||'')} {r.end_date? '→ '+String(r.end_date): ''}</td>
+                              <td><span class="rem-adherence" data-rem-id={String(r.id||'')}>{Number(r.adherence||0)}%</span></td>
+                              <td><span class="rem-duration" data-rem-id={String(r.id||'')}>{String(r.start_date||'')} {r.end_date? '→ '+String(r.end_date): ''}</span></td>
+                              <td>
+                                <button class="btn btn-sm btn-outline-primary editRem" data-rem-id={String(r.id||'')} data-title={String(r.title||'')} data-type={String(r.type||'')} data-status={String(r.status||'')} data-adherence={String(r.adherence||'')} data-start={String(r.start_date||'')} data-end={String(r.end_date||'')} data-notes={String(r.notes||'')}>Edit</button>
+                                <button class="btn btn-sm btn-outline-danger deleteRem" data-rem-id={String(r.id||'')}>Delete</button>
+                                <button class="btn btn-sm btn-outline-secondary notesRem" data-rem-id={String(r.id||'')}>Notes</button>
+                              </td>
                             </tr>
                           ))}
                         </tbody>
@@ -825,14 +838,20 @@ if (!email && !phone) {
                   {Array.isArray(fulfillments) && fulfillments.length ? (
                     <div class="table-responsive">
                       <table class="table table-bordered">
-                        <thead><tr><th>Service</th><th>Status</th><th>Due</th><th>Checklist</th></tr></thead>
+                        <thead><tr><th>Service</th><th>Status</th><th>Due</th><th>Checklist</th><th>Actions</th></tr></thead>
                         <tbody>
                           {fulfillments.map((f) => (
                             <tr>
                               <td>{String(f.service||'')}</td>
-                              <td>{String(f.status||'')}</td>
+                              <td>
+                                <input type="checkbox" class="taskStatus" data-task-id={String(f.id||'')} checked={String(f.status||'')==='completed'} />
+                                <span class="statusText" data-task-id={String(f.id||'')}>{String(f.status||'')}</span>
+                              </td>
                               <td>{String(f.due_date||'')}</td>
                               <td>{String(f.checklist||'')}</td>
+                              <td>
+                                <button class="btn btn-sm btn-outline-danger deleteTask" data-task-id={String(f.id||'')}>Delete</button>
+                              </td>
                             </tr>
                           ))}
                         </tbody>
@@ -851,7 +870,7 @@ if (!email && !phone) {
                   {Array.isArray(documents) && documents.length ? (
                     <div class="table-responsive">
                       <table class="table table-bordered">
-                        <thead><tr><th>Title</th><th>Type</th><th>Size</th><th>Link</th><th>Created</th><th>Share</th></tr></thead>
+                        <thead><tr><th>Title</th><th>Type</th><th>Size</th><th>Link</th><th>Created</th><th>Share</th><th>Actions</th></tr></thead>
                         <tbody>
                           {documents.map((d) => (
                             <tr>
@@ -862,6 +881,10 @@ if (!email && !phone) {
                               <td>{String(d.created_at||'')}</td>
                               <td>
                                 <button class="btn btn-sm btn-outline-primary createShare" data-doc-id={String(d.id||'')} title="Create share link"><i class="fas fa-link"></i></button>
+                              </td>
+                              <td>
+                                <button class="btn btn-sm btn-outline-primary editDocument" data-doc-id={String(d.id||'')} data-title={String(d.title||'')} data-url={String(d.storage_url||'')}>Edit</button>
+                                <button class="btn btn-sm btn-outline-danger deleteDocument" data-doc-id={String(d.id||'')}>Delete</button>
                               </td>
                             </tr>
                           ))}
@@ -874,11 +897,235 @@ if (!email && !phone) {
                 </div>
               </div>
 
+              <div class="card card-info">
+                <div class="card-header"><h3 class="card-title">Notes & History</h3><button class="btn btn-sm btn-outline-secondary" id="refreshApptNotes" style="float:right">Refresh</button></div>
+                <div class="card-body">
+                  <div id="notesLoading" class="text-center" style="display:none"><i class="fas fa-spinner fa-spin"></i> Loading notes…</div>
+                  <div class="table-responsive">
+                    <table class="table table-bordered" id="clientNotesTable">
+                      <thead><tr><th>Date</th><th>Note</th></tr></thead>
+                      <tbody id="clientNotesList"></tbody>
+                    </table>
+                  </div>
+                  <div id="clientNotesEmpty" class="text-muted text-center" style="display:none">No notes available</div>
+                </div>
+              </div>
+
               
                 </div>
               </div>
             )
           }
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="remedyModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Add Remedy</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div id="remError" class="alert alert-danger" style="display:none; padding: 10px; margin-bottom: 15px;"></div>
+          <div class="mb-3">
+            <label class="form-label">Title</label>
+            <input type="text" class="form-control" id="remTitle" required />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Type</label>
+            <select class="form-select" id="remType">
+              <option value="gemstone">Gemstone</option>
+              <option value="mantra">Mantra</option>
+              <option value="puja">Puja</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Adherence (%)</label>
+            <input type="number" class="form-control" id="remAdherence" min="0" max="100" value="0" />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Start Date</label>
+            <input type="date" class="form-control" id="remStart" />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Duration (days)</label>
+            <input type="number" class="form-control" id="remDurationDays" min="0" />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Notes</label>
+            <textarea class="form-control" id="remNotes" rows="3"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" id="saveRemBtn">Save Remedy</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="editRemedyModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Edit Remedy</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div id="editRemError" class="alert alert-danger" style="display:none; padding: 10px; margin-bottom: 15px;"></div>
+          <input type="hidden" id="editRemId" />
+          <div class="mb-3">
+            <label class="form-label">Adherence (%)</label>
+            <input type="number" class="form-control" id="editRemAdherence" min="0" max="100" />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Start Date</label>
+            <input type="date" class="form-control" id="editRemStart" />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">End Date</label>
+            <input type="date" class="form-control" id="editRemEnd" />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Notes</label>
+            <textarea class="form-control" id="editRemNotes" rows="3"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" id="updateRemBtn">Update Remedy</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="remedyNotesModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Remedy Notes</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div id="remNotesError" class="alert alert-danger" style="display:none; padding: 10px; margin-bottom: 15px;"></div>
+          <input type="hidden" id="remNotesEntityId" />
+          <div class="mb-3">
+            <label class="form-label">Add Note</label>
+            <textarea class="form-control" id="newRemNote" rows="3"></textarea>
+          </div>
+          <div class="mb-3">
+            <button type="button" class="btn btn-primary" id="addRemNoteBtn">Add Note</button>
+          </div>
+          <div id="remNotesList" class="list-group"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="fulfillmentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Add Fulfillment Task</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div id="fulError" class="alert alert-danger" style="display:none; padding: 10px; margin-bottom: 15px;"></div>
+          <div class="mb-3">
+            <label class="form-label">Service</label>
+            <input type="text" class="form-control" id="fulService" required />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Due Date</label>
+            <input type="date" class="form-control" id="fulDue" />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Notes</label>
+            <textarea class="form-control" id="fulNotes" rows="3"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" id="saveFulBtn">Save Task</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="documentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Add Document</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div id="docError" class="alert alert-danger" style="display:none; padding: 10px; margin-bottom: 15px;"></div>
+          <div class="mb-3">
+            <label class="form-label">Title</label>
+            <input type="text" class="form-control" id="docTitle" required />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">URL</label>
+            <input type="url" class="form-control" id="docUrl" placeholder="https://" required />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" id="saveDocBtn">Save Document</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="editDocumentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Edit Document</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div id="editDocError" class="alert alert-danger" style="display:none; padding: 10px; margin-bottom: 15px;"></div>
+          <input type="hidden" id="editDocId" />
+          <div class="mb-3">
+            <label class="form-label">Title</label>
+            <input type="text" class="form-control" id="editDocTitle" required />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">URL</label>
+            <input type="url" class="form-control" id="editDocUrl" placeholder="https://" required />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" id="updateDocBtn">Update Document</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Confirm</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p id="confirmMessage"></p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-danger" id="confirmYesBtn">Yes</button>
         </div>
       </div>
     </div>
@@ -890,20 +1137,34 @@ if (!email && !phone) {
   <script src="https://cdn.jsdelivr.net/npm/admin-lte@latest/dist/js/adminlte.min.js" defer></script>
 
   <script is:inline>
-    (function(){
+    document.addEventListener('DOMContentLoaded', function() {
       if (typeof window === 'undefined') return;
       try { window.addEventListener('unhandledrejection', function(e){ try { e.preventDefault(); console.warn('Unhandled promise rejection suppressed'); } catch (err) { console.warn(err); } }); } catch (err) { console.warn(err); }
       try { window.addEventListener('error', function(_e){ try { console.warn('Window error'); } catch (err) { console.warn(err); } }); } catch (err) { console.warn(err); }
+      
+    // CSRF Helper
+      const csrf = () => (document.cookie.match(/csrf_token=([^;]+)/)||[])[1]||'';
+      
+      // Ensure CSRF token is available
+      if (!csrf()) {
+        try { fetch('/api/csrf-token', { credentials: 'include' }).catch(() => {}); } catch { /* ignore */ }
+      }
+
       let customers = [];
+
       async function loadCustomers(){
         let allRows = [];
         let page = 1;
         const limit = 100;
         let hasMore = true;
         let totalLoaded = 0;
+        const countEl = document.getElementById('customerCount');
+        if (countEl) countEl.textContent = '(loading…)';
         while (hasMore) {
           try {
-            const res = await fetch(`/api/admin/appointments?page=${page}&limit=${limit}`);
+            const c = new AbortController();
+            const timer = setTimeout(()=>{ try { c.abort(); } catch { /* ignore */ } }, 15000);
+            const res = await fetch(`/api/admin/appointments?page=${page}&limit=${limit}`, { signal: c.signal });
             const j = await res.json();
             const rows = Array.isArray(j.data) ? j.data : [];
             const pagination = j.pagination || {};
@@ -919,6 +1180,7 @@ if (!email && !phone) {
                 if (page > 50) hasMore = false;
               }
             }
+            clearTimeout(timer);
           } catch {
             hasMore = false;
           }
@@ -937,7 +1199,6 @@ if (!email && !phone) {
           }
         });
         customers = processed.sort(function(a,b){ return String(a.name||'').localeCompare(String(b.name||'')); });
-        const countEl = document.getElementById('customerCount');
         if (countEl) countEl.textContent = `(${customers.length} customers)`;
       }
       function showCustomerDropdown(list){
@@ -1014,6 +1275,48 @@ if (!email && !phone) {
       document.getElementById('refreshRecent')?.addEventListener('click', function(){ refreshRecentClients(); });
       try { setInterval(refreshRecentClients, 60000); } catch { void 0; }
 
+      // View button animation and debouncing for Recent Clients
+      document.addEventListener('click', function(ev){
+        const t = ev.target instanceof Element ? ev.target : null;
+        const btn = t && t.closest && t.closest('#recentClientsTable a.btn.btn-sm.btn-outline-primary');
+        if (!btn) return;
+        ev.preventDefault();
+        const href = btn instanceof HTMLAnchorElement ? (btn.getAttribute('href') || '') : ((btn instanceof Element ? btn.getAttribute('href') : '') || '');
+        if (!href) return;
+        if (btn instanceof Element) {
+          btn.setAttribute('aria-busy','true');
+          btn.setAttribute('disabled','true');
+          btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading…';
+        }
+        setTimeout(function(){ window.location.href = href; }, 200);
+      });
+
+      // Payment ledger refresh with loading state
+      document.getElementById('refreshPayments')?.addEventListener('click', async function(){
+        const tbl = document.getElementById('paymentsTable');
+        const ld = document.getElementById('paymentsLoading');
+        const cid = (document.querySelector('#clientCtx')?.getAttribute('data-client-id'))||'';
+        if (!cid || !tbl || !ld) return;
+        ld.style.display = 'block';
+        try {
+          const res = await fetch(`/api/admin/payments?client_id=${encodeURIComponent(cid)}&limit=100`, { credentials: 'include' });
+          const j = await res.json();
+          const rows = Array.isArray(j.data) ? j.data : [];
+          const tbody = tbl.querySelector('tbody');
+          if (tbody) {
+            tbody.innerHTML = rows.map(function(payment){
+              const dt = new Date(String(payment.created_at||'')).toLocaleDateString('en-IN');
+              const amt = Number(payment.amount||0);
+              const mode = String(payment.mode||'');
+              const ref = String(payment.reference||'N/A');
+              const note = String(payment.note||'N/A');
+              return `<tr><td>${dt}</td><td><span class="text-success font-weight-bold">₹${amt.toLocaleString('en-IN')}</span></td><td><span class="badge badge-info">${mode}</span></td><td>${ref}</td><td>${note}</td></tr>`;
+            }).join('');
+          }
+        } catch { alert('Failed to refresh payments'); }
+        finally { ld.style.display = 'none'; }
+      });
+
       document.addEventListener('click', async function(ev){
         const t = ev && ev.target ? ev.target : null;
         const btn = (t instanceof Element) && t.closest ? t.closest('.createShare') : null;
@@ -1033,40 +1336,410 @@ if (!email && !phone) {
         } catch { alert('Failed to create share link'); }
       });
 
+      document.addEventListener('click', function(ev){
+        const t = ev && ev.target ? ev.target : null;
+        const delDocBtn = (t instanceof Element) && t.closest ? t.closest('.deleteDocument') : null;
+        if (!delDocBtn) return;
+        ev.preventDefault();
+        const id = delDocBtn.getAttribute('data-doc-id') || '';
+        if (!id) return;
+        if (!confirm('Delete this document?')) return;
+        fetch('/api/admin/documents', { method:'POST', headers:{ 'Content-Type':'application/json','X-CSRF-Token': csrf() }, body: JSON.stringify({ action:'delete', id }) })
+          .then(res => res.json().then(j => ({ ok: res.ok, j })))
+          .then(({ ok, j }) => { if (ok && j && j.ok) { const row = delDocBtn.closest('tr'); if (row) row.remove(); } else { alert('Failed to delete document'); } })
+          .catch(() => alert('Failed to delete document'));
+      });
+
       
 
-      const csrf = () => (document.cookie.match(/csrf_token=([^;]+)/)||[])[1]||'';
-      document.getElementById('addDocBtn')?.addEventListener('click', async function(){
-        const title = prompt('Document title'); if (title == null) return;
-        const url = prompt('Document URL'); if (!url) return;
-        const clientId = (document.querySelector('#clientCtx')?.getAttribute('data-client-id'))||'';
+      // Initialize Modals
+      let remModal, fulModal, docModal;
+      function initModals() {
+        if (remModal && fulModal && docModal) return true;
         try {
-          const res = await fetch('/api/admin/documents', { method:'POST', headers:{ 'Content-Type':'application/json','X-CSRF-Token': csrf() }, body: JSON.stringify({ action:'add', client_id: clientId, title, storage_url: url }) });
-          const j = await res.json(); if (res.ok && j && j.ok) location.reload(); else alert('Failed to add document');
-        } catch { alert('Failed to add document'); }
+          const bs = window.bootstrap || (typeof bootstrap !== 'undefined' ? bootstrap : null);
+          if (bs && bs.Modal) {
+            const r = document.getElementById('remedyModal');
+            if (r) remModal = new bs.Modal(r);
+            const f = document.getElementById('fulfillmentModal');
+            if (f) fulModal = new bs.Modal(f);
+            const d = document.getElementById('documentModal');
+            if (d) docModal = new bs.Modal(d);
+            return !!(remModal || fulModal || docModal);
+          } else {
+            console.warn('Bootstrap not found');
+          }
+        } catch (e) { console.warn('Bootstrap init failed', e); }
+        return false;
+      }
+      initModals();
+
+      // Open Handlers
+      document.getElementById('addDocBtn')?.addEventListener('click', function(){
+        console.log('Add Doc Clicked');
+        const bs = window.bootstrap || (typeof bootstrap !== 'undefined' ? bootstrap : null);
+        const e = document.getElementById('docError'); if(e) { e.style.display='none'; e.textContent=''; }
+        const el = document.getElementById('documentModal');
+        const t = document.getElementById('docTitle'); if(t) t.value='';
+        const u = document.getElementById('docUrl'); if(u) u.value='';
+        if (bs && bs.Modal && el) { try { (bs.Modal.getInstance(el) || new bs.Modal(el)).show(); } catch { alert('Modal error'); } } else { alert('Modal library not loaded'); }
+      });
+      document.getElementById('addFulBtn')?.addEventListener('click', function(){
+        console.log('Add Ful Clicked');
+        const bs = window.bootstrap || (typeof bootstrap !== 'undefined' ? bootstrap : null);
+        const e = document.getElementById('fulError'); if(e) { e.style.display='none'; e.textContent=''; }
+        const s = document.getElementById('fulService'); if(s) s.value='';
+        const d = document.getElementById('fulDue'); if(d) d.value='';
+        const n = document.getElementById('fulNotes'); if(n) n.value='';
+        const el = document.getElementById('fulfillmentModal');
+        if (bs && bs.Modal && el) { try { (bs.Modal.getInstance(el) || new bs.Modal(el)).show(); } catch { alert('Modal error'); } } else { alert('Modal library not loaded'); }
+      });
+      document.getElementById('addRemBtn')?.addEventListener('click', function(){
+        console.log('Add Rem Clicked');
+        const bs = window.bootstrap || (typeof bootstrap !== 'undefined' ? bootstrap : null);
+        const t = document.getElementById('remTitle'); if(t) t.value='';
+        const tp = document.getElementById('remType'); if(tp) tp.value='gemstone';
+        const n = document.getElementById('remNotes'); if(n) n.value='';
+        const e = document.getElementById('remError'); if(e) { e.style.display='none'; e.textContent=''; }
+        const el = document.getElementById('remedyModal');
+        if (bs && bs.Modal && el) { try { (bs.Modal.getInstance(el) || new bs.Modal(el)).show(); } catch { alert('Modal error'); } } else { alert('Modal library not loaded'); }
       });
 
-      document.getElementById('addFulBtn')?.addEventListener('click', async function(){
-        const service = prompt('Service'); if (!service) return;
-        const due = prompt('Due date (YYYY-MM-DD)');
-        const notes = prompt('Notes');
-        const clientId = (document.querySelector('#clientCtx')?.getAttribute('data-client-id'))||'';
+      // Save Functions
+      async function saveDoc(clientId, title, url, onError) {
+        if (!onError) onError = alert;
+        if (!clientId) { onError('Client ID missing'); return; }
+        try {
+          const res = await fetch('/api/admin/documents', { method:'POST', headers:{ 'Content-Type':'application/json','X-CSRF-Token': csrf() }, body: JSON.stringify({ action:'add', client_id: clientId, title, storage_url: url }) });
+          const j = await res.json(); if (res.ok && j && j.ok) location.reload(); else onError('Failed to add document: ' + (j.error || 'Unknown error'));
+        } catch { onError('Failed to add document'); }
+      }
+      async function saveFul(clientId, service, due, notes, onError) {
+        if (!onError) onError = alert;
+        if (!clientId) { onError('Client ID missing'); return; }
         try {
           const res = await fetch('/api/admin/fulfillment', { method:'POST', headers:{ 'Content-Type':'application/json','X-CSRF-Token': csrf() }, body: JSON.stringify({ action:'create', client_id: clientId, service, due_date: due, checklist: [], notes }) });
-          const j = await res.json(); if (res.ok && j && j.ok) location.reload(); else alert('Failed to add task');
-        } catch { alert('Failed to add task'); }
-      });
-      document.getElementById('addRemBtn')?.addEventListener('click', async function(){
-        const title = prompt('Remedy title'); if (!title) return;
-        const type = prompt('Type (gemstone/mantra/puja)')||'gemstone';
-        const notes = prompt('Notes')||'';
-        const clientId = (document.querySelector('#clientCtx')?.getAttribute('data-client-id'))||'';
+          const j = await res.json(); if (res.ok && j && j.ok) location.reload(); else onError('Failed to add task: ' + (j.error || 'Unknown error'));
+        } catch { onError('Failed to add task'); }
+      }
+      async function saveRem(clientId, title, type, notes, onError) {
+        if (!onError) onError = alert;
+        if (!clientId) { onError('Client ID missing'); return; }
         try {
-          const res = await fetch('/api/admin/remedies', { method:'POST', headers:{ 'Content-Type':'application/json','X-CSRF-Token': csrf() }, body: JSON.stringify({ action:'create', client_id: clientId, type, title, notes }) });
-          const j = await res.json(); if (res.ok && j && j.ok) location.reload(); else alert('Failed to add remedy');
-        } catch { alert('Failed to add remedy'); }
+          const adhEl = document.getElementById('remAdherence');
+          const startEl = document.getElementById('remStart');
+          const durEl = document.getElementById('remDurationDays');
+          const adherence = adhEl instanceof HTMLInputElement && adhEl.value ? Number(adhEl.value) : 0;
+          const start_date = startEl instanceof HTMLInputElement && startEl.value ? String(startEl.value) : null;
+          const durationDays = durEl instanceof HTMLInputElement && durEl.value ? Number(durEl.value) : 0;
+          let end_date = null;
+          if (start_date && durationDays && durationDays > 0) {
+            const sd = new Date(start_date + 'T00:00:00Z');
+            sd.setUTCDate(sd.getUTCDate() + durationDays);
+            end_date = sd.toISOString().slice(0,10);
+          }
+          const res = await fetch('/api/admin/remedies', { method:'POST', headers:{ 'Content-Type':'application/json','X-CSRF-Token': csrf() }, body: JSON.stringify({ action:'create', client_id: clientId, type, title, notes, adherence, start_date, end_date }) });
+          const j = await res.json(); if (res.ok && j && j.ok) location.reload(); else onError('Failed to add remedy: ' + (j.error || 'Unknown error'));
+        } catch { onError('Failed to add remedy'); }
+      }
+
+      // Modal Save Buttons
+      document.getElementById('saveDocBtn')?.addEventListener('click', function(){
+        const title = document.getElementById('docTitle')?.value;
+        const url = document.getElementById('docUrl')?.value;
+        const clientId = (document.querySelector('#clientCtx')?.getAttribute('data-client-id'))||'';
+        const errDiv = document.getElementById('docError');
+        const showError = (msg) => { if(errDiv) { errDiv.textContent = msg; errDiv.style.display = 'block'; } else alert(msg); };
+        if(errDiv) { errDiv.style.display='none'; errDiv.textContent=''; }
+        
+        if (!title || !url) { showError('Please fill required fields'); return; }
+        saveDoc(clientId, title, url, showError);
       });
-    })();
+      document.getElementById('saveFulBtn')?.addEventListener('click', function(){
+        const service = document.getElementById('fulService')?.value;
+        const due = document.getElementById('fulDue')?.value;
+        const notes = document.getElementById('fulNotes')?.value;
+        const clientId = (document.querySelector('#clientCtx')?.getAttribute('data-client-id'))||'';
+        const errDiv = document.getElementById('fulError');
+        const showError = (msg) => { if(errDiv) { errDiv.textContent = msg; errDiv.style.display = 'block'; } else alert(msg); };
+        if(errDiv) { errDiv.style.display='none'; errDiv.textContent=''; }
+
+        if (!service) { showError('Service is required'); return; }
+        saveFul(clientId, service, due, notes, showError);
+      });
+      document.getElementById('saveRemBtn')?.addEventListener('click', function(){
+        const title = document.getElementById('remTitle')?.value;
+        const type = document.getElementById('remType')?.value;
+        const notes = document.getElementById('remNotes')?.value;
+        const clientId = (document.querySelector('#clientCtx')?.getAttribute('data-client-id'))||'';
+        const errDiv = document.getElementById('remError');
+        const showError = (msg) => { if(errDiv) { errDiv.textContent = msg; errDiv.style.display = 'block'; } else alert(msg); };
+        if(errDiv) { errDiv.style.display='none'; errDiv.textContent=''; }
+
+        if (!title) { showError('Title is required'); return; }
+        saveRem(clientId, title, type, notes, showError);
+      });
+
+      // Edit/Delete/Notes for Remedies
+      let editRemModal, remNotesModal, editDocModal;
+      (function initExtraModals(){
+        try {
+          const bs = window.bootstrap || (typeof bootstrap !== 'undefined' ? bootstrap : null);
+          if (bs && bs.Modal) {
+            const er = document.getElementById('editRemedyModal'); if (er) editRemModal = new bs.Modal(er);
+            const rn = document.getElementById('remedyNotesModal'); if (rn) remNotesModal = new bs.Modal(rn);
+            const ed = document.getElementById('editDocumentModal'); if (ed) editDocModal = new bs.Modal(ed);
+            const cm = document.getElementById('confirmModal'); if (cm) window.__confirmModal = new bs.Modal(cm);
+          }
+        } catch { /* ignore */ }
+      })();
+
+      document.addEventListener('click', function(ev){
+        const t = ev.target instanceof Element ? ev.target : null;
+        const editBtn = t && t.closest ? t.closest('.editRem') : null;
+        const delBtn = t && t.closest ? t.closest('.deleteRem') : null;
+        const notesBtn = t && t.closest ? t.closest('.notesRem') : null;
+        const delTaskBtn = t && t.closest ? t.closest('.deleteTask') : null;
+        const editDocBtn = t && t.closest ? t.closest('.editDocument') : null;
+
+        if (editBtn) {
+          ev.preventDefault();
+          const id = editBtn.getAttribute('data-rem-id') || '';
+          const adherence = editBtn.getAttribute('data-adherence') || '';
+          const start = editBtn.getAttribute('data-start') || '';
+          const end = editBtn.getAttribute('data-end') || '';
+          const notes = editBtn.getAttribute('data-notes') || '';
+          const idEl = document.getElementById('editRemId'); if (idEl && idEl instanceof HTMLInputElement) idEl.value = id;
+          const adhEl2 = document.getElementById('editRemAdherence'); if (adhEl2 && adhEl2 instanceof HTMLInputElement) adhEl2.value = String(adherence || '0');
+          const stEl2 = document.getElementById('editRemStart'); if (stEl2 && stEl2 instanceof HTMLInputElement) stEl2.value = start;
+          const enEl2 = document.getElementById('editRemEnd'); if (enEl2 && enEl2 instanceof HTMLInputElement) enEl2.value = end;
+          const ntEl2 = document.getElementById('editRemNotes'); if (ntEl2 && ntEl2 instanceof HTMLTextAreaElement) ntEl2.value = notes;
+          if (editRemModal) editRemModal.show();
+          return;
+        }
+        if (delBtn) {
+          ev.preventDefault();
+          const id = delBtn.getAttribute('data-rem-id') || '';
+          if (!id) return;
+          const msgEl = document.getElementById('confirmMessage'); if (msgEl) msgEl.textContent = 'Delete this remedy?';
+          const yesBtn = document.getElementById('confirmYesBtn');
+          function onYes(){
+            fetch('/api/admin/remedies', { method:'POST', headers:{ 'Content-Type':'application/json','X-CSRF-Token': csrf() }, body: JSON.stringify({ action:'delete', id }) })
+              .then(res => res.json().then(j => ({ ok: res.ok, j })))
+              .then(({ ok, j }) => { if (ok && j && j.ok) { const row = delBtn.closest('tr'); if (row) row.remove(); } else { alert('Failed to delete remedy'); } })
+              .catch(() => alert('Failed to delete remedy'))
+              .finally(() => { try { const cmEl = document.getElementById('confirmModal'); const bs = window.bootstrap || (typeof bootstrap !== 'undefined' ? bootstrap : null); if (cmEl && bs && bs.Modal) (bs.Modal.getInstance(cmEl) || new bs.Modal(cmEl)).hide(); } catch { /* ignore */ } });
+            yesBtn?.removeEventListener('click', onYes);
+          }
+          yesBtn?.addEventListener('click', onYes);
+          try { const cmEl = document.getElementById('confirmModal'); const bs = window.bootstrap || (typeof bootstrap !== 'undefined' ? bootstrap : null); if (cmEl && bs && bs.Modal) (bs.Modal.getInstance(cmEl) || new bs.Modal(cmEl)).show(); } catch { if (confirm('Delete this remedy?')) onYes(); }
+          return;
+        }
+        if (notesBtn) {
+          ev.preventDefault();
+          const id = notesBtn.getAttribute('data-rem-id') || '';
+          const eidEl = document.getElementById('remNotesEntityId'); if (eidEl && eidEl instanceof HTMLInputElement) eidEl.value = id;
+          const list = document.getElementById('remNotesList'); if (list) list.innerHTML = '';
+          fetch(`/api/admin/notes?entity_type=remedy&entity_id=${encodeURIComponent(id)}`)
+            .then(res => res.json())
+            .then(j => {
+              const arr = Array.isArray(j.data) ? j.data : [];
+              if (list) list.innerHTML = arr.map(n => `<div class="list-group-item"><div><small>${n.created_at||''}</small></div><div>${n.note_text||''}</div></div>`).join('');
+              if (remNotesModal) remNotesModal.show();
+            }).catch(() => { if (remNotesModal) remNotesModal.show(); });
+          return;
+        }
+        if (delTaskBtn) {
+          ev.preventDefault();
+          const id = delTaskBtn.getAttribute('data-task-id') || '';
+          if (!id) return;
+          const msgEl = document.getElementById('confirmMessage'); if (msgEl) msgEl.textContent = 'Delete this task?';
+          const yesBtn = document.getElementById('confirmYesBtn');
+          function onYes(){
+            fetch('/api/admin/fulfillment', { method:'POST', headers:{ 'Content-Type':'application/json','X-CSRF-Token': csrf() }, body: JSON.stringify({ action:'delete', id }) })
+              .then(res => res.json().then(j => ({ ok: res.ok, j })))
+              .then(({ ok, j }) => { if (ok && j && j.ok) { const row = delTaskBtn.closest('tr'); if (row) row.remove(); } else { alert('Failed to delete task'); } })
+              .catch(() => alert('Failed to delete task'))
+              .finally(() => { try { const cmEl = document.getElementById('confirmModal'); const bs = window.bootstrap || (typeof bootstrap !== 'undefined' ? bootstrap : null); if (cmEl && bs && bs.Modal) (bs.Modal.getInstance(cmEl) || new bs.Modal(cmEl)).hide(); } catch { /* ignore */ } });
+            yesBtn?.removeEventListener('click', onYes);
+          }
+          yesBtn?.addEventListener('click', onYes);
+          try { const cmEl = document.getElementById('confirmModal'); const bs = window.bootstrap || (typeof bootstrap !== 'undefined' ? bootstrap : null); if (cmEl && bs && bs.Modal) (bs.Modal.getInstance(cmEl) || new bs.Modal(cmEl)).show(); } catch { if (confirm('Delete this task?')) onYes(); }
+          return;
+        }
+        if (editDocBtn) {
+          ev.preventDefault();
+          const id = editDocBtn.getAttribute('data-doc-id') || '';
+          const title = editDocBtn.getAttribute('data-title') || '';
+          const url = editDocBtn.getAttribute('data-url') || '';
+          const idEl2 = document.getElementById('editDocId'); if (idEl2 && idEl2 instanceof HTMLInputElement) idEl2.value = id;
+          const tEl = document.getElementById('editDocTitle'); if (tEl && tEl instanceof HTMLInputElement) tEl.value = title;
+          const uEl = document.getElementById('editDocUrl'); if (uEl && uEl instanceof HTMLInputElement) uEl.value = url;
+          if (editDocModal) editDocModal.show();
+          return;
+        }
+      });
+
+      document.getElementById('updateRemBtn')?.addEventListener('click', function(){
+        const idEl3 = document.getElementById('editRemId'); const id = (idEl3 && idEl3 instanceof HTMLInputElement) ? idEl3.value : '';
+        const adhEl3 = document.getElementById('editRemAdherence'); const adherence = Number((adhEl3 && adhEl3 instanceof HTMLInputElement && adhEl3.value) ? adhEl3.value : '0');
+        const stEl3 = document.getElementById('editRemStart'); const start = (stEl3 && stEl3 instanceof HTMLInputElement) ? (stEl3.value || '') : '';
+        const enEl3 = document.getElementById('editRemEnd'); const end = (enEl3 && enEl3 instanceof HTMLInputElement) ? (enEl3.value || '') : '';
+        const ntEl3 = document.getElementById('editRemNotes'); const notes = (ntEl3 && ntEl3 instanceof HTMLTextAreaElement) ? (ntEl3.value || '') : '';
+        const errDiv = document.getElementById('editRemError'); if (errDiv) { errDiv.style.display='none'; errDiv.textContent=''; }
+        fetch('/api/admin/remedies', { method:'POST', headers:{ 'Content-Type':'application/json','X-CSRF-Token': csrf() }, body: JSON.stringify({ action:'update_fields', id, adherence, start_date: start||null, end_date: end||null, notes }) })
+          .then(res => res.json().then(j => ({ ok: res.ok, j })))
+          .then(({ ok, j }) => {
+            if (ok && j && j.ok) {
+              const adhSpan = document.querySelector(`.rem-adherence[data-rem-id="${id}"]`);
+              if (adhSpan) adhSpan.textContent = `${adherence}%`;
+              const durSpan = document.querySelector(`.rem-duration[data-rem-id="${id}"]`);
+              if (durSpan) durSpan.textContent = `${start}${end? ' → '+end:''}`;
+              const bs = window.bootstrap || (typeof bootstrap !== 'undefined' ? bootstrap : null);
+              const el = document.getElementById('editRemedyModal'); if (bs && bs.Modal && el) { try { (bs.Modal.getInstance(el) || new bs.Modal(el)).hide(); } catch { /* ignore */ } }
+            } else {
+              if (errDiv) { errDiv.textContent = 'Failed to update remedy'; errDiv.style.display='block'; } else alert('Failed to update remedy');
+            }
+          }).catch(() => { if (errDiv) { errDiv.textContent = 'Failed to update remedy'; errDiv.style.display='block'; } else alert('Failed to update remedy'); });
+      });
+
+      document.getElementById('addRemNoteBtn')?.addEventListener('click', function(){
+        const idInp = document.getElementById('remNotesEntityId'); const id = (idInp && idInp instanceof HTMLInputElement) ? idInp.value : '';
+        const textEl = document.getElementById('newRemNote'); const text = (textEl && textEl instanceof HTMLTextAreaElement) ? textEl.value || '' : '';
+        const errDiv = document.getElementById('remNotesError'); if (errDiv) { errDiv.style.display='none'; errDiv.textContent=''; }
+        fetch('/api/admin/notes', { method:'POST', headers:{ 'Content-Type':'application/json','X-CSRF-Token': csrf() }, body: JSON.stringify({ entity_type:'remedy', entity_id:id, note_text:text }) })
+          .then(res => res.json().then(j => ({ ok: res.ok, j })))
+          .then(({ ok, j }) => {
+            if (ok && j && j.ok) {
+              const list = document.getElementById('remNotesList'); if (list) {
+                const now = new Date().toISOString();
+                const div = document.createElement('div');
+                div.className = 'list-group-item';
+                div.innerHTML = `<div><small>${now}</small></div><div>${text}</div>`;
+                list.prepend(div);
+              }
+              const ta = document.getElementById('newRemNote'); if (ta && ta instanceof HTMLTextAreaElement) ta.value='';
+            } else {
+              if (errDiv) { errDiv.textContent = 'Failed to add note'; errDiv.style.display='block'; } else alert('Failed to add note');
+            }
+          }).catch(() => { if (errDiv) { errDiv.textContent = 'Failed to add note'; errDiv.style.display='block'; } else alert('Failed to add note'); });
+      });
+
+      document.addEventListener('change', function(ev){
+        const t = ev.target instanceof Element ? ev.target : null;
+        const cb = t && t instanceof HTMLInputElement && t.classList.contains('taskStatus') ? t : null;
+        if (!cb) return;
+        const id = cb.getAttribute('data-task-id') || '';
+        const status = cb.checked ? 'completed' : 'pending';
+        fetch('/api/admin/fulfillment', { method:'POST', headers:{ 'Content-Type':'application/json','X-CSRF-Token': csrf() }, body: JSON.stringify({ action:'update_status', id, status }) })
+          .then(res => res.json().then(j => ({ ok: res.ok, j })))
+          .then(({ ok }) => {
+            const span = document.querySelector(`.statusText[data-task-id="${id}"]`);
+            if (span) span.textContent = status;
+            if (!ok) alert('Failed to update task status');
+          }).catch(() => alert('Failed to update task status'));
+      });
+
+      // Render checklist as toggles and persist changes
+      (function initChecklist(){
+        try {
+          document.querySelectorAll('tr').forEach(function(row){
+            const delEl = row.querySelector('.deleteTask'); const id = delEl ? delEl.getAttribute('data-task-id') || '' : '';
+            const cell = row.querySelector('td:nth-child(4)');
+            if (!id || !cell) return;
+            const raw = cell.textContent || '';
+            let arr = [];
+            try {
+              const parsed = JSON.parse(raw);
+              if (Array.isArray(parsed)) {
+                arr = parsed.map(function(it){
+                  if (typeof it === 'string') return { text: it, done: false };
+                  if (it && typeof it === 'object') return { text: String((it.text||it.title||'')), done: !!(it.done) };
+                  return { text: String(it), done: false };
+                });
+              }
+            } catch {
+              arr = raw ? raw.split(',').map(function(s){ return { text: s.trim(), done: false }; }) : [];
+            }
+            if (!arr.length) return;
+            cell.innerHTML = arr.map(function(it, idx){ return `<label style="display:block;font-weight:normal"><input type="checkbox" class="taskItem" data-task-id="${id}" data-idx="${idx}" ${it.done ? 'checked':''} /> ${it.text}</label>`; }).join('');
+          });
+        } catch { /* ignore */ }
+      })();
+
+      document.addEventListener('change', function(ev){
+        const t = ev.target instanceof Element ? ev.target : null;
+        const item = t && t instanceof HTMLInputElement && t.classList.contains('taskItem') ? t : null;
+        if (!item) return;
+        const id = item.getAttribute('data-task-id') || '';
+        const row = item.closest('tr');
+        const cell = row ? row.querySelector('td:nth-child(4)') : null;
+        if (!cell) return;
+        const current = Array.from(cell.querySelectorAll('.taskItem')).map(function(cb){ return { text: (cb.parentElement && cb.parentElement.textContent ? cb.parentElement.textContent.replace(/^[^A-Za-z0-9]+/,'').trim() : ''), done: (cb instanceof HTMLInputElement ? cb.checked : false) }; });
+        fetch('/api/admin/fulfillment', { method:'POST', headers:{ 'Content-Type':'application/json','X-CSRF-Token': csrf() }, body: JSON.stringify({ action:'update_fields', id, checklist: current }) })
+          .then(res => res.json().then(j => ({ ok: res.ok, j })))
+          .then(({ ok }) => { if (!ok) alert('Failed to update checklist'); })
+          .catch(() => alert('Failed to update checklist'));
+      });
+
+      // Appointment Notes: table rendering and periodic sync
+      function renderNotesTable(items){
+        const list = document.getElementById('clientNotesList');
+        const empty = document.getElementById('clientNotesEmpty');
+        if (!list || !empty) return;
+        if (!items.length) { list.innerHTML=''; empty.style.display='block'; return; }
+        empty.style.display='none';
+        list.innerHTML = items.map(function(n){ return `<tr><td>${n.when}</td><td>${n.text}</td></tr>`; }).join('');
+      }
+      function refreshNotes(){
+        const ld = document.getElementById('notesLoading');
+        if (ld) ld.style.display='block';
+        const url = new URL('/api/admin/notes', window.location.origin);
+        const email = new URLSearchParams(window.location.search).get('email')||'';
+        const phone = new URLSearchParams(window.location.search).get('phone')||'';
+        url.searchParams.set('entity_type','appointment');
+        if (email) url.searchParams.set('email', email);
+        if (phone) url.searchParams.set('phone', phone);
+        fetch(url.toString(), { credentials:'include' })
+          .then(r=>r.json())
+          .then(j=>{ const rows = Array.isArray(j.data)? j.data: []; const mapped = rows.map(function(n){ return { when: String(n.created_at||''), text: String(n.note_text||'') }; }).sort(function(a,b){ return String(b.when).localeCompare(String(a.when)); }); renderNotesTable(mapped); })
+          .catch(()=>{})
+          .finally(()=>{ if (ld) ld.style.display='none'; });
+      }
+      document.getElementById('refreshApptNotes')?.addEventListener('click', refreshNotes);
+      try { setInterval(refreshNotes, 30000); } catch { /* ignore */ }
+      refreshNotes();
+
+      (function indicateLinkedProfiles(){
+        try {
+          const ind = document.getElementById('linkedProfilesIndicator'); if (!ind) return;
+          const phone = String(clientData?.client?.phone||'').trim(); if (!phone) return;
+          const emails = new Set();
+          (clientData?.appointments||[]).forEach(function(ap){ if (ap && ap.name) { /* keep */ } });
+          (clientData?.appointments||[]).forEach(function(ap){ if (ap && ap.name!=null) { /* noop */ } });
+          (clientData?.appointments||[]).forEach(function(ap){ if (ap && ap.email) emails.add(String(ap.email)); });
+          if (emails.size > 1) ind.style.display = 'block';
+        } catch { /* ignore */ }
+      })();
+
+      document.getElementById('updateDocBtn')?.addEventListener('click', function(){
+        const idEl4 = document.getElementById('editDocId'); const id = (idEl4 && idEl4 instanceof HTMLInputElement) ? idEl4.value : '';
+        const tEl2 = document.getElementById('editDocTitle'); const title = (tEl2 && tEl2 instanceof HTMLInputElement) ? tEl2.value || '' : '';
+        const uEl2 = document.getElementById('editDocUrl'); const url = (uEl2 && uEl2 instanceof HTMLInputElement) ? uEl2.value || '' : '';
+        const errDiv = document.getElementById('editDocError'); if (errDiv) { errDiv.style.display='none'; errDiv.textContent=''; }
+        fetch('/api/admin/documents', { method:'POST', headers:{ 'Content-Type':'application/json','X-CSRF-Token': csrf() }, body: JSON.stringify({ action:'update', id, title, storage_url: url }) })
+          .then(res => res.json().then(j => ({ ok: res.ok, j })))
+          .then(({ ok }) => {
+            if (ok) {
+              const bs = window.bootstrap || (typeof bootstrap !== 'undefined' ? bootstrap : null);
+              const el = document.getElementById('editDocumentModal'); if (bs && bs.Modal && el) { try { (bs.Modal.getInstance(el) || new bs.Modal(el)).hide(); } catch { /* ignore */ } }
+              location.reload();
+            } else {
+              if (errDiv) { errDiv.textContent = 'Failed to update document'; errDiv.style.display='block'; } else alert('Failed to update document');
+            }
+          }).catch(() => { if (errDiv) { errDiv.textContent = 'Failed to update document'; errDiv.style.display='block'; } else alert('Failed to update document'); });
+      });
+    });
   </script>
 
   <style>

@@ -19,11 +19,36 @@ export const POST: APIRoute = async ({ request }) => {
   const expectedPass = getEnv('ADMIN_PASSWORD') || 'admin123';
   const secret = getEnv('SESSION_SECRET') || 'change-me';
 
-  if (username !== expectedUser || password !== expectedPass) {
-    return new Response('Unauthorized', { status: 401 });
+  let role = (getEnv('ADMIN_ROLE') || 'super_admin').trim() === 'super_admin' ? 'super_admin' : 'admin';
+  let ok = false;
+  const accountsStr = getEnv('ADMIN_ACCOUNTS_JSON') || getEnv('ADMIN_ACCOUNTS') || '';
+  try {
+    if (accountsStr) {
+      const arr = JSON.parse(accountsStr);
+      if (Array.isArray(arr)) {
+        for (const a of arr) {
+          const u = String(a?.username||'');
+          const p = String(a?.password||'');
+          const r = String(a?.role||'admin');
+          let match = false;
+          if (p.startsWith('sha256:')) {
+            const h = p.slice(7);
+            const crypto = await import('node:crypto');
+            const hp = crypto.createHash('sha256').update(password).digest('hex');
+            match = username === u && hp === h;
+          } else {
+            match = username === u && password === p;
+          }
+          if (match) { role = r; ok = true; break; }
+        }
+      }
+    }
+  } catch { void 0; }
+  if (!ok) {
+    ok = username === expectedUser && password === expectedPass;
   }
-
-  const token = await signSession({ user: 'admin', role: 'admin', ts: Date.now() }, String(secret));
+  if (!ok) return new Response('Unauthorized', { status: 401 });
+  const token = await signSession({ user: username, role, ts: Date.now() }, String(secret));
   const headers = new Headers();
   const proto = new URL(request.url).protocol;
   const secureFlag = proto === 'https:' ? '; Secure' : '';

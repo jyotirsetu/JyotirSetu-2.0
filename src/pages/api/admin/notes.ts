@@ -10,16 +10,30 @@ export const GET: APIRoute = async ({ request }) => {
     const url = new URL(request.url);
     const entityType = url.searchParams.get('entity_type');
     const entityId = url.searchParams.get('entity_id');
+    const phone = url.searchParams.get('phone');
+    const email = url.searchParams.get('email');
 
-    if (!entityType || !entityId) {
-      return new Response(JSON.stringify({ ok: false, error: 'entity_type and entity_id required' }), { status: 400 });
+    if (!entityType) {
+      return new Response(JSON.stringify({ ok: false, error: 'entity_type required' }), { status: 400 });
     }
 
     const client = await getTursoClient();
-    const res = await client.execute({
-      sql: `SELECT * FROM notes WHERE entity_type = ? AND entity_id = ? ORDER BY datetime(created_at) DESC`,
-      args: [entityType, entityId],
-    });
+    // Aggregate appointment notes by phone/email if requested
+    if (entityType === 'appointment' && (phone || email) && !entityId) {
+      const idsRes = await client.execute({
+        sql: `SELECT id FROM appointments WHERE ${phone ? 'phone = ?' : 'email = ?'} ORDER BY datetime(created_at) DESC LIMIT 100`,
+        args: [String(phone || email)],
+      });
+      const ids = (idsRes.rows || []).map((r) => String((r as Record<string, unknown>).id || ''));
+      if (!ids.length) return new Response(JSON.stringify({ ok: true, data: [] }), { headers: { 'Content-Type': 'application/json' } });
+      const placeholders = ids.map(() => '?').join(',');
+      const res = await client.execute({ sql: `SELECT * FROM notes WHERE entity_type = 'appointment' AND entity_id IN (${placeholders}) ORDER BY datetime(created_at) DESC`, args: ids });
+      return new Response(JSON.stringify({ ok: true, data: res.rows || [] }), { headers: { 'Content-Type': 'application/json' } });
+    }
+    if (!entityId) {
+      return new Response(JSON.stringify({ ok: false, error: 'entity_id required' }), { status: 400 });
+    }
+    const res = await client.execute({ sql: `SELECT * FROM notes WHERE entity_type = ? AND entity_id = ? ORDER BY datetime(created_at) DESC`, args: [entityType, entityId] });
 
     return new Response(JSON.stringify({ ok: true, data: res.rows }), {
       headers: { 'Content-Type': 'application/json' },

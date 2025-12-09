@@ -26,10 +26,23 @@ interface Appointment {
 
 export const GET: APIRoute = async ({ request }) => {
   try {
-    await ensureAppointmentsTable();
+    try {
+      await ensureAppointmentsTable();
+    } catch {
+      // In read-only deployments, table creation is forbidden; skip silently.
+    }
     const url = new URL(request.url);
-    const page = Math.max(1, parseInt(url.searchParams.get('page') || '1', 10));
-    const limit = Math.min(100, Math.max(10, parseInt(url.searchParams.get('limit') || '20', 10)));
+    const q = url.searchParams.get('q'); // Search query
+
+    let page = Math.max(1, parseInt(url.searchParams.get('page') || '1', 10));
+    let limit = Math.min(100, Math.max(10, parseInt(url.searchParams.get('limit') || '20', 10)));
+
+    // If searching, override pagination to show all results
+    if (q) {
+      limit = 1000;
+      page = 1;
+    }
+
     const offset = (page - 1) * limit;
     const from = url.searchParams.get('from');
     const to = url.searchParams.get('to');
@@ -37,6 +50,13 @@ export const GET: APIRoute = async ({ request }) => {
     const client = await getTursoClient();
     const filters: string[] = [];
     const argsBase: (string | number | boolean | bigint | null)[] = [];
+    
+    if (q) {
+      filters.push(`(name LIKE ? OR email LIKE ? OR phone LIKE ?)`);
+      const term = `%${q}%`;
+      argsBase.push(term, term, term);
+    }
+
     // Filter by appointment date rather than created_at for a more intuitive range
     // When a plain YYYY-MM-DD is provided, use SQLite's date() for proper comparison
     // When a full timestamp is provided, fallback to string comparison on the `date` column
@@ -57,7 +77,7 @@ export const GET: APIRoute = async ({ request }) => {
       argsBase.push(to);
     }
     const where = filters.length ? `WHERE ${filters.join(' AND ')}` : '';
-    const [dataRes, countRes] = await Promise.all([
+    const [dataRes, countRes, statusRes] = await Promise.all([
       client.execute({
         sql: `SELECT id, name, email, phone, service, date, time, consultation_method, status, payment_status, message, service_details, source, customer_appointment_id, created_at
               FROM appointments ${where} ORDER BY datetime(created_at) DESC LIMIT ? OFFSET ?`,
@@ -65,6 +85,10 @@ export const GET: APIRoute = async ({ request }) => {
       }),
       client.execute({
         sql: `SELECT COUNT(*) as total FROM appointments ${where}`,
+        args: argsBase,
+      }),
+      client.execute({
+        sql: `SELECT status, COUNT(*) as count FROM appointments ${where} GROUP BY status`,
         args: argsBase,
       }),
     ]);
@@ -86,6 +110,13 @@ export const GET: APIRoute = async ({ request }) => {
     });
     const totalRow = countRes.rows?.[0] as unknown as { total?: number | string };
     const total = Number(totalRow?.total ?? 0);
+    
+    const statusCounts: Record<string, number> = {};
+    (statusRes.rows as unknown as { status: string; count: number }[]).forEach((r) => {
+      if (r.status) {
+        statusCounts[r.status.toLowerCase()] = Number(r.count);
+      }
+    });
 
     return new Response(
       JSON.stringify({
@@ -97,6 +128,7 @@ export const GET: APIRoute = async ({ request }) => {
           total,
           totalPages: Math.ceil(total / limit),
         },
+        statusCounts,
       }),
       { headers: { 'Content-Type': 'application/json' } }
     );

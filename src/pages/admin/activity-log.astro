@@ -2,7 +2,6 @@
 export const prerender = false;
 import Favicons from '~/components/Favicons.astro';
 import AdminNavbar from '~/components/AdminNavbar.astro';
-import MobilePageSelect from '~/components/MobilePageSelect.astro';
 ---
 
 <!doctype html>
@@ -158,6 +157,9 @@ import MobilePageSelect from '~/components/MobilePageSelect.astro';
                 >
               </li>
               <li class="nav-item">
+                <a href="/admin/users" class="nav-link"><i class="nav-icon fas fa-users-cog"></i><p>Users</p></a>
+              </li>
+              <li class="nav-item">
                 <a href="/admin/tools/follow-hub/insights" class="nav-link"
                   ><i class="nav-icon fas fa-toolbox"></i><p>Follow Hub – Insights</p></a
                 >
@@ -185,24 +187,53 @@ import MobilePageSelect from '~/components/MobilePageSelect.astro';
         </section>
         <section class="content">
           <div class="container-fluid">
-            <div class="toolbar">
-              <select class="form-select form-select-sm" id="actionFilter">
+            <div class="toolbar d-flex flex-wrap gap-2 mb-3 align-items-center">
+              <div class="d-flex gap-2 align-items-center">
+                  <select id="pageSize" class="form-select form-select-sm" style="width:auto">
+                    <option value="10">10 / page</option>
+                    <option value="25">25 / page</option>
+                    <option value="50">50 / page</option>
+                    <option value="100" selected>100 / page</option>
+                  </select>
+                  <button id="exportCsvBtn" class="btn btn-sm btn-outline-success"><i class="fas fa-file-csv"></i> Export</button>
+              </div>
+              <select class="form-select form-select-sm" id="actionFilter" style="max-width:150px">
                 <option value="">All actions</option>
                 <option>appointment_created</option>
+                <option>appointment_updated</option>
+                <option>appointment_deleted</option>
                 <option>status_updated</option>
+                <option>payment_status_updated</option>
                 <option>email_sent</option>
+                <option>email_failed</option>
+                <option>whatsapp_sent</option>
                 <option>contact_created</option>
+                <option>contact_deleted</option>
                 <option>note_created</option>
+                <option>note_deleted</option>
+                <option>create</option>
+                <option>delete</option>
+                <option>update</option>
+                <option>login</option>
               </select>
-              <select class="form-select form-select-sm" id="entityFilter">
+              <select class="form-select form-select-sm" id="entityFilter" style="max-width:150px">
                 <option value="">All entities</option>
                 <option>appointment</option>
                 <option>contact</option>
                 <option>note</option>
+                <option>lead</option>
+                <option>user</option>
+                <option>settings</option>
+                <option>template</option>
               </select>
             </div>
             <div class="container-fluid" style="padding-bottom:20px">
               <div id="logWrap"></div>
+              <div id="paginationControls" class="d-flex justify-content-between align-items-center mt-3" style="display:none !important">
+                  <button class="btn btn-sm btn-outline-secondary" id="prevPage">Previous</button>
+                  <span id="pageInfo" class="text-muted small"></span>
+                  <button class="btn btn-sm btn-outline-secondary" id="nextPage">Next</button>
+              </div>
             </div>
           </div>
         </section>
@@ -213,10 +244,18 @@ import MobilePageSelect from '~/components/MobilePageSelect.astro';
     </div>
 
     <script is:inline>
+      let currentPage = 1;
+      let totalLogs = 0;
+      let allLogsCache = []; // cache current page logs for quick CSV export
+
       async function loadActivityLog() {
-        const res = await fetch('/api/admin/activity-log?limit=200', { credentials: 'include' });
+        const pageSize = document.getElementById('pageSize').value;
+        const action = document.getElementById('actionFilter').value;
+        const entity = document.getElementById('entityFilter').value;
+        
+        const res = await fetch(`/api/admin/activity-log?page=${currentPage}&limit=${pageSize}&action=${action}&entity_type=${entity}`, { credentials: 'include' });
         const json = await res.json();
-        return json?.data || [];
+        return json || { data: [], pagination: { total: 0 } };
       }
 
       function render(logs) {
@@ -231,7 +270,6 @@ import MobilePageSelect from '~/components/MobilePageSelect.astro';
             let d;
             if (typeof ts === 'string') {
               const s = ts.trim();
-              // Handle SQLite current_timestamp (UTC, no timezone)
               if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(\.\d+)?$/.test(s)) {
                 d = new Date(s.replace(' ', 'T') + 'Z');
               } else {
@@ -255,15 +293,7 @@ import MobilePageSelect from '~/components/MobilePageSelect.astro';
           }
         }
 
-        const actionFilterEl = document.getElementById('actionFilter');
-        const entityFilterEl = document.getElementById('entityFilter');
-        const actionFilter = actionFilterEl?.value || '';
-        const entityFilter = entityFilterEl?.value || '';
-        const filtered = logs.filter((l) => {
-          return (!actionFilter || l.action === actionFilter) && (!entityFilter || l.entity_type === entityFilter);
-        });
-
-        const html = filtered
+        const html = logs
           .map((l) => {
             const actionIcon =
               {
@@ -274,14 +304,28 @@ import MobilePageSelect from '~/components/MobilePageSelect.astro';
                 note_created: '📝',
                 note_deleted: '🗑️',
                 contact_deleted: '🗑️',
+                create: '✨',
+                advance_stage: '🚀',
+                assign_owner: '👤',
+                update_tags: '🏷️',
+                set_next_action: '⏰',
+                update_sla: '⏱️'
               }[l.action] || '⚡';
 
+            // Determine display name
+            let entityName = l.entity_type;
+            if (l.lead_name) entityName = `Lead: ${l.lead_name}`;
+            else if (l.appointment_name) entityName = `Appt: ${l.appointment_name}`;
+            else if (l.contact_name) entityName = `Contact: ${l.contact_name}`;
+            else if (l.appointment_email) entityName = l.appointment_email;
+            else if (l.contact_email) entityName = l.contact_email;
+            
             return `<div style="padding:12px;margin-bottom:8px;background:linear-gradient(180deg,var(--panel),var(--panel-2));border:1px solid var(--border);border-radius:8px">
             <div style="display:flex;gap:12px;align-items:start">
               <span style="font-size:20px">${actionIcon}</span>
               <div style="flex:1">
                 <div style="font-weight:600;margin-bottom:4px">${l.action.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}</div>
-                <div class="muted" style="font-size:12px;margin-bottom:4px">${l.entity_type}${l.appointment_name || l.contact_name || l.appointment_email || l.contact_email ? ` – ${l.appointment_name || l.contact_name || l.appointment_email || l.contact_email}` : ''}</div>
+                <div class="muted" style="font-size:12px;margin-bottom:4px">${entityName}</div>
                 ${l.details ? `<div style="font-size:13px;color:var(--muted);margin-top:4px">${l.details}</div>` : ''}
                 <div style="font-size:11px;color:var(--muted);margin-top:6px">${formatIndiaTime(l.created_at)}</div>
               </div>
@@ -290,41 +334,103 @@ import MobilePageSelect from '~/components/MobilePageSelect.astro';
           })
           .join('');
 
-        wrap.innerHTML = html || '<p class="muted">No matching activity.</p>';
+        wrap.innerHTML = html;
       }
-
-      let allLogs = [];
 
       async function refresh() {
-        allLogs = await loadActivityLog();
-        try {
-          const actions = Array.from(
-            new Set(
-              (allLogs || []).map(function (l) {
-                return String(l.action || '').trim();
-              })
-            )
-          ).filter(Boolean).sort();
-          const af = document.getElementById('actionFilter');
-          if (af) {
-            const current = af.value || '';
-            af.innerHTML = ['<option value="">All actions</option>']
-              .concat(actions.map(function (a) { return `<option value="${a}">${a}</option>`; }))
-              .join('');
-            if (current) af.value = current;
+        const result = await loadActivityLog();
+        const logs = result.data || [];
+        allLogsCache = logs;
+        totalLogs = result.pagination?.total || 0;
+        render(logs);
+        updatePaginationUI();
+      }
+      
+      function updatePaginationUI() {
+          const pageSize = parseInt(document.getElementById('pageSize').value);
+          const totalPages = Math.ceil(totalLogs / pageSize);
+          
+          const controls = document.getElementById('paginationControls');
+          const info = document.getElementById('pageInfo');
+          const prev = document.getElementById('prevPage');
+          const next = document.getElementById('nextPage');
+          
+          if (totalLogs > 0) {
+              controls.style.setProperty('display', 'flex', 'important');
+              info.textContent = `Page ${currentPage} of ${totalPages} (${totalLogs} entries)`;
+              prev.disabled = currentPage <= 1;
+              next.disabled = currentPage >= totalPages;
+          } else {
+              controls.style.setProperty('display', 'none', 'important');
           }
-        } catch { /* ignore populate errors */ }
-        render(allLogs);
       }
 
-      document.getElementById('refreshBtn')?.addEventListener('click', refresh);
-      document.getElementById('actionFilter')?.addEventListener('change', () => render(allLogs));
-      document.getElementById('entityFilter')?.addEventListener('change', () => render(allLogs));
+      document.getElementById('refreshBtn')?.addEventListener('click', () => { currentPage = 1; refresh(); });
+      document.getElementById('actionFilter')?.addEventListener('change', () => { currentPage = 1; refresh(); });
+      document.getElementById('entityFilter')?.addEventListener('change', () => { currentPage = 1; refresh(); });
+      document.getElementById('pageSize')?.addEventListener('change', () => { currentPage = 1; refresh(); });
+      
+      document.getElementById('prevPage')?.addEventListener('click', () => {
+          if (currentPage > 1) { currentPage--; refresh(); }
+      });
+      document.getElementById('nextPage')?.addEventListener('click', () => {
+          const pageSize = parseInt(document.getElementById('pageSize').value);
+          const totalPages = Math.ceil(totalLogs / pageSize);
+          if (currentPage < totalPages) { currentPage++; refresh(); }
+      });
+      
+      // Export CSV
+      document.getElementById('exportCsvBtn')?.addEventListener('click', async function(){
+          const action = document.getElementById('actionFilter').value;
+          const entity = document.getElementById('entityFilter').value;
+          try {
+            // Prefer cached logs for quick export; fallback to fetching up to 1000
+            let logs = Array.isArray(allLogsCache) && allLogsCache.length ? allLogsCache : [];
+            if (!logs.length) {
+              const res = await fetch(`/api/admin/activity-log?page=1&limit=1000&action=${action}&entity_type=${entity}`, { credentials: 'include' });
+              const json = await res.json();
+              logs = json.data || [];
+            }
+            if (!logs.length) { alert('No data to export'); return; }
+            const headers = ['ID', 'Action', 'Entity Type', 'Entity Name', 'Details', 'User', 'Created At'];
+            const csvContent = [
+              headers.join(','),
+              ...logs.map(function(l){
+                let entityName = '';
+                if (l.lead_name) entityName = l.lead_name;
+                else if (l.appointment_name) entityName = l.appointment_name;
+                else if (l.contact_name) entityName = l.contact_name;
+                return [
+                  l.id,
+                  l.action,
+                  l.entity_type,
+                  '"' + String(entityName||'').replace(/"/g, '""') + '"',
+                  '"' + String(l.details||'').replace(/"/g, '""') + '"',
+                  l.user,
+                  l.created_at
+                ].join(',');
+              })
+            ].join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'activity_log_export.csv');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+          } catch (e) {
+            console.error('Export failed', e);
+            alert('Export failed');
+          }
+      });
 
       refresh();
 
-      // Auto-refresh every 30 seconds
-      setInterval(refresh, 30000);
+      // Auto-refresh every 30 seconds (only if on first page to avoid jumping)
+      setInterval(() => {
+          if (currentPage === 1) refresh();
+      }, 30000);
 
       // Mobile drawer
       const sidebar = document.getElementById('adminSidebar');

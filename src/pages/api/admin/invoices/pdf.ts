@@ -35,8 +35,8 @@ export const GET: APIRoute = async ({ request }) => {
     const clientRes = await db.execute({ sql: `SELECT id, name, email, phone FROM clients WHERE id = ? LIMIT 1`, args: [String(invoice.client_id || '')] });
     const client = clientRes.rows?.[0] || { name: '', email: '', phone: '' };
 
-    const items = itemsRes.rows || [];
-    const subtotalFromItems = items.reduce((sum, it: any) => sum + Number(it.amount || 0), 0);
+    const items = (itemsRes.rows || []) as Array<{ amount?: unknown; title?: unknown; qty?: unknown; unit_price?: unknown }>;
+    const subtotalFromItems = items.reduce(function(sum, it){ return sum + Number(it.amount || 0); }, 0);
     const subtotal = Number(invoice.subtotal ?? subtotalFromItems);
     const gstTotal = Number(invoice.gst_total ?? 0);
     const rounding = Number(invoice.rounding ?? 0);
@@ -111,14 +111,12 @@ export const GET: APIRoute = async ({ request }) => {
       </thead>
       <tbody>
         ${items
-          .map(
-            (it: any) => `<tr>
+          .map(function(it){ return `<tr>
               <td>${String(it.title || '')}</td>
               <td class="numeric">${Number(it.qty || 0).toFixed(2).replace(/\.00$/, '')}</td>
               <td class="numeric">${formatCurrency(Number(it.unit_price || 0))}</td>
               <td class="numeric">${formatCurrency(Number(it.amount || 0))}</td>
-            </tr>`
-          )
+            </tr>`; })
           .join('')}
       </tbody>
     </table>
@@ -139,16 +137,15 @@ export const GET: APIRoute = async ({ request }) => {
 </body>
 </html>`;
 
-    const isProd = ((import.meta as any).env?.PROD === true) || String((process as any)?.env?.VERCEL || '') === '1';
+    const isProd = (Boolean((import.meta as unknown as { env?: Record<string, unknown> }).env?.['PROD']) === true) || String((process.env?.['VERCEL'] || '')) === '1';
     let browser: import('puppeteer').Browser | import('puppeteer-core').Browser;
     if (isProd) {
       const chromiumMod = await import('@sparticuz/chromium');
-      const cm = chromiumMod as any;
-      const chromium = cm.default ?? (chromiumMod as any);
+      const chromium = (chromiumMod as unknown as { default?: unknown; args?: string[]; executablePath?: (()=>Promise<string>)|string }).default ?? (chromiumMod as unknown as { args?: string[]; executablePath?: (()=>Promise<string>)|string });
       const puppeteerCore = (await import('puppeteer-core')).default;
-      const ep = chromium.executablePath;
-      const executablePath = typeof ep === 'function' ? await ep() : ep;
-      browser = await puppeteerCore.launch({ headless: true, args: chromium.args, executablePath });
+      const ep = (chromium as { executablePath?: (()=>Promise<string>)|string }).executablePath;
+      const executablePath = typeof ep === 'function' ? await ep() : (ep as string);
+      browser = await puppeteerCore.launch({ headless: true, args: (chromium as { args?: string[] }).args || [], executablePath });
     } else {
       const puppeteer = (await import('puppeteer')).default;
       browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
@@ -167,4 +164,3 @@ export const GET: APIRoute = async ({ request }) => {
     return new Response(JSON.stringify({ error: 'Failed to generate PDF', details: error instanceof Error ? error.message : 'Unknown error' }), { status: 500 });
   }
 };
-

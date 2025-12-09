@@ -14,6 +14,7 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@latest/dist/css/adminlte.min.css" />
     <link rel="stylesheet" href="/admin.css?v=20251129" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <Favicons />
     <style>
       .dashboard-hero {
@@ -407,16 +408,19 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
                   ><i class="nav-icon fas fa-file-alt"></i><p>WhatsApp Templates</p></a
                 >
               </li>
-              <li class="nav-item">
-                <a href="/admin/client360" class="nav-link"
-                  ><i class="nav-icon fas fa-user-circle"></i><p>Client 360°</p></a
-                >
-              </li>
-              <li class="nav-item">
-                <a href="/admin/tools/follow-hub/insights" class="nav-link"
-                  ><i class="nav-icon fas fa-toolbox"></i><p>Follow Hub – Insights</p></a
-                >
-              </li>
+          <li class="nav-item">
+            <a href="/admin/client360" class="nav-link"
+              ><i class="nav-icon fas fa-user-circle"></i><p>Client 360°</p></a
+            >
+          </li>
+          <li class="nav-item">
+            <a href="/admin/users" class="nav-link"><i class="nav-icon fas fa-users-cog"></i><p>Users</p></a>
+          </li>
+          <li class="nav-item">
+            <a href="/admin/tools/follow-hub/insights" class="nav-link"
+              ><i class="nav-icon fas fa-toolbox"></i><p>Follow Hub – Insights</p></a
+            >
+          </li>
               <li class="nav-item">
                 <a href="/admin/settings" class="nav-link"><i class="nav-icon fas fa-gear"></i><p>Settings</p></a>
               </li>
@@ -528,48 +532,71 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
               
             </div>
 
+            <div class="row mt-3">
+              <div class="col-lg-8 mb-3">
+                <div class="card h-100 border-0 shadow-sm" style="background:var(--panel-2)">
+                  <div class="card-header border-0 bg-transparent">
+                    <h3 class="card-title font-weight-bold">Appointment Trends</h3>
+                    <div class="card-tools">
+                      <button type="button" class="btn btn-tool btn-sm" data-card-widget="collapse">
+                        <i class="fas fa-minus"></i>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="card-body">
+                    <div class="position-relative" style="height: 300px;">
+                      <canvas id="appointment-trends-chart"></canvas>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-lg-4 mb-3">
+                <div id="analyticsSummary" class="h-100"></div>
+              </div>
+            </div>
+
             <div class="cards-row mt-3">
-              <div class="card card-outline card-primary h-100">
-                <div class="card-body">
-                  <h5 class="card-title">Manage Appointments</h5>
-                  <p class="card-text">Review, filter, and contact clients</p>
+              <div class="card card-outline card-primary h-100 text-center">
+                <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                  <i class="fas fa-calendar-check fa-3x mb-3 text-primary"></i>
+                  <h5 class="card-title mb-0">Manage Appointments</h5>
                   <a href="/admin/appointments" class="stretched-link"></a>
                 </div>
               </div>
-              <div class="card card-outline card-info h-100">
-                <div class="card-body">
-                  <h5 class="card-title">View Contacts</h5>
-                  <p class="card-text">Reply to messages and track status</p>
+              <div class="card card-outline card-info h-100 text-center">
+                <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                  <i class="fas fa-address-book fa-3x mb-3 text-info"></i>
+                  <h5 class="card-title mb-0">View Contacts</h5>
                   <a href="/admin/contacts" class="stretched-link"></a>
                 </div>
               </div>
-              <div class="card card-outline card-indigo h-100">
-                <div class="card-body">
-                  <h5 class="card-title">Email Templates</h5>
-                  <p class="card-text">Customize email templates</p>
+              <div class="card card-outline card-indigo h-100 text-center">
+                <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                  <i class="fas fa-envelope-open-text fa-3x mb-3 text-indigo"></i>
+                  <h5 class="card-title mb-0">Email Templates</h5>
                   <a href="/admin/templates/email" class="stretched-link"></a>
                 </div>
               </div>
-              <div class="card card-outline card-success h-100">
-                <div class="card-body">
-                  <h5 class="card-title">WhatsApp Templates</h5>
-                  <p class="card-text">Manage WhatsApp messages</p>
+              <div class="card card-outline card-success h-100 text-center">
+                <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                  <i class="fab fa-whatsapp fa-3x mb-3 text-success"></i>
+                  <h5 class="card-title mb-0">WhatsApp Templates</h5>
                   <a href="/admin/templates/whatsapp" class="stretched-link"></a>
                 </div>
               </div>
-              <div class="card card-outline card-warning h-100">
-                <div class="card-body">
-                  <h5 class="card-title">Payment Templates</h5>
-                  <p class="card-text">Configure payment email messages</p>
+              <div class="card card-outline card-warning h-100 text-center">
+                <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                  <i class="fas fa-file-invoice-dollar fa-3x mb-3 text-warning"></i>
+                  <h5 class="card-title mb-0">Payment Templates</h5>
                   <a href="/admin/templates/payment" class="stretched-link"></a>
                 </div>
               </div>
               
-              <div class="card card-outline card-dark h-100">
-                <div class="card-body">
-                  <h5 class="card-title">Documents</h5>
-                  <p class="card-text">Manage documents and sharing</p>
-                  <a href="/admin/client360" class="stretched-link"></a>
+              <div class="card card-outline card-dark h-100 text-center">
+                <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                  <i class="fas fa-folder-open fa-3x mb-3 text-dark"></i>
+                  <h5 class="card-title mb-0">Documents</h5>
+                  <a href="/admin/documents-share" class="stretched-link"></a>
                 </div>
               </div>
             </div>
@@ -601,6 +628,69 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
       (function () {
         const controllers = new Set();
         let updatesInterval = null;
+        
+        function animateValue(id, end, duration = 1000) {
+          const obj = document.getElementById(id);
+          if (!obj) return;
+          const start = 0; 
+          if (isNaN(end)) {
+             obj.textContent = end;
+             return;
+          }
+          let startTimestamp = null;
+          const step = (timestamp) => {
+            if (!startTimestamp) startTimestamp = timestamp;
+            const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+            obj.textContent = Math.floor(progress * (end - start) + start);
+            if (progress < 1) {
+              window.requestAnimationFrame(step);
+            }
+          };
+          window.requestAnimationFrame(step);
+        }
+
+        function animateCurrency(id, end, duration = 1000) {
+          const obj = document.getElementById(id);
+          if (!obj) return;
+          const start = 0;
+          if (isNaN(end)) {
+             obj.textContent = end;
+             return;
+          }
+          
+          function fmtCompact(n) {
+            const num = Number(n || 0);
+            const abs = Math.abs(num);
+            let value = num;
+            let suffix = '';
+            if (abs >= 1e7) { value = num / 1e7; suffix = ' Cr'; }
+            else if (abs >= 1e5) { value = num / 1e5; suffix = ' L'; }
+            else if (abs >= 1e3) { value = num / 1e3; suffix = ' k'; }
+            const decimals = Math.abs(value) < 10 ? 1 : 0;
+            return '₹' + value.toFixed(decimals) + suffix;
+          }
+
+          function fmtFull(n) { return '₹' + Number(n || 0).toFixed(2); }
+          
+          const compact = window.innerWidth <= 576;
+          const formatter = compact ? fmtCompact : fmtFull;
+
+          let startTimestamp = null;
+          const step = (timestamp) => {
+            if (!startTimestamp) startTimestamp = timestamp;
+            const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+            const current = progress * (end - start) + start;
+            obj.textContent = formatter(current);
+            if (progress < 1) {
+              window.requestAnimationFrame(step);
+            } else {
+              obj.textContent = formatter(end); // Ensure final value is exact
+              obj.setAttribute('title', fmtFull(end));
+            }
+          };
+          window.requestAnimationFrame(step);
+        }
+
         function silentFetchJson(url, opts, fallback) {
           try {
             const c = new AbortController();
@@ -653,45 +743,34 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
               silentFetchJson('/api/admin/quotes?stats=1', null, { totals: { count: 0, amount: 0 } }),
             ]);
             const appts = a.data || [];
-            const apptEl = document.getElementById('stat-appointments');
-            if (apptEl) apptEl.textContent = String(appts.length);
-            const contactsEl = document.getElementById('stat-contacts');
-            if (contactsEl) contactsEl.textContent = String((c.data || []).length);
-            const newsletterEl = document.getElementById('stat-newsletter');
+            animateValue('stat-appointments', appts.length);
+            
+            const contactsCount = (c.data || []).length;
+            animateValue('stat-contacts', contactsCount);
+            
             const totalNewsletter = n?.pagination?.total ?? (n?.data || []).length ?? 0;
-            if (newsletterEl) newsletterEl.textContent = String(totalNewsletter);
+            animateValue('stat-newsletter', totalNewsletter);
+            
             const now = Date.now();
             const last24 = appts.filter((x) => {
               const t = new Date(x.created_at).getTime();
               return !isNaN(t) && now - t <= 24 * 60 * 60 * 1000;
             }).length;
+            animateValue('stat-24h', last24);
+            
             const pending = appts.filter((x) => String(x.status || '').toLowerCase() === 'pending').length;
-            const last24El = document.getElementById('stat-24h');
-            if (last24El) last24El.textContent = String(last24);
-            const pendingEl = document.getElementById('stat-pending');
-            if (pendingEl) pendingEl.textContent = String(pending);
+            animateValue('stat-pending', pending);
+            
             const qTotals = (q && q.totals) || { count: 0, amount: 0 };
-            const qEl = document.getElementById('stat-quotes');
-            if (qEl) qEl.textContent = String(qTotals.count || 0);
-            const qaEl = document.getElementById('stat-quotes-amount');
-            function fmtFull(n) { return '₹' + Number(n || 0).toFixed(2); }
-            function fmtCompact(n) {
-              const num = Number(n || 0);
-              const abs = Math.abs(num);
-              let value = num;
-              let suffix = '';
-              if (abs >= 1e7) { value = num / 1e7; suffix = ' Cr'; }
-              else if (abs >= 1e5) { value = num / 1e5; suffix = ' L'; }
-              else if (abs >= 1e3) { value = num / 1e3; suffix = ' k'; }
-              const decimals = Math.abs(value) < 10 ? 1 : 0;
-              return '₹' + value.toFixed(decimals) + suffix;
-            }
-            if (qaEl) {
-              const compact = window.innerWidth <= 576;
-              const txt = compact ? fmtCompact(qTotals.amount || 0) : fmtFull(qTotals.amount || 0);
-              qaEl.textContent = txt;
-              qaEl.setAttribute('title', fmtFull(qTotals.amount || 0));
-            }
+            const qByStatus = (q && q.by_status) || [];
+            // Calculate Sent count (Quotation Sent + No Revert)
+            const sentCount = qByStatus.reduce((sum, item) => {
+              const s = String(item.status || '');
+              if (s === 'Quotation Sent' || s === 'No Revert') return sum + Number(item.count || 0);
+              return sum;
+            }, 0);
+            animateValue('stat-quotes', sentCount);
+            animateCurrency('stat-quotes-amount', qTotals.amount || 0);
           } catch (e) {
             console.warn('Failed to load stats', e);
           }
@@ -957,46 +1036,177 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
               const el = document.getElementById('analyticsSummary');
               if (!el) return;
               if (!res.ok || !j || j.ok===false) { el.textContent = 'Analytics unavailable'; return; }
-              var funnel = Array.isArray(j.funnel) ? j.funnel : [];
-              var leads = Array.isArray(j.leads) ? j.leads : [];
-              var ltv = j.ltv || {};
-              var sla = j.sla || {};
-              var staffPerf = Array.isArray(j.staff_performance) ? j.staff_performance : [];
-              var docStats = j.document_stats || {};
-              var trends = Array.isArray(j.appointment_trends) ? j.appointment_trends : [];
+              const funnel = Array.isArray(j.funnel) ? j.funnel : [];
+              const leads = Array.isArray(j.leads) ? j.leads : [];
+              const ltv = j.ltv || {};
+              const topLtv = Array.isArray(j.top_ltv) ? j.top_ltv : [];
+              const sla = j.sla || {};
+              const staffPerf = Array.isArray(j.staff_performance) ? j.staff_performance : [];
+              const docStats = j.document_stats || {};
+              const services = Array.isArray(j.services) ? j.services : [];
+              const trends = Array.isArray(j.appointment_trends) ? j.appointment_trends : [];
               
-              var funnelStr = funnel.map(function(x){ return String(x.status||'')+': '+String(x.count||0); }).join(' • ');
-              var leadsStr = leads.map(function(x){ return String(x.stage||'')+': '+String(x.count||0); }).join(' • ');
-              var top = Object.entries(ltv).sort(function(a,b){ return Number(b[1])-Number(a[1]); }).slice(0,3);
-              var ltvStr = top.map(function(p){ return String(p[0])+': ₹'+Number(p[1]).toFixed(0); }).join(' • ');
+              const funnelStr = funnel.map(function(x){ return String(x.status||'')+': '+String(x.count||0); }).join(' • ');
+              const leadsStr = leads.map(function(x){ return String(x.stage||'')+': '+String(x.count||0); }).join(' • ');
+              
+              let ltvStr = '';
+              let ltvHtml = '';
+              if (topLtv.length > 0) {
+                ltvHtml = '<ul class="list-unstyled" style="margin:0">' + topLtv.map(function(t){
+                  const name = String(t.name || t.id);
+                  const amount = String(t.formatted_total || ('₹'+Number(t.total||0).toFixed(0)));
+                  const tooltip = [t.email||'', t.phone||''].filter(Boolean).join(' • ');
+                  return `<li><span title="${tooltip}">${name}</span>: ${amount}</li>`;
+                }).join('') + '</ul>';
+                ltvStr = topLtv.map(function(t){ return String(t.name || t.id)+': '+String(t.formatted_total || ('₹'+Number(t.total||0).toFixed(0))); }).join(' • ');
+              } else {
+                const top = Object.entries(ltv).sort(function(a,b){ return Number(b[1])-Number(a[1]); }).slice(0,3);
+                ltvStr = top.map(function(p){ return String(p[0])+': '+('₹'+Number(p[1]).toFixed(0)); }).join(' • ');
+              }
               
               // Enhanced analytics display
-              var html = '<div class="analytics-grid">';
+              let html = '<div class="analytics-grid">';
+              
+              // Services section with progress bars
+              if (services.length > 0) {
+                let serviceHtml = '<div class="analytics-section"><strong>Service Distribution</strong><div style="margin-top:8px">';
+                services.forEach(function(s) {
+                  serviceHtml += `
+                    <div style="margin-bottom:6px">
+                      <div class="d-flex justify-content-between" style="font-size:11px;margin-bottom:2px">
+                        <span>${s.name}</span>
+                        <span>${s.count} (${s.percentage}%)</span>
+                      </div>
+                      <div class="progress" style="height:6px;background:var(--border)">
+                        <div class="progress-bar" style="width:${s.percentage}%;background-color:var(--brand)"></div>
+                      </div>
+                    </div>
+                  `;
+                });
+                serviceHtml += '</div></div>';
+                html += serviceHtml;
+              }
+
               html += '<div class="analytics-section"><strong>Funnel</strong>: '+(funnelStr||'—')+'</div>';
               html += '<div class="analytics-section"><strong>Leads</strong>: '+(leadsStr||'—')+'</div>';
-              html += '<div class="analytics-section"><strong>Top LTV</strong>: '+(ltvStr||'—')+'</div>';
+              html += '<div class="analytics-section"><strong>Top LTV</strong>: '+(ltvHtml || ltvStr || '—')+'</div>';
               html += '<div class="analytics-section"><strong>SLA</strong>: '+String(sla.total_breaches||0)+' breaches, '+String(sla.fulfillment_overdue||0)+' overdue</div>';
               
               if (staffPerf.length > 0) {
-                var staffStr = staffPerf.slice(0,3).map(function(s){ return s.staff_name+': '+s.appointment_count+' appts ('+s.completion_rate+'%)'; }).join(' • ');
+                const staffStr = staffPerf.slice(0,3).map(function(s){ return s.staff_name+': '+s.appointment_count+' appts ('+s.completion_rate+'%)'; }).join(' • ');
                 html += '<div class="analytics-section"><strong>Staff Performance</strong>: '+(staffStr||'—')+'</div>';
               }
               
-              if (docStats.total_documents > 0) {
+              if (Number(docStats.total_documents||0) > 0) {
                 html += '<div class="analytics-section"><strong>Documents</strong>: '+String(docStats.total_documents||0)+' total, '+String(docStats.shared_documents||0)+' shared</div>';
-              }
-              
-              if (trends.length > 0) {
-                var recentTrends = trends.slice(0,7).reverse();
-                var trendStr = recentTrends.map(function(t){ return t.date.split('-').slice(1).join('/')+': '+String(t.total||0); }).join(' • ');
-                html += '<div class="analytics-section"><strong>Recent Activity</strong>: '+(trendStr||'—')+'</div>';
               }
               
               html += '</div>';
               el.innerHTML = html;
-            } catch { var el = document.getElementById('analyticsSummary'); if (el) el.textContent = 'Analytics unavailable'; }
+
+              // Initialize Chart
+              if (trends.length > 0 && typeof Chart !== 'undefined') {
+                const ctx = document.getElementById('appointment-trends-chart');
+                if (ctx) {
+                   // API returns DESC date, reverse for chart (oldest to newest)
+                   const chartTrends = [...trends].reverse();
+                   const labels = chartTrends.map(t => {
+                     const d = new Date(t.date);
+                     return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+                   });
+                   const totalData = chartTrends.map(t => t.total);
+                   const completedData = chartTrends.map(t => t.completed || 0);
+                   
+                   // Destroy existing chart if any (though this runs once per page load usually)
+                   if (window.myTrendsChart) window.myTrendsChart.destroy();
+                   
+                   // Create gradient
+                   const gradientTotal = ctx.getContext('2d').createLinearGradient(0, 0, 0, 400);
+                   gradientTotal.addColorStop(0, 'rgba(60,141,188,0.5)');
+                   gradientTotal.addColorStop(1, 'rgba(60,141,188,0.0)');
+
+                   const gradientCompleted = ctx.getContext('2d').createLinearGradient(0, 0, 0, 400);
+                   gradientCompleted.addColorStop(0, 'rgba(210, 214, 222, 0.5)');
+                   gradientCompleted.addColorStop(1, 'rgba(210, 214, 222, 0.0)');
+
+                   window.myTrendsChart = new Chart(ctx, {
+                     type: 'line',
+                     data: {
+                       labels: labels,
+                       datasets: [
+                         {
+                           label: 'Total Appointments',
+                           data: totalData,
+                           backgroundColor: gradientTotal,
+                           borderColor: 'rgba(60,141,188,1)',
+                           pointRadius: 4,
+                           pointBackgroundColor: 'rgba(60,141,188,1)',
+                           pointBorderColor: '#fff',
+                           pointHoverRadius: 6,
+                           pointHoverBackgroundColor: '#fff',
+                           pointHoverBorderColor: 'rgba(60,141,188,1)',
+                           fill: true,
+                           tension: 0.4
+                         },
+                         {
+                           label: 'Completed',
+                           data: completedData,
+                           backgroundColor: gradientCompleted,
+                           borderColor: 'rgba(210, 214, 222, 1)',
+                           pointRadius: 4,
+                           pointBackgroundColor: 'rgba(210, 214, 222, 1)',
+                           pointBorderColor: '#fff',
+                           pointHoverRadius: 6,
+                           pointHoverBackgroundColor: '#fff',
+                           pointHoverBorderColor: 'rgba(210, 214, 222, 1)',
+                           fill: true,
+                           tension: 0.4
+                         }
+                       ]
+                     },
+                     options: {
+                       maintainAspectRatio: false,
+                       responsive: true,
+                       layout: {
+                         padding: {
+                           bottom: 0
+                         }
+                       },
+                       plugins: {
+                         legend: { display: true, position: 'top', labels: { usePointStyle: true, boxWidth: 8 } },
+                         tooltip: { 
+                           mode: 'index', 
+                           intersect: false,
+                           backgroundColor: 'rgba(0,0,0,0.8)',
+                           titleColor: '#fff',
+                           bodyColor: '#fff',
+                           borderColor: 'rgba(255,255,255,0.1)',
+                           borderWidth: 1
+                         }
+                       },
+                       interaction: {
+                         mode: 'nearest',
+                         axis: 'x',
+                         intersect: false
+                       },
+                       scales: {
+                         x: { 
+                           grid: { display: false, drawBorder: false },
+                           ticks: { font: { size: 11 }, color: '#8898aa', padding: 10 }
+                         },
+                         y: { 
+                           grid: { borderDash: [4, 4], color: 'rgba(0,0,0,0.05)', drawBorder: false }, 
+                           beginAtZero: true, 
+                           ticks: { precision: 0, font: { size: 11 }, color: '#8898aa', padding: 10 } 
+                         }
+                       }
+                     }
+                   });
+                }
+              }
+            } catch { const el = document.getElementById('analyticsSummary'); if (el) el.textContent = 'Analytics unavailable'; }
           }
-      try { loadAnalytics(); } catch {}
+      try { loadAnalytics(); } catch { void 0; }
     })();
   </script>
 </html>

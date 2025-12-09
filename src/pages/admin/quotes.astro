@@ -280,10 +280,12 @@ import Favicons from '~/components/Favicons.astro';
         let editingId = '';
         let deletingId = '';
         function getCookie(name) {
-          const value = `; ${document.cookie}`;
-          const parts = value.split(`; ${name}=`);
-          if (parts.length === 2) return parts.pop().split(';').shift();
-          return '';
+          try {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+            return '';
+          } catch { return ''; }
         }
         function fmt(n) {
           return '₹' + Number(n || 0).toFixed(2);
@@ -300,16 +302,24 @@ import Favicons from '~/components/Favicons.astro';
           const totals = j.totals || { count: 0, amount: 0, purchased_amount: 0 };
           const by = Array.isArray(j.by_status) ? j.by_status : [];
           document.getElementById('qTotal').textContent = String(totals.count || 0);
-          document.getElementById('qAmount').textContent = fmt(totals.amount || 0);
+          // document.getElementById('qAmount').textContent = fmt(totals.amount || 0);
           document.getElementById('qPurchasedAmount').textContent = fmt(totals.purchased_amount || 0);
           const find = (s) => {
             const r = by.find((x) => String(x.status || '') === s);
             return r ? Number(r.count || 0) : 0;
           };
+          const findAmount = (s) => {
+            const r = by.find((x) => String(x.status || '') === s);
+            return r ? Number(r.amount || 0) : 0;
+          };
           document.getElementById('qPurchased').textContent = String(find('Purchased'));
           document.getElementById('qNC').textContent = String(find('NC'));
           const sentCount = Number(find('Quotation Sent')) + Number(find('No Revert'));
           document.getElementById('qNoReply').textContent = String(sentCount);
+          
+          // Update Total Amount to reflect only 'Quotation Sent' + 'No Revert' status amounts
+          const sentAmount = Number(findAmount('Quotation Sent')) + Number(findAmount('No Revert'));
+          document.getElementById('qAmount').textContent = fmt(sentAmount);
         }
         async function loadCustomers() {
           console.log('Starting customer load from appointments...');
@@ -804,20 +814,23 @@ import Favicons from '~/components/Favicons.astro';
         });
         document.getElementById('saveQuoteBtn').addEventListener('click', async function () {
           const searchInput = document.getElementById('customerSearch');
-          const searchValue = searchInput.value.trim();
+            const hiddenEmailInput = document.getElementById('customerSelect');
+            const searchValue = searchInput.value.trim();
+            const selectedEmail = hiddenEmailInput.value;
 
-          if (!searchValue) {
-            alert('Please select a customer');
-            return;
-          }
+            if (!searchValue) {
+              alert('Please select a customer');
+              return;
+            }
 
-          // Find customer by name or email
-          const cust = customers.find(function (c) {
-            return (
-              String(c.name || '').toLowerCase() === searchValue.toLowerCase() ||
-              String(c.email || '').toLowerCase() === searchValue.toLowerCase()
-            );
-          });
+            // Find customer by hidden email (preferred) or name/email search
+            const cust = customers.find(function (c) {
+              if (selectedEmail && c.email === selectedEmail) return true;
+              return (
+                String(c.name || '').toLowerCase() === searchValue.toLowerCase() ||
+                String(c.email || '').toLowerCase() === searchValue.toLowerCase()
+              );
+            });
 
           if (!cust) {
             alert('Please select a valid customer from the search results');

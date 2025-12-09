@@ -38,7 +38,12 @@ export const onRequest = defineMiddleware(async (context, next) => {
     }
     const session = await verifySession(token, String(secret));
     const s: Record<string, unknown> | null = session as Record<string, unknown> | null;
-    const userRole = typeof s?.['role'] === 'string' ? String(s?.['role']) : (typeof s?.['user'] === 'string' ? String(s?.['user']) : '');
+    const userRole = (() => {
+      if (typeof s?.['role'] === 'string') return String(s['role']);
+      const u = s?.['user'] as Record<string, unknown> | undefined;
+      if (u && typeof u['role'] === 'string') return String(u['role']);
+      return '';
+    })();
     
     if (!session) {
       return redirect('/admin/login');
@@ -51,10 +56,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
       if (userRole !== 'admin') { return new Response('Forbidden', { status: 403 }); }
     }
     
-    // Users management routes - require super_admin
-    if (pathname.startsWith('/admin/users') || pathname.startsWith('/api/admin/users')) {
-      if (userRole !== 'super_admin') { return new Response('Forbidden', { status: 403 }); }
-    }
+    // Users management: any authenticated admin session can access; login gate above
     
     // Document sharing routes - require admin or manager role
     if (pathname.startsWith('/admin/documents-share') || pathname.startsWith('/api/admin/documents-share')) {

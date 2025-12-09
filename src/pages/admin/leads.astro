@@ -2,9 +2,21 @@
 import Layout from '../../layouts/Layout.astro';
 import AdminNavbar from '~/components/AdminNavbar.astro';
 import AdminSidebar from '~/components/AdminSidebar.astro';
+import { verifySession } from '../../lib/auth';
+
+const cookie = Astro.request.headers.get('cookie') || '';
+const m = /admin_session=([^;]+)/.exec(cookie);
+let currentUser = 'admin';
+if (m) {
+  const token = decodeURIComponent(m[1]);
+  const secret = import.meta.env.SESSION_SECRET || (process.env.SESSION_SECRET || 'change-me');
+  const s = await verifySession(token, secret);
+  if (s && s.user) currentUser = String(s.user);
+}
 ---
 
 <Layout>
+  <div id="currentUserData" data-user={currentUser} style="display:none;"></div>
   <AdminNavbar />
   <div class="wrapper">
     <AdminSidebar activePage="/admin/leads" />
@@ -25,6 +37,18 @@ import AdminSidebar from '~/components/AdminSidebar.astro';
             <div class="col-md-3 col-6"><div class="info-box"><span class="info-box-icon bg-warning"><i class="fas fa-spinner"></i></span><div class="info-box-content"><span class="info-box-text">In Progress</span><span class="info-box-number" id="metricProgress">0</span></div></div></div>
             <div class="col-md-3 col-6"><div class="info-box"><span class="info-box-icon bg-success"><i class="fas fa-check"></i></span><div class="info-box-content"><span class="info-box-text">Converted</span><span class="info-box-number" id="metricConverted">0</span></div></div></div>
             <div class="col-md-3 col-6"><div class="info-box"><span class="info-box-icon bg-danger"><i class="fas fa-times"></i></span><div class="info-box-content"><span class="info-box-text">Lost</span><span class="info-box-number" id="metricLost">0</span></div></div></div>
+          </div>
+          <div class="row" style="margin-bottom:8px">
+            <div class="col-12 d-flex" style="gap:8px;flex-wrap:wrap;align-items:center">
+              <button class="btn btn-sm btn-outline-primary presetHighScore">High Score</button>
+              <button class="btn btn-sm btn-outline-danger presetOverdueSLA">Overdue SLA</button>
+              <button class="btn btn-sm btn-outline-secondary presetMine">Assigned to Me</button>
+              <button class="btn btn-sm btn-outline-success presetExport" id="exportCsvBtn">Export CSV</button>
+              <div id="bulkActions" style="display:none;margin-left:auto;gap:8px;align-items:center">
+                 <span id="selectedCount" style="color:var(--text);font-weight:600">0 Selected</span>
+                 <button id="bulkDeleteBtn" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i> Delete</button>
+              </div>
+            </div>
           </div>
           <div class="row" id="leadActions" style="margin-bottom:12px">
             <div class="col-12">
@@ -57,11 +81,16 @@ import AdminSidebar from '~/components/AdminSidebar.astro';
                   <table class="table table-striped" id="leadsTable">
                     <thead>
                       <tr>
+                        <th style="width:40px"><input type="checkbox" id="selectAll" class="form-check-input"></th>
                         <th data-sort="name">Name</th>
                         <th data-sort="email">Email</th>
                         <th data-sort="phone">Phone</th>
                         <th data-sort="stage">Stage</th>
+                        <th data-sort="owner">Owner</th>
+                        <th data-sort="score">Score <i class="fas fa-info-circle" title="Score is calculated based on stage (Prospect:10, Contacted:30, Consultation:60, Converted:100, Lost:0) minus penalty for overdue SLA (-20)"></i></th>
+                        <th>Tags</th>
                         <th data-sort="created_at">Created</th>
+                        <th>Next Action</th>
                         <th>Actions</th>
                       </tr>
                     </thead>
@@ -76,20 +105,72 @@ import AdminSidebar from '~/components/AdminSidebar.astro';
     </div>
   </div>
 
+  <!-- Notes Modal -->
+  <div class="modal" id="notesModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Notes & History</h3>
+        <button class="close-btn" id="closeNotesModal">&times;</button>
+      </div>
+      <div id="notesContent">
+        <div style="margin-bottom:20px">
+          <label style="display:block;margin-bottom:8px;font-weight:600" class="section-title">Add Note</label>
+          <textarea id="newNote" class="form-control" rows="3" placeholder="Enter your note here..."></textarea>
+          <button class="btn btn-primary" id="saveNoteBtn" style="margin-top:8px;">Add Note</button>
+        </div>
+        <div class="section-title" style="margin-bottom:12px;font-weight:600">History</div>
+        <div id="notesList" style="max-height:400px;overflow-y:auto;display:flex;flex-direction:column;gap:12px"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Theme Modal (Generic) -->
+  <div class="modal" id="themeModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="themeModalTitle">Details</h3>
+        <button class="close-btn" id="closeThemeModal">&times;</button>
+      </div>
+      <div id="themeModalBody"></div>
+    </div>
+  </div>
+
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@latest/dist/css/adminlte.min.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/css/all.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/admin-lte@latest/dist/js/adminlte.min.js" defer></script>
   <script is:inline>
     (function(){
-      function getCookie(name){ const m=document.cookie.match(new RegExp(name+'=([^;]+)')); return m? m[1]:''; }
+      function getCookie(name){ try { const m=document.cookie.match(new RegExp(name+'=([^;]+)')); return m? m[1]:''; } catch { return ''; } }
       function showToast(msg, type){
         let box = document.getElementById('toastBox');
         if (!box) { box = document.createElement('div'); box.id='toastBox'; box.style.position='fixed'; box.style.top='16px'; box.style.right='16px'; box.style.zIndex='2000'; box.style.display='flex'; box.style.flexDirection='column'; box.style.gap='8px'; document.body.appendChild(box); }
         const el = document.createElement('div'); el.className='toast'; el.textContent=String(msg||''); el.style.padding='8px 12px'; el.style.borderRadius='8px'; el.style.color='#fff'; el.style.boxShadow='0 6px 18px rgba(0,0,0,0.25)'; el.style.background = type==='error' ? '#ef4444' : '#10b981'; box.appendChild(el); setTimeout(function(){ try { el.remove(); } catch { void 0; } }, 2500);
       }
+      
       let leadsCache = [];
-      let sortKey = 'created_at'; let sortAsc = false;
+      let usersCache = [];
+      const sortKey = 'created_at'; const sortAsc = false;
+      let currentLeadIdForNotes = null;
+      let filterOwner = '';
+      let filterHighScore = false;
+      let filterOverdueSLA = false;
+      const selectedLeads = new Set();
+
+      const presetTags = ['Hot', 'Warm', 'Cold', 'Urgent', 'Follow-up', 'Referral'];
+
+      // helpers removed as unused by current UI
+
+      async function loadUsers() {
+        try {
+          const res = await fetch('/api/admin/users', { credentials: 'include' });
+          const j = await res.json();
+          if (res.ok && j.ok) {
+            usersCache = j.data || [];
+          }
+        } catch (e) { console.error('Failed to load users', e); }
+      }
+
       function updateMetrics(rows){
         const newC = rows.filter(function(l){ return String(l.stage||'prospect')==='prospect'; }).length;
         const progC = rows.filter(function(l){ return ['contacted','consultation'].includes(String(l.stage||'')); }).length;
@@ -98,21 +179,83 @@ import AdminSidebar from '~/components/AdminSidebar.astro';
         const set = function(id, v){ const el=document.getElementById(id); if(el) el.textContent = String(v); };
         set('metricNew', newC); set('metricProgress', progC); set('metricConverted', convC); set('metricLost', lostC);
       }
+
       function renderTable(rows){
         const tb = document.querySelector('#leadsTable tbody'); if (!tb) return;
         const fEl = document.getElementById('filterText');
         const sEl = document.getElementById('filterStage');
         const q = String((fEl instanceof HTMLInputElement ? fEl.value : '')).toLowerCase().trim();
         const fs = String((sEl instanceof HTMLSelectElement ? sEl.value : ''));
+        
         const filtered = rows.filter(function(l){
           const matchText = !q || String(l.name||'').toLowerCase().includes(q) || String(l.email||'').toLowerCase().includes(q) || String(l.phone||'').toLowerCase().includes(q);
           const matchStage = !fs || String(l.stage||'')===fs;
-          return matchText && matchStage;
+          const matchOwner = !filterOwner || String(l.owner||'')===filterOwner;
+          const matchHighScore = !filterHighScore || (Number(l.score||0) >= 80);
+          // User asked for "High Score" button which usually implies sorting or filtering top. 
+          // Previous implementation was just sorting. Let's make it a sort toggle or filter?
+          // User said "unselect the button", implying it's a state.
+          // If it's a filter, we show only high scores. If it's a sort, we just sort.
+          // Let's assume user wants to filter/view high scores. Or maybe just sort.
+          // Previous code: leadsCache.sort... 
+          // Let's stick to the previous behavior but make it toggleable. 
+          // Wait, the previous behavior was just a one-time sort.
+          // User wants "unselect". So it should be a toggle state.
+          // Let's treat it as a filter for top leads or a persistent sort?
+          // Let's try treating it as a sort override for now, or a filter if it makes more sense.
+          // Actually, "High Score" usually means "Show me the best ones". 
+          // Let's make it a filter for score >= 50 (warm/hot) or just sort descending by score.
+          // If I make it a sort, "unselecting" it should revert to default sort (created_at).
+          
+          const isOverdue = l.sla_due_at && new Date(l.sla_due_at) < new Date();
+          const matchOverdue = !filterOverdueSLA || isOverdue;
+
+          return matchText && matchStage && matchOwner && matchHighScore && matchOverdue;
         });
-        filtered.sort(function(a,b){ const va=String(a[sortKey]||''); const vb=String(b[sortKey]||''); const cmp = va.localeCompare(vb); return sortAsc? cmp : -cmp; });
+        
+        // Sorting logic
+        if (filterHighScore) {
+             filtered.sort((a,b) => (b.score||0) - (a.score||0));
+        } else {
+             filtered.sort(function(a,b){ const va=String(a[sortKey]||''); const vb=String(b[sortKey]||''); const cmp = va.localeCompare(vb); return sortAsc? cmp : -cmp; });
+        }
+        
+        // Update bulk actions visibility
+        const bulkDiv = document.getElementById('bulkActions');
+        const countSpan = document.getElementById('selectedCount');
+        if (selectedLeads.size > 0) {
+            bulkDiv.style.display = 'flex';
+            countSpan.textContent = selectedLeads.size + ' Selected';
+            document.getElementById('bulkDeleteBtn').innerHTML = `<i class="fas fa-trash"></i> ${selectedLeads.size} Delete`;
+        } else {
+            bulkDiv.style.display = 'none';
+        }
+
         tb.innerHTML = filtered.map(function(l){
-          return `<tr>
-            <td>${l.name||''}</td>
+          const isOverdue = l.sla_due_at && new Date(l.sla_due_at) < new Date();
+          const userOptions = usersCache.map(u => `<option value="${u.username}" ${l.owner === u.username ? 'selected' : ''}>${u.username}</option>`).join('');
+          
+          const score = Number(l.score||0);
+          const scorePercent = Math.min(100, Math.max(0, score));
+          let scoreColor = 'bg-secondary';
+          if(score >= 80) scoreColor = 'bg-success';
+          else if(score >= 50) scoreColor = 'bg-info';
+          else if(score >= 20) scoreColor = 'bg-warning';
+          else scoreColor = 'bg-danger';
+
+          const isSelected = selectedLeads.has(l.id);
+          const slaDate = l.sla_due_at ? new Date(l.sla_due_at).toLocaleDateString() : '';
+
+          return `<tr class="${isOverdue ? 'sla-overdue-row' : ''}">
+            <td>
+              <input type="checkbox" class="form-check-input lead-checkbox" data-id="${l.id}" ${isSelected ? 'checked' : ''}>
+            </td>
+            <td>
+                ${l.name||''} 
+                ${isOverdue ? `<i class="fas fa-flag text-danger editSLA" data-id="${l.id}" data-sla="${l.sla_due_at||''}" title="Overdue SLA (Due: ${slaDate}) - Click to Edit" style="cursor:pointer;margin-left:4px"></i>` : ''}
+                ${!isOverdue && l.sla_due_at ? `<i class="fas fa-clock text-warning editSLA" data-id="${l.id}" data-sla="${l.sla_due_at||''}" title="SLA Due: ${slaDate} - Click to Edit" style="cursor:pointer;margin-left:4px"></i>` : ''}
+                ${!l.sla_due_at ? `<i class="fas fa-plus-circle text-muted editSLA" data-id="${l.id}" data-sla="" title="Add SLA" style="cursor:pointer;margin-left:4px;opacity:0.5"></i>` : ''}
+            </td>
             <td>${l.email||''}</td>
             <td>${l.phone||''}</td>
             <td>
@@ -124,16 +267,43 @@ import AdminSidebar from '~/components/AdminSidebar.astro';
                 <option value="lost" ${l.stage==='lost'?'selected':''}>Lost</option>
               </select>
             </td>
-            <td>${new Date(l.created_at||Date.now()).toLocaleString()}</td>
             <td>
-              <a class="btn btn-sm btn-outline-primary" href="/admin/client360?phone=${encodeURIComponent(String(l.phone||''))}">View</a>
+              <select class="form-select form-select-sm ownerSelect" data-id="${l.id}">
+                <option value="admin">Admin</option>
+                ${userOptions}
+              </select>
+            </td>
+            <td>
+              <div class="d-flex align-items-center" style="gap:6px">
+                <div class="progress" style="flex:1;height:6px;min-width:60px;background:rgba(255,255,255,0.1)">
+                  <div class="progress-bar ${scoreColor}" style="width:${scorePercent}%"></div>
+                </div>
+                <small>${score}</small>
+              </div>
+            </td>
+            <td>
+              <div style="display:flex;flex-wrap:wrap;gap:4px">
+                ${(l.tags ? l.tags.split(',') : []).map(t => `<span class="badge bg-secondary">${t}</span>`).join('')}
+                <button class="btn btn-xs btn-outline-secondary editTags" data-id="${l.id}"><i class="fas fa-pen"></i></button>
+              </div>
+            </td>
+            <td>${new Date(l.created_at||Date.now()).toLocaleDateString()}</td>
+            <td>
+              <input type="date" class="form-control form-control-sm nextActionInput" data-id="${l.id}" value="${l.next_action_at ? l.next_action_at.split('T')[0] : ''}" />
+            </td>
+            <td>
+              <button class="btn btn-sm btn-outline-info viewNotes" data-id="${l.id}" title="Notes & History"><i class="fas fa-sticky-note"></i></button>
+              <a class="btn btn-sm btn-outline-primary" href="/admin/client360?phone=${encodeURIComponent(String(l.phone||''))}" title="Client 360 View"><i class="fas fa-bullseye"></i></a>
             </td>
           </tr>`;
         }).join('');
+        
         updateMetrics(rows);
       }
+
       async function loadLeads(){
         try {
+          await loadUsers();
           const res = await fetch('/api/admin/leads', { credentials: 'include' });
           const j = await res.json();
           if (!res.ok || !j || j.ok === false) { throw new Error(String(j && j.error || 'Failed to load leads')); }
@@ -144,51 +314,421 @@ import AdminSidebar from '~/components/AdminSidebar.astro';
           showToast('Failed to load leads','error');
         }
       }
-      document.getElementById('filterText')?.addEventListener('input', function(){ renderTable(leadsCache); });
-      document.getElementById('filterStage')?.addEventListener('change', function(){ renderTable(leadsCache); });
-      document.querySelectorAll('#leadsTable thead th[data-sort]')?.forEach(function(th){ th.addEventListener('click', function(){ const k=(th && (th as HTMLElement).dataset ? (th as HTMLElement).dataset.sort : 'created_at'); if (sortKey===k) sortAsc=!sortAsc; else { sortKey=String(k||'created_at'); sortAsc=true; } renderTable(leadsCache); }); });
-      document.addEventListener('change', async function(e){
-        const sel = e.target && e.target.closest('.leadStage');
-        if (!sel) return;
-        const id = sel.getAttribute('data-id');
-        const to_stage = String(sel.value||'prospect');
-        const csrf = getCookie('csrf_token');
+
+      // Notes Logic
+      async function loadNotes(leadId) {
+        const list = document.getElementById('notesList');
+        if (!list) return;
+        list.innerHTML = '<div class="spinner-border spinner-border-sm"></div> Loading...';
+        
         try {
-          await fetch('/api/admin/leads', { method:'POST', credentials: 'include', headers:{ 'Content-Type':'application/json','x-csrf-token': csrf||'' }, body: JSON.stringify({ action:'advance_stage', id, to_stage }) });
-          showToast('Stage updated');
-        } catch { showToast('Failed to update stage','error'); }
-        loadLeads();
-      });
-      document.addEventListener('click', async function(e){
-        const btn = e.target && e.target.closest('.saveSla');
-        if (!btn) return;
-        const id = btn.getAttribute('data-id');
-        const inp = document.querySelector('.leadSla[data-id="'+id+'"]');
-        const sla = (inp instanceof HTMLInputElement) ? String(inp.value||'') : '';
-        const csrf = getCookie('csrf_token');
-        try {
-          await fetch('/api/admin/leads', { method:'POST', credentials: 'include', headers:{ 'Content-Type':'application/json','x-csrf-token': csrf||'' }, body: JSON.stringify({ action:'update_sla', id, sla_due_at: sla }) });
-          showToast('SLA updated');
-        } catch { showToast('Failed to update SLA','error'); }
-        loadLeads();
-      });
-      document.addEventListener('click', async function(e){
-        const t = e && e.target ? e.target : null;
-        const b = (t instanceof Element) && t.closest ? t.closest('.viewHistory') : null;
-        if (!b) return;
-        const id = b && b['getAttribute'] ? String(b['getAttribute']('data-id')||'') : '';
-        try {
-          const res = await fetch('/api/admin/lead-history?lead_id='+encodeURIComponent(id), { credentials:'include' });
-          const j = await res.json();
-          const rows = Array.isArray(j.data)? j.data: [];
-          const body = document.getElementById('historyBody');
-          if (!body) return;
-          body.innerHTML = '<table class="table"><thead><tr><th>When</th><th>From</th><th>To</th><th>By</th><th>Note</th></tr></thead><tbody>'+rows.map(function(r){ return '<tr><td>'+String(r.changed_at||'')+'</td><td>'+String(r.from_stage||'')+'</td><td>'+String(r.to_stage||'')+'</td><td>'+String(r.changed_by||'')+'</td><td>'+String(r.note||'')+'</td></tr>'; }).join('')+'</tbody></table>';
-          document.getElementById('historyModal').classList.add('active');
+          // Fetch notes
+          const notesRes = await fetch(`/api/admin/lead-notes?lead_id=${leadId}`, { credentials: 'include' });
+          const notesJ = await notesRes.json();
+          const notes = notesJ.ok ? notesJ.data : [];
+
+          // Fetch history (audit logs)
+          const historyRes = await fetch(`/api/admin/lead-history?lead_id=${leadId}`, { credentials: 'include' });
+          const historyJ = await historyRes.json();
+          const history = historyJ.ok ? historyJ.data : [];
+
+          // Combine and sort
+          const combined = [
+            ...notes.map(n => ({ ...n, type: 'note' })),
+            ...history.map(h => ({ ...h, type: 'history' }))
+          ].sort((a, b) => new Date(b.created_at || b.changed_at).getTime() - new Date(a.created_at || a.changed_at).getTime());
+
+          list.innerHTML = combined.map(item => {
+            if (item.type === 'note') {
+              return `
+                <div class="card p-2 mb-2" style="background:#f8f9fa;border-left:4px solid #0d6efd;color:#333">
+                  <div class="d-flex justify-content-between">
+                    <small class="text-muted">${item.created_by || 'Unknown'} - ${new Date(item.created_at).toLocaleString()}</small>
+                    <button class="btn btn-xs text-danger deleteNote" data-id="${item.id}">&times;</button>
+                  </div>
+                  <div style="white-space:pre-wrap;margin-top:4px">${item.note}</div>
+                </div>`;
+            } else {
+              return `
+                <div class="card p-2 mb-2" style="background:#fff;border-left:4px solid #6c757d;color:#333">
+                  <small class="text-muted">${item.changed_by || 'Unknown'} - ${new Date(item.changed_at).toLocaleString()}</small>
+                  <div style="margin-top:4px">${item.change_description}</div>
+                </div>`;
+            }
+          }).join('');
+          
         } catch {
-          showToast('Failed to load history','error');
+          list.innerHTML = '<div class="text-danger">Failed to load notes</div>';
+        }
+      }
+
+      document.addEventListener('click', async function(e){
+        const t = e.target;
+        // View Notes
+        if (t.closest('.viewNotes')) {
+          const btn = t.closest('.viewNotes');
+          const id = btn.getAttribute('data-id');
+          currentLeadIdForNotes = id;
+          document.getElementById('notesModal').classList.add('active');
+          loadNotes(id);
+        }
+        // Delete Note
+        if (t.closest('.deleteNote')) {
+          const btn = t.closest('.deleteNote');
+          const id = btn.getAttribute('data-id');
+          if (!confirm('Delete this note?')) return;
+          try {
+            const csrf = getCookie('csrf_token');
+            await fetch(`/api/admin/lead-notes?id=${id}`, { method: 'DELETE', headers: {'x-csrf-token': csrf} });
+            loadNotes(currentLeadIdForNotes);
+          } catch { showToast('Failed to delete note', 'error'); }
+        }
+        // Edit Tags
+        if (t.closest('.editTags')) {
+          const btn = t.closest('.editTags');
+          const id = btn.getAttribute('data-id');
+          const l = leadsCache.find(x => x.id === id);
+          if (!l) return;
+          
+          const modal = document.getElementById('themeModal');
+          const body = document.getElementById('themeModalBody');
+          const title = document.getElementById('themeModalTitle');
+          
+          title.textContent = 'Edit Tags';
+          body.innerHTML = `
+            <div class="mb-3">
+              <label>Current Tags: <strong>${l.tags || 'None'}</strong></label>
+            </div>
+            <div class="mb-3">
+              <label>Select Presets:</label>
+              <div class="d-flex flex-wrap gap-2 mb-2">
+                ${presetTags.map(tag => `<button class="btn btn-sm btn-outline-secondary addTag" data-tag="${tag}">${tag}</button>`).join('')}
+              </div>
+            </div>
+            <div class="mb-3">
+              <input type="text" class="form-control" id="customTags" value="${l.tags || ''}" placeholder="Comma separated tags">
+            </div>
+            <button class="btn btn-primary w-100" id="saveTagsBtn" data-id="${id}">Save Tags</button>
+          `;
+          modal.classList.add('active');
+        }
+        // Add Tag from preset
+        if (t.classList.contains('addTag')) {
+          const tag = t.getAttribute('data-tag');
+          const input = document.getElementById('customTags');
+          if (input) {
+            const current = input.value.split(',').map(s => s.trim()).filter(Boolean);
+            if (!current.includes(tag)) {
+              current.push(tag);
+              input.value = current.join(',');
+            }
+          }
+        }
+        // Save Tags
+        if (t.id === 'saveTagsBtn') {
+          const id = t.getAttribute('data-id');
+          const tags = document.getElementById('customTags').value;
+          const csrf = getCookie('csrf_token');
+          try {
+            await fetch('/api/admin/leads', { method:'POST', credentials:'include', headers:{ 'Content-Type':'application/json','x-csrf-token': csrf||'' }, body: JSON.stringify({ action:'update_tags', id, tags }) });
+            showToast('Tags updated');
+            document.getElementById('themeModal').classList.remove('active');
+            loadLeads();
+          } catch { showToast('Failed to update tags', 'error'); }
+        }
+
+        // Edit SLA
+        if (t.closest('.editSLA')) {
+          const btn = t.closest('.editSLA');
+          const id = btn.getAttribute('data-id');
+          const currentSla = btn.getAttribute('data-sla') || '';
+          
+          const modal = document.getElementById('themeModal');
+          const body = document.getElementById('themeModalBody');
+          const title = document.getElementById('themeModalTitle');
+          
+          title.textContent = currentSla ? 'Edit SLA Due Date' : 'Add SLA Due Date';
+          body.innerHTML = `
+            <div class="mb-3">
+              <label>SLA Due Date:</label>
+              <input type="datetime-local" class="form-control" id="slaInput" value="${currentSla ? new Date(currentSla).toISOString().slice(0, 16) : ''}">
+              <small class="text-muted">Clear the date to remove the SLA.</small>
+            </div>
+            <div class="d-flex justify-content-end gap-2">
+                <button class="btn btn-secondary" id="cancelSlaBtn">Cancel</button>
+                <button class="btn btn-primary" id="saveSlaBtn" data-id="${id}">${currentSla ? 'Update SLA' : 'Add SLA'}</button>
+            </div>
+          `;
+          
+          modal.classList.add('active');
+          
+          document.getElementById('cancelSlaBtn').addEventListener('click', () => modal.classList.remove('active'));
+          
+          document.getElementById('saveSlaBtn').addEventListener('click', async function(){
+             const newSla = document.getElementById('slaInput').value;
+             const csrf = getCookie('csrf_token');
+             try {
+                await fetch('/api/admin/leads', { 
+                    method:'POST', 
+                    credentials:'include', 
+                    headers:{ 'Content-Type':'application/json','x-csrf-token': csrf||'' }, 
+                    body: JSON.stringify({ action:'update_sla', id, sla_due_at: newSla || null }) 
+                });
+                showToast('SLA updated');
+                modal.classList.remove('active');
+                loadLeads();
+             } catch { showToast('Failed to update SLA', 'error'); }
+          });
         }
       });
+
+      document.getElementById('saveNoteBtn')?.addEventListener('click', async function(){
+        if (!currentLeadIdForNotes) return;
+        const noteEl = document.getElementById('newNote');
+        const note = noteEl.value.trim();
+        if (!note) return;
+        
+        try {
+          const csrf = getCookie('csrf_token');
+          await fetch('/api/admin/lead-notes', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-csrf-token': csrf },
+            body: JSON.stringify({ lead_id: currentLeadIdForNotes, note })
+          });
+          noteEl.value = '';
+          loadNotes(currentLeadIdForNotes);
+          showToast('Note added');
+        } catch { showToast('Failed to add note', 'error'); }
+      });
+
+      document.getElementById('closeNotesModal')?.addEventListener('click', () => {
+        document.getElementById('notesModal').classList.remove('active');
+      });
+      document.getElementById('closeThemeModal')?.addEventListener('click', () => {
+        document.getElementById('themeModal').classList.remove('active');
+      });
+
+      // Close modals on outside click
+      window.addEventListener('click', (e) => {
+        if (e.target.classList.contains('modal')) {
+          e.target.classList.remove('active');
+        }
+      });
+
+      // Owner Change
+      document.addEventListener('change', async function(e){
+        if (e.target.classList.contains('ownerSelect')) {
+          const id = e.target.getAttribute('data-id');
+          const owner = e.target.value;
+          const csrf = getCookie('csrf_token');
+          try {
+            await fetch('/api/admin/leads', { method:'POST', credentials:'include', headers:{ 'Content-Type':'application/json','x-csrf-token': csrf||'' }, body: JSON.stringify({ action:'assign_owner', id, owner }) });
+            showToast('Owner updated');
+          } catch { showToast('Failed to update owner', 'error'); }
+        }
+        // Next Action Change
+        if (e.target.classList.contains('nextActionInput')) {
+          const id = e.target.getAttribute('data-id');
+          const date = e.target.value;
+          const csrf = getCookie('csrf_token');
+          try {
+            await fetch('/api/admin/leads', { method:'POST', credentials:'include', headers:{ 'Content-Type':'application/json','x-csrf-token': csrf||'' }, body: JSON.stringify({ action:'set_next_action', id, next_action_at: date }) });
+            showToast('Next action updated');
+          } catch { showToast('Failed to update next action', 'error'); }
+        }
+        // Stage Change (keep existing logic but updated class ref)
+        if (e.target.classList.contains('leadStage')) {
+          const id = e.target.getAttribute('data-id');
+          const to_stage = e.target.value;
+          const csrf = getCookie('csrf_token');
+          try {
+            await fetch('/api/admin/leads', { method:'POST', credentials:'include', headers:{ 'Content-Type':'application/json','x-csrf-token': csrf||'' }, body: JSON.stringify({ action:'advance_stage', id, to_stage }) });
+            showToast('Stage updated');
+            loadLeads(); // Refresh to update score/styles
+          } catch { showToast('Failed to update stage', 'error'); }
+        }
+      });
+
+      // Export CSV
+      document.getElementById('exportCsvBtn')?.addEventListener('click', function(){
+        if (!leadsCache.length) { showToast('No data to export', 'error'); return; }
+        const headers = ['ID', 'Name', 'Email', 'Phone', 'Stage', 'Owner', 'Score', 'Tags', 'Created At', 'Next Action'];
+        const csvContent = [
+          headers.join(','),
+          ...leadsCache.map(l => [
+            l.id,
+            `"${(l.name||'').replace(/"/g, '""')}"`,
+            `"${(l.email||'').replace(/"/g, '""')}"`,
+            `"${(l.phone||'').replace(/"/g, '""')}"`,
+            l.stage,
+            l.owner,
+            l.score,
+            `"${(l.tags||'').replace(/"/g, '""')}"`,
+            l.created_at,
+            l.next_action_at
+          ].join(','))
+        ].join('\n');
+        
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        if (link.download !== undefined) {
+          const url = URL.createObjectURL(blob);
+          link.setAttribute('href', url);
+          link.setAttribute('download', 'leads_export.csv');
+          link.style.visibility = 'hidden';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        }
+      });
+      
+      // Checkbox Logic
+      document.addEventListener('change', function(e){
+        if (e.target.id === 'selectAll') {
+            const checked = e.target.checked;
+            const checkboxes = document.querySelectorAll('.lead-checkbox');
+            checkboxes.forEach(cb => {
+                cb.checked = checked;
+                const id = cb.getAttribute('data-id');
+                if (checked) selectedLeads.add(id); else selectedLeads.delete(id);
+            });
+            renderTable(leadsCache); // Re-render to update bulk bar but this might clear checks if we re-render? 
+            // Actually renderTable regenerates HTML so we lose event listeners if we aren't careful or if we just rely on delegated events.
+            // But here we modify selectedLeads set, so re-rendering is fine as it uses the set to check boxes.
+        }
+        if (e.target.classList.contains('lead-checkbox')) {
+            const id = e.target.getAttribute('data-id');
+            if (e.target.checked) selectedLeads.add(id); else selectedLeads.delete(id);
+            
+            // Update Select All state
+            const all = document.querySelectorAll('.lead-checkbox');
+            const allChecked = Array.from(all).every(cb => cb.checked);
+            const selectAll = document.getElementById('selectAll');
+            if(selectAll) selectAll.checked = allChecked;
+            
+            // Update bulk bar
+            const bulkDiv = document.getElementById('bulkActions');
+            const countSpan = document.getElementById('selectedCount');
+            if (selectedLeads.size > 0) {
+                bulkDiv.style.display = 'flex';
+                countSpan.textContent = selectedLeads.size + ' Selected';
+                document.getElementById('bulkDeleteBtn').innerHTML = `<i class="fas fa-trash"></i> ${selectedLeads.size} Delete`;
+            } else {
+                bulkDiv.style.display = 'none';
+            }
+        }
+      });
+      
+      // Bulk Delete
+      document.getElementById('bulkDeleteBtn')?.addEventListener('click', function(){
+        if (selectedLeads.size === 0) return;
+        
+        const modal = document.getElementById('themeModal');
+        const body = document.getElementById('themeModalBody');
+        const title = document.getElementById('themeModalTitle');
+        
+        title.textContent = 'Confirm Deletion';
+        body.innerHTML = `
+            <div class="mb-4">
+                <p>Are you sure you want to delete <strong>${selectedLeads.size}</strong> leads?</p>
+                <p class="text-danger"><small>This action cannot be undone.</small></p>
+            </div>
+            <div class="d-flex justify-content-end gap-2">
+                <button class="btn btn-secondary" id="cancelDeleteBtn">Cancel</button>
+                <button class="btn btn-danger" id="confirmDeleteBtn">Delete Leads</button>
+            </div>
+        `;
+        
+        modal.classList.add('active');
+        
+        // Handle Cancel
+        document.getElementById('cancelDeleteBtn').addEventListener('click', function(){
+            modal.classList.remove('active');
+        });
+        
+        // Handle Confirm
+        document.getElementById('confirmDeleteBtn').addEventListener('click', async function(){
+            const btn = document.getElementById('confirmDeleteBtn');
+            btn.disabled = true;
+            btn.textContent = 'Deleting...';
+            
+            try {
+                const csrf = getCookie('csrf_token');
+                const ids = Array.from(selectedLeads);
+                const res = await fetch('/api/admin/leads', { 
+                    method: 'DELETE', 
+                    headers: { 'Content-Type': 'application/json', 'x-csrf-token': csrf },
+                    body: JSON.stringify({ ids })
+                });
+                const j = await res.json();
+                if (res.ok && j.ok) {
+                    showToast(`${selectedLeads.size} leads deleted`);
+                    selectedLeads.clear();
+                    document.getElementById('selectAll').checked = false;
+                    modal.classList.remove('active');
+                    loadLeads();
+                } else {
+                    console.error('Delete failed:', j);
+                    showToast(j.error || 'Failed to delete leads', 'error');
+                    btn.disabled = false;
+                    btn.textContent = 'Delete Leads';
+                }
+            } catch (e) { 
+                console.error('Delete error:', e);
+                showToast('Network error', 'error'); 
+                btn.disabled = false;
+                btn.textContent = 'Delete Leads';
+            }
+        });
+      });
+
+      // Preset Filters
+      document.querySelector('.presetMine')?.addEventListener('click', function(e){
+        const btn = e.target.closest('.presetMine');
+        const currentUser = document.getElementById('currentUserData')?.getAttribute('data-user') || 'admin';
+        
+        if (filterOwner === currentUser) {
+            filterOwner = '';
+            btn.classList.remove('active', 'btn-secondary');
+            btn.classList.add('btn-outline-secondary');
+        } else {
+            filterOwner = currentUser;
+            btn.classList.remove('btn-outline-secondary');
+            btn.classList.add('active', 'btn-secondary');
+        }
+        renderTable(leadsCache);
+      });
+      
+      document.querySelector('.presetHighScore')?.addEventListener('click', function(e){
+        const btn = e.target.closest('.presetHighScore');
+        filterHighScore = !filterHighScore;
+        if (filterHighScore) {
+            btn.classList.remove('btn-outline-primary');
+            btn.classList.add('active', 'btn-primary');
+        } else {
+            btn.classList.remove('active', 'btn-primary');
+            btn.classList.add('btn-outline-primary');
+        }
+        renderTable(leadsCache);
+      });
+
+      document.querySelector('.presetOverdueSLA')?.addEventListener('click', function(e){
+        const btn = e.target.closest('.presetOverdueSLA');
+        filterOverdueSLA = !filterOverdueSLA;
+        if (filterOverdueSLA) {
+            btn.classList.remove('btn-outline-danger');
+            btn.classList.add('active', 'btn-danger');
+        } else {
+            btn.classList.remove('active', 'btn-danger');
+            btn.classList.add('btn-outline-danger');
+        }
+        renderTable(leadsCache);
+      });
+
+      // Initial Load
+      loadLeads();
+      
+      // Keep existing logic for create lead
       document.getElementById('createLead')?.addEventListener('click', async function(){
         const btn = document.getElementById('createLead');
         const nameEl = document.getElementById('newLeadName');
@@ -201,22 +741,26 @@ import AdminSidebar from '~/components/AdminSidebar.astro';
         const csrf = getCookie('csrf_token');
         try {
           btn.disabled = true;
-          const sp = btn && btn.querySelector ? btn.querySelector('.btnSpinner') : null; if (sp && sp instanceof HTMLElement) { sp.style.display = 'inline-block'; }
+          const sp = btn.querySelector('.btnSpinner'); if (sp) sp.style.display = 'inline-block';
           const res = await fetch('/api/admin/leads', { method:'POST', credentials: 'include', headers:{ 'Content-Type':'application/json','x-csrf-token': csrf||'' }, body: JSON.stringify({ action:'create', name, phone, email }) });
-          let j = null; try { j = await res.json(); } catch { j = null; }
-          if (!res.ok || !j || j.ok===false) { showToast('Failed to create lead','error'); return; }
-          nameEl.value=''; phoneEl.value=''; emailEl.value='';
-          await loadLeads();
-          showToast('Lead created');
-        } catch {
-          showToast('Network error while creating lead','error');
-        } finally {
+          const j = await res.json();
+          if (res.ok && j.ok) {
+            nameEl.value=''; phoneEl.value=''; emailEl.value='';
+            loadLeads();
+            showToast('Lead created');
+          } else {
+            showToast(j.error || 'Failed to create lead', 'error');
+          }
+        } catch { showToast('Network error', 'error'); }
+        finally {
           if (btn) btn.disabled = false;
-          const sp2 = btn && btn.querySelector ? btn.querySelector('.btnSpinner') : null; if (sp2 && sp2 instanceof HTMLElement) { sp2.style.display = 'none'; }
+          const sp = btn.querySelector('.btnSpinner'); if (sp) sp.style.display = 'none';
         }
       });
-      document.getElementById('historyClose')?.addEventListener('click', function(){ const m=document.getElementById('historyModal'); if(m) m.classList.remove('active'); });
-      loadLeads();
+      
+      // Keep filter listeners
+      document.getElementById('filterText')?.addEventListener('input', function(){ renderTable(leadsCache); });
+      document.getElementById('filterStage')?.addEventListener('change', function(){ renderTable(leadsCache); });
     })();
   </script>
   <style>
@@ -224,10 +768,24 @@ import AdminSidebar from '~/components/AdminSidebar.astro';
     .card { background: var(--panel); color: var(--text); border-color: var(--border); }
     .card-header { font-weight: 600; }
     
-    .sla-overdue { border-color: #ef4444; }
-    .modal { position: fixed; inset:0; display:none; align-items:center; justify-content:center; background: rgba(2,6,23,0.6); z-index: 2000; }
+    .sla-overdue-row td { background-color: rgba(239, 68, 68, 0.1) !important; }
+    input[type="date"] {
+        color-scheme: dark;
+    }
+    input[type="date"]::-webkit-calendar-picker-indicator {
+      filter: invert(1);
+      cursor: pointer;
+    }
+    
+    .modal { position: fixed; inset:0; display:none; align-items:center; justify-content:center; background: rgba(2,6,23,0.7); z-index: 2000; backdrop-filter: blur(2px); }
     .modal.active { display:flex; }
-    .modal .modal-content { background: var(--panel); border:1px solid var(--border); border-radius:12px; padding:16px; width:90%; max-width:720px; max-height:80vh; overflow:auto; }
+    .modal .modal-content { background: #0b1220; color: #e6edf7; border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:24px; width:90%; max-width:720px; max-height:85vh; overflow:auto; box-shadow: 0 30px 80px rgba(15,23,42,0.8); }
+    .modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:16px; }
+    .modal-header h3 { margin:0; font-size:20px; font-weight:700; color:#e2e8f0; }
+    .close-btn { background:none; border:none; color:#94a3b8; font-size:24px; cursor:pointer; }
+    .close-btn:hover { color:#e2e8f0; }
+    
+    .form-control, .form-select { background: #0f1629; color: #e6edf7; border: 1px solid rgba(255,255,255,0.12); }
+    .form-control:focus, .form-select:focus { background: #0f1629; color: #e6edf7; border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,0.25); }
   </style>
-  <div id="historyModal" class="modal"><div class="modal-content"><div class="modal-header"><h3>Stage History</h3><button class="close-btn" id="historyClose">×</button></div><div id="historyBody"></div></div></div>
 </Layout>

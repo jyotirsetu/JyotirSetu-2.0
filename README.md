@@ -205,6 +205,15 @@ The site can be deployed to any static hosting platform:
 - Legacy Staff Availability and Service Capacity features have been removed (pages, APIs, database tables). Calendar focuses on appointments.
 - API routes `/api/admin/availability` and `/api/admin/capacity` are no longer present. Database tables `staff_availability` and `staff_capacity` are deprecated.
 
+### Configure Admin Accounts (Vercel)
+
+- `SESSION_SECRET`: required
+- `ADMIN_ROLE`: set to `super_admin` to grant super admin for single admin
+- `ADMIN_USERNAME`, `ADMIN_PASSWORD`: single admin fallback
+- `ADMIN_ACCOUNTS_JSON` (preferred): JSON array of accounts, example:
+  `[{"username":"owner","password":"sha256:6c7b...","role":"super_admin"},{"username":"ops","password":"sha256:abcd...","role":"admin"}]`
+- To use plain passwords (dev only), set `password` without `sha256:` prefix.
+
 ## 🔧 **Configuration**
 
 ### **Site Settings**

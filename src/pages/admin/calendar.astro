@@ -1,8 +1,8 @@
 ---
 export const prerender = false;
 import Favicons from '~/components/Favicons.astro';
+ 
 import AdminNavbar from '~/components/AdminNavbar.astro';
-import MobilePageSelect from '~/components/MobilePageSelect.astro';
 ---
 
 <!doctype html>
@@ -350,6 +350,12 @@ import MobilePageSelect from '~/components/MobilePageSelect.astro';
                 >
               </li>
               <li class="nav-item">
+                <a href="/admin/client360" class="nav-link"><i class="nav-icon fas fa-user-circle"></i><p>Client 360°</p></a>
+              </li>
+              <li class="nav-item">
+                <a href="/admin/users" class="nav-link"><i class="nav-icon fas fa-users-cog"></i><p>Users</p></a>
+              </li>
+              <li class="nav-item">
                 <a href="/admin/tools/follow-hub/insights" class="nav-link"
                   ><i class="nav-icon fas fa-toolbox"></i><p>Follow Hub – Insights</p></a
                 >
@@ -437,9 +443,7 @@ import MobilePageSelect from '~/components/MobilePageSelect.astro';
         'December',
       ];
 
-      let staffAvailability = [];
-      let staffCapacity = [];
-      let staffList = [];
+      
 
       async function loadAppointments() {
         const res = await fetch('/api/admin/appointments?page=1&limit=1000', { credentials: 'include' });
@@ -449,16 +453,7 @@ import MobilePageSelect from '~/components/MobilePageSelect.astro';
         renderCalendar();
       }
 
-      async function loadStaffData() {
-        try {
-          const staffRes = await fetch('/api/admin/staff', { credentials: 'include' });
-          const staffJson = await staffRes.json();
-          staffList = Array.isArray(staffJson?.data) ? staffJson.data : [];
-          renderCalendar();
-        } catch (e) {
-          console.error('Error loading staff data:', e);
-        }
-      }
+      async function loadStaffData() { try { renderCalendar(); } catch { void 0; } }
 
       function renderCalendar() {
         const year = currentDate.getFullYear();
@@ -490,7 +485,7 @@ import MobilePageSelect from '~/components/MobilePageSelect.astro';
             return apptDate === dateStr;
           });
 
-          let availabilityIndicator = '';
+          const availabilityIndicator = '';
 
           html += `<div class="calendar-day ${isOtherMonth ? 'other-month' : ''} ${isToday ? 'today' : ''}" data-date="${dateStr}">
             <div class="day-number">${date.getDate()}</div>
@@ -530,9 +525,9 @@ import MobilePageSelect from '~/components/MobilePageSelect.astro';
           return apptDate === dateStr;
         });
         
-        const dayAvailability = [];
+        
 
-        let detailsHtml = `
+        const detailsHtml = `
           <div style="max-width:600px">
             <h4>${date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</h4>
             

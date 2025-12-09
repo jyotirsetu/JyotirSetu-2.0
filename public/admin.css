@@ -576,6 +576,9 @@ body:not(.dark-mode) .input::placeholder {
     margin-left: 0;
   }
   #toggleSidebarDesktop { display:none !important; }
+  #globalSearch { display: none !important; }
+  .navbar-nav.ms-auto { width: 100%; justify-content: center; }
+  #mobilePageSelect { display: inline-flex !important; width: min(320px, 90vw); }
 }
 
 /* Mobile overlay menu (independent from desktop sidebar) */

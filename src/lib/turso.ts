@@ -504,6 +504,10 @@ export async function ensureLeadsTables() {
       source TEXT NOT NULL DEFAULT 'manual',
       stage TEXT NOT NULL DEFAULT 'prospect',
       owner TEXT NOT NULL DEFAULT 'admin',
+      tags TEXT,
+      score INTEGER NOT NULL DEFAULT 0,
+      next_action_at TEXT,
+      last_contacted_at TEXT,
       sla_due_at TEXT,
       notes TEXT,
       created_at TEXT NOT NULL,
@@ -512,6 +516,12 @@ export async function ensureLeadsTables() {
   `);
   await client.execute(`CREATE INDEX IF NOT EXISTS idx_leads_stage ON leads(stage);`);
   await client.execute(`CREATE INDEX IF NOT EXISTS idx_leads_owner ON leads(owner);`);
+  try { await client.execute(`ALTER TABLE leads ADD COLUMN tags TEXT`); } catch { void 0; }
+  try { await client.execute(`ALTER TABLE leads ADD COLUMN score INTEGER NOT NULL DEFAULT 0`); } catch { void 0; }
+  try { await client.execute(`ALTER TABLE leads ADD COLUMN next_action_at TEXT`); } catch { void 0; }
+  try { await client.execute(`ALTER TABLE leads ADD COLUMN last_contacted_at TEXT`); } catch { void 0; }
+  try { await client.execute(`CREATE INDEX IF NOT EXISTS idx_leads_score ON leads(score)`); } catch { void 0; }
+  try { await client.execute(`CREATE INDEX IF NOT EXISTS idx_leads_next_action ON leads(next_action_at)`); } catch { void 0; }
   await client.execute(`
     CREATE TABLE IF NOT EXISTS lead_stage_history (
       id TEXT PRIMARY KEY,
@@ -525,6 +535,17 @@ export async function ensureLeadsTables() {
     );
   `);
   await client.execute(`CREATE INDEX IF NOT EXISTS idx_lead_history_lead ON lead_stage_history(lead_id);`);
+  await client.execute(`
+    CREATE TABLE IF NOT EXISTS lead_notes (
+      id TEXT PRIMARY KEY,
+      lead_id TEXT NOT NULL,
+      note TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      created_by TEXT NOT NULL DEFAULT 'admin',
+      FOREIGN KEY (lead_id) REFERENCES leads(id)
+    );
+  `);
+  await client.execute(`CREATE INDEX IF NOT EXISTS idx_lead_notes_lead ON lead_notes(lead_id);`);
 }
 
 export async function ensureRemediesTable() {

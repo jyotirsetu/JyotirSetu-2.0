@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
-import { getTursoClient, ensureClientsTable, ensurePaymentsTable } from '../../../lib/turso';
+import { getTursoClient, ensureClientsTable, ensurePaymentsTable, ensureLedgerTable } from '../../../lib/turso';
+import { logActivity } from '../../../lib/activity-logger';
 
 export const prerender = false;
 
@@ -97,6 +98,7 @@ export const POST: APIRoute = async ({ request }) => {
       return new Response(JSON.stringify({ ok: false, error: 'csrf_failed' }), { status: 403 });
     }
     await ensurePaymentsTable();
+    await ensureLedgerTable();
     const db = await getTursoClient();
     const body = await request.json();
     const action = String((body && body.action) || 'add');
@@ -141,12 +143,21 @@ export const POST: APIRoute = async ({ request }) => {
           created_at,
         ],
       });
+      await db.execute({ sql: `INSERT INTO ledger_entries (id, client_id, invoice_id, type, amount, balance, date, notes, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`, args: ['led_'+Date.now()+Math.random().toString(36).slice(2,8), cid, null, entry_type, amount, balance, created_at, note || null, created_at] });
+      await logActivity('payment_created', 'payment', id, JSON.stringify({ client_id: cid, amount, status }));
       return new Response(JSON.stringify({ ok: true, id }), { headers: { 'Content-Type': 'application/json' } });
     }
     if (action === 'remove') {
       const id = String(body.id || '');
       if (!id) return new Response(JSON.stringify({ ok: false, error: 'missing_id' }), { status: 400 });
+      const find = await db.execute({ sql: `SELECT client_id, amount FROM payments WHERE id = ?`, args: [id] });
+      const row = (find.rows && find.rows[0]) as { client_id?: unknown; amount?: unknown } | undefined;
       await db.execute({ sql: `DELETE FROM payments WHERE id = ?`, args: [id] });
+      if (row && row.client_id) {
+        const created_at = new Date().toISOString();
+        await db.execute({ sql: `INSERT INTO ledger_entries (id, client_id, invoice_id, type, amount, balance, date, notes, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`, args: ['led_'+Date.now()+Math.random().toString(36).slice(2,8), String(row.client_id), null, 'reversal', Number(row.amount||0), null, created_at, 'Payment removed', created_at] });
+      }
+      await logActivity('payment_deleted', 'payment', id);
       return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json' } });
     }
     if (action === 'update') {
@@ -179,6 +190,11 @@ export const POST: APIRoute = async ({ request }) => {
         sql: `UPDATE payments SET amount = ?, total_due = ?, balance = ?, entry_type = ?, status = ?, mode = ?, reference = ?, note = ? WHERE id = ?`,
         args: [amount, total_due, balance, entry_type, status, mode, reference, note, id],
       });
+      const created_at = new Date().toISOString();
+      const cidRes = await db.execute({ sql: `SELECT client_id FROM payments WHERE id = ?`, args: [id] });
+      const cidRow = (cidRes.rows && cidRes.rows[0]) as { client_id?: unknown } | undefined;
+      if (cidRow && cidRow.client_id) await db.execute({ sql: `INSERT INTO ledger_entries (id, client_id, invoice_id, type, amount, balance, date, notes, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`, args: ['led_'+Date.now()+Math.random().toString(36).slice(2,8), String(cidRow.client_id), null, entry_type, amount, balance, created_at, note || null, created_at] });
+      await logActivity('payment_updated', 'payment', id, JSON.stringify({ amount, status }));
       return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json' } });
     }
     return new Response(JSON.stringify({ ok: false, error: 'unknown_action' }), { status: 400 });

@@ -163,8 +163,12 @@ const isAdmin = new URL(Astro.request.url).pathname.startsWith('/admin');
         
         // Check if cache needs to be cleared
         function shouldClearCache() {
-          const storedVersion = localStorage.getItem(CACHE_KEY);
-          return storedVersion !== CACHE_VERSION;
+          try {
+            const storedVersion = localStorage.getItem(CACHE_KEY);
+            return storedVersion !== CACHE_VERSION;
+          } catch {
+            return false;
+          }
         }
         
         // Clear cache on page refresh (selective clearing)
@@ -219,19 +223,23 @@ const isAdmin = new URL(Astro.request.url).pathname.startsWith('/admin');
         
         // Initialize cache management
         async function initializeCacheManager() {
-          // Clear cache if version mismatch
-          if (shouldClearCache()) {
-            console.log('Version mismatch detected, clearing cache...');
-            await clearAllCaches();
-            localStorage.setItem(CACHE_KEY, CACHE_VERSION);
-          }
-          
-          // Handle page refresh
-          handlePageRefresh();
-          
-          // Add cache clear button for development
-          if (window.location.hostname === 'localhost' || window.location.hostname.includes('localhost')) {
-            addCacheClearButton();
+          try {
+            // Clear cache if version mismatch
+            if (shouldClearCache()) {
+              console.log('Version mismatch detected, clearing cache...');
+              await clearAllCaches();
+              try { localStorage.setItem(CACHE_KEY, CACHE_VERSION); } catch { void 0; }
+            }
+            
+            // Handle page refresh
+            handlePageRefresh();
+            
+            // Add cache clear button for development
+            if (window.location.hostname === 'localhost' || window.location.hostname.includes('localhost')) {
+              addCacheClearButton();
+            }
+          } catch (e) {
+            console.warn('Cache manager init failed', e);
           }
         }
         

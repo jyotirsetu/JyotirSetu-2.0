@@ -341,7 +341,7 @@ async function load() {
         });
       }
     })();
-  } catch {}
+  } catch { /* geolocation fallback failed silently */ }
 }
 // Expose a global hook so the page can verify the script loaded
 try {

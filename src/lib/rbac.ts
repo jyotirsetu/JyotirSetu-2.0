@@ -10,7 +10,7 @@ export interface User {
 }
 
 export interface SessionUser { role?: string }
-export interface Session { user?: SessionUser }
+export interface Session { user?: SessionUser; role?: string; }
 
 const ROLES: Record<string, Role> = {
   super_admin: {
@@ -75,6 +75,8 @@ const ROLES: Record<string, Role> = {
       'write:contacts',
       'read:leads',
       'write:leads',
+      'read:quotes',
+      'write:quotes',
       'read:clients',
       'write:clients',
       'read:availability',
@@ -119,8 +121,10 @@ export function hasAllPermissions(userRole: string, permissions: string[]): bool
 }
 
 export function getUserRole(session: Session | null | undefined): string {
-  if (!session || !session.user) return 'support';
-  return session.user.role || 'support';
+  if (!session) return 'support';
+  if (typeof session.role === 'string') return session.role;
+  if (session.user && typeof session.user === 'object' && typeof session.user.role === 'string') return session.user.role;
+  return 'support';
 }
 
 export function requirePermission(session: Session | null | undefined, permission: string): boolean {
@@ -146,8 +150,8 @@ export async function requireRole(request: Request, secret: string, allowedRoles
     if (!m) return false;
     const token = decodeURIComponent(m[1]);
     const session = await verifySession(token, secret);
-    if (!session || !session.user) return false;
-    const userRole = session.user.role || 'support';
+    if (!session) return false;
+    const userRole = getUserRole(session as Session);
     return allowedRoles.includes(userRole);
   } catch {
     return false;

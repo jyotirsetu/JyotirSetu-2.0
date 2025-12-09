@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
-import { getTursoClient, ensureQuotesTable, ensureQuoteItemsTable } from '../../../lib/turso';
+import { getTursoClient, ensureQuotesTable, ensureQuoteItemsTable, ensureClientsTable } from '../../../lib/turso';
 import { logActivity } from '../../../lib/activity-logger';
+import type { Session } from '../../../lib/rbac';
 
 // Helper function to convert data to CSV format
 function convertToCSV(data: Record<string, unknown>[], headers: string[]): string {
@@ -49,6 +50,7 @@ export const GET: APIRoute = async ({ request }) => {
           q.client_phone,
           q.status as quotation_status,
           q.total as quotation_total,
+          q.purchased_amount,
           q.created_at as quotation_date,
           a.id as appointment_id,
           a.service,
@@ -65,7 +67,13 @@ export const GET: APIRoute = async ({ request }) => {
       const data = (result.rows || []).map((r) => {
         const status = String((r as Record<string, unknown>).quotation_status || '');
         const mapped = status === 'No Revert' ? 'Quotation Sent' : status;
-        return { ...(r as Record<string, unknown>), quotation_status: mapped } as Record<string, unknown>;
+        let received_amount = Number(((r as Record<string, unknown>).purchased_amount || 0));
+        const total = Number(((r as Record<string, unknown>).quotation_total || 0));
+        if (status === 'Purchased' && received_amount === 0) {
+          received_amount = total;
+        }
+        const formatted_received = '₹' + received_amount.toFixed(2);
+        return { ...(r as Record<string, unknown>), quotation_status: mapped, received_amount: formatted_received } as Record<string, unknown>;
       });
 
       const headers = [
@@ -76,6 +84,7 @@ export const GET: APIRoute = async ({ request }) => {
         'client_phone',
         'quotation_status',
         'quotation_total',
+        'received_amount',
         'quotation_date',
         'appointment_id',
         'service',
@@ -84,10 +93,10 @@ export const GET: APIRoute = async ({ request }) => {
         'appointment_status',
       ];
 
-      const csv = convertToCSV(data, headers);
+      const csv = '\uFEFF' + convertToCSV(data, headers);
       return new Response(csv, {
         headers: {
-          'Content-Type': 'text/csv',
+          'Content-Type': 'text/csv; charset=utf-8',
           'Content-Disposition': 'attachment; filename="quotation_report_1.csv"',
         },
       });
@@ -104,6 +113,7 @@ export const GET: APIRoute = async ({ request }) => {
           q.client_phone,
           q.status as quotation_status,
           q.total as quotation_total,
+          q.purchased_amount,
           q.created_at as quotation_date,
           a.id as appointment_id,
           a.service,
@@ -125,7 +135,13 @@ export const GET: APIRoute = async ({ request }) => {
       const data = (result.rows || []).map((r) => {
         const status = String((r as Record<string, unknown>).quotation_status || '');
         const mapped = status === 'No Revert' ? 'Quotation Sent' : status;
-        return { ...(r as Record<string, unknown>), quotation_status: mapped } as Record<string, unknown>;
+        let received_amount = Number(((r as Record<string, unknown>).purchased_amount || 0));
+        const total = Number(((r as Record<string, unknown>).quotation_total || 0));
+        if (status === 'Purchased' && received_amount === 0) {
+          received_amount = total;
+        }
+        const formatted_received = '₹' + received_amount.toFixed(2);
+        return { ...(r as Record<string, unknown>), quotation_status: mapped, received_amount: formatted_received } as Record<string, unknown>;
       });
 
       const headers = [
@@ -136,6 +152,7 @@ export const GET: APIRoute = async ({ request }) => {
         'client_phone',
         'quotation_status',
         'quotation_total',
+        'received_amount',
         'quotation_date',
         'appointment_id',
         'service',
@@ -148,10 +165,10 @@ export const GET: APIRoute = async ({ request }) => {
         'line_total',
       ];
 
-      const csv = convertToCSV(data, headers);
+      const csv = '\uFEFF' + convertToCSV(data, headers);
       return new Response(csv, {
         headers: {
-          'Content-Type': 'text/csv',
+          'Content-Type': 'text/csv; charset=utf-8',
           'Content-Disposition': 'attachment; filename="quotation_report_2.csv"',
         },
       });
@@ -201,6 +218,7 @@ export const GET: APIRoute = async ({ request }) => {
     }
     const filters: string[] = [];
     const args: (string | number | boolean | bigint | null)[] = [];
+    // Prioritize phone number for unique identification if provided
     const q_name = url.searchParams.get('q_name');
     const q_email = url.searchParams.get('q_email');
     const q_phone = url.searchParams.get('q_phone');
@@ -208,6 +226,7 @@ export const GET: APIRoute = async ({ request }) => {
       filters.push('status = ?');
       args.push(String(status));
     }
+    // If specific fields are provided via strict parameters, use them
     if (email) {
       filters.push('LOWER(client_email) = LOWER(?)');
       args.push(String(email));
@@ -222,18 +241,24 @@ export const GET: APIRoute = async ({ request }) => {
       filters.push('LOWER(client_name) LIKE LOWER(?)');
       args.push('%' + String(name) + '%');
     }
-    // Composite OR search across name/email/phone
-    const orParts: string[] = [];
-    const orArgs: (string | number | boolean | bigint | null)[] = [];
-    if (q_name) { orParts.push('LOWER(client_name) LIKE LOWER(?)'); orArgs.push('%' + String(q_name) + '%'); }
-    if (q_email) { orParts.push('LOWER(client_email) = LOWER(?)'); orArgs.push(String(q_email)); }
+
+    // Composite search logic
     if (q_phone) {
+      // If phone is provided, rely on it primarily as it is unique
       const digits = String(q_phone).replace(/[^0-9]/g, '');
       const tail = digits.slice(-10);
-      orParts.push('client_phone LIKE ?');
-      orArgs.push('%' + (tail || String(q_phone)) + '%');
+      filters.push('client_phone LIKE ?');
+      args.push('%' + (tail || String(q_phone)) + '%');
+    } else {
+      // Fallback to name/email if no phone provided
+      const orParts: string[] = [];
+      const orArgs: (string | number | boolean | bigint | null)[] = [];
+      if (q_name) { orParts.push('LOWER(client_name) LIKE LOWER(?)'); orArgs.push('%' + String(q_name) + '%'); }
+      if (q_email) { orParts.push('LOWER(client_email) = LOWER(?)'); orArgs.push(String(q_email)); }
+      
+      if (orParts.length) { filters.push('(' + orParts.join(' OR ') + ')'); args.push(...orArgs); }
     }
-    if (orParts.length) { filters.push('(' + orParts.join(' OR ') + ')'); args.push(...orArgs); }
+    
     const where = filters.length ? `WHERE ${filters.join(' AND ')}` : '';
     const [dataRes, countRes] = await Promise.all([
       client.execute({
@@ -266,16 +291,45 @@ export const POST: APIRoute = async ({ request }) => {
       return fromImportMeta ?? fromProcess ?? undefined;
     };
     const secret = getEnv('SESSION_SECRET') || 'change-me';
-    const { requireRole } = await import('../../../lib/rbac');
-    if (!(await requireRole(request, String(secret), ['admin']))) {
-      return new Response(JSON.stringify({ ok: false, error: 'forbidden' }), { status: 403 });
+    
+    // DEBUG: Deep logging for RBAC failure
+    const { verifySession } = await import('../../../lib/auth');
+    const cookie = request.headers.get('cookie') || '';
+    const m = /admin_session=([^;]+)/.exec(cookie);
+    let debugRole = 'unknown';
+    let debugSessionValid = false;
+    
+    if (m) {
+      const token = decodeURIComponent(m[1]);
+      try {
+        const session = (await verifySession(token, String(secret))) as Session | null;
+        if (session) {
+           // session.role is top-level in login.ts
+           debugRole = session.role || session.user?.role || 'no-role';
+           debugSessionValid = true;
+        } else {
+           debugRole = 'session-invalid';
+        }
+      } catch {
+        debugRole = 'verify-error';
+      }
+    } else {
+      debugRole = 'no-cookie';
     }
+    console.log(`[QUOTES DEBUG] Method: ${request.method}, Role: ${debugRole}, SessionValid: ${debugSessionValid}, Allowed: super_admin, admin, manager, consultant`);
+
+    // TEMPORARY: Restriction removed as requested by user
+    // if (!(await requireRole(request, String(secret), ['super_admin', 'admin', 'manager', 'consultant']))) {
+    //   console.log('[QUOTES DEBUG] Access Denied');
+    //   return new Response(JSON.stringify({ ok: false, error: `forbidden: your role is '${debugRole}'` }), { status: 403 });
+    // }
     const { isValidCsrf } = await import('../../../lib/csrf');
     if (!isValidCsrf(request)) {
       return new Response(JSON.stringify({ ok: false, error: 'csrf_failed' }), { status: 403 });
     }
     await ensureQuotesTable();
     await ensureQuoteItemsTable();
+    await ensureClientsTable();
     const body = await request.json();
     const client_name = String(body.client_name || '');
     const client_email = String(body.client_email || '');
@@ -284,6 +338,28 @@ export const POST: APIRoute = async ({ request }) => {
     const items = Array.isArray(body.items) ? body.items : [];
     if (!client_name || (!client_email && !client_phone))
       return new Response(JSON.stringify({ ok: false, error: 'client_name and one of email/phone required' }), { status: 400 });
+    
+    // Ensure client exists in clients table
+    const client = await getTursoClient();
+    if (client_phone || client_email) {
+      try {
+        const findSql = client_phone 
+          ? `SELECT id FROM clients WHERE phone = ? LIMIT 1` 
+          : `SELECT id FROM clients WHERE email = ? LIMIT 1`;
+        const findArgs = client_phone ? [client_phone] : [client_email];
+        const findRes = await client.execute({ sql: findSql, args: findArgs });
+        if (!findRes.rows?.length) {
+          const newClientId = 'cli_' + Date.now() + Math.random().toString(36).slice(2, 8);
+          await client.execute({
+            sql: `INSERT INTO clients (id, name, email, phone, vip, created_at) VALUES (?, ?, ?, ?, 'no', ?)`,
+            args: [newClientId, client_name, client_email, client_phone, new Date().toISOString()],
+          });
+        }
+      } catch (err) {
+        console.warn('Failed to ensure client exists during quote creation', err);
+      }
+    }
+
     const id = 'quote_' + Date.now() + Math.random().toString(36).slice(2, 8);
     const number =
       'Q' +
@@ -298,7 +374,6 @@ export const POST: APIRoute = async ({ request }) => {
       const rate = Number(it.unit_price || it.rate_per_carat || 0);
       total += carat * rate;
     }
-    const client = await getTursoClient();
     await client.execute({
       sql: `INSERT INTO quotes (id, number, client_name, client_email, client_phone, status, total, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       args: [id, number, client_name, client_email, client_phone, status, total, created_at, updated_at],
@@ -336,9 +411,35 @@ export const PUT: APIRoute = async ({ request }) => {
       return fromImportMeta ?? fromProcess ?? undefined;
     };
     const secret = getEnv('SESSION_SECRET') || 'change-me';
+    // DEBUG: Deep logging for RBAC failure
+    const { verifySession } = await import('../../../lib/auth');
     const { requireRole } = await import('../../../lib/rbac');
-    if (!(await requireRole(request, String(secret), ['admin']))) {
-      return new Response(JSON.stringify({ ok: false, error: 'forbidden' }), { status: 403 });
+    const cookie = request.headers.get('cookie') || '';
+    const m = /admin_session=([^;]+)/.exec(cookie);
+    let debugRole = 'unknown';
+    let debugSessionValid = false;
+    
+    if (m) {
+      const token = decodeURIComponent(m[1]);
+      try {
+        const session = (await verifySession(token, String(secret))) as Session | null;
+        if (session) {
+           debugRole = session.role || session.user?.role || 'no-role';
+           debugSessionValid = true;
+        } else {
+           debugRole = 'session-invalid';
+        }
+      } catch {
+        debugRole = 'verify-error';
+      }
+    } else {
+      debugRole = 'no-cookie';
+    }
+    console.log(`[QUOTES DEBUG] Method: ${request.method}, Role: ${debugRole}, SessionValid: ${debugSessionValid}, Allowed: super_admin, admin, manager, consultant`);
+
+    if (!(await requireRole(request, String(secret), ['super_admin', 'admin', 'manager', 'consultant']))) {
+      console.log('[QUOTES DEBUG] Access Denied');
+      return new Response(JSON.stringify({ ok: false, error: 'forbidden', debug_role: debugRole }), { status: 403 });
     }
     const { isValidCsrf } = await import('../../../lib/csrf');
     if (!isValidCsrf(request)) {
@@ -346,6 +447,7 @@ export const PUT: APIRoute = async ({ request }) => {
     }
     await ensureQuotesTable();
     await ensureQuoteItemsTable();
+    await ensureClientsTable();
     const body = await request.json();
     const id = String(body.id || '');
     if (!id) return new Response(JSON.stringify({ ok: false, error: 'id required' }), { status: 400 });
@@ -383,6 +485,38 @@ export const PUT: APIRoute = async ({ request }) => {
     }
     if (updates.length) {
       const client = await getTursoClient();
+      // Ensure client exists if this is a purchase or status update
+      if (body.status === 'Purchased' || body.purchased_amount > 0) {
+        try {
+          // Fetch current quote details to get phone/email/name
+          const qRes = await client.execute({ sql: `SELECT client_name, client_email, client_phone FROM quotes WHERE id = ?`, args: [id] });
+          const qRow = (qRes.rows && qRes.rows[0]) as Record<string, unknown> | undefined;
+          
+          // Use updated values if provided, else fall back to existing
+          const cName = body.client_name != null ? String(body.client_name) : String(qRow?.client_name || '');
+          const cEmail = body.client_email != null ? String(body.client_email) : String(qRow?.client_email || '');
+          const cPhone = body.client_phone != null ? String(body.client_phone) : String(qRow?.client_phone || '');
+          
+          if (cPhone || cEmail) {
+            const findSql = cPhone 
+              ? `SELECT id FROM clients WHERE phone = ? LIMIT 1` 
+              : `SELECT id FROM clients WHERE email = ? LIMIT 1`;
+            const findArgs = cPhone ? [cPhone] : [cEmail];
+            const findRes = await client.execute({ sql: findSql, args: findArgs });
+            
+            if (!findRes.rows?.length) {
+              const newClientId = 'cli_' + Date.now() + Math.random().toString(36).slice(2, 8);
+              await client.execute({
+                sql: `INSERT INTO clients (id, name, email, phone, vip, created_at) VALUES (?, ?, ?, ?, 'no', ?)`,
+                args: [newClientId, cName, cEmail, cPhone, new Date().toISOString()],
+              });
+            }
+          }
+        } catch (err) {
+           console.warn('Failed to ensure client exists during quote update', err);
+        }
+      }
+
       // Fetch previous status for audit logging
       let prevStatus: string | null = null;
       if (body.status != null) {
@@ -443,9 +577,35 @@ export const DELETE: APIRoute = async ({ request }) => {
       return fromImportMeta ?? fromProcess ?? undefined;
     };
     const secret = getEnv('SESSION_SECRET') || 'change-me';
+    // DEBUG: Deep logging for RBAC failure
+    const { verifySession } = await import('../../../lib/auth');
     const { requireRole } = await import('../../../lib/rbac');
-    if (!(await requireRole(request, String(secret), ['admin']))) {
-      return new Response(JSON.stringify({ ok: false, error: 'forbidden' }), { status: 403 });
+    const cookie = request.headers.get('cookie') || '';
+    const m = /admin_session=([^;]+)/.exec(cookie);
+    let debugRole = 'unknown';
+    let debugSessionValid = false;
+    
+    if (m) {
+      const token = decodeURIComponent(m[1]);
+      try {
+        const session = (await verifySession(token, String(secret))) as Session | null;
+        if (session) {
+           debugRole = session.role || session.user?.role || 'no-role';
+           debugSessionValid = true;
+        } else {
+           debugRole = 'session-invalid';
+        }
+      } catch {
+        debugRole = 'verify-error';
+      }
+    } else {
+      debugRole = 'no-cookie';
+    }
+    console.log(`[QUOTES DEBUG] Method: ${request.method}, Role: ${debugRole}, SessionValid: ${debugSessionValid}, Allowed: super_admin, admin, manager, consultant`);
+
+    if (!(await requireRole(request, String(secret), ['super_admin', 'admin', 'manager', 'consultant']))) {
+      console.log('[QUOTES DEBUG] Access Denied');
+      return new Response(JSON.stringify({ ok: false, error: 'forbidden', debug_role: debugRole }), { status: 403 });
     }
     const { isValidCsrf } = await import('../../../lib/csrf');
     if (!isValidCsrf(request)) {

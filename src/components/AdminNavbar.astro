@@ -106,10 +106,10 @@ import MobilePageSelect from './MobilePageSelect.astro';
     document.addEventListener('click', function(e){
       const t = e && e.target ? e.target : null;
       const dd = document.getElementById('globalSearchDD');
-      const input = document.getElementById('globalSearch');
       let inside = false;
-      if (t && input && input['contains']) { inside = input['contains'](t); }
-      if (!inside && t && dd && dd['contains']) { inside = dd['contains'](t); }
+      const isInInput = (t instanceof Element) && !!t.closest('#globalSearch');
+      const isInDD = (t instanceof Element) && !!t.closest('#globalSearchDD');
+      inside = isInInput || isInDD;
       if (!inside) { if (dd) { dd.style.display = 'none'; } }
     });
     async function loadNotif(){

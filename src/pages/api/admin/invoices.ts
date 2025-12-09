@@ -125,7 +125,7 @@ export const POST: APIRoute = async ({ request }) => {
             new Date().toISOString(),
           ],
         });
-      } catch {}
+      } catch { /* activity log is optional; ignore errors */ }
       return new Response(JSON.stringify({ ok: true, id: invoice_id, number, total }), {
         headers: { 'Content-Type': 'application/json' },
       });
@@ -136,4 +136,3 @@ export const POST: APIRoute = async ({ request }) => {
     return new Response(JSON.stringify({ ok: false, error: msg }), { status: 500 });
   }
 };
-
