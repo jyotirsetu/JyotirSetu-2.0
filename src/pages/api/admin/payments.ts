@@ -144,7 +144,7 @@ export const POST: APIRoute = async ({ request }) => {
         ],
       });
       await db.execute({ sql: `INSERT INTO ledger_entries (id, client_id, invoice_id, type, amount, balance, date, notes, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`, args: ['led_'+Date.now()+Math.random().toString(36).slice(2,8), cid, null, entry_type, amount, balance, created_at, note || null, created_at] });
-      await logActivity('payment_created', 'payment', id, JSON.stringify({ client_id: cid, amount, status }));
+      await logActivity('payment_created', 'payment', id, JSON.stringify({ client_id: cid, client_name: name || null, client_email: email || null, amount, status }));
       return new Response(JSON.stringify({ ok: true, id }), { headers: { 'Content-Type': 'application/json' } });
     }
     if (action === 'remove') {

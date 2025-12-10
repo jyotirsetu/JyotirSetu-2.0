@@ -884,10 +884,35 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
                   .replace(/_/g, ' ')
                   .replace(/\b\w/g, (c) => c.toUpperCase());
                 const when = formatIndiaTime(l.created_at);
+                function getClientNameFromDetails(x){
+                  try { const o = JSON.parse(String(x.details||'')); const n = String(o.client_name||'').trim(); if (n) return n; } catch { /* ignore */ }
+                  return '';
+                }
                 const nameOrEmail =
-                  l.appointment_name || l.contact_name || l.appointment_email || l.contact_email || '';
+                  getClientNameFromDetails(l) || String(l.payment_client_name||'').trim() || String(l.payment_appt_name||'').trim() || l.payment_client_email || l.appointment_name || l.contact_name || l.appointment_email || l.contact_email || '';
                 const subtitle = `${String(l.entity_type || '').toLowerCase()}${nameOrEmail ? ` – ${nameOrEmail}` : ''}`;
-                const details = l.details || '';
+                function formatDetails(l){
+                  const d = l.details || '';
+                  try {
+                    const obj = JSON.parse(String(d));
+                    if (obj && typeof obj === 'object') {
+                      const name = String(obj.client_name || '').trim() || String(l.payment_client_name || '').trim() || String(l.payment_appt_name || '').trim();
+                      const email = String(obj.client_email || '').trim() || String(l.payment_client_email || '').trim();
+                      const amt = obj.amount != null ? Number(obj.amount) : null;
+                      const status = obj.status ? String(obj.status) : '';
+                      const parts = [];
+                      if (name) parts.push(`Client: ${name}`);
+                      else if (email) parts.push(`Client: ${email}`);
+                      if (amt != null) parts.push(`Amount: ₹${amt}`);
+                      if (status) parts.push(`Status: ${status}`);
+                      return parts.length ? parts.join(' • ') : d;
+                    }
+                  } catch {
+                    // ignore
+                  }
+                  return d;
+                }
+                const details = formatDetails(l);
                 const icon = iconForAction(l.action);
                 return `<div class="activity-item" style="gap:12px">
               <div style="font-size:18px;line-height:1.2">${icon}</div>

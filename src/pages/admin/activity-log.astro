@@ -293,6 +293,28 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
           }
         }
 
+        function formatDetails(l) {
+          const d = l.details || '';
+          try {
+            const obj = JSON.parse(String(d));
+            if (obj && typeof obj === 'object') {
+              const name = String(obj.client_name || '').trim() || String(l.payment_client_name || '').trim() || String(l.payment_appt_name || '').trim();
+              const email = String(obj.client_email || '').trim() || String(l.payment_client_email || '').trim();
+              const amt = obj.amount != null ? Number(obj.amount) : null;
+              const status = obj.status ? String(obj.status) : '';
+              const parts = [];
+              if (name) parts.push(`Client: ${name}`);
+              else if (email) parts.push(`Client: ${email}`);
+              if (amt != null) parts.push(`Amount: ₹${amt}`);
+              if (status) parts.push(`Status: ${status}`);
+              return parts.length ? parts.join(' • ') : d;
+            }
+          } catch {
+            // ignore
+          }
+          return d;
+        }
+
         const html = logs
           .map((l) => {
             const actionIcon =
@@ -313,10 +335,21 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
               }[l.action] || '⚡';
 
             // Determine display name
+            function getClientNameFromDetails(x){
+              try { const o = JSON.parse(String(x.details||'')); const n = String(o.client_name||'').trim(); if (n) return n; } catch { /* ignore */ }
+              return '';
+            }
             let entityName = l.entity_type;
-            if (l.lead_name) entityName = `Lead: ${l.lead_name}`;
+            const dName = getClientNameFromDetails(l);
+            const payName = String(l.payment_client_name||'').trim();
+            const payApptName = String(l.payment_appt_name||'').trim();
+            if (dName) entityName = `Client: ${dName}`;
+            else if (payName) entityName = `Client: ${payName}`;
+            else if (payApptName) entityName = `Client: ${payApptName}`;
+            else if (l.lead_name) entityName = `Lead: ${l.lead_name}`;
             else if (l.appointment_name) entityName = `Appt: ${l.appointment_name}`;
             else if (l.contact_name) entityName = `Contact: ${l.contact_name}`;
+            else if (l.payment_client_email) entityName = l.payment_client_email;
             else if (l.appointment_email) entityName = l.appointment_email;
             else if (l.contact_email) entityName = l.contact_email;
             
@@ -326,7 +359,7 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
               <div style="flex:1">
                 <div style="font-weight:600;margin-bottom:4px">${l.action.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}</div>
                 <div class="muted" style="font-size:12px;margin-bottom:4px">${entityName}</div>
-                ${l.details ? `<div style="font-size:13px;color:var(--muted);margin-top:4px">${l.details}</div>` : ''}
+                ${l.details ? `<div style="font-size:13px;color:var(--muted);margin-top:4px">${formatDetails(l)}</div>` : ''}
                 <div style="font-size:11px;color:var(--muted);margin-top:6px">${formatIndiaTime(l.created_at)}</div>
               </div>
             </div>
@@ -396,8 +429,19 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
             const csvContent = [
               headers.join(','),
               ...logs.map(function(l){
+                function getClientNameFromDetails(x){
+                  try { const o = JSON.parse(String(x.details||'')); const n = String(o.client_name||'').trim(); if (n) return n; } catch { /* ignore */ }
+                  return '';
+                }
                 let entityName = '';
-                if (l.lead_name) entityName = l.lead_name;
+                const dName = getClientNameFromDetails(l);
+                const payName = String(l.payment_client_name||'').trim();
+                const payApptName = String(l.payment_appt_name||'').trim();
+                if (dName) entityName = dName;
+                else if (payName) entityName = payName;
+                else if (payApptName) entityName = payApptName;
+                else if (l.payment_client_email) entityName = l.payment_client_email;
+                else if (l.lead_name) entityName = l.lead_name;
                 else if (l.appointment_name) entityName = l.appointment_name;
                 else if (l.contact_name) entityName = l.contact_name;
                 return [

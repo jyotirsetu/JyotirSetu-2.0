@@ -61,11 +61,16 @@ export async function getActivityLog(page: number = 1, limit: number = 100, acti
         SELECT a.*, 
                ap.name AS appointment_name, ap.email AS appointment_email,
                c.name AS contact_name, c.email AS contact_email,
-               l.name AS lead_name, l.email AS lead_email
+               l.name AS lead_name, l.email AS lead_email,
+               pc.name AS payment_client_name, pc.email AS payment_client_email,
+               ap2.name AS payment_appt_name, ap2.email AS payment_appt_email
         FROM activity_log a
         LEFT JOIN appointments ap ON a.entity_type = 'appointment' AND a.entity_id = ap.id
         LEFT JOIN contacts c ON a.entity_type = 'contact' AND a.entity_id = c.id
         LEFT JOIN leads l ON a.entity_type = 'lead' AND a.entity_id = l.id
+        LEFT JOIN payments p ON a.entity_type = 'payment' AND a.entity_id = p.id
+        LEFT JOIN clients pc ON p.client_id = pc.id
+        LEFT JOIN appointments ap2 ON p.appointment_id = ap2.id
         ${whereClause}
         ORDER BY datetime(a.created_at) DESC LIMIT ? OFFSET ?
       `,

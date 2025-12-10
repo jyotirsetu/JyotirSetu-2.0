@@ -233,10 +233,10 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
         document.body.classList.toggle('sidebar-collapse', collapsed);
         try {
           Promise.all([
-            fetch('/api/admin/preferences?key=theme').then(function (r) {
+            fetch('/api/admin/preferences?key=theme', { credentials: 'include' }).then(function (r) {
               return r.json();
             }),
-            fetch('/api/admin/preferences?key=sidebarCollapsed').then(function (r) {
+            fetch('/api/admin/preferences?key=sidebarCollapsed', { credentials: 'include' }).then(function (r) {
               return r.json();
             }),
           ])
@@ -833,6 +833,8 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
       let paginationData = { page: 1, totalPages: 1, total: 0 };
       let statusCounts = {};
       let allData = [];
+      let currentNotesEntityId = null;
+      let currentNotesEntityType = 'appointment';
 
       function getCsrfToken() {
         const match = document.cookie.match(/csrf_token=([^;]+)/);
@@ -850,7 +852,7 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
         const fromEl = document.getElementById('fromDate');
         const toEl = document.getElementById('toDate');
         const searchEl = document.getElementById('search');
-        const params = new URLSearchParams({ page: String(page), limit: '50' }); // Increased limit for better visibility
+        const params = new URLSearchParams({ page: String(page), limit: '20' }); // Increased limit for better visibility
         if (fromEl?.value) params.set('from', fromEl.value);
         if (toEl?.value) params.set('to', toEl.value);
         if (searchEl?.value) params.set('q', searchEl.value);
@@ -903,7 +905,7 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
         const pagEl = document.getElementById('pagination');
         if (!pagEl) return;
         if (paginationData.totalPages <= 1) {
-          pagEl.innerHTML = '';
+          pagEl.innerHTML = `<div style="padding:10px;text-align:center;color:#6b7280;font-size:14px">Showing all ${paginationData.total} records</div>`;
           return;
         }
         let html = '<div class="pagination">';
@@ -1034,25 +1036,6 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
         if (wrap) {
           wrap.innerHTML = tableHtml;
           try { console.log('Render completed: DOM updated'); } catch (e) { console.debug(e); }
-          try {
-            document.querySelectorAll('.payEdit, .payBadge').forEach(function(btn){
-              btn.addEventListener('click', function(ev){
-                ev.preventDefault();
-                const id = btn.getAttribute('data-id') || '';
-                const current = (btn instanceof Element && btn.previousElementSibling ? btn.previousElementSibling.textContent : 'unpaid') || 'unpaid';
-                const apIdEl = document.getElementById('paymentApptId'); if (apIdEl) apIdEl.value = id;
-                const statusEl = document.getElementById('paymentStatusSel'); if (statusEl) statusEl.value = String(current).trim();
-                const amtEl = document.getElementById('paymentAmount'); if (amtEl) amtEl.value = '';
-                const modeEl = document.getElementById('paymentMode'); if (modeEl) modeEl.value = 'cash';
-                const refEl = document.getElementById('paymentRef'); if (refEl) refEl.value = '';
-                const noteEl = document.getElementById('paymentNote'); if (noteEl) noteEl.value = 'Recorded from appointment page';
-                const errEl = document.getElementById('paymentError'); if (errEl) { errEl.style.display='none'; errEl.textContent=''; }
-                const modal = document.getElementById('paymentModal');
-                modal?.classList.add('active');
-                modal?.setAttribute('style','position:fixed;inset:0;display:block');
-              });
-            });
-          } catch { /* ignore */ }
         }
         
         const statsEl = document.getElementById('statsCards');
@@ -1118,6 +1101,7 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
           try {
             await fetch('/api/admin/appointments', {
               method: 'PUT',
+              credentials: 'include',
               headers: { 
                 'Content-Type': 'application/json',
                 'x-csrf-token': getCsrfToken()
@@ -1146,11 +1130,26 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
           return;
         }
 
+        // --- Notes ---
+        const notesBtn = target.closest('[data-notes-id]');
+        if (notesBtn) {
+          e.preventDefault();
+          const id = notesBtn.getAttribute('data-notes-id') || '';
+          console.log('Opening notes for ID:', id);
+          if (!id) return;
+          currentNotesEntityId = id;
+          currentNotesEntityType = 'appointment';
+          document.getElementById('notesModal')?.classList.add('active');
+          loadNotes(id, 'appointment');
+          return;
+        }
+
         // --- Payment Edit ---
         const payEditBtn = target.closest('.payEdit') || target.closest('.payBadge');
         if (payEditBtn) {
           e.preventDefault();
           const id = payEditBtn.getAttribute('data-id') || '';
+          const row = allData.find(r => r.id === id);
           const current = (payEditBtn.previousElementSibling?.textContent || 'unpaid').trim();
           const apIdEl = document.getElementById('paymentApptId'); if (apIdEl) apIdEl.value = id;
           const amtEl = document.getElementById('paymentAmount'); if (amtEl) amtEl.value = '';
@@ -1160,6 +1159,11 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
           const statusEl = document.getElementById('paymentStatusSel'); if (statusEl) statusEl.value = current;
           const errEl = document.getElementById('paymentError'); if (errEl) { errEl.style.display='none'; errEl.textContent=''; }
           const modal = document.getElementById('paymentModal');
+          if (modal && row) {
+             modal.dataset.email = row.email || '';
+             modal.dataset.name = row.name || '';
+             modal.dataset.phone = row.phone || '';
+          }
           modal?.classList.add('active');
           modal?.setAttribute('style','position:fixed;inset:0;display:block');
           return;
@@ -1176,6 +1180,7 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
           try {
             await fetch('/api/admin/appointments', {
               method: 'PUT',
+              credentials: 'include',
               headers: { 
                 'Content-Type': 'application/json',
                 'x-csrf-token': getCsrfToken()
@@ -1189,9 +1194,14 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
               document.getElementById('paymentMode').value = 'cash';
               document.getElementById('paymentRef').value = '';
               const modal = document.getElementById('paymentModal');
-              modal?.classList.add('active');
-              modal?.setAttribute('style','position:fixed;inset:0;display:block');
-              modal.dataset.status = payment_status;
+              if (modal) {
+                 modal.dataset.email = row.email || '';
+                 modal.dataset.name = row.name || '';
+                 modal.dataset.phone = row.phone || '';
+                 modal.dataset.status = payment_status;
+                 modal.classList.add('active');
+                 modal.setAttribute('style','position:fixed;inset:0;display:block');
+              }
             }
             loadPage(currentPage);
           } catch(err) {
@@ -1278,7 +1288,7 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
             const params = Object.fromEntries(url.searchParams.entries());
             
             try {
-              const res = await fetch('/api/admin/templates?type=whatsapp');
+              const res = await fetch('/api/admin/templates?type=whatsapp', { credentials: 'include' });
               const tpl = await res.json();
               const m = (tpl.data || []).find((x) => x.key === params.status);
               const base = (m?.text || `Hello {name}, your appointment for {service} is {status}.`)
@@ -1294,6 +1304,7 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
               
               fetch('/api/admin/activity', {
                   method: 'POST',
+                  credentials: 'include',
                   headers: { 
                     'Content-Type': 'application/json',
                     'x-csrf-token': getCsrfToken()
@@ -1308,6 +1319,7 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
                 
               fetch('/api/admin/whatsapp-history', {
                   method: 'POST',
+                  credentials: 'include',
                   headers: { 
                     'Content-Type': 'application/json',
                     'x-csrf-token': getCsrfToken()
@@ -1333,6 +1345,7 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
   });
 
   document.getElementById('paymentSaveBtn')?.addEventListener('click', async function(){
+    const modal = document.getElementById('paymentModal');
     const apptId = document.getElementById('paymentApptId')?.value || '';
     const statusSel = document.getElementById('paymentStatusSel');
     const newStatus = statusSel?.value || 'paid';
@@ -1341,25 +1354,35 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
     const reference = document.getElementById('paymentRef')?.value || '';
     const note = document.getElementById('paymentNote')?.value || '';
     const err = document.getElementById('paymentError'); if (err) { err.style.display='none'; err.textContent=''; }
+    
     if (!apptId) { if (err) { err.textContent='Missing appointment ID'; err.style.display='block'; } return; }
+    
+    // Retrieve client details from modal dataset
+    const email = modal?.dataset.email || '';
+    const name = modal?.dataset.name || '';
+    const phone = modal?.dataset.phone || '';
+
     // Update appointment payment_status first
     try {
       await fetch('/api/admin/appointments', {
         method: 'PUT',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json', 'x-csrf-token': getCsrfToken() },
         body: JSON.stringify({ id: apptId, payment_status: newStatus })
       });
     } catch { /* ignore */ }
     if (amount <= 0) { if (err) { err.textContent='Enter a valid amount'; err.style.display='block'; } return; }
     try {
-      const res = await fetch('/api/admin/payments', { method:'POST', headers:{ 'Content-Type':'application/json', 'X-CSRF-Token': getCsrfToken() }, body: JSON.stringify({ action:'add', client_id: null, appointment_id: apptId, amount, total_due: null, balance: null, entry_type: 'appointment', status: newStatus, mode, reference, note }) });
+      const res = await fetch('/api/admin/payments', { method:'POST', credentials: 'include', headers:{ 'Content-Type':'application/json', 'x-csrf-token': getCsrfToken() }, body: JSON.stringify({ action:'add', client_id: null, appointment_id: apptId, amount, total_due: null, balance: null, entry_type: 'appointment', status: newStatus, mode, reference, note, email, name, phone }) });
       const j = await res.json();
       if (!res.ok || !j.ok) throw new Error(j.error||'Failed');
-      const modal = document.getElementById('paymentModal');
       modal?.classList.remove('active');
       modal?.setAttribute('style','position:fixed;inset:0;display:none');
       loadPage(currentPage);
-    } catch { if (err) { err.textContent='Failed to record payment'; err.style.display='block'; } }
+    } catch (e) { 
+      const msg = e instanceof Error ? e.message : 'Failed to record payment';
+      if (err) { err.textContent = msg; err.style.display='block'; } 
+    }
   });
   document.querySelectorAll('#paymentModal [data-close]')?.forEach((btn)=>{
     btn.addEventListener('click', function(){ const modal = document.getElementById('paymentModal'); modal?.classList.remove('active'); modal?.setAttribute('style','position:fixed;inset:0;display:none'); });
@@ -1384,6 +1407,7 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
           const consultation_method = document.getElementById('editMethod').value;
           await fetch('/api/admin/appointments', {
             method: 'PUT',
+            credentials: 'include',
             headers: { 
               'Content-Type': 'application/json',
               'x-csrf-token': getCsrfToken()
@@ -1531,6 +1555,7 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
         try {
           await fetch('/api/admin/appointments', {
             method: 'POST',
+            credentials: 'include',
             headers: { 
               'Content-Type': 'application/json',
               'x-csrf-token': getCsrfToken()
@@ -1576,6 +1601,7 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
           }
           const res = await fetch('/api/admin/appointments', {
             method: 'POST',
+            credentials: 'include',
             headers: { 
               'Content-Type': 'application/json',
               'x-csrf-token': getCsrfToken()
@@ -1623,6 +1649,7 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
         const data = Object.fromEntries(formData.entries());
         const res = await fetch('/api/admin/appointments', {
           method: 'POST',
+          credentials: 'include',
           headers: { 
             'Content-Type': 'application/json',
             'x-csrf-token': getCsrfToken()
@@ -1730,43 +1757,85 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
       });
 
       // Notes modal handlers
-      let currentNotesEntityId = null;
-      let currentNotesEntityType = 'appointment';
 
       document.getElementById('closeNotesModal')?.addEventListener('click', () => {
         document.getElementById('notesModal')?.classList.remove('active');
       });
 
-      document.getElementById('saveNoteBtn')?.addEventListener('click', async () => {
-        if (!currentNotesEntityId) return;
+      document.getElementById('saveNoteBtn')?.addEventListener('click', async (e) => {
+        const btn = e.currentTarget;
+        console.log('Save Note clicked. ID:', currentNotesEntityId, 'Type:', currentNotesEntityType);
+
+        if (!currentNotesEntityId) {
+          window.AdminNotify?.error?.('Error', 'No appointment selected for note');
+          return;
+        }
         const noteInput = document.getElementById('newNote');
         const noteText = (noteInput?.value || '').trim();
-        if (!noteText) return;
+        if (!noteText) {
+          window.AdminNotify?.error?.('Error', 'Please enter a note');
+          return;
+        }
 
-        const res = await fetch('/api/admin/notes', {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            'x-csrf-token': getCsrfToken()
-          },
-          body: JSON.stringify({
-            entity_type: currentNotesEntityType,
-            entity_id: currentNotesEntityId,
-            note_text: noteText,
-          }),
-        });
-        const json = await res.json();
-        if (json.ok) {
-          if (noteInput) noteInput.value = '';
-          loadNotes(currentNotesEntityId, currentNotesEntityType);
+        if (btn) {
+            btn.disabled = true;
+            btn.innerText = 'Saving...';
+        }
+
+        try {
+          const res = await fetch('/api/admin/notes', {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 
+              'Content-Type': 'application/json',
+              'x-csrf-token': getCsrfToken()
+            },
+            body: JSON.stringify({
+              entity_type: currentNotesEntityType,
+              entity_id: currentNotesEntityId,
+              note_text: noteText,
+            }),
+          });
+          
+          if (!res.ok) {
+             const txt = await res.text();
+             console.error('Note save failed:', res.status, txt);
+             if (res.status === 403) {
+                window.AdminNotify?.error?.('Permission Denied', 'Session may have expired. Please refresh.');
+                throw new Error('Session expired');
+             }
+             throw new Error(txt || 'Server error');
+          }
+
+          const json = await res.json();
+          if (json.ok) {
+            window.AdminNotify?.success?.('Note saved');
+            if (noteInput) noteInput.value = '';
+            await loadNotes(currentNotesEntityId, currentNotesEntityType);
+          } else {
+             throw new Error(json.error || 'Unknown error');
+          }
+        } catch (err) {
+            console.error('Save note error:', err);
+            window.AdminNotify?.error?.('Failed to save note', err.message || String(err));
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerText = 'Save Note';
+            }
         }
       });
 
       async function loadNotes(entityId, entityType) {
+        const safeFetch = (url) => fetch(url, { credentials: 'include' }).then(r => {
+             if(!r.ok) throw new Error(String(r.status)); 
+             return r.json(); 
+        }).catch(e => { console.warn('Fetch failed', url, e); return { data: [] }; });
+
         const [notesRes, emailRes, waRes] = await Promise.all([
-          fetch(`/api/admin/notes?entity_type=${entityType}&entity_id=${entityId}`).then((r) => r.json()),
-          fetch(`/api/admin/email-history?related_id=${entityId}&related_type=${entityType}`).then((r) => r.json()),
-          fetch(`/api/admin/whatsapp-history?related_id=${entityId}&related_type=${entityType}`).then((r) => r.json()),
+          safeFetch(`/api/admin/notes?entity_type=${entityType}&entity_id=${entityId}`),
+          safeFetch(`/api/admin/email-history?related_id=${entityId}&related_type=${entityType}`),
+          safeFetch(`/api/admin/whatsapp-history?related_id=${entityId}&related_type=${entityType}`),
         ]);
 
         const notesList = document.getElementById('notesList');
@@ -1827,17 +1896,9 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
       // Notes button handlers
       document.addEventListener('click', async (e) => {
         const tgt = e.target;
-        const notesBtn = tgt?.closest('[data-notes-id]');
         const editBtn = tgt?.closest('[data-action="edit-note"]');
         const delBtn = tgt?.closest('[data-action="delete-note"]');
-        if (notesBtn) {
-          e.preventDefault();
-          currentNotesEntityId = notesBtn.getAttribute('data-notes-id');
-          currentNotesEntityType = 'appointment';
-          document.getElementById('notesModal')?.classList.add('active');
-          await loadNotes(currentNotesEntityId, currentNotesEntityType);
-          return;
-        }
+        
         if (editBtn) {
           e.preventDefault();
           const id = editBtn.getAttribute('data-id');
@@ -1883,6 +1944,7 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
         try {
           const res = await fetch('/api/admin/notes', {
             method: 'PUT',
+            credentials: 'include',
             headers: { 
               'Content-Type': 'application/json',
               'x-csrf-token': getCsrfToken()
@@ -1918,6 +1980,7 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
         try {
           const res = await fetch('/api/admin/notes?id=' + encodeURIComponent(id), { 
             method: 'DELETE',
+            credentials: 'include',
             headers: {
               'x-csrf-token': getCsrfToken()
             }
@@ -2004,6 +2067,7 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
         try {
           const res = await fetch('/api/admin/reminders', {
             method: 'POST',
+            credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ action: 'send_upcoming_whatsapp' }),
           });
@@ -2022,6 +2086,7 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
         try {
           const res = await fetch('/api/admin/reminders', {
             method: 'POST',
+            credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ action: 'send_followups_whatsapp' }),
           });
@@ -2061,7 +2126,7 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
       async function loadViews() {
         try {
           if (document.visibilityState === 'hidden') return; // don't start fetch if page is hiding/unloading
-          const res = await fetch('/api/admin/views?page=appointments', { keepalive: true });
+          const res = await fetch('/api/admin/views?page=appointments', { keepalive: true, credentials: 'include' });
           if (!res.ok) {
             const sel = document.getElementById('savedViews');
             if (sel instanceof HTMLSelectElement) sel.innerHTML = '<option value="">Saved views…</option>';
@@ -2106,7 +2171,7 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
         if (!id) return;
         try {
           if (document.visibilityState === 'hidden') return; // avoid fetch during unload
-          const res = await fetch('/api/admin/views?page=appointments', { keepalive: true });
+          const res = await fetch('/api/admin/views?page=appointments', { keepalive: true, credentials: 'include' });
           const j = await res.json();
           const v = (j?.data || []).find((x) => x.id === id);
           if (v && v.filters) {
@@ -2130,6 +2195,7 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
           const filters = collectFilters();
           const res = await fetch('/api/admin/views', {
             method: 'POST',
+            credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ page: 'appointments', name, filters }),
           });
@@ -2154,7 +2220,7 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
           return;
         }
         try {
-          const res = await fetch('/api/admin/views?id=' + encodeURIComponent(id), { method: 'DELETE' });
+          const res = await fetch('/api/admin/views?id=' + encodeURIComponent(id), { method: 'DELETE', credentials: 'include' });
           const j = await res.json();
           if (j.ok) {
             window.AdminNotify?.success?.('View deleted');
@@ -2219,6 +2285,7 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
           try {
             await fetch('/api/admin/preferences', {
               method: 'PUT',
+              credentials: 'include',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ key: 'sidebarCollapsed', value: c ? '1' : '0' }),
             });
