@@ -2273,6 +2273,7 @@ const { rows: templates } = await client.execute(`
         const confirm = () => {
           (async () => {
             try {
+              showToast('Sending email...', 'info');
               // Ensure template exists
               const tRes = await fetch('/api/admin/templates?type=email');
               const tJson = await tRes.json();
@@ -2284,6 +2285,20 @@ const { rows: templates } = await client.execute(`
               const json = await res.json();
               if(json && json.ok) {
                 showToast('Email sent successfully', 'success');
+                // Log activity
+                try {
+                    await fetch('/api/admin/activity', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            action: 'sent_remedy_email',
+                            entity_type: 'remedy',
+                            entity_id: id,
+                            details: `Sent remedy email to ${to}`,
+                            user: 'admin'
+                        })
+                    });
+                } catch(err) { console.error('Failed to log activity', err); }
               } else {
                 showToast('Failed to send email', 'error');
               }
