@@ -135,10 +135,16 @@ const logoBg = `url('${logoUrl}')`;
       }
       
       /* Styles applied during PDF generation */
+      body.pdf-mode {
+        display: block !important;
+        padding: 0 !important;
+      }
       body.pdf-mode .a4-page {
         box-shadow: none !important;
         margin: 0 !important;
         border: none !important;
+        width: 100% !important; /* Let html2pdf control width */
+        min-height: auto !important;
       }
 
       @media print {
@@ -253,7 +259,7 @@ const logoBg = `url('${logoUrl}')`;
             scale: 2, 
             useCORS: true, 
             scrollY: 0,
-            windowWidth: 1280
+            // windowWidth: 1280 // Removed fixed windowWidth to allow auto-detection
           },
           jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
