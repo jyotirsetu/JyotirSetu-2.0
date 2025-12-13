@@ -200,7 +200,7 @@ const logoBg = `url('${logoUrl}')`;
         </div>
 
         {/* Horoscope Details - Added to show changes */}
-        {(remedy.dob || remedy.rasi || remedy.nakshatra || remedy.lagna || remedy.tob || remedy.pob) && (
+        {(remedy.dob || remedy.rashi || remedy.nakshatra || remedy.lagna || remedy.tob || remedy.pob) && (
         <div class="row mt-3 pt-3 border-top border-secondary-subtle">
            <div class="col-12">
              <div class="small text-uppercase text-muted fw-bold mb-2" style="font-size: 0.75rem; letter-spacing: 1px;">Birth Details</div>
@@ -208,7 +208,7 @@ const logoBg = `url('${logoUrl}')`;
                {remedy.dob && <div class="col-auto me-4"><strong class="text-dark">DOB:</strong> {remedy.dob}</div>}
                {remedy.tob && <div class="col-auto me-4"><strong class="text-dark">Time:</strong> {remedy.tob}</div>}
                {remedy.pob && <div class="col-auto me-4"><strong class="text-dark">Place:</strong> {remedy.pob}</div>}
-               {remedy.rasi && <div class="col-auto me-4"><strong class="text-dark">Rasi:</strong> {remedy.rasi}</div>}
+               {remedy.rashi && <div class="col-auto me-4"><strong class="text-dark">Rashi:</strong> {remedy.rashi}</div>}
                {remedy.nakshatra && <div class="col-auto me-4"><strong class="text-dark">Nakshatra:</strong> {remedy.nakshatra}</div>}
                {remedy.lagna && <div class="col-auto me-4"><strong class="text-dark">Lagna:</strong> {remedy.lagna}</div>}
              </div>

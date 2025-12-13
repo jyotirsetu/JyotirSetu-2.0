@@ -96,8 +96,8 @@ const { rows: templates } = await client.execute(`
                   </tr>
                   <tr>
                     <td style="width: 33%; padding: 8px;">
-                      <div style="color: #64748b; font-size: 0.85em;">Rasi</div>
-                      <div style="color: #334155; font-weight: bold;">${meta.rasi || '--'}</div>
+                      <div style="color: #64748b; font-size: 0.85em;">Rashi</div>
+                      <div style="color: #334155; font-weight: bold;">${meta.rashi || '--'}</div>
                     </td>
                     <td style="width: 33%; padding: 8px;">
                       <div style="color: #64748b; font-size: 0.85em;">Nakshatra</div>
@@ -762,7 +762,7 @@ const { rows: templates } = await client.execute(`
                          <div class="col-auto me-4" id="disp_dob_wrapper" style="display:none"><strong class="text-dark">DOB:</strong> <span id="disp_dob"></span></div>
                          <div class="col-auto me-4" id="disp_tob_wrapper" style="display:none"><strong class="text-dark">Time:</strong> <span id="disp_tob"></span></div>
                          <div class="col-auto me-4" id="disp_pob_wrapper" style="display:none"><strong class="text-dark">Place:</strong> <span id="disp_pob"></span></div>
-                         <div class="col-auto me-4" id="disp_rasi_wrapper" style="display:none"><strong class="text-dark">Rasi:</strong> <span id="disp_rasi"></span></div>
+                         <div class="col-auto me-4" id="disp_rashi_wrapper" style="display:none"><strong class="text-dark">Rashi:</strong> <span id="disp_rashi"></span></div>
                          <div class="col-auto me-4" id="disp_nakshatra_wrapper" style="display:none"><strong class="text-dark">Nakshatra:</strong> <span id="disp_nakshatra"></span></div>
                          <div class="col-auto me-4" id="disp_lagna_wrapper" style="display:none"><strong class="text-dark">Lagna:</strong> <span id="disp_lagna"></span></div>
                        </div>
@@ -872,7 +872,7 @@ const { rows: templates } = await client.execute(`
                   dob: r.dob,
                   tob: r.tob,
                   pob: r.pob,
-                  rasi: r.rasi,
+                  rashi: r.rashi,
                   nakshatra: r.nakshatra,
                   lagna: r.lagna
                 })))}
@@ -981,7 +981,7 @@ const { rows: templates } = await client.execute(`
                   <input type="text" class="form-control form-control-sm" name="customer_email" placeholder="Email">
                 </div>
                 <div class="mb-2">
-                  <label class="small text-muted mb-1">Document Title</label>
+                  <label class="small text-muted mb-0">Document Title</label>
                   <input type="text" class="form-control form-control-sm" name="heading" placeholder="Title" value="Remedial Measures">
                 </div>
 
@@ -989,7 +989,7 @@ const { rows: templates } = await client.execute(`
                 <input type="hidden" name="dob">
                 <input type="hidden" name="tob">
                 <input type="hidden" name="pob">
-                <input type="hidden" name="rasi">
+                <input type="hidden" name="rashi">
                 <input type="hidden" name="nakshatra">
                 <input type="hidden" name="lagna">
               </form>
@@ -1387,7 +1387,7 @@ const { rows: templates } = await client.execute(`
             { id: 'dob', label: 'Date of Birth', type: 'text', placeholder: 'DD/MM/YYYY' },
             { id: 'tob', label: 'Time of Birth', type: 'text', placeholder: 'HH:MM' },
             { id: 'pob', label: 'Place of Birth', type: 'text', placeholder: 'City, Country' },
-            { id: 'rasi', label: 'Rasi', type: 'text', placeholder: 'e.g., Leo' },
+            { id: 'rashi', label: 'Rashi', type: 'text', placeholder: 'e.g., Leo' },
             { id: 'nakshatra', label: 'Nakshatra', type: 'text', placeholder: 'e.g., Ashwini' },
             { id: 'lagna', label: 'Lagna', type: 'text', placeholder: 'e.g., Aries' }
         ],
@@ -1451,7 +1451,7 @@ const { rows: templates } = await client.execute(`
                 if(field.id === 'dob' && metaForm.elements['dob'] && metaForm.elements['dob'].value) input.value = metaForm.elements['dob'].value;
                 if(field.id === 'tob' && metaForm.elements['tob'] && metaForm.elements['tob'].value) input.value = metaForm.elements['tob'].value;
                 if(field.id === 'pob' && metaForm.elements['pob'] && metaForm.elements['pob'].value) input.value = metaForm.elements['pob'].value;
-                if(field.id === 'rasi' && metaForm.elements['rasi'] && metaForm.elements['rasi'].value) input.value = metaForm.elements['rasi'].value;
+                if(field.id === 'rashi' && metaForm.elements['rashi'] && metaForm.elements['rashi'].value) input.value = metaForm.elements['rashi'].value;
                 if(field.id === 'nakshatra' && metaForm.elements['nakshatra'] && metaForm.elements['nakshatra'].value) input.value = metaForm.elements['nakshatra'].value;
                 if(field.id === 'lagna' && metaForm.elements['lagna'] && metaForm.elements['lagna'].value) input.value = metaForm.elements['lagna'].value;
             }
@@ -1598,7 +1598,7 @@ const { rows: templates } = await client.execute(`
                  const dob = document.getElementById('smart_dob').value;
                  const tob = document.getElementById('smart_tob').value;
                  const pob = document.getElementById('smart_pob').value;
-                 const rasi = document.getElementById('smart_rasi').value;
+                 const rashi = document.getElementById('smart_rashi').value;
                  const nakshatra = document.getElementById('smart_nakshatra').value;
                  const lagna = document.getElementById('smart_lagna').value;
                  
@@ -1622,8 +1622,8 @@ const { rows: templates } = await client.execute(`
                           <div style="color: #334155; font-weight: bold;">${pob || '-'}</div>
                         </td>
                          <td style="width: 50%; padding: 8px;">
-                           <div style="color: #64748b; font-size: 0.85em;">Rasi / Nakshatra / Lagna</div>
-                           <div style="color: #334155; font-weight: bold;">${rasi || '-'}${nakshatra ? ' / ' + nakshatra : ''}${lagna ? ' / ' + lagna : ''}</div>
+                           <div style="color: #64748b; font-size: 0.85em;">Rashi / Nakshatra / Lagna</div>
+                           <div style="color: #334155; font-weight: bold;">${rashi || '-'}${nakshatra ? ' / ' + nakshatra : ''}${lagna ? ' / ' + lagna : ''}</div>
                          </td>
                       </tr>
                     </table>
@@ -1808,7 +1808,7 @@ const { rows: templates } = await client.execute(`
                            dob: details.dob || '',
                            tob: details.tob || '',
                            pob: details.pob || '',
-                           rasi: details.rasi || '',
+                           rashi: details.rashi || '',
                            nakshatra: details.nakshatra || '',
                            lagna: details.lagna || ''
                         };
@@ -1886,7 +1886,7 @@ const { rows: templates } = await client.execute(`
         if(form.dob) form.dob.value = data.dob || '';
         if(form.tob) form.tob.value = data.tob || '';
         if(form.pob) form.pob.value = data.pob || '';
-        if(form.rasi) form.rasi.value = data.rasi || '';
+        if(form.rashi) form.rashi.value = data.rashi || '';
         if(form.nakshatra) form.nakshatra.value = data.nakshatra || '';
         if(form.lagna) form.lagna.value = data.lagna || '';
         
@@ -1894,7 +1894,7 @@ const { rows: templates } = await client.execute(`
       }
 
       function updateHoroscopeDisplay() {
-         const fields = ['dob', 'tob', 'pob', 'rasi', 'nakshatra', 'lagna'];
+         const fields = ['dob', 'tob', 'pob', 'rashi', 'nakshatra', 'lagna'];
          let hasData = false;
          
          fields.forEach(f => {
@@ -1925,7 +1925,7 @@ const { rows: templates } = await client.execute(`
       });
       
       // Horoscope inputs
-      ['dob', 'tob', 'pob', 'rasi', 'nakshatra', 'lagna'].forEach(f => {
+      ['dob', 'tob', 'pob', 'rashi', 'nakshatra', 'lagna'].forEach(f => {
           if(form[f]) {
               form[f].addEventListener('input', updateHoroscopeDisplay);
           }
@@ -1965,7 +1965,7 @@ const { rows: templates } = await client.execute(`
                    dob: details.dob || '',
                    tob: details.tob || '',
                    pob: details.pob || '',
-                   rasi: details.rasi || '',
+                   rashi: details.rashi || '',
                    nakshatra: details.nakshatra || '',
                    lagna: details.lagna || ''
                  };
@@ -2007,7 +2007,7 @@ const { rows: templates } = await client.execute(`
                 dob: details.dob || '',
                 tob: details.tob || '',
                 pob: details.pob || '',
-                rasi: details.rasi || '',
+                rashi: details.rashi || '',
                 nakshatra: details.nakshatra || '',
                 lagna: details.lagna || ''
               });
@@ -2047,7 +2047,7 @@ const { rows: templates } = await client.execute(`
                        dob: details.dob || '',
                        tob: details.tob || '',
                        pob: details.pob || '',
-                       rasi: details.rasi || '',
+                       rashi: details.rashi || '',
                        nakshatra: details.nakshatra || '',
                        lagna: details.lagna || ''
                      };
@@ -2077,7 +2077,7 @@ const { rows: templates } = await client.execute(`
                   dob: c.dob,
                   tob: c.tob,
                   pob: c.pob,
-                  rasi: c.rasi,
+                  rashi: c.rashi,
                   nakshatra: c.nakshatra,
                   lagna: c.lagna
                 });
@@ -2224,7 +2224,7 @@ const { rows: templates } = await client.execute(`
            dob: r.dob,
            tob: r.tob,
            pob: r.pob,
-           rasi: r.rasi,
+           rashi: r.rashi,
            nakshatra: r.nakshatra,
            lagna: r.lagna
          });
@@ -2375,7 +2375,7 @@ const { rows: templates } = await client.execute(`
          }
          const size = 400;
          const half = size/2;
-         const getRasi = (houseNum) => {
+         const getRashi = (houseNum) => {
              const val = (parseInt(lagna) + houseNum - 1) % 12;
              return val === 0 ? 12 : val;
          };
@@ -2389,18 +2389,18 @@ const { rows: templates } = await client.execute(`
             <line x1="${size}" y1="${half}" x2="${half}" y2="${size}" stroke="black" stroke-width="2"/>
             <line x1="${half}" y1="${size}" x2="0" y2="${half}" stroke="black" stroke-width="2"/>
             <g font-family="Arial" font-size="18" text-anchor="middle" font-weight="bold">
-                <text x="${half}" y="${half - 50}">${getRasi(1)}</text>
-                <text x="${half - 80}" y="${80}">${getRasi(2)}</text>
-                <text x="${60}" y="${60}">${getRasi(3)}</text>
-                <text x="${half - 50}" y="${half}">${getRasi(4)}</text>
-                <text x="${60}" y="${size-60}">${getRasi(5)}</text>
-                <text x="${half - 80}" y="${size-80}">${getRasi(6)}</text>
-                <text x="${half}" y="${half + 60}">${getRasi(7)}</text>
-                <text x="${half + 80}" y="${size-80}">${getRasi(8)}</text>
-                <text x="${size-60}" y="${size-60}">${getRasi(9)}</text>
-                <text x="${half + 50}" y="${half}">${getRasi(10)}</text>
-                <text x="${size-60}" y="${60}">${getRasi(11)}</text>
-                <text x="${half + 80}" y="${80}">${getRasi(12)}</text>
+                <text x="${half}" y="${half - 50}">${getRashi(1)}</text>
+                <text x="${half - 80}" y="${80}">${getRashi(2)}</text>
+                <text x="${60}" y="${60}">${getRashi(3)}</text>
+                <text x="${half - 50}" y="${half}">${getRashi(4)}</text>
+                <text x="${60}" y="${size-60}">${getRashi(5)}</text>
+                <text x="${half - 80}" y="${size-80}">${getRashi(6)}</text>
+                <text x="${half}" y="${half + 60}">${getRashi(7)}</text>
+                <text x="${half + 80}" y="${size-80}">${getRashi(8)}</text>
+                <text x="${size-60}" y="${size-60}">${getRashi(9)}</text>
+                <text x="${half + 50}" y="${half}">${getRashi(10)}</text>
+                <text x="${size-60}" y="${60}">${getRashi(11)}</text>
+                <text x="${half + 80}" y="${80}">${getRashi(12)}</text>
             </g>
          </svg>`;
          const encoded = encodeURIComponent(svgContent);
