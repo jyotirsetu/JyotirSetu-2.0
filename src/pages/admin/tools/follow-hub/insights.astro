@@ -1,6 +1,7 @@
 ---
 export const prerender = false;
 import Favicons from '~/components/Favicons.astro';
+import MobilePageSelect from '~/components/MobilePageSelect.astro';
 ---
 
 <!doctype html>
@@ -113,14 +114,14 @@ import Favicons from '~/components/Favicons.astro';
               ><i class="fas fa-bars"></i></a
             >
           </li>
+          <li class="nav-item">
+            <MobilePageSelect />
+          </li>
           <li class="nav-item"><a href="/admin/dashboard" class="nav-link">Dashboard</a></li>
         </ul>
         <ul class="navbar-nav ms-auto">
           <li class="nav-item">
             <a href="/admin/tools/follow-hub/overview" class="btn btn-sm btn-primary" id="overviewBtn">Overview</a>
-          </li>
-          <li class="nav-item">
-            <button class="btn btn-sm btn-outline-secondary" id="toggleSidebarDesktop">Hide sidebar</button>
           </li>
           <li class="nav-item"><a href="/api/admin/logout" class="nav-link">Logout</a></li>
         </ul>
@@ -153,6 +154,16 @@ import Favicons from '~/components/Favicons.astro';
               <li class="nav-item">
                 <a href="/admin/quotes" class="nav-link"
                   ><i class="nav-icon fas fa-file-invoice"></i><p>Quotations</p></a
+                >
+              </li>
+              <li class="nav-item">
+                <a href="/admin/after-service" class="nav-link"
+                  ><i class="nav-icon fas fa-handshake"></i><p>After Service</p></a
+                >
+              </li>
+              <li class="nav-item">
+                <a href="/admin/remedies" class="nav-link"
+                  ><i class="nav-icon fas fa-prescription-bottle-alt"></i><p>Remedies</p></a
                 >
               </li>
               <li class="nav-item">
@@ -371,29 +382,7 @@ import Favicons from '~/components/Favicons.astro';
           } catch {
             /* ignore reinject errors */
           }
-          (function () {
-            const btn = document.getElementById('toggleSidebarDesktop');
-            function sync() {
-              if (!btn) return;
-              const c = document.body.classList.contains('sidebar-collapse');
-              btn.textContent = c ? 'Show sidebar' : 'Hide sidebar';
-            }
-            async function toggle() {
-              const c = document.body.classList.toggle('sidebar-collapse');
-              sync();
-              try {
-                await fetch('/api/admin/preferences', {
-                  method: 'PUT',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ key: 'sidebarCollapsed', value: c ? '1' : '0' }),
-                });
-              } catch (e) {
-                console.error('Error saving sidebarCollapsed:', e);
-              }
-            }
-            btn?.addEventListener('click', toggle);
-            sync();
-          })();
+
         });
       })();
     </script>

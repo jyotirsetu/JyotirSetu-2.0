@@ -648,6 +648,21 @@ export class EmailService {
     return await this.sendWithAvailableTransports(to, subject, html);
   }
 
+  async sendGenericWithAttachment(to: string, subject: string, innerHtml: string, attachmentName: string, attachmentData: Uint8Array): Promise<boolean> {
+    const html = this.wrapBranded(subject, innerHtml);
+    if (this.smtpHost && this.smtpPort && this.smtpSecure !== undefined && this.smtpUser && this.smtpPass) {
+      try {
+        const { default: nodemailer } = await import('nodemailer');
+        const transporter = nodemailer.createTransport({ host: this.smtpHost, port: this.smtpPort, secure: this.smtpSecure, auth: { user: this.smtpUser, pass: this.smtpPass } });
+        const info = await transporter.sendMail({ from: this.fromEmail, to, bcc: this.toAdmin, subject, html, attachments: [{ filename: attachmentName, content: Buffer.from(attachmentData) }] });
+        return Boolean(info?.messageId);
+      } catch {
+        // Fall through to other transports without attachment
+      }
+    }
+    return await this.sendWithAvailableTransports(to, subject, html);
+  }
+
   private async sendWithAvailableTransports(to: string, subject: string, html: string): Promise<boolean> {
     const methods: Array<'smtp' | 'mc' | 'zoho'> = [];
     if (this.smtpHost && this.smtpPort && this.smtpSecure !== undefined && this.smtpUser && this.smtpPass)

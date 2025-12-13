@@ -1,0 +1,284 @@
+---
+import { getTursoClient } from '../../lib/turso';
+import RemedyNotFound from '../../components/RemedyNotFound.astro';
+
+const { token } = Astro.params;
+
+if (!token) {
+  return Astro.redirect('/');
+}
+
+// Prevent caching to ensure latest changes are visible
+Astro.response.headers.set('Cache-Control', 'no-store, max-age=0');
+
+const client = await getTursoClient();
+const { rows } = await client.execute({
+  sql: 'SELECT * FROM remedies WHERE share_token = ?',
+  args: [token],
+});
+
+const remedy = rows.length > 0 ? rows[0] : null;
+---
+
+{ !remedy ? (
+  <RemedyNotFound />
+) : (
+<>
+<Fragment set:html="<!doctype html>" />
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Prevent caching -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <title>{remedy.heading} - JyotirSetu</title>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+      :root {
+        --a4-width: 210mm;
+        --a4-height: 297mm;
+        --brand-color: #6610f2;
+      }
+      body {
+        background: #e9ecef;
+        margin: 0;
+        padding: 40px 0;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        font-family: 'Lato', sans-serif;
+      }
+      .a4-page {
+        width: var(--a4-width);
+        min-height: var(--a4-height);
+        background: white;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1), 0 5px 15px rgba(0,0,0,0.05);
+        position: relative;
+        display: flex;
+        flex-direction: column;
+      }
+      .a4-page::before {
+        content: '';
+        position: absolute;
+        top: 55%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 600px;
+        height: 600px;
+        background-image: url('/logo.png');
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+        opacity: 0.04;
+        pointer-events: none;
+        z-index: 0;
+        filter: grayscale(100%);
+      }
+      .page-header {
+        height: auto;
+        min-height: 120px;
+        padding: 40px 50px 20px 50px;
+        border-bottom: 2px solid var(--brand-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+      }
+      .header-brand {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+      .header-brand img {
+        height: 90px;
+      }
+      .header-details {
+        text-align: right;
+        font-size: 0.9rem;
+        color: #555;
+        line-height: 1.4;
+      }
+      .page-body {
+        flex: 1;
+        padding: 40px 60px;
+        position: relative;
+        z-index: 1;
+      }
+      .page-footer {
+        height: auto;
+        min-height: 60px;
+        padding: 15px 50px;
+        border-top: 1px solid #dee2e6;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 8pt;
+        color: #777;
+        margin-top: auto;
+      }
+      .client-info {
+        background: #f8f9fa;
+        border-left: 4px solid var(--brand-color);
+        padding: 15px 20px;
+        margin: 0 50px 20px 50px;
+        border-radius: 4px;
+        color: #333; /* Improved contrast */
+      }
+      .client-info .text-muted {
+        color: #555 !important; /* Force darker gray for better readability */
+      }
+      /* Allow colors from editor to show, only force black for print if strictly needed, 
+         but usually print should support colors too. Removing the forced black for screen. */
+      .content {
+        /* color: #000 !important; */
+      }
+      .content * {
+        /* color: #000 !important; */
+      }
+      
+      @media print {
+        body {
+          background: white;
+          padding: 0;
+        }
+        .a4-page {
+          box-shadow: none;
+          width: 100%;
+          min-height: 100vh;
+        }
+        .no-print {
+          display: none !important;
+        }
+      }
+      @media (max-width: 800px) {
+        .a4-page {
+          width: 100%;
+          min-height: auto;
+        }
+        body {
+          padding: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    
+    <div class="a4-page" id="remedy-content">
+      <!-- Header -->
+      <div class="page-header">
+        <div class="header-brand">
+          <img src="/logo.png" alt="Logo">
+          <div>
+            <h2 class="m-0 text-primary fw-bold" style="font-family: 'Merriweather', serif; letter-spacing: -0.5px;">JyotirSetu by <p>Astrologer Punita Sharma</p></h2>
+            <p class="m-1 text-muted small text-uppercase" style="letter-spacing: 12.0px; font-size: 0.7rem;">Bridge to Cosmic light</p>
+          </div>
+        </div>
+        <div class="header-details">
+        <div class="text-muted" style="font-size: 0.90rem;">JyotirSetu Guidance Sheet</div>
+        <div>Date: {new Date(String(remedy.created_at)).toLocaleDateString('en-IN', { day: 'numeric', month: 'numeric', year: 'numeric' })}</div>
+        {remedy.updated_at && remedy.updated_at !== remedy.created_at && (
+          <div class="text-muted small" style="font-size: 0.75rem;">Updated: {new Date(String(remedy.updated_at)).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</div>
+        )}
+      </div>
+      </div>
+
+      <!-- Client Info -->
+      <div class="client-info">
+        <div class="row align-items-center">
+          <div class="col-8">
+            <div class="small text-uppercase text-muted fw-bold mb-1">Prepared For</div>
+            <div class="fs-4 fw-bold text-dark" style="font-family: 'Merriweather', serif;">{remedy.customer_name}</div>
+          </div>
+          <div class="col-4 text-end">
+            <div class="text-muted small">{remedy.customer_email}</div>
+            <div class="text-muted small">{remedy.customer_phone}</div>
+            <div class="text-muted small mt-1">Appt ID: {remedy.customer_appointment_id || remedy.id}</div>
+          </div>
+        </div>
+
+        {/* Horoscope Details - Added to show changes */}
+        {(remedy.dob || remedy.rasi || remedy.nakshatra || remedy.lagna || remedy.tob || remedy.pob) && (
+        <div class="row mt-3 pt-3 border-top border-secondary-subtle">
+           <div class="col-12">
+             <div class="small text-uppercase text-muted fw-bold mb-2" style="font-size: 0.75rem; letter-spacing: 1px;">Birth Details</div>
+             <div class="row small text-secondary g-2">
+               {remedy.dob && <div class="col-auto me-4"><strong class="text-dark">DOB:</strong> {remedy.dob}</div>}
+               {remedy.tob && <div class="col-auto me-4"><strong class="text-dark">Time:</strong> {remedy.tob}</div>}
+               {remedy.pob && <div class="col-auto me-4"><strong class="text-dark">Place:</strong> {remedy.pob}</div>}
+               {remedy.rasi && <div class="col-auto me-4"><strong class="text-dark">Rasi:</strong> {remedy.rasi}</div>}
+               {remedy.nakshatra && <div class="col-auto me-4"><strong class="text-dark">Nakshatra:</strong> {remedy.nakshatra}</div>}
+               {remedy.lagna && <div class="col-auto me-4"><strong class="text-dark">Lagna:</strong> {remedy.lagna}</div>}
+             </div>
+           </div>
+        </div>
+        )}
+      </div>
+
+      <!-- Body -->
+      <div class="page-body">
+         <h3 class="text-center mb-5 fw-bold" style="font-family: 'Merriweather', serif; color: #333; text-transform: uppercase; letter-spacing: 1px; font-size: 1.5rem; border-bottom: 1px solid #eee; padding-bottom: 20px;">{remedy.heading}</h3>
+         <div class="content" set:html={remedy.content}></div>
+      </div>
+
+      <!-- Footer -->
+      <div class="page-footer">
+        <div>
+          <strong class="text-dark">JyotirSetu</strong> <span class="mx-2 text-muted">|</span> <span class="text-muted">www.jyotirsetu.com</span>
+        </div>
+        <div class="text-end text-muted" style="font-size: 8pt; max-width: 300px; line-height: 1.2;">
+          This document contains spiritual remedies based on Vedic Astrology. Results may vary.
+        </div>
+      </div>
+    </div>
+
+    <!-- Floating Actions -->
+    <div class="position-fixed bottom-0 end-0 p-4 no-print d-flex gap-2">
+      <button class="btn btn-secondary shadow rounded-pill" onclick="downloadPDF()">
+        <i class="fas fa-file-pdf me-2"></i> Download PDF
+      </button>
+      <button class="btn btn-primary shadow rounded-pill" onclick="window.print()">
+        <i class="fas fa-print me-2"></i> Print
+      </button>
+    </div>
+
+    <script is:inline>
+      // No custom dragging on share view
+
+      window.downloadPDF = function() {
+        const element = document.getElementById('remedy-content');
+        const opt = {
+          margin: 0,
+          filename: 'JyotirSetu_Remedy.pdf',
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+        
+        // Show loading state
+        const btn = document.querySelector('button[onclick="downloadPDF()"]');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Generating...';
+        btn.disabled = true;
+
+        html2pdf().set(opt).from(element).save().then(() => {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }).catch(err => {
+            console.error(err);
+            alert('Error generating PDF');
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        });
+      }
+
+      // Removed email send flow on share view
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/js/all.min.js"></script>
+  </body>
+</html>
+</>
+)}

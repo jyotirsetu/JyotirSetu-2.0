@@ -1,7 +1,6 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import AdminNavbar from '~/components/AdminNavbar.astro';
-import AdminSidebar from '~/components/AdminSidebar.astro';
+import Favicons from '~/components/Favicons.astro';
+import MobilePageSelect from '~/components/MobilePageSelect.astro';
 import { verifySession } from '../../lib/auth';
 
 const cookie = Astro.request.headers.get('cookie') || '';
@@ -15,11 +14,145 @@ if (m) {
 }
 ---
 
-<Layout>
-  <div id="currentUserData" data-user={currentUser} style="display:none;"></div>
-  <AdminNavbar />
-  <div class="wrapper">
-    <AdminSidebar activePage="/admin/leads" />
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Leads Pipeline – Admin</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@latest/dist/css/adminlte.min.css" />
+    <link rel="stylesheet" href="/admin.css?v=20251129" />
+    <Favicons />
+  </head>
+  <body class="hold-transition sidebar-mini">
+    <script is:inline>
+      /* @ts-nocheck */
+      (function () {
+        function applyTheme(theme) {
+          let t = theme;
+          if (t === 'auto') {
+            t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          }
+          document.body.classList.toggle('dark-mode', t === 'dark');
+        }
+        let theme = 'dark';
+        let collapsed = false;
+        try {
+          const stored = localStorage.getItem('adminSettings');
+          if (stored) {
+            const s = JSON.parse(stored);
+            if (s && typeof s === 'object') {
+              if (s.theme) theme = s.theme;
+              if (s.sidebarCollapsed != null) collapsed = !!s.sidebarCollapsed;
+            }
+          }
+        } catch (e) {
+          console.error('Error loading admin settings:', e);
+        }
+        applyTheme(theme);
+        document.body.classList.toggle('sidebar-collapse', collapsed);
+        try {
+          Promise.all([
+            fetch('/api/admin/preferences?key=theme').then(function (r) {
+              return r.json();
+            }),
+            fetch('/api/admin/preferences?key=sidebarCollapsed').then(function (r) {
+              return r.json();
+            }),
+          ])
+            .then(function (rs) {
+              const tr = rs[0],
+                sr = rs[1];
+              if (tr && tr.ok && typeof tr.value === 'string') applyTheme(tr.value);
+              if (sr && sr.ok && sr.value != null) document.body.classList.toggle('sidebar-collapse', sr.value === '1');
+            })
+            .catch(function (err) {
+              console.error('Error syncing preferences:', err);
+            });
+        } catch (e) {
+          console.error('Error syncing preferences:', e);
+        }
+      })();
+    </script>
+    <div class="wrapper">
+      <nav class="main-header navbar navbar-expand navbar-dark">
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <MobilePageSelect />
+          </li>
+          <li class="nav-item"><a href="/admin/dashboard" class="nav-link">Dashboard</a></li>
+        </ul>
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a href="/api/admin/logout" class="nav-link">Logout</a></li>
+        </ul>
+      </nav>
+      <aside class="main-sidebar sidebar-dark-primary elevation-4" id="adminSidebar">
+        <a href="/admin/dashboard" class="brand-link" style="display:flex;align-items:center;gap:8px">
+          <img
+            src="https://images.unsplash.com/vector-1763306579596-25a002c977df?q=80&w=1979&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+            alt="Brand"
+            style="height:40px;width:auto;border-radius:0;box-shadow:0 2px 6px rgba(0,0,0,0.25)"
+          />
+        </a>
+        <div class="sidebar">
+          <nav class="mt-2">
+            <ul class="nav nav-pills nav-sidebar flex-column" role="menu" data-accordion="false" data-widget="treeview">
+              <li class="nav-item">
+                <a href="/admin/dashboard" class="nav-link"><i class="nav-icon fas fa-gauge"></i><p>Dashboard</p></a>
+              </li>
+              <li class="nav-item">
+                <a href="/admin/leads" class="nav-link active"><i class="nav-icon fas fa-route"></i><p>Leads</p></a>
+              </li>
+              <li class="nav-item">
+                <a href="/admin/appointments" class="nav-link"><i class="nav-icon fas fa-calendar-check"></i><p>Appointments</p></a>
+              </li>
+              <li class="nav-item">
+                <a href="/admin/contacts" class="nav-link"><i class="nav-icon fas fa-comments"></i><p>Contacts</p></a>
+              </li>
+              <li class="nav-item">
+                <a href="/admin/newsletter" class="nav-link"><i class="nav-icon fas fa-envelope-open-text"></i><p>Newsletter</p></a>
+              </li>
+              <li class="nav-item">
+                <a href="/admin/calendar" class="nav-link"><i class="nav-icon fas fa-calendar"></i><p>Calendar</p></a>
+              </li>
+              <li class="nav-item">
+                <a href="/admin/quotes" class="nav-link"><i class="nav-icon fas fa-file-invoice"></i><p>Quotations</p></a>
+              </li>
+              <li class="nav-item">
+                <a href="/admin/after-service" class="nav-link"><i class="nav-icon fas fa-handshake"></i><p>After Service</p></a>
+              </li>
+              <li class="nav-item">
+                <a href="/admin/remedies" class="nav-link"><i class="nav-icon fas fa-prescription-bottle-alt"></i><p>Remedies</p></a>
+              </li>
+              <li class="nav-item">
+                <a href="/admin/activity-log" class="nav-link"><i class="nav-icon fas fa-list"></i><p>Activity Log</p></a>
+              </li>
+              <li class="nav-item">
+                <a href="/admin/templates/email" class="nav-link"><i class="nav-icon fas fa-file-alt"></i><p>Email Templates</p></a>
+              </li>
+              <li class="nav-item">
+                <a href="/admin/templates/payment" class="nav-link"><i class="nav-icon fas fa-file-invoice-dollar"></i><p>Payment Templates</p></a>
+              </li>
+              <li class="nav-item">
+                <a href="/admin/client360" class="nav-link"><i class="nav-icon fas fa-user-circle"></i><p>Client 360°</p></a>
+              </li>
+              <li class="nav-item">
+                <a href="/admin/users" class="nav-link"><i class="nav-icon fas fa-users-cog"></i><p>Users</p></a>
+              </li>
+              <li class="nav-item">
+                <a href="/admin/tools/follow-hub/insights" class="nav-link"><i class="nav-icon fas fa-toolbox"></i><p>Follow Hub – Insights</p></a>
+              </li>
+              <li class="nav-item">
+                <a href="/admin/settings" class="nav-link"><i class="nav-icon fas fa-gear"></i><p>Settings</p></a>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </aside>
+      <div id="currentUserData" data-user={currentUser} style="display:none;"></div>
     <div class="content-wrapper">
       <div class="content-header">
         <div class="container-fluid">
@@ -87,7 +220,10 @@ if (m) {
                         <th data-sort="phone">Phone</th>
                         <th data-sort="stage">Stage</th>
                         <th data-sort="owner">Owner</th>
-                        <th data-sort="score">Score <i class="fas fa-info-circle" title="Score is calculated based on stage (Prospect:10, Contacted:30, Consultation:60, Converted:100, Lost:0) minus penalty for overdue SLA (-20)"></i></th>
+                        <th data-sort="score">
+                          Score 
+                          <i class="fas fa-info-circle" title="Score is calculated based on stage (Prospect:10, Contacted:30, Consultation:60, Converted:100, Lost:0) minus penalty for overdue SLA (-20)"></i>
+                        </th>
                         <th>Tags</th>
                         <th data-sort="created_at">Created</th>
                         <th>Next Action</th>
@@ -788,4 +924,7 @@ if (m) {
     .form-control, .form-select { background: #0f1629; color: #e6edf7; border: 1px solid rgba(255,255,255,0.12); }
     .form-control:focus, .form-select:focus { background: #0f1629; color: #e6edf7; border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,0.25); }
   </style>
-</Layout>
+    </div>
+
+  </body>
+</html>

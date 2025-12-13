@@ -4,49 +4,97 @@ export interface Props {
 }
 
 const { activePage } = Astro.props;
-
-  const menuItems = [
-  { href: '/admin/dashboard', icon: 'fas fa-gauge', label: 'Dashboard' },
-  { href: '/admin/leads', icon: 'fas fa-route', label: 'Leads' },
-  { href: '/admin/appointments', icon: 'fas fa-calendar-check', label: 'Appointments' },
-  { href: '/admin/contacts', icon: 'fas fa-comments', label: 'Contacts' },
-  { href: '/admin/newsletter', icon: 'fas fa-envelope-open-text', label: 'Newsletter' },
-  { href: '/admin/calendar', icon: 'fas fa-calendar', label: 'Calendar' },
-  { href: '/admin/quotes', icon: 'fas fa-file-invoice', label: 'Quotations' },
-  { href: '/admin/after-service', icon: 'fas fa-heart', label: 'After Service' },
-  { href: '/admin/activity-log', icon: 'fas fa-list', label: 'Activity Log' },
-  { href: '/admin/templates/email', icon: 'fas fa-file-alt', label: 'Email Templates' },
-  { href: '/admin/templates/payment', icon: 'fas fa-file-invoice-dollar', label: 'Payment Templates' },
-  { href: '/admin/templates/whatsapp', icon: 'fas fa-file-alt', label: 'WhatsApp Templates' },
-  { href: '/admin/client360', icon: 'fas fa-user-circle', label: 'Client 360°' },
-  { href: '/admin/users', icon: 'fas fa-users-cog', label: 'Users' },
-  { href: '/admin/tools/follow-hub/insights', icon: 'fas fa-toolbox', label: 'Follow Hub – Insights' },
-  { href: '/admin/settings', icon: 'fas fa-gear', label: 'Settings' },
+const menuGroups = [
+  { label: 'Overview', items: [
+    { href: '/admin/dashboard', icon: 'fas fa-gauge', label: 'Dashboard' },
+    { href: '/admin/client360', icon: 'fas fa-user-circle', label: 'Client 360°' },
+  ]},
+  { label: 'CRM & Sales', items: [
+    { href: '/admin/leads', icon: 'fas fa-route', label: 'Leads' },
+    { href: '/admin/appointments', icon: 'fas fa-calendar-check', label: 'Appointments' },
+    { href: '/admin/contacts', icon: 'fas fa-comments', label: 'Contacts' },
+    { href: '/admin/quotes', icon: 'fas fa-file-invoice', label: 'Quotations' },
+  ]},
+  { label: 'Operations', items: [
+    { href: '/admin/calendar', icon: 'fas fa-calendar', label: 'Calendar' },
+    { href: '/admin/after-service', icon: 'fas fa-handshake', label: 'After Service' },
+    { href: '/admin/remedies', icon: 'fas fa-prescription-bottle-alt', label: 'Remedies' },
+  ]},
+  { label: 'Marketing', items: [
+    { href: '/admin/newsletter', icon: 'fas fa-envelope-open-text', label: 'Newsletter' },
+    { href: '/admin/tools/follow-hub/insights', icon: 'fas fa-toolbox', label: 'Follow Hub' },
+  ]},
+  { label: 'Templates', items: [
+    { href: '/admin/templates/email', icon: 'fas fa-envelope', label: 'Email Templates' },
+    { href: '/admin/templates/payment', icon: 'fas fa-file-invoice-dollar', label: 'Payment Templates' },
+    { href: '/admin/templates/whatsapp', icon: 'fab fa-whatsapp', label: 'WhatsApp Templates' },
+  ]},
+  { label: 'System', items: [
+    { href: '/admin/settings', icon: 'fas fa-gear', label: 'Settings' },
+    { href: '/api/admin/logout', icon: 'fas fa-sign-out-alt', label: 'Logout', style: 'color:#ef4444' },
+  ]},
 ];
 ---
 
-<aside class="main-sidebar sidebar-dark-primary elevation-4" id="adminSidebar">
-  <a href="/admin/dashboard" class="brand-link" style="display:flex;align-items:center;gap:8px">
-    <img
-      src="https://images.unsplash.com/vector-1763306579596-25a002c977df?q=80&w=1979&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-      alt="Brand"
-      style="height:40px;width:auto;border-radius:0;box-shadow:0 2px 6px rgba(0,0,0,0.25)"
-    />
+<aside class="sidebar" id="adminSidebar">
+  <a href="/admin/dashboard" class="brand">
+    <img src="https://images.unsplash.com/vector-1763306579596-25a002c977df?w=260&fit=max&auto=format" alt="Logo" />
   </a>
-  <div class="sidebar">
-    <nav class="mt-2">
-      <ul class="nav nav-pills nav-sidebar flex-column" role="menu" data-accordion="false" data-widget="treeview">
-        {
-          menuItems.map((item) => (
-            <li class="nav-item">
-              <a href={item.href} class={`nav-link ${activePage === item.href ? 'active' : ''}`}>
-                <i class={`nav-icon ${item.icon}`} />
-                <p>{item.label}</p>
-              </a>
-            </li>
-          ))
-        }
-      </ul>
-    </nav>
-  </div>
+  <nav style="flex:1;overflow-y:auto">
+    {menuGroups.map((group) => (
+      <div class="nav-group">
+        <div class="nav-label">{group.label}</div>
+        {group.items.map((item) => (
+          <a href={item.href} class={`nav-item ${activePage === item.href ? 'active' : ''}`} style={item.style}>
+            <i class={item.icon}></i> {item.label}
+          </a>
+        ))}
+      </div>
+    ))}
+  </nav>
 </aside>
+
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+<script is:inline>
+  (function() {
+    // Restore state
+    try {
+      const saved = localStorage.getItem('sidebarState');
+      if (saved === 'collapsed') {
+        document.body.classList.add('sidebar-collapse');
+      }
+    } catch (e) { console.warn('LocalStorage access failed', e); }
+
+    function toggleDesktop(e) {
+      if (e) e.preventDefault();
+      document.body.classList.toggle('sidebar-collapse');
+      const isCollapsed = document.body.classList.contains('sidebar-collapse');
+      localStorage.setItem('sidebarState', isCollapsed ? 'collapsed' : 'expanded');
+    }
+
+    function toggleMobile(e) {
+      if (e) e.preventDefault();
+      const sidebar = document.getElementById('adminSidebar');
+      const backdrop = document.getElementById('sidebarBackdrop');
+      if (sidebar) sidebar.classList.toggle('active');
+      if (backdrop) backdrop.classList.toggle('active');
+    }
+
+    document.addEventListener('click', (e) => {
+      const toggleBtn = e.target.closest('[data-widget="pushmenu"], #toggleSidebarDesktop, #sidebarToggle');
+      if (toggleBtn) {
+        if (window.innerWidth <= 768) {
+          toggleMobile(e);
+        } else {
+          toggleDesktop(e);
+        }
+        return;
+      }
+      
+      if (e.target.id === 'sidebarBackdrop') {
+        toggleMobile(e);
+      }
+    });
+  })();
+</script>

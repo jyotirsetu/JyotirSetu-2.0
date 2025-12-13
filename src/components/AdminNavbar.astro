@@ -47,6 +47,7 @@ import MobilePageSelect from './MobilePageSelect.astro';
 </style>
   <script>
     (function(){
+    /** @param {any} q */
     async function fetchSearch(q){
       try {
         const res = await fetch('/api/admin/search?q='+encodeURIComponent(q));
@@ -123,17 +124,59 @@ import MobilePageSelect from './MobilePageSelect.astro';
           list.innerHTML = '';
           (j.data || []).forEach(function(n){
             const id = String(n.id||'');
+            const t = String(n.type||'');
+            let url = '/admin/dashboard';
+            if(t==='appointment_created'||t.includes('appointment')) url='/admin/appointments';
+            else if(t.includes('quote')||t.includes('quotation')) url='/admin/quotes';
+            else if(t.includes('contact')) url='/admin/contacts';
+
             const item = document.createElement('a');
             item.className = 'dropdown-item';
-            item.href = '#';
+            item.href = url;
             item.textContent = String(n.title||'');
-            item.addEventListener('click', async function(e){ e.preventDefault(); try { await fetch('/api/admin/notifications', { method:'PUT', headers:{ 'Content-Type':'application/json','X-CSRF-Token': (document.cookie.match(/csrf_token=([^;]+)/)||[])[1]||'' }, body: JSON.stringify({ id }) }); loadNotif(); } catch { void 0; } });
+            if (Number(n.read||0) === 0) item.style.fontWeight = 'bold';
+
+            item.addEventListener('click', async function(e){ 
+                e.preventDefault(); 
+                try { 
+                    await fetch('/api/admin/notifications', { 
+                        method:'PUT', 
+                        headers:{ 'Content-Type':'application/json','X-CSRF-Token': (document.cookie.match(/csrf_token=([^;]+)/)||[])[1]||'' }, 
+                        body: JSON.stringify({ id }) 
+                    }); 
+                } catch { void 0; }
+                window.location.href = url;
+            });
             list.appendChild(item);
           });
+          
+          if ((j.data||[]).length > 0) {
+              const divider = document.createElement('div');
+              divider.className = 'dropdown-divider';
+              list.appendChild(divider);
+              
+              const clearItem = document.createElement('a');
+              clearItem.className = 'dropdown-item dropdown-footer';
+              clearItem.href = '#';
+              clearItem.textContent = 'Clear All Notifications';
+              clearItem.style.textAlign = 'center';
+              clearItem.addEventListener('click', async function(e){
+                  e.preventDefault();
+                  if(!confirm('Clear all notifications?')) return;
+                  try {
+                      await fetch('/api/admin/notifications', {
+                          method: 'DELETE',
+                          headers: { 'X-CSRF-Token': (document.cookie.match(/csrf_token=([^;]+)/)||[])[1]||'' }
+                      });
+                      loadNotif();
+                  } catch { void 0; }
+              });
+              list.appendChild(clearItem);
+          }
         }
         try {
           const items = Array.isArray(j.data) ? j.data : [];
-          const unreadItems = items.filter(function(n){ return Number(n.read||0) === 0; });
+          const unreadItems = items.filter(function(/** @type {any} */ n){ return Number(n.read||0) === 0; });
           if (!unreadItems.length) return;
           const newest = unreadItems[0];
           const lastId = String(localStorage.getItem('lastNotifId')||'');

@@ -1,7 +1,7 @@
 ---
 export const prerender = false;
 import Favicons from '~/components/Favicons.astro';
-import AdminNavbar from '~/components/AdminNavbar.astro';
+import MobilePageSelect from '~/components/MobilePageSelect.astro';
 ---
 
 <!doctype html>
@@ -11,1227 +11,507 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Admin Dashboard – JyotirSetu</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/css/all.min.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@latest/dist/css/adminlte.min.css" />
     <link rel="stylesheet" href="/admin.css?v=20251129" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <Favicons />
     <style>
-      .dashboard-hero {
-        background: linear-gradient(135deg, rgba(124, 58, 237, 0.15), rgba(34, 211, 238, 0.15));
-        border-radius: 16px;
-        padding: 32px;
-        margin-bottom: 24px;
-        border: 1px solid var(--border);
-      }
-      .dashboard-hero h1 {
-        margin: 0 0 8px;
-        font-size: 28px;
-        font-weight: 800;
-      }
-      .dashboard-hero p {
-        margin: 0;
-        color: var(--muted);
-        font-size: 14px;
-      }
-      .stat-card {
-        background: linear-gradient(180deg, var(--panel), var(--panel-2));
-        border: 1px solid var(--border);
-        border-radius: 14px;
-        padding: 20px;
-        transition:
-          transform 0.2s,
-          box-shadow 0.2s;
-      }
-      .stat-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-      }
-      .stat-card .icon {
-        width: 48px;
-        height: 48px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 24px;
-        margin-bottom: 12px;
-      }
-      .stat-card.appointments .icon {
-        background: linear-gradient(135deg, rgba(124, 58, 237, 0.2), rgba(124, 58, 237, 0.1));
-      }
-      .stat-card.contacts .icon {
-        background: linear-gradient(135deg, rgba(34, 211, 238, 0.2), rgba(34, 211, 238, 0.1));
-      }
-      .stat-card.recent .icon {
-        background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(34, 197, 94, 0.1));
-      }
-      .stat-card.pending .icon {
-        background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(245, 158, 11, 0.1));
-      }
-      .stat-card.delivery .icon {
-        background: linear-gradient(135deg, rgba(22, 163, 74, 0.2), rgba(22, 163, 74, 0.1));
-      }
-      .stat-label {
-        font-size: 12px;
-        color: var(--muted);
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-bottom: 8px;
-      }
-      .stat-value {
-        font-size: 32px;
-        font-weight: 800;
-        margin-bottom: 4px;
-      }
-      .stat-change {
-        font-size: 11px;
-        color: var(--muted);
-      }
+      :root { --bg-body:#f8fafc; --bg-body-rgb:248,250,252; --bg-card:#ffffff; --bg-sidebar:#ffffff; --text-main:#0f172a; --text-muted:#64748b; --border-color:#e2e8f0; --primary:#6366f1; --primary-rgb:99,102,241; --primary-glow:rgba(99,102,241,0.15); --accent-1:#8b5cf6; --accent-2:#ec4899; --accent-3:#10b981; --accent-4:#f59e0b; --shadow-sm:0 1px 2px 0 rgb(0 0 0 / 0.05); --shadow-md:0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); --shadow-lg:0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1); --radius-lg:16px; --radius-md:12px; --sidebar-width:260px; --header-height:70px }
+      body.dark-mode { --bg-body:#0f172a; --bg-body-rgb:15,23,42; --bg-card:#1e293b; --bg-sidebar:#1e293b; --text-main:#f1f5f9; --text-muted:#94a3b8; --border-color:#334155; --primary:#818cf8; --primary-rgb:129,140,248; --primary-glow:rgba(129,140,248,0.15) }
+      *{box-sizing:border-box} body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background-color:var(--bg-body);color:var(--text-main);transition:background-color .3s ease,color .3s ease}
+      .app-layout{display:grid;grid-template-columns:var(--sidebar-width) 1fr;grid-template-rows:var(--header-height) 1fr;min-height:100vh}
+      .sidebar{grid-row:1/-1;background-color:var(--bg-sidebar);border-right:1px solid var(--border-color);padding:20px;display:flex;flex-direction:column;z-index:50;transition:transform .3s ease}
+      .brand{display:flex;align-items:center;gap:12px;padding:0 12px 24px;border-bottom:1px solid var(--border-color);margin-bottom:24px;text-decoration:none;color:var(--text-main)} .brand img{width:100%;height:auto;border-radius:8px;object-fit:contain;display:block}
+      .nav-group{margin-bottom:24px} .nav-label{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin-bottom:12px;padding-left:12px;font-weight:600}
+      .nav-item{display:flex;align-items:center;gap:12px;padding:10px 12px;color:var(--text-muted);text-decoration:none;border-radius:var(--radius-md);font-size:14px;font-weight:500;transition:all .2s ease;margin-bottom:4px} .nav-item:hover{background-color:var(--bg-body);color:var(--primary);transform:translateX(4px)} .nav-item.active{background-color:var(--primary-glow);color:var(--primary)} .nav-item i{width:20px;text-align:center}
+      .header{grid-column:2;display:flex;align-items:center;justify-content:space-between;padding:0 32px;background:var(--bg-sidebar);border-bottom:1px solid var(--border-color);position:sticky;top:0;z-index:40} .page-title{font-size:20px;font-weight:600;color:var(--text-main)} .header-actions{display:flex;align-items:center;gap:16px}
+      .icon-btn{background:none;border:none;color:var(--text-muted);font-size:18px;cursor:pointer;padding:8px;border-radius:50%;transition:all .2s} .icon-btn:hover{background-color:var(--bg-body);color:var(--text-main)}
+      .header-search{position:relative;flex:1;max-width:400px;margin:0 24px}
+      .header-search input{width:100%;padding:8px 16px 8px 40px;border-radius:999px;border:1px solid var(--border-color);background:var(--bg-body);color:var(--text-main);font-size:14px;transition:all .2s}
+      .header-search input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 2px var(--primary-glow)}
+      .header-search i{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:14px}
+      .search-results{position:absolute;top:100%;left:0;right:0;margin-top:8px;background:var(--bg-card);border:1px solid var(--border-color);border-radius:12px;box-shadow:var(--shadow-lg);z-index:1001;max-height:400px;overflow-y:auto;display:none}
+      .search-results.active{display:block;animation:fadeInUp .2s ease-out}
+      @media (max-width:768px){ .search-results{position:absolute;top:100%;left:0;right:0;width:auto;margin-top:4px} }
+      .search-item{padding:12px 16px;display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--text-main);border-bottom:1px solid var(--border-color);transition:background .2s}
+      .search-item:last-child{border-bottom:none}
+      .search-item:hover{background:var(--bg-body)}
+      .search-item .icon{width:36px;height:36px;border-radius:50%;background:var(--bg-body);display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:14px;flex-shrink:0}
+      .search-item.client .icon{background:var(--primary-glow);color:var(--primary);font-weight:600}
+      .search-item .info{flex:1;min-width:0}
+      .search-item .info div:first-child{font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      .search-item .info div:last-child{font-size:12px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+      .search-item .avatar {width:36px;height:36px;border-radius:50%;background:var(--primary-glow);color:var(--primary);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px;flex-shrink:0;text-transform:uppercase;border:1px solid rgba(var(--primary-rgb),0.2)}
+      .search-item .meta-row {display:flex;align-items:center;gap:6px;margin-top:2px;font-size:11px;color:var(--text-muted)}
+      .search-item .status-badge {font-size:10px;padding:1px 6px;border-radius:99px;background:var(--bg-body);border:1px solid var(--border-color);text-transform:uppercase;font-weight:600;letter-spacing:0.02em}
+      .search-item.selected, .search-item:focus {background:var(--bg-body);border-left:3px solid var(--primary);padding-left:13px;outline:none}
+      .search-empty {padding:32px 16px;text-align:center;color:var(--text-muted)}
+      .search-empty i {font-size:24px;margin-bottom:8px;opacity:0.5;display:block}
+      .search-cta {display:inline-block;margin-top:12px;padding:6px 12px;background:var(--primary);color:white;border-radius:6px;text-decoration:none;font-size:12px;font-weight:500;transition:opacity .2s} .search-cta:hover{opacity:0.9}
+      .search-loader {padding:20px;text-align:center;color:var(--text-muted);font-size:12px;display:flex;align-items:center;justify-content:center;gap:8px}
+      .search-section-header{padding:8px 16px;background:var(--bg-body);color:var(--text-muted);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;border-bottom:1px solid var(--border-color)}
+      .notif-bell{position:relative}
+      .notif-count{position:absolute;top:0;right:0;transform:translate(40%,-40%);background:#ef4444;color:#fff;border-radius:999px;padding:2px 6px;font-size:10px;font-weight:700;min-width:16px;text-align:center}
+      .notif-panel{position:absolute;top:42px;right:0;width:360px;background:rgba(255,255,255,0.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--border-color);border-radius:16px;box-shadow:0 20px 25px -5px rgba(0,0,0,0.1),0 10px 10px -5px rgba(0,0,0,0.04);display:none;overflow:hidden;z-index:100}
+      body.dark-mode .notif-panel{background:rgba(30,41,59,0.85)}
+      .notif-panel.active{display:block;animation:fadeInUp .2s ease-out}
+      .notif-toolbar{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:12px 16px;background:rgba(var(--bg-body-rgb),0.5);border-bottom:1px solid var(--border-color)}
+      .notif-toolbar .actions{display:flex;gap:8px}
+      .notif-toolbar button{background:transparent;border:1px solid var(--border-color);color:var(--text-muted);font-size:11px;padding:4px 8px;border-radius:6px;cursor:pointer;transition:all .2s;font-weight:500}
+      .notif-toolbar button:hover{background:var(--primary);color:white;border-color:var(--primary)}
+      .notif-list{max-height:360px;overflow-y:auto;overscroll-behavior:contain}
+      .notif-date{font-size:11px;font-weight:600;color:var(--text-muted);padding:8px 16px;background:rgba(var(--bg-body-rgb),0.3);text-transform:uppercase;letter-spacing:0.05em}
+      .notif-item{display:flex;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border-color);align-items:flex-start;transition:all .2s;cursor:pointer;position:relative}
+      .notif-item:hover{background:rgba(var(--primary-rgb),0.05)}
+      .notif-item.unread{background:linear-gradient(to right,rgba(99,102,241,0.08),transparent);border-left:3px solid var(--primary)}
+      .notif-item:last-child{border-bottom:none}
+      .notif-item .icon-box{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+      .notif-item.type-appointment .icon-box{background:rgba(16,185,129,0.1);color:#10b981}
+      .notif-item.type-quote .icon-box{background:rgba(245,158,11,0.1);color:#f59e0b}
+      .notif-item.type-contact .icon-box{background:rgba(236,72,153,0.1);color:#ec4899}
+      .notif-item .content{flex:1;min-width:0}
+      .notif-item .title{font-weight:600;font-size:13px;color:var(--text-main);margin-bottom:2px}
+      .notif-item .meta{font-size:12px;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+      .notif-item .time{font-size:11px;color:var(--text-muted);margin-top:4px;display:flex;align-items:center;gap:4px}
 
-      .stat-card-modern {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 16px;
-        padding: 24px;
-        color: white;
-        position: relative;
-        overflow: hidden;
-        transition: all 0.3s ease;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-      }
-      .stat-card-modern:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
-      }
-      .stat-card-modern::before {
-        content: '';
-        position: absolute;
-        top: -50%;
-        right: -50%;
-        width: 100%;
-        height: 100%;
-        background: rgba(255, 255, 255, 0.1);
-        transform: rotate(45deg);
-        transition: all 0.3s ease;
-      }
-      .stat-card-modern:hover::before {
-        top: -30%;
-        right: -30%;
-      }
-      .stat-card-modern.appointments {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      }
-      .stat-card-modern.contacts {
-        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-      }
-      .stat-card-modern.newsletter {
-        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-      }
-      .stat-card-modern.recent {
-        background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-      }
-      .stat-card-modern.pending {
-        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-      }
-      .stat-card-modern.quotes {
-        background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
-        color: #2d3748;
-      }
-      .stat-card-modern.quotes-amount {
-        background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
-        color: #2d3748;
-      }
-      .stat-card-modern .icon-modern {
-        width: 60px;
-        height: 60px;
-        border-radius: 16px;
-        background: rgba(255, 255, 255, 0.2);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 28px;
-        margin-bottom: 16px;
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-      }
-      .stat-card-modern .stat-label-modern {
-        font-size: 14px;
-        opacity: 0.9;
-        margin-bottom: 8px;
-        font-weight: 500;
-      }
-      .stat-card-modern .stat-value-modern {
-        font-size: 36px;
-        font-weight: 800;
-        margin-bottom: 8px;
-        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      }
-      .stat-card-modern .stat-change-modern {
-        font-size: 12px;
-        opacity: 0.8;
-        display: flex;
-        align-items: center;
-        gap: 4px;
-      }
-      .stat-card-modern .stat-change-modern .arrow {
-        font-size: 10px;
-      }
-      .quick-actions {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 16px;
-        margin-top: 24px;
-      }
-      .action-card {
-        background: linear-gradient(180deg, var(--panel), var(--panel-2));
-        border: 1px solid var(--border);
-        border-radius: 14px;
-        padding: 20px;
-        text-decoration: none;
-        color: inherit;
-        display: block;
-        transition: all 0.2s;
-      }
-      .action-card:hover {
-        border-color: var(--brand);
-        transform: translateY(-2px);
-        box-shadow: 0 8px 24px rgba(124, 58, 237, 0.2);
-      }
-      .action-card strong {
-        display: block;
-        margin-bottom: 6px;
-        font-size: 16px;
-      }
-      .action-card .muted {
-        font-size: 13px;
-      }
-      .action-card .arrow {
-        float: right;
-        font-size: 20px;
-        opacity: 0.5;
-      }
-      .cards-row {
-        display: flex;
-        flex-wrap: nowrap;
-        gap: 16px;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        padding-bottom: 8px;
-      }
-      .cards-row .card {
-        min-width: 280px;
-      }
-    </style>
-    <style>
-      .stat-card.newsletter .icon {
-        background: linear-gradient(135deg, rgba(14, 165, 233, 0.2), rgba(14, 165, 233, 0.1));
-      }
-      @media (max-width: 576px) {
-        .stat-grid {
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: 12px;
-        }
-        .stat-grid > [class*='col-'] {
-          width: auto;
-          padding: 0;
-        }
-        .stat-card-modern { padding: 16px; }
-        .stat-card-modern .stat-value-modern { font-size: 28px; }
-        .stat-card-modern .icon-modern { width: 48px; height: 48px; }
-      }
-      .analytics-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 12px;
-        margin-top: 8px;
-      }
-      .analytics-section {
-        background: var(--panel-2);
-        padding: 12px;
-        border-radius: 8px;
-        border: 1px solid var(--border);
-        font-size: 0.9rem;
-        line-height: 1.4;
-      }
-      .analytics-section strong {
-        color: var(--text);
-        display: block;
-        margin-bottom: 4px;
-      }
-      @media (max-width: 768px) {
-        .analytics-grid {
-          grid-template-columns: 1fr;
-        }
+      .main-content{grid-column:2;padding:32px;overflow-y:auto;max-width:1320px;margin:0 auto}
+      .dashboard-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:24px;margin-bottom:32px}
+      .card-modern{background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius-lg);padding:24px;box-shadow:var(--shadow-sm);transition:all .3s cubic-bezier(.4,0,.2,1);position:relative;overflow:hidden;display:flex;flex-direction:column} .card-modern:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg);border-color:var(--primary)}
+      .stat-icon-wrapper{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:16px;background:var(--bg-body)} .stat-value{font-size:32px;font-weight:700;color:var(--text-main);line-height:1.1;margin-bottom:4px;letter-spacing:-1px} .stat-label{font-size:14px;color:var(--text-muted);font-weight:500}
+      .stat-trend{display:flex;align-items:center;gap:4px;font-size:12px;font-weight:600;margin-top:12px;padding:4px 8px;border-radius:20px;width:fit-content} .trend-up{background:rgba(16,185,129,.1);color:var(--accent-3)} .trend-down{background:rgba(239,68,68,.1);color:#ef4444} .trend-neutral{background:var(--bg-body);color:var(--text-muted)}
+      .chart-section{grid-column:span 3;background:var(--bg-card);border-radius:var(--radius-lg);border:1px solid var(--border-color);padding:24px;box-shadow:var(--shadow-sm);min-height:400px}
+      .analytics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-top:16px}
+      .analytics-card{border:1px solid var(--border-color);border-radius:12px;padding:16px;background:var(--bg-body)}
+      .analytics-card h4{margin:0 0 10px;font-size:14px;color:var(--text-main)}
+      .progress{height:8px;background:var(--border-color);border-radius:6px;overflow:hidden}
+      .progress > div{height:8px;background:var(--primary)}
+      .chip{display:inline-block;margin:4px 6px 0 0;padding:6px 10px;border-radius:999px;border:1px solid var(--border-color);background:var(--bg-card);font-size:12px;color:var(--text-main)}
+      .activity-section{grid-column:span 1;align-self:stretch;height:100%;background:var(--bg-card);border-radius:var(--radius-lg);border:1px solid var(--border-color);padding:24px;box-shadow:var(--shadow-sm);display:flex;flex-direction:column}
+      .section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px} .section-title{font-size:16px;font-weight:600;color:var(--text-main)}
+      .activity-list{display:flex;flex-direction:column;gap:20px;flex:1;overflow-y:auto;min-height:0} .activity-item{display:flex;gap:16px;position:relative} .activity-item:not(:last-child)::before{content:'';position:absolute;left:20px;top:40px;bottom:-20px;width:2px;background:var(--border-color);opacity:.5}
+      .activity-icon{width:40px;height:40px;border-radius:50%;background:var(--bg-body);border:1px solid var(--border-color);display:flex;align-items:center;justify-content:center;flex-shrink:0;z-index:1;font-size:16px} .activity-content{flex:1} .activity-text{font-size:14px;color:var(--text-main);font-weight:500;margin-bottom:2px} .activity-meta{font-size:12px;color:var(--text-muted)}
+      .quick-actions-grid{grid-column:span 4;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px} .action-card{background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius-md);padding:20px;display:flex;align-items:center;gap:16px;text-decoration:none;color:var(--text-main);transition:all .2s} .action-card:hover{border-color:var(--primary);transform:translateY(-2px);box-shadow:var(--shadow-md)} .action-icon{width:40px;height:40px;border-radius:10px;background:var(--primary-glow);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:18px} .action-info div:first-child{font-weight:600;font-size:14px;margin-bottom:2px} .action-info div:last-child{font-size:12px;color:var(--text-muted)}
+      @keyframes fadeInUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}} .animate-enter{animation:fadeInUp .5s ease-out forwards;opacity:0} .delay-1{animation-delay:.1s} .delay-2{animation-delay:.2s} .delay-3{animation-delay:.3s} .delay-4{animation-delay:.4s}
+      @media (min-width:769px){#adminSidebar{position:static;left:auto;top:auto;height:auto}}
+      @media (max-width:1024px){.dashboard-grid{grid-template-columns:repeat(2,1fr)} .chart-section{grid-column:span 2} .activity-section{grid-column:span 2}} 
+      @media (max-width:768px){
+        .app-layout{grid-template-columns:1fr;grid-template-rows:auto 1fr}
+        .sidebar{position:fixed;left:-100%;height:100vh;width:280px;box-shadow:20px 0 50px rgba(0,0,0,.2);z-index:9000}
+        .sidebar.active{left:0}
+        .header{padding:12px 16px;flex-wrap:wrap;height:auto;gap:12px;position:relative;z-index:8000}
+        .header > div:first-child{order:1;flex:1;min-width:0;justify-content:flex-start;flex-wrap:wrap} /* Title wrapper */
+        .header-actions{width:auto;justify-content:flex-end;order:2;flex-shrink:0}
+        .header-search{order:3;width:100%;max-width:none;margin:8px 0 0;z-index:8001;position:relative}
+        .search-results{z-index:8002}
+        .main-content{padding:16px;overflow-x:hidden}
+        .dashboard-grid{display:flex;flex-direction:column;gap:16px}
+        .chart-section,.activity-section,.quick-actions-grid{width:100%;grid-column:auto}
+        .chart-section canvas{max-width:100%}
+        .page-title{font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+        #systemStatusCallout{display:none!important}
       }
     </style>
   </head>
-  <body class="hold-transition sidebar-mini">
-    <button class="sidebar-toggle" aria-label="Open Admin Menu" id="sidebarToggle">☰</button>
-    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
-    <script is:inline>
-      (function () {
-        function applyTheme(theme) {
-          let t = theme;
-          if (t === 'auto') {
-            t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-          }
-          document.body.classList.toggle('dark-mode', t === 'dark');
-        }
-        let theme = 'dark';
-        let collapsed = false;
-        try {
-          const stored = localStorage.getItem('adminSettings');
-          if (stored) {
-            const s = JSON.parse(stored);
-            if (s && typeof s === 'object') {
-              if (s.theme) theme = s.theme;
-              if (s.sidebarCollapsed != null) collapsed = !!s.sidebarCollapsed;
-            }
-          }
-        } catch (e) {
-          console.error('Error loading admin settings:', e);
-        }
-        applyTheme(theme);
-        document.body.classList.toggle('sidebar-collapse', collapsed);
-        try {
-          Promise.all([
-            fetch('/api/admin/preferences?key=theme').then(function (r) {
-              return r.json();
-            }),
-            fetch('/api/admin/preferences?key=sidebarCollapsed').then(function (r) {
-              return r.json();
-            }),
-          ])
-            .then(function (rs) {
-              const tr = rs[0],
-                sr = rs[1];
-              if (tr && tr.ok && typeof tr.value === 'string') applyTheme(tr.value);
-              if (sr && sr.ok && sr.value != null) document.body.classList.toggle('sidebar-collapse', sr.value === '1');
-            })
-            .catch(function (err) {
-              console.error('Error syncing preferences:', err);
-            });
-        } catch (e) {
-          console.error('Error syncing preferences:', e);
-        }
-      })();
-    </script>
-    <div class="wrapper">
-      <AdminNavbar />
-      <!-- legacy navbar kept for reference
-      <nav class="main-header navbar navbar-expand navbar-dark">
-        <ul class="navbar-nav">
-          <li class="nav-item">
-            <a class="nav-link" data-widget="pushmenu" href="#" role="button" aria-label="Toggle sidebar"
-              ><i class="fas fa-bars"></i></a
-            >
-          </li>
-          <li class="nav-item"><a href="/admin/dashboard" class="nav-link">Dashboard</a></li>
-        </ul>
-        <ul class="navbar-nav ms-auto">
-          <li class="nav-item">
-            <button class="btn btn-sm btn-outline-secondary" id="toggleSidebarDesktop">Hide sidebar</button>
-          </li>
-          <li class="nav-item"><a href="/admin/login" class="nav-link">Switch account</a></li>
-          <li class="nav-item"><a href="/api/admin/logout" class="nav-link">Logout</a></li>
-        </ul>
-      </nav> -->
-      <style>
-        @media (max-width: 900px) { [data-widget='pushmenu'] { display:none; } }
-      </style>
-      <aside class="main-sidebar sidebar-dark-primary elevation-4" id="adminSidebar">
-        <a href="/admin/dashboard" class="brand-link" style="display:flex;align-items:center;gap:8px">
-          <img
-            src="https://images.unsplash.com/vector-1763306579596-25a002c977df?q=80&w=1979&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-            alt="Brand"
-            style="height:40px;width:auto;border-radius:0;box-shadow:0 2px 6px rgba(0,0,0,0.25)"
-          />
+  <body>
+    <div class="app-layout">
+      
+      <aside class="sidebar" id="adminSidebar">
+        <a href="/admin/dashboard" class="brand">
+          <img src="https://images.unsplash.com/vector-1763306579596-25a002c977df?w=260&fit=max&auto=format" alt="Logo" />
         </a>
-        <div class="sidebar">
-          <nav class="mt-2">
-            <ul class="nav nav-pills nav-sidebar flex-column" role="menu" data-accordion="false" data-widget="treeview">
-              <li class="nav-item">
-                <a href="/admin/dashboard" class="nav-link active"
-                  ><i class="nav-icon fas fa-gauge"></i><p>Dashboard</p></a
-                >
-              </li>
-
-              <li class="nav-item">
-                <a href="/admin/leads" class="nav-link"
-                  ><i class="nav-icon fas fa-route"></i><p>Leads</p></a
-                >
-              </li>
-              <li class="nav-item">
-                <a href="/admin/appointments" class="nav-link"
-                  ><i class="nav-icon fas fa-calendar-check"></i><p>Appointments</p></a
-                >
-              </li>
-              <li class="nav-item">
-                <a href="/admin/contacts" class="nav-link"><i class="nav-icon fas fa-comments"></i><p>Contacts</p></a>
-              </li>
-              <li class="nav-item">
-                <a href="/admin/newsletter" class="nav-link"
-                  ><i class="nav-icon fas fa-envelope-open-text"></i><p>Newsletter</p></a
-                >
-              </li>
-          <li class="nav-item">
-            <a href="/admin/calendar" class="nav-link"><i class="nav-icon fas fa-calendar"></i><p>Calendar</p></a>
-          </li>
-              <li class="nav-item">
-                <a href="/admin/quotes" class="nav-link"
-                  ><i class="nav-icon fas fa-file-invoice"></i><p>Quotations</p></a
-                >
-              </li>
-              <li class="nav-item">
-                <a href="/admin/after-service" class="nav-link"
-                  ><i class="nav-icon fas fa-handshake"></i><p>After Service</p></a
-                >
-              </li>
-              <li class="nav-item">
-                <a href="/admin/activity-log" class="nav-link"
-                  ><i class="nav-icon fas fa-list"></i><p>Activity Log</p></a
-                >
-              </li>
-              <li class="nav-item">
-                <a href="/admin/templates/email" class="nav-link"
-                  ><i class="nav-icon fas fa-file-alt"></i><p>Email Templates</p></a
-                >
-              </li>
-              <li class="nav-item">
-                <a href="/admin/templates/payment" class="nav-link"
-                  ><i class="nav-icon fas fa-file-invoice-dollar"></i><p>Payment Templates</p></a
-                >
-              </li>
-              <li class="nav-item">
-                <a href="/admin/templates/whatsapp" class="nav-link"
-                  ><i class="nav-icon fas fa-file-alt"></i><p>WhatsApp Templates</p></a
-                >
-              </li>
-          <li class="nav-item">
-            <a href="/admin/client360" class="nav-link"
-              ><i class="nav-icon fas fa-user-circle"></i><p>Client 360°</p></a
-            >
-          </li>
-          <li class="nav-item">
-            <a href="/admin/users" class="nav-link"><i class="nav-icon fas fa-users-cog"></i><p>Users</p></a>
-          </li>
-          <li class="nav-item">
-            <a href="/admin/tools/follow-hub/insights" class="nav-link"
-              ><i class="nav-icon fas fa-toolbox"></i><p>Follow Hub – Insights</p></a
-            >
-          </li>
-              <li class="nav-item">
-                <a href="/admin/settings" class="nav-link"><i class="nav-icon fas fa-gear"></i><p>Settings</p></a>
-              </li>
-            </ul>
-          </nav>
-        </div>
+        <nav style="flex:1;overflow-y:auto">
+          <div class="nav-group">
+            <div class="nav-label">Overview</div>
+            <a href="/admin/dashboard" class="nav-item active"><i class="fas fa-gauge"></i> Dashboard</a>
+            <a href="/admin/client360" class="nav-item"><i class="fas fa-user-circle"></i> Client 360°</a>
+          </div>
+          <div class="nav-group">
+            <div class="nav-label">CRM & Sales</div>
+            <a href="/admin/leads" class="nav-item"><i class="fas fa-route"></i> Leads</a>
+            <a href="/admin/appointments" class="nav-item"><i class="fas fa-calendar-check"></i> Appointments</a>
+            <a href="/admin/contacts" class="nav-item"><i class="fas fa-comments"></i> Contacts</a>
+            <a href="/admin/quotes" class="nav-item"><i class="fas fa-file-invoice"></i> Quotations</a>
+          </div>
+          <div class="nav-group">
+            <div class="nav-label">Operations</div>
+            <a href="/admin/calendar" class="nav-item"><i class="fas fa-calendar"></i> Calendar</a>
+            <a href="/admin/after-service" class="nav-item"><i class="fas fa-handshake"></i> After Service</a>
+            <a href="/admin/remedies" class="nav-item" data-astro-reload><i class="fas fa-prescription-bottle-alt"></i> Remedies</a>
+          </div>
+          <div class="nav-group">
+            <div class="nav-label">Marketing</div>
+            <a href="/admin/newsletter" class="nav-item"><i class="fas fa-envelope-open-text"></i> Newsletter</a>
+            <a href="/admin/tools/follow-hub/insights" class="nav-item"><i class="fas fa-toolbox"></i> Follow Hub</a>
+          </div>
+          <div class="nav-group">
+            <div class="nav-label">Templates</div>
+            <a href="/admin/templates/email" class="nav-item"><i class="fas fa-envelope"></i> Email Templates</a>
+            <a href="/admin/templates/payment" class="nav-item"><i class="fas fa-file-invoice-dollar"></i> Payment Templates</a>
+            <a href="/admin/templates/whatsapp" class="nav-item"><i class="fab fa-whatsapp"></i> WhatsApp Templates</a>
+          </div>
+          <div class="nav-group">
+            <div class="nav-label">System</div>
+            <a href="/admin/settings" class="nav-item"><i class="fas fa-gear"></i> Settings</a>
+            <a href="/api/admin/logout" class="nav-item" style="color:#ef4444"><i class="fas fa-sign-out-alt"></i> Logout</a>
+          </div>
+        </nav>
       </aside>
-      <div class="content-wrapper">
-        <section class="content-header">
-          <div class="container-fluid">
-            <div class="row mb-2">
-              <div class="col-sm-6"><h1>Dashboard</h1></div>
-              <div class="col-sm-6">
-                <ol class="breadcrumb float-sm-right">
-                  <li class="breadcrumb-item"><a href="/admin/dashboard">Home</a></li>
-                  <li class="breadcrumb-item active">Dashboard</li>
-                </ol>
-              </div>
-            </div>
+      <main>
+        <header class="header">
+          <div style="display:flex;align-items:center;gap:16px">
+            <MobilePageSelect />
+            <h1 class="page-title">Dashboard</h1>
           </div>
-        </section>
-        <section class="content">
-          <div class="container-fluid">
-            <div class="dashboard-hero">
-              <h1>Welcome to JyotirSetu Admin</h1>
-              <p>Manage appointments, contacts, and templates from one central dashboard</p>
-            </div>
-
-            <div class="callout callout-info" id="systemStatusCallout">
-              <h5>System Status</h5>
-              <p id="systemStatusText">Checking database…</p>
-            </div>
-
-            <div class="row stat-grid stats-separator">
-              <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                <div class="stat-card-modern appointments">
-                  <div class="icon-modern"><i class="fas fa-calendar-check"></i></div>
-                  <div class="stat-label-modern">Total Appointments</div>
-                  <div class="stat-value-modern" id="stat-appointments">—</div>
-                  <div class="stat-change-modern">
-                    <i class="fas fa-arrow-up arrow"></i><span>All appointments</span>
-                  </div>
-                </div>
-              </div>
-              <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                <div class="stat-card-modern contacts">
-                  <div class="icon-modern"><i class="fas fa-comments"></i></div>
-                  <div class="stat-label-modern">New Contacts</div>
-                  <div class="stat-value-modern" id="stat-contacts">—</div>
-                  <div class="stat-change-modern">
-                    <i class="fas fa-arrow-up arrow"></i><span>Contact messages</span>
-                  </div>
-                </div>
-              </div>
-              <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                <div class="stat-card-modern newsletter">
-                  <div class="icon-modern"><i class="fas fa-envelope-open-text"></i></div>
-                  <div class="stat-label-modern">Newsletter Subscribers</div>
-                  <div class="stat-value-modern" id="stat-newsletter">—</div>
-                  <div class="stat-change-modern">
-                    <i class="fas fa-arrow-up arrow"></i><span>Email subscribers</span>
-                  </div>
-                </div>
-              </div>
-              <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                <div class="stat-card-modern recent">
-                  <div class="icon-modern"><i class="fas fa-clock"></i></div>
-                  <div class="stat-label-modern">Last 24 Hours</div>
-                  <div class="stat-value-modern" id="stat-24h">—</div>
-                  <div class="stat-change-modern">
-                    <i class="fas fa-arrow-up arrow"></i><span>Recent activity</span>
-                  </div>
-                </div>
-              </div>
-              <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                <div class="stat-card-modern pending">
-                  <div class="icon-modern"><i class="fas fa-hourglass-half"></i></div>
-                  <div class="stat-label-modern">Pending Action</div>
-                  <div class="stat-value-modern" id="stat-pending">—</div>
-                  <div class="stat-change-modern">
-                    <i class="fas fa-exclamation-circle arrow"></i><span>Requires attention</span>
-                  </div>
-                </div>
-              </div>
-              <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                <div class="stat-card-modern" style="background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);">
-                  <div class="icon-modern"><i class="fas fa-check-circle"></i></div>
-                  <div class="stat-label-modern">Email Status</div>
-                  <div class="stat-value-modern">OK</div>
-                  <div class="stat-change-modern"><i class="fas fa-check arrow"></i><span>System online</span></div>
-                </div>
-              </div>
-              <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                <div class="stat-card-modern quotes">
-                  <div class="icon-modern"><i class="fas fa-file-invoice"></i></div>
-                  <div class="stat-label-modern">Total Quotations</div>
-                  <div class="stat-value-modern" id="stat-quotes">—</div>
-                  <div class="stat-change-modern"><i class="fas fa-arrow-up arrow"></i><span>Quotes count</span></div>
-                </div>
-              </div>
-              <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                <div class="stat-card-modern quotes-amount">
-                  <div class="icon-modern"><i class="fas fa-indian-rupee-sign"></i></div>
-                  <div class="stat-label-modern">Quotations Amount</div>
-                  <div class="stat-value-modern" id="stat-quotes-amount">—</div>
-                  <div class="stat-change-modern"><i class="fas fa-arrow-up arrow"></i><span>Total value</span></div>
-                </div>
-              </div>
-              
-            </div>
-
-            <div class="row mt-3">
-              <div class="col-lg-8 mb-3">
-                <div class="card h-100 border-0 shadow-sm" style="background:var(--panel-2)">
-                  <div class="card-header border-0 bg-transparent">
-                    <h3 class="card-title font-weight-bold">Appointment Trends</h3>
-                    <div class="card-tools">
-                      <button type="button" class="btn btn-tool btn-sm" data-card-widget="collapse">
-                        <i class="fas fa-minus"></i>
-                      </button>
-                    </div>
-                  </div>
-                  <div class="card-body">
-                    <div class="position-relative" style="height: 300px;">
-                      <canvas id="appointment-trends-chart"></canvas>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="col-lg-4 mb-3">
-                <div id="analyticsSummary" class="h-100"></div>
-              </div>
-            </div>
-
-            <div class="cards-row mt-3">
-              <div class="card card-outline card-primary h-100 text-center">
-                <div class="card-body d-flex flex-column align-items-center justify-content-center">
-                  <i class="fas fa-calendar-check fa-3x mb-3 text-primary"></i>
-                  <h5 class="card-title mb-0">Manage Appointments</h5>
-                  <a href="/admin/appointments" class="stretched-link"></a>
-                </div>
-              </div>
-              <div class="card card-outline card-info h-100 text-center">
-                <div class="card-body d-flex flex-column align-items-center justify-content-center">
-                  <i class="fas fa-address-book fa-3x mb-3 text-info"></i>
-                  <h5 class="card-title mb-0">View Contacts</h5>
-                  <a href="/admin/contacts" class="stretched-link"></a>
-                </div>
-              </div>
-              <div class="card card-outline card-indigo h-100 text-center">
-                <div class="card-body d-flex flex-column align-items-center justify-content-center">
-                  <i class="fas fa-envelope-open-text fa-3x mb-3 text-indigo"></i>
-                  <h5 class="card-title mb-0">Email Templates</h5>
-                  <a href="/admin/templates/email" class="stretched-link"></a>
-                </div>
-              </div>
-              <div class="card card-outline card-success h-100 text-center">
-                <div class="card-body d-flex flex-column align-items-center justify-content-center">
-                  <i class="fab fa-whatsapp fa-3x mb-3 text-success"></i>
-                  <h5 class="card-title mb-0">WhatsApp Templates</h5>
-                  <a href="/admin/templates/whatsapp" class="stretched-link"></a>
-                </div>
-              </div>
-              <div class="card card-outline card-warning h-100 text-center">
-                <div class="card-body d-flex flex-column align-items-center justify-content-center">
-                  <i class="fas fa-file-invoice-dollar fa-3x mb-3 text-warning"></i>
-                  <h5 class="card-title mb-0">Payment Templates</h5>
-                  <a href="/admin/templates/payment" class="stretched-link"></a>
-                </div>
-              </div>
-              
-              <div class="card card-outline card-dark h-100 text-center">
-                <div class="card-body d-flex flex-column align-items-center justify-content-center">
-                  <i class="fas fa-folder-open fa-3x mb-3 text-dark"></i>
-                  <h5 class="card-title mb-0">Documents</h5>
-                  <a href="/admin/documents-share" class="stretched-link"></a>
-                </div>
-              </div>
-            </div>
-
-            <div class="row mt-3">
-              <div class="col-12">
-                <div class="card">
-                  <div class="card-header">
-                    <h3 class="card-title">Recent Activity</h3>
-                    <div class="card-tools">
-                      <a class="btn btn-sm btn-outline-secondary" href="/admin/activity-log">View all</a>
-                    </div>
-                  </div>
-                  <div class="card-body">
-                    <div id="recentActivityList" class="activity-list"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
+          <div class="header-search">
+            <i class="fas fa-search"></i>
+            <input type="text" id="globalSearch" placeholder="Search client profiles..." autocomplete="off" />
+            <div id="searchResults" class="search-results"></div>
           </div>
-        </section>
-      </div>
-      <footer class="main-footer">
-        <strong>JyotirSetu Admin</strong><div class="float-end d-none d-sm-inline">AdminLTE theme</div>
-      </footer>
+          <div class="header-actions">
+            <div id="systemStatusCallout" style="font-size:12px;padding:4px 10px;border-radius:999px;background:var(--primary-glow);display:flex;align-items:center;gap:8px;border:1px solid var(--border-color)">
+              <img id="systemStatusIcon" src="" alt="" style="height:18px;width:18px;display:none;object-fit:contain" />
+              <span id="systemStatusText" style="opacity:0.8">System Check...</span>
+            </div>
+            <div class="notif-bell">
+              <button class="icon-btn" id="notifBtn" aria-label="Notifications"><i class="fas fa-bell"></i></button>
+              <span id="notifCount" class="notif-count" style="display:none">0</span>
+              <div id="notifPanel" class="notif-panel"></div>
+            </div>
+            <button class="icon-btn" id="toggleTheme"><i class="fas fa-moon"></i></button>
+            <div style="width:32px;height:32px;background:var(--primary);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:600;font-size:14px">A</div>
+          </div>
+        </header>
+        <div class="main-content">
+          <div style="margin-bottom:32px" class="animate-enter"><h2 style="margin:0;font-size:24px;font-weight:700">Welcome back, Admin 👋</h2><p style="margin:4px 0 0;color:var(--text-muted)">Here's what's happening with your business today.</p></div>
+          <div class="dashboard-grid">
+            <div class="card-modern animate-enter delay-1"><div class="stat-icon-wrapper" style="color:var(--accent-1);background:rgba(139,92,246,.1)"><i class="fas fa-calendar-check"></i></div><div class="stat-value" id="stat-appointments">—</div><div class="stat-label">Total Appointments</div><div class="stat-trend trend-up"><i class="fas fa-arrow-up"></i><span>View All</span></div></div>
+            <div class="card-modern animate-enter delay-1"><div class="stat-icon-wrapper" style="color:var(--accent-2);background:rgba(236,72,153,.1)"><i class="fas fa-comments"></i></div><div class="stat-value" id="stat-contacts">—</div><div class="stat-label">New Contacts</div><div class="stat-trend trend-up"><i class="fas fa-arrow-up"></i><span>Check Inbox</span></div></div>
+            <div class="card-modern animate-enter delay-2"><div class="stat-icon-wrapper" style="color:var(--accent-3);background:rgba(16,185,129,.1)"><i class="fas fa-indian-rupee-sign"></i></div><div class="stat-value" id="stat-quotes-amount">—</div><div class="stat-label">Pipeline Value</div><div class="stat-trend trend-neutral"><span id="stat-quotes">— Quotes</span></div></div>
+            <div class="card-modern animate-enter delay-2"><div class="stat-icon-wrapper" style="color:var(--accent-4);background:rgba(245,158,11,.1)"><i class="fas fa-hourglass-half"></i></div><div class="stat-value" id="stat-pending">—</div><div class="stat-label">Pending Action</div><div class="stat-trend trend-down"><i class="fas fa-exclamation-circle"></i><span>Requires Attention</span></div></div>
+            <div class="quick-actions-grid animate-enter delay-3" style="grid-column:span 4;margin-bottom:8px">
+              <a href="/admin/appointments" class="action-card"><div class="action-icon"><i class="fas fa-plus"></i></div><div class="action-info"><div>New Appointment</div><div>Schedule a visit</div></div></a>
+              <a href="/admin/quotes" class="action-card"><div class="action-icon" style="background:rgba(16,185,129,.1);color:var(--accent-3)"><i class="fas fa-file-invoice"></i></div><div class="action-info"><div>Create Quote</div><div>Send proposal</div></div></a>
+              <a href="/admin/remedies" class="action-card"><div class="action-icon" style="background:rgba(236,72,153,.1);color:var(--accent-2)"><i class="fas fa-hand-holding-heart"></i></div><div class="action-info"><div>Remedies</div><div>Manage remedies</div></div></a>
+              <a href="/admin/documents-share" class="action-card"><div class="action-icon" style="background:rgba(245,158,11,.1);color:var(--accent-4)"><i class="fas fa-share-alt"></i></div><div class="action-info"><div>Share Docs</div><div>Client files</div></div></a>
+            </div>
+            <div class="chart-section animate-enter delay-3"><div class="section-header"><h3 class="section-title">Appointment Trends</h3><select style="background:var(--bg-body);border:1px solid var(--border-color);padding:4px 8px;border-radius:6px;color:var(--text-main)"><option>Last 30 Days</option></select></div><div style="height:320px;position:relative"><canvas id="appointment-trends-chart"></canvas></div><div id="analyticsSummary" style="margin-top:20px;font-size:13px;color:var(--text-muted);border-top:1px solid var(--border-color);padding-top:16px">Loading analytics insights...</div><div id="analyticsGrid" class="analytics-grid"></div></div>
+            <div class="activity-section animate-enter delay-3"><div class="section-header"><h3 class="section-title">Recent Activity</h3><a href="/admin/activity-log" style="font-size:13px;color:var(--primary);text-decoration:none">View All</a></div><div id="recentActivityList" class="activity-list"><div style="padding:20px;text-align:center;color:var(--text-muted)">Loading activity...</div></div></div>
+          </div>
+        </div>
+      </main>
     </div>
-
     <script is:inline>
-      (function () {
-        const controllers = new Set();
-        let updatesInterval = null;
-        
-        function animateValue(id, end, duration = 1000) {
-          const obj = document.getElementById(id);
-          if (!obj) return;
-          const start = 0; 
-          if (isNaN(end)) {
-             obj.textContent = end;
-             return;
-          }
-          let startTimestamp = null;
-          const step = (timestamp) => {
-            if (!startTimestamp) startTimestamp = timestamp;
-            const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-            obj.textContent = Math.floor(progress * (end - start) + start);
-            if (progress < 1) {
-              window.requestAnimationFrame(step);
-            }
-          };
-          window.requestAnimationFrame(step);
-        }
-
-        function animateCurrency(id, end, duration = 1000) {
-          const obj = document.getElementById(id);
-          if (!obj) return;
-          const start = 0;
-          if (isNaN(end)) {
-             obj.textContent = end;
-             return;
-          }
-          
-          function fmtCompact(n) {
-            const num = Number(n || 0);
-            const abs = Math.abs(num);
-            let value = num;
-            let suffix = '';
-            if (abs >= 1e7) { value = num / 1e7; suffix = ' Cr'; }
-            else if (abs >= 1e5) { value = num / 1e5; suffix = ' L'; }
-            else if (abs >= 1e3) { value = num / 1e3; suffix = ' k'; }
-            const decimals = Math.abs(value) < 10 ? 1 : 0;
-            return '₹' + value.toFixed(decimals) + suffix;
-          }
-
-          function fmtFull(n) { return '₹' + Number(n || 0).toFixed(2); }
-          
-          const compact = window.innerWidth <= 576;
-          const formatter = compact ? fmtCompact : fmtFull;
-
-          let startTimestamp = null;
-          const step = (timestamp) => {
-            if (!startTimestamp) startTimestamp = timestamp;
-            const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-            const current = progress * (end - start) + start;
-            obj.textContent = formatter(current);
-            if (progress < 1) {
-              window.requestAnimationFrame(step);
-            } else {
-              obj.textContent = formatter(end); // Ensure final value is exact
-              obj.setAttribute('title', fmtFull(end));
-            }
-          };
-          window.requestAnimationFrame(step);
-        }
-
-        function silentFetchJson(url, opts, fallback) {
-          try {
-            const c = new AbortController();
-            controllers.add(c);
-            const options = Object.assign(
-              { cache: 'no-store', credentials: 'include', keepalive: true, signal: c.signal },
-              opts || {}
-            );
-            return fetch(url, options)
-              .then(function (r) {
-                return r.ok ? r.json() : fallback;
-              })
-              .catch(function () {
-                return fallback;
-              })
-              .finally(function () {
-                controllers.delete(c);
-              });
-          } catch {
-            return Promise.resolve(fallback);
-          }
-        }
-        function abortAll() {
-          controllers.forEach(function (c) {
-            try {
-              c.abort();
-            } catch (e) {
-              void e;
-            }
-          });
-          controllers.clear();
-        }
-        window.addEventListener('beforeunload', function () {
-          if (updatesInterval) clearInterval(updatesInterval);
-          abortAll();
-        });
-        document.addEventListener('visibilitychange', function () {
-          if (document.visibilityState === 'hidden') {
-            if (updatesInterval) clearInterval(updatesInterval);
-            abortAll();
-          }
-        });
-
-        async function loadStats() {
-          try {
-            const [a, c, n, q] = await Promise.all([
-              silentFetchJson('/api/admin/appointments?page=1&limit=1000', null, { data: [] }),
-              silentFetchJson('/api/admin/contacts', null, { data: [] }),
-              silentFetchJson('/api/admin/newsletter?page=1&limit=1', null, { pagination: { total: 0 } }),
-              silentFetchJson('/api/admin/quotes?stats=1', null, { totals: { count: 0, amount: 0 } }),
-            ]);
-            const appts = a.data || [];
-            animateValue('stat-appointments', appts.length);
-            
-            const contactsCount = (c.data || []).length;
-            animateValue('stat-contacts', contactsCount);
-            
-            const totalNewsletter = n?.pagination?.total ?? (n?.data || []).length ?? 0;
-            animateValue('stat-newsletter', totalNewsletter);
-            
-            const now = Date.now();
-            const last24 = appts.filter((x) => {
-              const t = new Date(x.created_at).getTime();
-              return !isNaN(t) && now - t <= 24 * 60 * 60 * 1000;
-            }).length;
-            animateValue('stat-24h', last24);
-            
-            const pending = appts.filter((x) => String(x.status || '').toLowerCase() === 'pending').length;
-            animateValue('stat-pending', pending);
-            
-            const qTotals = (q && q.totals) || { count: 0, amount: 0 };
-            const qByStatus = (q && q.by_status) || [];
-            // Calculate Sent count (Quotation Sent + No Revert)
-            const sentCount = qByStatus.reduce((sum, item) => {
-              const s = String(item.status || '');
-              if (s === 'Quotation Sent' || s === 'No Revert') return sum + Number(item.count || 0);
-              return sum;
-            }, 0);
-            animateValue('stat-quotes', sentCount);
-            animateCurrency('stat-quotes-amount', qTotals.amount || 0);
-          } catch (e) {
-            console.warn('Failed to load stats', e);
-          }
-        }
+      (function(){
+        function applyTheme(theme){ let t=theme; if(t==='auto') t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'; document.body.classList.toggle('dark-mode', t==='dark'); }
+        let theme='dark'; try{ const stored=localStorage.getItem('adminSettings'); if(stored){ const s=JSON.parse(stored); if(s&&s.theme) theme=s.theme; } }catch{ void 0; } applyTheme(theme);
+        try{ Promise.all([ fetch('/api/admin/preferences?key=theme').then(r=>r.json()) ]).then(function(rs){ const tr=rs[0]; if(tr&&tr.ok&&typeof tr.value==='string') applyTheme(tr.value); }).catch(function(){ void 0; }); }catch{ void 0; }
+        const controllers=new Set(); let updatesInterval=null;
+        function silentFetchJson(url,opts,fallback){ try{ const c=new AbortController(); controllers.add(c); const options=Object.assign({cache:'no-store',credentials:'include',keepalive:true,signal:c.signal},opts||{}); return fetch(url,options).then(function(r){ return r.ok?r.json():fallback; }).catch(function(){ return fallback; }).finally(function(){ controllers.delete(c); }); }catch{ return Promise.resolve(fallback); } }
+        function abortAll(){ controllers.forEach(function(c){ try{ c.abort(); }catch{ void 0; } }); controllers.clear(); }
+        window.addEventListener('beforeunload', function(){ if(updatesInterval) clearInterval(updatesInterval); abortAll(); }); document.addEventListener('visibilitychange', function(){ if(document.visibilityState==='hidden'){ if(updatesInterval) clearInterval(updatesInterval); abortAll(); } });
+        function animateValue(id,end,duration=1500){ const obj=document.getElementById(id); if(!obj) return; if(isNaN(end)){ obj.textContent=end; return; } let startTimestamp=null; const step=(timestamp)=>{ if(!startTimestamp) startTimestamp=timestamp; const progress=Math.min((timestamp-startTimestamp)/duration,1); const ease=1-Math.pow(1-progress,3); const current=Math.floor(ease*end); obj.textContent=current; if(progress<1) window.requestAnimationFrame(step); }; window.requestAnimationFrame(step); }
+        function animateCurrency(id,end,duration=1500){ const obj=document.getElementById(id); if(!obj) return; function fmtCompact(n){ const num=Number(n||0); if(num>=1e7) return '₹'+(num/1e7).toFixed(2)+'Cr'; if(num>=1e5) return '₹'+(num/1e5).toFixed(2)+'L'; if(num>=1e3) return '₹'+(num/1e3).toFixed(1)+'k'; return '₹'+num.toFixed(0); } let startTimestamp=null; const step=(timestamp)=>{ if(!startTimestamp) startTimestamp=timestamp; const progress=Math.min((timestamp-startTimestamp)/duration,1); const ease=1-Math.pow(1-progress,3); const current=ease*end; obj.textContent=fmtCompact(current); if(progress<1) window.requestAnimationFrame(step); else obj.textContent=fmtCompact(end); }; window.requestAnimationFrame(step); }
+        async function loadStats(){ try{ const [a,c,q]=await Promise.all([ silentFetchJson('/api/admin/appointments?page=1&limit=1000',null,{data:[]}), silentFetchJson('/api/admin/contacts',null,{data:[]}), silentFetchJson('/api/admin/quotes?stats=1',null,{totals:{count:0,amount:0}}) ]); const appts=a.data||[]; animateValue('stat-appointments', appts.length); const pending=appts.filter((x)=>String(x.status||'').toLowerCase()==='pending').length; animateValue('stat-pending', pending); const contactsCount=(c.data||[]).length; animateValue('stat-contacts', contactsCount); const qTotals=(q&&q.totals)||{count:0,amount:0}; const qByStatus=(q&&q.by_status)||[]; const sentCount=qByStatus.reduce((sum,item)=>{ const s=String(item.status||''); if(s==='Quotation Sent'||s==='No Revert') return sum+Number(item.count||0); return sum; },0); const quoteEl=document.getElementById('stat-quotes'); if(quoteEl) quoteEl.textContent=sentCount+' Quotes'; animateCurrency('stat-quotes-amount', qTotals.amount||0); }catch{ void 0; } }
         loadStats();
-        try {
-          window.addEventListener('resize', function () {
-            loadStats();
-          });
-        } catch (err) { void err; }
-        try {
-          window.addEventListener('storage', function (e) {
-            try {
-              if (e && e.key === 'quotesStatsUpdated') {
-                loadStats();
-              }
-            } catch (err) {
-              void err;
-            }
-          });
-        } catch (e) {
-          void e;
-        }
-        async function loadDbHealth() {
-          try {
-            const res = await fetch('/api/db-health', { headers: { Accept: 'application/json' }, cache: 'no-store' });
-            const j = await res.json();
-            const box = document.getElementById('systemStatusCallout');
-            const txt = document.getElementById('systemStatusText');
-            if (!box || !txt) return;
-            if (j && j.ok) {
-              box.classList.remove('callout-danger', 'callout-warning');
-              box.classList.add('callout-success');
-              txt.textContent = 'Database connected (' + (j.urlHostMasked || '') + ')';
-            } else {
-              box.classList.remove('callout-success');
-              box.classList.add('callout-warning');
-              const stage = (j && j.stage) || 'unknown';
-              const details = [];
-              if (j && j.hasUrl === false) details.push('missing TURSO_DATABASE_URL');
-              if (j && j.hasToken === false) details.push('missing TURSO_AUTH_TOKEN');
-              if (stage === 'query' && j && j.error) {
-                details.push(String(j.error));
-              }
-              txt.textContent = 'Database not connected' + (details.length ? ': ' + details.join(', ') : '');
-            }
-          } catch {
-            const box = document.getElementById('systemStatusCallout');
-            const txt = document.getElementById('systemStatusText');
-            if (box && txt) {
-              box.classList.remove('callout-success');
-              box.classList.add('callout-danger');
-              txt.textContent = 'Database check failed';
-            }
-          }
-        }
+        async function loadDbHealth(){ try{ const res=await fetch('/api/db-health',{headers:{Accept:'application/json'},cache:'no-store'}); const j=await res.json(); const txt=document.getElementById('systemStatusText'); const icon=document.getElementById('systemStatusIcon'); if(!txt) return; if(j&&j.ok){ txt.textContent='Database connected '+(j.urlHostMasked||''); if(icon){ const settingsStr=localStorage.getItem('adminSettings')||'{}'; let url=''; try{ const s=JSON.parse(settingsStr); url=String(s.dbIconUrl||''); }catch{ void 0; } const fallback='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"><ellipse cx="12" cy="5" rx="8" ry="3" fill="%236366f1"/><path d="M4 5v9c0 1.7 3.6 3 8 3s8-1.3 8-3V5" stroke="%236366f1" stroke-width="1.5" fill="none"/><ellipse cx="12" cy="14" rx="8" ry="3" fill="none" stroke="%236366f1" stroke-width="1.5"/></svg>';
+            icon.src=url||fallback; icon.style.display='inline-block'; icon.onerror=function(){ icon.style.display='none'; }; } } else { const stage=(j&&j.stage)||'unknown'; const details=[]; if(j&&j.hasUrl===false) details.push('missing TURSO_DATABASE_URL'); if(j&&j.hasToken===false) details.push('missing TURSO_AUTH_TOKEN'); if(stage==='query'&&j&&j.error){ details.push(String(j.error)); } txt.textContent='Database not connected'+(details.length?': '+details.join(', '):''); if(icon) icon.style.display='none'; } }catch{ const txt=document.getElementById('systemStatusText'); const icon=document.getElementById('systemStatusIcon'); if(txt) txt.textContent='Database check failed'; if(icon) icon.style.display='none'; } }
         loadDbHealth();
+        // Search Logic
+        const searchInput = document.getElementById('globalSearch');
+        const searchResults = document.getElementById('searchResults');
+        let searchDebounce = null;
+        let selectedIndex = -1;
+        const searchCache = new Map();
 
-        function formatIndiaTime(ts) {
-          try {
-            let d;
-            if (typeof ts === 'string') {
-              const s = ts.trim();
-              // Normalize SQLite UTC string (no timezone) to proper UTC
-              if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(\.\d+)?$/.test(s)) {
-                d = new Date(s.replace(' ', 'T') + 'Z');
-              } else {
-                d = new Date(s);
-              }
-            } else {
-              d = new Date(ts);
-            }
-            return d.toLocaleString('en-IN', {
-              timeZone: 'Asia/Kolkata',
-              year: 'numeric',
-              month: 'short',
-              day: '2-digit',
-              hour: '2-digit',
-              minute: '2-digit',
-              hour12: true,
-            });
-          } catch {
-            return String(ts || '');
+        if (searchInput && searchResults) {
+          function renderResults(items, term) {
+                if (!items.length) {
+                  searchResults.innerHTML = `
+                    <div class="search-empty">
+                      <i class="fas fa-user-slash"></i>
+                      <div>No matching profiles found</div>
+                      <a href="/admin/client360" class="search-cta"><i class="fas fa-plus"></i> Create new client</a>
+                    </div>`;
+                } else {
+                  let html = '';
+                  let hasClients = false;
+                  let hasOthers = false;
+
+                  items.forEach((item, idx) => {
+                     if (item.type === 'client' && !hasClients) {
+                        html += '<div class="search-section-header">Clients</div>';
+                        hasClients = true;
+                     } else if (item.type !== 'client' && !hasOthers) {
+                        html += '<div class="search-section-header">Related Items</div>';
+                        hasOthers = true;
+                     }
+
+                     if (item.type === 'client') {
+                        const extra = item.extra || {};
+                        const initials = extra.initials || item.title.substring(0,2).toUpperCase();
+                        const displayId = extra.displayId || 'ID';
+                        const status = extra.status || 'active';
+                        const statusColor = status === 'active' ? '#10b981' : '#94a3b8';
+                        
+                        html += `
+                        <a href="${item.url}" class="search-item client" data-idx="${idx}">
+                          <div class="avatar">${initials}</div>
+                          <div class="info">
+                            <div style="display:flex;align-items:center;justify-content:space-between">
+                               <span>${item.title}</span>
+                               <span class="status-badge" style="color:${statusColor};border-color:${statusColor}">${status}</span>
+                            </div>
+                            <div class="meta-row">
+                               <span style="font-family:monospace;background:var(--bg-body);padding:0 4px;border-radius:4px;border:1px solid var(--border-color)">${displayId}</span>
+                               <span>${item.subtitle}</span>
+                            </div>
+                          </div>
+                        </a>`;
+                     } else {
+                        const icon = item.type === 'contact' ? 'user' : item.type === 'quote' ? 'file-invoice-dollar' : 'calendar';
+                        html += `
+                        <a href="${item.url}" class="search-item" data-idx="${idx}">
+                          <div class="icon"><i class="fas fa-${icon}"></i></div>
+                          <div class="info">
+                            <div>${item.title}</div>
+                            <div>${item.subtitle}</div>
+                          </div>
+                        </a>`;
+                     }
+                  });
+                  html += `<a href="/admin/client360?q=${encodeURIComponent(term)}" class="search-item" style="justify-content:center;color:var(--primary);font-weight:600;font-size:13px">View all results</a>`;
+                  searchResults.innerHTML = html;
+                }
+                searchResults.classList.add('active');
+                selectedIndex = -1;
           }
-        }
-        async function loadRecentActivity() {
-          try {
-            const json = await silentFetchJson('/api/admin/activity-log?limit=10', null, { data: [] });
-            const logs = json.data || [];
-            const list = document.getElementById('recentActivityList');
-            if (!list) return;
-            if (!logs.length) {
-              list.innerHTML =
-                '<div class="activity-item"><div class="activity-left"><div class="activity-title">No recent activity</div></div></div>';
+
+          searchInput.addEventListener('input', function(e) {
+            const term = e.target.value.trim();
+            if (searchDebounce) clearTimeout(searchDebounce);
+            
+            if (term.length < 2) {
+              searchResults.innerHTML = '';
+              searchResults.classList.remove('active');
+              selectedIndex = -1;
               return;
             }
-            const iconForAction = (a) =>
-              ({
-                appointment_created: '📅',
-                status_updated: '🔄',
-                email_sent: '📧',
-                contact_created: '💬',
-                note_created: '📝',
-                note_deleted: '🗑️',
-                contact_deleted: '🗑️',
-              })[String(a || '').toLowerCase()] || '⚡';
-            list.innerHTML = logs
-              .slice(0, 6)
-              .map((l) => {
-                const actionText = String(l.action || '')
-                  .replace(/_/g, ' ')
-                  .replace(/\b\w/g, (c) => c.toUpperCase());
-                const when = formatIndiaTime(l.created_at);
-                function getClientNameFromDetails(x){
-                  try { const o = JSON.parse(String(x.details||'')); const n = String(o.client_name||'').trim(); if (n) return n; } catch { /* ignore */ }
-                  return '';
+
+            if (searchCache.has(term)) {
+               renderResults(searchCache.get(term), term);
+               return;
+            }
+
+            searchResults.innerHTML = '<div class="search-loader"><i class="fas fa-spinner fa-spin"></i> Searching...</div>';
+            searchResults.classList.add('active');
+
+            searchDebounce = setTimeout(async () => {
+              try {
+                const res = await silentFetchJson(`/api/admin/search?q=${encodeURIComponent(term)}`, null, { data: [] });
+                const items = res.data || [];
+                searchCache.set(term, items);
+                renderResults(items, term);
+              } catch {
+                searchResults.innerHTML = '<div style="padding:12px 16px;color:var(--text-muted);font-size:13px;color:#ef4444">Search failed. Please try again.</div>';
+                searchResults.classList.add('active');
+              }
+            }, 300);
+          });
+
+          // Keyboard navigation
+          searchInput.addEventListener('keydown', function(e) {
+             const items = searchResults.querySelectorAll('.search-item');
+             if (!items.length) return;
+
+             if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                selectedIndex = (selectedIndex + 1) % items.length;
+                updateSelection(items);
+             } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                selectedIndex = (selectedIndex - 1 + items.length) % items.length;
+                updateSelection(items);
+             } else if (e.key === 'Enter') {
+                if (selectedIndex >= 0 && items[selectedIndex]) {
+                   e.preventDefault();
+                   items[selectedIndex].click();
                 }
-                const nameOrEmail =
-                  getClientNameFromDetails(l) || String(l.payment_client_name||'').trim() || String(l.payment_appt_name||'').trim() || l.payment_client_email || l.appointment_name || l.contact_name || l.appointment_email || l.contact_email || '';
-                const subtitle = `${String(l.entity_type || '').toLowerCase()}${nameOrEmail ? ` – ${nameOrEmail}` : ''}`;
-                function formatDetails(l){
-                  const d = l.details || '';
-                  try {
-                    const obj = JSON.parse(String(d));
-                    if (obj && typeof obj === 'object') {
-                      const name = String(obj.client_name || '').trim() || String(l.payment_client_name || '').trim() || String(l.payment_appt_name || '').trim();
-                      const email = String(obj.client_email || '').trim() || String(l.payment_client_email || '').trim();
-                      const amt = obj.amount != null ? Number(obj.amount) : null;
-                      const status = obj.status ? String(obj.status) : '';
-                      const parts = [];
-                      if (name) parts.push(`Client: ${name}`);
-                      else if (email) parts.push(`Client: ${email}`);
-                      if (amt != null) parts.push(`Amount: ₹${amt}`);
-                      if (status) parts.push(`Status: ${status}`);
-                      return parts.length ? parts.join(' • ') : d;
-                    }
-                  } catch {
-                    // ignore
-                  }
-                  return d;
+             } else if (e.key === 'Escape') {
+                searchResults.classList.remove('active');
+                searchInput.blur();
+             }
+          });
+
+          function updateSelection(items) {
+             items.forEach((item, idx) => {
+                if (idx === selectedIndex) {
+                   item.classList.add('selected');
+                   item.scrollIntoView({ block: 'nearest' });
+                } else {
+                   item.classList.remove('selected');
                 }
-                const details = formatDetails(l);
-                const icon = iconForAction(l.action);
-                return `<div class="activity-item" style="gap:12px">
-              <div style="font-size:18px;line-height:1.2">${icon}</div>
-              <div class="activity-left">
-                <div class="activity-title">${actionText}</div>
-                ${subtitle ? `<div class="activity-details">${subtitle}</div>` : ''}
-                ${details ? `<div class="activity-details">${details}</div>` : ''}
-              </div>
-              <div class="activity-time">${when}</div>
-            </div>`;
-              })
-              .join('');
-          } catch {
-            const list = document.getElementById('recentActivityList');
-            if (list)
-              list.innerHTML =
-                '<div class="activity-item"><div class="activity-left"><div class="activity-title">Failed to load activity</div></div></div>';
+             });
           }
+
+          document.addEventListener('click', function(e) {
+            if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+              searchResults.classList.remove('active');
+            }
+          });
+        }
+
+        // Notifications UI
+        function getCsrfToken(){ const m=document.cookie.match(/csrf_token=([^;]+)/); return m? m[1] : ''; }
+        
+        window.markReadAndNavigate = async function(id, url) {
+             try {
+                 await fetch('/api/admin/notifications', {
+                     method: 'PUT',
+                     headers: { 
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': getCsrfToken() 
+                     },
+                     body: JSON.stringify({ id })
+                 });
+             } catch (e) { console.error(e); }
+             window.location.href = url;
+        }
+
+        async function loadNotif(){ try{ const res=await fetch('/api/admin/notifications?limit=10&unread_only=1',{cache:'no-store'}); const j=await res.json(); const c=document.getElementById('notifCount'); const panel=document.getElementById('notifPanel'); const unread=Number(j.unread||0); if(c){ c.textContent=String(unread); c.style.display=unread>0?'inline-block':'none'; } if(panel){ const items=Array.isArray(j.data)?j.data:[]; 
+          const hasItems = items.length > 0;
+          const toolbar = `<div class="notif-toolbar"><div style="font-weight:600;font-size:13px;color:var(--text-main)">Notifications</div><div class="actions">${hasItems ? '<button id="clearAllBtn">Clear</button>' : ''}</div></div>`; 
+          if(!hasItems){ panel.innerHTML=toolbar+'<div style="padding:32px 20px;text-align:center;color:var(--text-muted);font-size:13px;display:flex;flex-direction:column;align-items:center;gap:12px"><i class="fas fa-bell-slash" style="font-size:24px;opacity:0.5"></i><div>No new notifications</div></div>'; } else {
+          const groups = items.reduce((acc,n)=>{ const d=new Date(String(n.created_at||'')); const key=d.toLocaleDateString('en-IN',{ day:'2-digit', month:'short', year:'numeric' }); (acc[key]||(acc[key]=[])).push(n); return acc; }, {}); let listHtml = '<div class="notif-list" id="notifListContainer">'; Object.keys(groups).forEach(function(key){ listHtml += `<div class="notif-date">${key}</div>`; listHtml += groups[key].map(function(n){ 
+            const when=new Date(String(n.created_at||'')).toLocaleString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true}); 
+            const title=String(n.title||''); 
+            const msg=String(n.message||''); 
+            const isUnread=Number(n.read||0)===0; 
+            const t=String(n.type||''); 
+            let url='/admin/dashboard'; 
+            let icon='bell'; 
+            let typeClass='type-general';
+            if(t==='appointment_created'||t.includes('appointment')){ url='/admin/appointments'; icon='calendar-check'; typeClass='type-appointment'; }
+            else if(t.includes('quote')||t.includes('quotation')){ url='/admin/quotes'; icon='file-invoice-dollar'; typeClass='type-quote'; }
+            else if(t.includes('contact')){ url='/admin/contacts'; icon='envelope'; typeClass='type-contact'; }
+            const cls=`notif-item ${isUnread?'unread':''} ${typeClass}`;
+            return `<div class="${cls}" onclick="markReadAndNavigate('${n.id}', '${url}')">
+              <div class="icon-box"><i class="fas fa-${icon}"></i></div>
+              <div class="content">
+                <div class="title">${title}</div>
+                <div class="meta">${msg}</div>
+                <div class="time"><i class="far fa-clock"></i> ${when}</div>
+              </div>
+            </div>`; 
+          }).join(''); }); listHtml += '</div>'; panel.innerHTML = toolbar + listHtml; }
+            
+            // Re-attach listeners after innerHTML update
+            setTimeout(() => {
+              const clearAll = document.getElementById('clearAllBtn');
+              if(clearAll) {
+                clearAll.onclick = async function(e){ 
+                  e.preventDefault(); e.stopPropagation();
+                  try {
+                    // Visual feedback immediately
+                    const list = document.getElementById('notifListContainer');
+                    if (list) {
+                      list.style.transition = 'opacity 0.2s ease-out';
+                      list.style.opacity = '0';
+                    }
+                    
+                    // Call backend to soft-delete (mark as read)
+                    await fetch('/api/admin/notifications', { method:'DELETE', headers:{ 'X-CSRF-Token': getCsrfToken() } });
+                    
+                    // Show confirmation and reset state
+                    if (panel) {
+                       const emptyToolbar = `<div class="notif-toolbar"><div style="font-weight:600;font-size:13px;color:var(--text-main)">Notifications</div><div class="actions"></div></div>`;
+                       panel.innerHTML = emptyToolbar + '<div style="padding:32px 20px;text-align:center;color:var(--text-muted);font-size:13px;display:flex;flex-direction:column;align-items:center;gap:12px;animation:fadeInUp 0.3s"><i class="fas fa-check-circle" style="font-size:24px;color:var(--accent-3)"></i><div>Notifications cleared</div></div>';
+                    }
+                    if (c) {
+                       c.style.display = 'none';
+                       c.textContent = '0';
+                    }
+                    
+                    // Reload after short delay to ensure consistency
+                    setTimeout(() => { loadNotif(); pollUnreadCount(); }, 1500);
+                  } catch(err) { 
+                     console.error(err);
+                     alert('Failed to clear notifications');
+                  } 
+                };
+              }
+            }, 50);
+
+            } }catch{ void 0; }
+        }
+        const notifBtn=document.getElementById('notifBtn'); const notifPanel=document.getElementById('notifPanel');
+        // Replaced SSE with polling for stability
+        async function pollUnreadCount() {
+          try {
+            const res = await silentFetchJson('/api/admin/notifications?count_only=1', null, { unread: 0 });
+            const c = document.getElementById('notifCount');
+            if (c) {
+              const unread = Number(res.unread || 0);
+              c.textContent = String(unread);
+              c.style.display = unread > 0 ? 'inline-block' : 'none';
+            }
+          } catch { void 0; }
+        }
+        
+        // Initial poll
+        pollUnreadCount();
+        // Poll every 30 seconds
+        setInterval(pollUnreadCount, 30000);
+
+        function openNotifPanel(){ if(!notifPanel) return; notifPanel.classList.add('active'); loadNotif(); }
+        function closeNotifPanel(){ if(!notifPanel) return; notifPanel.classList.remove('active'); }
+        notifBtn?.addEventListener('click', function(){ if(!notifPanel) return; const active=notifPanel.classList.contains('active'); if(active) closeNotifPanel(); else openNotifPanel(); });
+        document.addEventListener('click', function(e){ const t=e.target; if(!notifPanel || !notifBtn) return; if(notifPanel.contains(t) || notifBtn.contains(t)) return; closeNotifPanel(); });
+        function formatIndiaTime(ts){ try{ let d; if(typeof ts==='string'){ const s=ts.trim(); if(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(\.\d+)?$/.test(s)){ d=new Date(s.replace(' ','T')+'Z'); } else { d=new Date(s); } } else { d=new Date(ts); } return d.toLocaleString('en-IN',{ timeZone:'Asia/Kolkata', year:'numeric', month:'short', day:'2-digit', hour:'2-digit', minute:'2-digit', hour12:true }); }catch{ return String(ts||''); } }
+        async function loadRecentActivity(){ try{ const json=await silentFetchJson('/api/admin/activity-log?limit=10',null,{data:[]}); const logs=json.data||[]; const list=document.getElementById('recentActivityList'); if(!list) return; if(!logs.length){ list.innerHTML='<div style="text-align:center;padding:20px;color:var(--text-muted)">No recent activity</div>'; return; } const iconForAction=(a)=>({ appointment_created:'fa-calendar-plus', status_updated:'fa-rotate', email_sent:'fa-paper-plane', contact_created:'fa-comment-dots', note_created:'fa-sticky-note', note_deleted:'fa-trash', contact_deleted:'fa-trash' })[String(a||'').toLowerCase()]||'fa-bolt'; function getClientNameFromDetails(x){ try{ const o=JSON.parse(String(x.details||'')); const n=String(o.client_name||o.appointment_client_name||o.appointment_name||'').trim(); if(n) return n; }catch{ void 0; } const f=String(x.appointment_name||x.payment_appt_name||x.payment_client_name||x.contact_name||'').trim(); if(f) return f; return ''; } function formatDetails(l){ const d=String(l.details||''); try{ const obj=JSON.parse(d); if(obj&&typeof obj==='object'){ const name=String(obj.client_name||obj.appointment_client_name||obj.appointment_name||'').trim()||String(l.payment_client_name||'').trim()||String(l.payment_appt_name||'').trim()||String(l.appointment_name||'').trim(); const email=String(obj.client_email||'').trim()||String(l.payment_client_email||'').trim(); const amt=obj.amount!=null?Number(obj.amount):null; const status=obj.status?String(obj.status):''; const parts=[]; if(name) parts.push('Client: '+name); else if(email) parts.push('Client: '+email); if(amt!=null) parts.push('Amount: ₹'+amt); if(status) parts.push('Status: '+status); if(parts.length) return parts.join(' • '); } }catch{ void 0; } const idMatch=d.match(/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/); const fallbackName=String(l.appointment_name||l.payment_appt_name||l.payment_client_name||l.contact_name||'').trim(); if(idMatch&&fallbackName){ return d.replace(idMatch[0], fallbackName); } return d; }
+          list.innerHTML=logs.slice(0,6).map(function(l){ const actionText=String(l.action||'').replace(/_/g,' ').replace(/\b\w/g,function(c){ return c.toUpperCase(); }); const when=formatIndiaTime(l.created_at); const nameOrEmail=getClientNameFromDetails(l)||String(l.payment_client_name||'').trim()||String(l.payment_appt_name||'').trim()||l.payment_client_email||l.appointment_name||l.contact_name||l.appointment_email||l.contact_email||''; const subtitle=(String(l.entity_type||'').toLowerCase())+(nameOrEmail?' – '+nameOrEmail:''); const details=formatDetails(l); const icon=iconForAction(l.action); return '<div class="activity-item"><div class="activity-icon"><i class="fas '+icon+'"></i></div><div class="activity-content"><div class="activity-text">'+actionText+'</div>'+ (subtitle?'<div class="activity-meta">'+subtitle+'</div>':'') + (details?'<div class="activity-meta">'+details+'</div>':'') + '</div><div class="activity-meta">'+when+'</div></div>'; }).join('');
+        }catch{ const list=document.getElementById('recentActivityList'); if(list) list.innerHTML='<div style="text-align:center;padding:20px;color:var(--text-muted)">Failed to load activity</div>'; }
         }
         loadRecentActivity();
-        
-
-        // Initialize notifications
-        if (typeof window !== 'undefined' && 'Notification' in window) {
-          if (Notification.permission === 'default') {
-            Notification.requestPermission();
-          }
-
-          let lastApptsCount = 0;
-          let lastContactsCount = 0;
-
-          async function checkForUpdates() {
-            try {
-              const settings = JSON.parse(localStorage.getItem('adminSettings') || '{}');
-              if (settings.browserNotifications === false) return;
-              if (document.visibilityState !== 'visible') return;
-              if (Notification.permission !== 'granted') return;
-
-              const [apptsRes, contactsRes] = await Promise.all([
-                silentFetchJson('/api/admin/appointments?page=1&limit=1', null, { pagination: { total: 0 } }),
-                silentFetchJson('/api/admin/contacts?page=1&limit=1', null, { pagination: { total: 0 } }),
-              ]);
-
-              const apptsCount = apptsRes.pagination?.total || 0;
-              const contactsCount = contactsRes.pagination?.total || 0;
-
-              if (lastApptsCount > 0 && apptsCount > lastApptsCount && settings.notifyNewAppointment !== false) {
-                new Notification('New Appointment!', {
-                  body: `You have ${apptsCount - lastApptsCount} new appointment(s)`,
-                  icon: '/favicon.ico',
-                  tag: 'new-appointment',
-                });
-              }
-
-              if (lastContactsCount > 0 && contactsCount > lastContactsCount && settings.notifyNewContact !== false) {
-                new Notification('New Contact Message!', {
-                  body: `You have ${contactsCount - lastContactsCount} new contact message(s)`,
-                  icon: '/favicon.ico',
-                  tag: 'new-contact',
-                });
-              }
-
-              lastApptsCount = apptsCount;
-              lastContactsCount = contactsCount;
-            } catch (e) {
-              console.error('Notification check failed:', e);
+        if(typeof window!=='undefined'&&'Notification' in window){ if(Notification.permission==='default'){ Notification.requestPermission(); } let lastApptsCount=0; let lastContactsCount=0; async function checkForUpdates(){ try{ const settings=JSON.parse(localStorage.getItem('adminSettings')||'{}'); if(settings.browserNotifications===false) return; if(document.visibilityState!=='visible') return; if(Notification.permission!=='granted') return; const [apptsRes,contactsRes]=await Promise.all([ silentFetchJson('/api/admin/appointments?page=1&limit=1',null,{pagination:{total:0}}), silentFetchJson('/api/admin/contacts?page=1&limit=1',null,{pagination:{total:0}}) ]); const apptsCount=apptsRes.pagination?.total||0; const contactsCount=contactsRes.pagination?.total||0; if(lastApptsCount>0&&apptsCount>lastApptsCount&&settings.notifyNewAppointment!==false){ new Notification('New Appointment!',{ body:'You have '+(apptsCount-lastApptsCount)+' new appointment(s)', icon:'/favicon.ico', tag:'new-appointment' }); } if(lastContactsCount>0&&contactsCount>lastContactsCount&&settings.notifyNewContact!==false){ new Notification('New Contact Message!',{ body:'You have '+(contactsCount-lastContactsCount)+' new contact message(s)', icon:'/favicon.ico', tag:'new-contact' }); } lastApptsCount=apptsCount; lastContactsCount=contactsCount; }catch{ void 0; } } setTimeout(function(){ checkForUpdates(); updatesInterval=setInterval(checkForUpdates,30000); },5000); }
+        async function loadChart(){ try{ const res=await fetch('/api/admin/analytics?days=30'); const data=await res.json(); const trends=(data.appointment_trends||[]).reverse(); const ctx=document.getElementById('appointment-trends-chart'); if(ctx&&trends.length){ const isDark=document.body.classList.contains('dark-mode'); const color=isDark?'#818cf8':'#6366f1'; new Chart(ctx,{ type:'line', data:{ labels:trends.map(t=>new Date(t.date).toLocaleDateString('en-IN',{day:'numeric',month:'short'})), datasets:[{ label:'Appointments', data:trends.map(t=>t.total), borderColor:color, backgroundColor:(context)=>{ const c=context.chart.ctx; const g=c.createLinearGradient(0,0,0,300); g.addColorStop(0, isDark?'rgba(129,140,248,.4)':'rgba(99,102,241,.4)'); g.addColorStop(1,'rgba(0,0,0,0)'); return g; }, fill:true, tension:.4, pointRadius:0, pointHoverRadius:6 }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false} }, scales:{ x:{ grid:{display:false}, ticks:{ color:isDark?'#94a3b8':'#64748b' } }, y:{ grid:{ color:isDark?'#334155':'#e2e8f0', borderDash:[4,4] }, ticks:{ color:isDark?'#94a3b8':'#64748b' } } } } }); }
+          const sumEl=document.getElementById('analyticsSummary'); if(sumEl&&data.funnel){ const funnelStr=(data.funnel||[]).map((f)=>`${f.status}: ${f.count}`).join(' • '); sumEl.innerHTML=`<strong>Pipeline:</strong> ${funnelStr}`; }
+          const grid=document.getElementById('analyticsGrid');
+          if(grid){
+            let html='';
+            const services=Array.isArray(data.services)?data.services:[];
+            if(services.length){
+              html+=`<div class="analytics-card"><h4>Service Distribution</h4>${services.map(s=>`<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;font-size:12px"><span>${s.name}</span><span>${s.count} (${s.percentage}%)</span></div><div class="progress"><div style="width:${s.percentage}%"></div></div></div>`).join('')}</div>`;
             }
+            const funnelArr=Array.isArray(data.funnel)?data.funnel:[];
+            if(funnelArr.length){
+              html+=`<div class="analytics-card"><h4>Funnel</h4>${funnelArr.map(x=>`<span class="chip">${x.status}: ${x.count}</span>`).join('')}</div>`;
+            }
+            const leads=Array.isArray(data.leads)?data.leads:[];
+            if(leads.length){
+              html+=`<div class="analytics-card"><h4>Leads</h4>${leads.map(x=>`<span class="chip">${String(x.stage||'')}: ${String(x.count||0)}</span>`).join('')}</div>`;
+            }
+            const top=Array.isArray(data.top_ltv)?data.top_ltv:[];
+            const ltvList=top.length? top.slice(0,5) : Object.entries(data.ltv||{}).slice(0,5).map(([id,total])=>({id,name:id,total:Number(total)}));
+            if(ltvList.length){
+              html+=`<div class="analytics-card"><h4>Top LTV</h4><ul style="margin:0;padding:0;list-style:none">${ltvList.map(t=>`<li>${String(t.name|| t.id)}: ₹${Number(t.total||0).toFixed(0)}</li>`).join('')}</ul></div>`;
+            }
+            const sla=data.sla||{};
+            html+=`<div class="analytics-card"><h4>SLA</h4><div class="chip">Breaches: ${String(sla.total_breaches||0)}</div><div class="chip">Overdue: ${String(sla.fulfillment_overdue||0)}</div></div>`;
+            const staff=Array.isArray(data.staff_performance)?data.staff_performance:[];
+            if(staff.length){
+              html+=`<div class="analytics-card"><h4>Staff Performance</h4>${staff.slice(0,3).map(s=>`<div class="chip">${s.staff_name}: ${s.appointment_count} (${s.completion_rate}%)</div>`).join('')}</div>`;
+            }
+            const docs=data.document_stats||{};
+            if(Number(docs.total_documents||0)>0){
+              html+=`<div class="analytics-card"><h4>Documents</h4><div class="chip">Total: ${String(docs.total_documents||0)}</div><div class="chip">Shared: ${String(docs.shared_documents||0)}</div></div>`;
+            }
+            grid.innerHTML=html || `<div class="analytics-card"><h4>Analytics</h4><div class="chip">No data</div></div>`;
           }
-
-          // Initial check after 5 seconds
-          setTimeout(() => {
-            checkForUpdates();
-            updatesInterval = setInterval(checkForUpdates, 30000);
-          }, 5000);
+        }catch{ void 0; }
         }
+        try{ loadChart(); }catch{ void 0; }
 
-        // Mobile drawer with animated hamburger
-        const sidebar = document.getElementById('adminSidebar');
-        const backdrop = document.getElementById('sidebarBackdrop');
-        const toggleBtn = document.getElementById('sidebarToggle');
-        let isOpen = false;
-
-        function openSidebar() {
-          sidebar?.classList.add('active');
-          backdrop?.classList.add('active');
-          toggleBtn?.classList.add('active');
-          if (toggleBtn) toggleBtn.innerHTML = '✕';
-          isOpen = true;
-        }
-
-        function closeSidebar() {
-          sidebar?.classList.remove('active');
-          backdrop?.classList.remove('active');
-          toggleBtn?.classList.remove('active');
-          if (toggleBtn) toggleBtn.innerHTML = '☰';
-          isOpen = false;
-        }
-
-        toggleBtn?.addEventListener('click', () => {
-          if (isOpen) closeSidebar();
-          else openSidebar();
-        });
-
-        backdrop?.addEventListener('click', closeSidebar);
-        sidebar?.querySelectorAll('a').forEach((a) => {
-          a.addEventListener('click', () => {
-            if (window.innerWidth <= 900) closeSidebar();
-          });
-        });
-
-        // Close on escape key
-        document.addEventListener('keydown', (e) => {
-          if (e.key === 'Escape' && isOpen) closeSidebar();
-        });
-        const btn = document.getElementById('toggleSidebarDesktop');
-        function sync() {
-          if (!btn) return;
-          const c = document.body.classList.contains('sidebar-collapse');
-          btn.textContent = c ? 'Show sidebar' : 'Hide sidebar';
-        }
-        async function toggle() {
-          const c = document.body.classList.toggle('sidebar-collapse');
-          sync();
-          try {
-            await fetch('/api/admin/preferences', {
-              method: 'PUT',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ key: 'sidebarCollapsed', value: c ? '1' : '0' }),
-            });
-          } catch (e) {
-            console.error('Error saving sidebarCollapsed:', e);
-          }
-        }
-        btn?.addEventListener('click', toggle);
-        sync();
+        document.getElementById('toggleTheme')?.addEventListener('click', function(){ const isDark=document.body.classList.toggle('dark-mode'); try{ const s=JSON.parse(localStorage.getItem('adminSettings')||'{}'); s.theme=isDark?'dark':'light'; localStorage.setItem('adminSettings', JSON.stringify(s)); }catch{ void 0; } });
       })();
     </script>
-  </body><script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" defer></script>
-  <script src="https://cdn.jsdelivr.net/npm/admin-lte@latest/dist/js/adminlte.min.js" defer></script>
-  <script is:inline>
-    (function(){
-          async function loadAnalytics(){
-            try {
-              const res = await fetch('/api/admin/analytics?days=30', { credentials: 'include' });
-              const j = await res.json();
-              const el = document.getElementById('analyticsSummary');
-              if (!el) return;
-              if (!res.ok || !j || j.ok===false) { el.textContent = 'Analytics unavailable'; return; }
-              const funnel = Array.isArray(j.funnel) ? j.funnel : [];
-              const leads = Array.isArray(j.leads) ? j.leads : [];
-              const ltv = j.ltv || {};
-              const topLtv = Array.isArray(j.top_ltv) ? j.top_ltv : [];
-              const sla = j.sla || {};
-              const staffPerf = Array.isArray(j.staff_performance) ? j.staff_performance : [];
-              const docStats = j.document_stats || {};
-              const services = Array.isArray(j.services) ? j.services : [];
-              const trends = Array.isArray(j.appointment_trends) ? j.appointment_trends : [];
-              
-              const funnelStr = funnel.map(function(x){ return String(x.status||'')+': '+String(x.count||0); }).join(' • ');
-              const leadsStr = leads.map(function(x){ return String(x.stage||'')+': '+String(x.count||0); }).join(' • ');
-              
-              let ltvStr = '';
-              let ltvHtml = '';
-              if (topLtv.length > 0) {
-                ltvHtml = '<ul class="list-unstyled" style="margin:0">' + topLtv.map(function(t){
-                  const name = String(t.name || t.id);
-                  const amount = String(t.formatted_total || ('₹'+Number(t.total||0).toFixed(0)));
-                  const tooltip = [t.email||'', t.phone||''].filter(Boolean).join(' • ');
-                  return `<li><span title="${tooltip}">${name}</span>: ${amount}</li>`;
-                }).join('') + '</ul>';
-                ltvStr = topLtv.map(function(t){ return String(t.name || t.id)+': '+String(t.formatted_total || ('₹'+Number(t.total||0).toFixed(0))); }).join(' • ');
-              } else {
-                const top = Object.entries(ltv).sort(function(a,b){ return Number(b[1])-Number(a[1]); }).slice(0,3);
-                ltvStr = top.map(function(p){ return String(p[0])+': '+('₹'+Number(p[1]).toFixed(0)); }).join(' • ');
-              }
-              
-              // Enhanced analytics display
-              let html = '<div class="analytics-grid">';
-              
-              // Services section with progress bars
-              if (services.length > 0) {
-                let serviceHtml = '<div class="analytics-section"><strong>Service Distribution</strong><div style="margin-top:8px">';
-                services.forEach(function(s) {
-                  serviceHtml += `
-                    <div style="margin-bottom:6px">
-                      <div class="d-flex justify-content-between" style="font-size:11px;margin-bottom:2px">
-                        <span>${s.name}</span>
-                        <span>${s.count} (${s.percentage}%)</span>
-                      </div>
-                      <div class="progress" style="height:6px;background:var(--border)">
-                        <div class="progress-bar" style="width:${s.percentage}%;background-color:var(--brand)"></div>
-                      </div>
-                    </div>
-                  `;
-                });
-                serviceHtml += '</div></div>';
-                html += serviceHtml;
-              }
-
-              html += '<div class="analytics-section"><strong>Funnel</strong>: '+(funnelStr||'—')+'</div>';
-              html += '<div class="analytics-section"><strong>Leads</strong>: '+(leadsStr||'—')+'</div>';
-              html += '<div class="analytics-section"><strong>Top LTV</strong>: '+(ltvHtml || ltvStr || '—')+'</div>';
-              html += '<div class="analytics-section"><strong>SLA</strong>: '+String(sla.total_breaches||0)+' breaches, '+String(sla.fulfillment_overdue||0)+' overdue</div>';
-              
-              if (staffPerf.length > 0) {
-                const staffStr = staffPerf.slice(0,3).map(function(s){ return s.staff_name+': '+s.appointment_count+' appts ('+s.completion_rate+'%)'; }).join(' • ');
-                html += '<div class="analytics-section"><strong>Staff Performance</strong>: '+(staffStr||'—')+'</div>';
-              }
-              
-              if (Number(docStats.total_documents||0) > 0) {
-                html += '<div class="analytics-section"><strong>Documents</strong>: '+String(docStats.total_documents||0)+' total, '+String(docStats.shared_documents||0)+' shared</div>';
-              }
-              
-              html += '</div>';
-              el.innerHTML = html;
-
-              // Initialize Chart
-              if (trends.length > 0 && typeof Chart !== 'undefined') {
-                const ctx = document.getElementById('appointment-trends-chart');
-                if (ctx) {
-                   // API returns DESC date, reverse for chart (oldest to newest)
-                   const chartTrends = [...trends].reverse();
-                   const labels = chartTrends.map(t => {
-                     const d = new Date(t.date);
-                     return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
-                   });
-                   const totalData = chartTrends.map(t => t.total);
-                   const completedData = chartTrends.map(t => t.completed || 0);
-                   
-                   // Destroy existing chart if any (though this runs once per page load usually)
-                   if (window.myTrendsChart) window.myTrendsChart.destroy();
-                   
-                   // Create gradient
-                   const gradientTotal = ctx.getContext('2d').createLinearGradient(0, 0, 0, 400);
-                   gradientTotal.addColorStop(0, 'rgba(60,141,188,0.5)');
-                   gradientTotal.addColorStop(1, 'rgba(60,141,188,0.0)');
-
-                   const gradientCompleted = ctx.getContext('2d').createLinearGradient(0, 0, 0, 400);
-                   gradientCompleted.addColorStop(0, 'rgba(210, 214, 222, 0.5)');
-                   gradientCompleted.addColorStop(1, 'rgba(210, 214, 222, 0.0)');
-
-                   window.myTrendsChart = new Chart(ctx, {
-                     type: 'line',
-                     data: {
-                       labels: labels,
-                       datasets: [
-                         {
-                           label: 'Total Appointments',
-                           data: totalData,
-                           backgroundColor: gradientTotal,
-                           borderColor: 'rgba(60,141,188,1)',
-                           pointRadius: 4,
-                           pointBackgroundColor: 'rgba(60,141,188,1)',
-                           pointBorderColor: '#fff',
-                           pointHoverRadius: 6,
-                           pointHoverBackgroundColor: '#fff',
-                           pointHoverBorderColor: 'rgba(60,141,188,1)',
-                           fill: true,
-                           tension: 0.4
-                         },
-                         {
-                           label: 'Completed',
-                           data: completedData,
-                           backgroundColor: gradientCompleted,
-                           borderColor: 'rgba(210, 214, 222, 1)',
-                           pointRadius: 4,
-                           pointBackgroundColor: 'rgba(210, 214, 222, 1)',
-                           pointBorderColor: '#fff',
-                           pointHoverRadius: 6,
-                           pointHoverBackgroundColor: '#fff',
-                           pointHoverBorderColor: 'rgba(210, 214, 222, 1)',
-                           fill: true,
-                           tension: 0.4
-                         }
-                       ]
-                     },
-                     options: {
-                       maintainAspectRatio: false,
-                       responsive: true,
-                       layout: {
-                         padding: {
-                           bottom: 0
-                         }
-                       },
-                       plugins: {
-                         legend: { display: true, position: 'top', labels: { usePointStyle: true, boxWidth: 8 } },
-                         tooltip: { 
-                           mode: 'index', 
-                           intersect: false,
-                           backgroundColor: 'rgba(0,0,0,0.8)',
-                           titleColor: '#fff',
-                           bodyColor: '#fff',
-                           borderColor: 'rgba(255,255,255,0.1)',
-                           borderWidth: 1
-                         }
-                       },
-                       interaction: {
-                         mode: 'nearest',
-                         axis: 'x',
-                         intersect: false
-                       },
-                       scales: {
-                         x: { 
-                           grid: { display: false, drawBorder: false },
-                           ticks: { font: { size: 11 }, color: '#8898aa', padding: 10 }
-                         },
-                         y: { 
-                           grid: { borderDash: [4, 4], color: 'rgba(0,0,0,0.05)', drawBorder: false }, 
-                           beginAtZero: true, 
-                           ticks: { precision: 0, font: { size: 11 }, color: '#8898aa', padding: 10 } 
-                         }
-                       }
-                     }
-                   });
-                }
-              }
-            } catch { const el = document.getElementById('analyticsSummary'); if (el) el.textContent = 'Analytics unavailable'; }
-          }
-      try { loadAnalytics(); } catch { void 0; }
-    })();
-  </script>
+  </body>
 </html>

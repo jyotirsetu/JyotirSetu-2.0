@@ -1,5 +1,5 @@
-<select id="mobilePageSelect" class="select" style="display:none;margin-left:8px;z-index:1000" aria-label="Go to page" title="Go to page" tabindex="0" role="navigation">
-  <option value="">Go to…</option>
+<select id="globalPageSelect" class="global-page-select" aria-label="Go to page" title="Go to page" tabindex="0" role="navigation">
+  <option value="">Go to section...</option>
   <option value="/admin/dashboard">Dashboard</option>
   <option value="/admin/leads">Leads</option>
   <option value="/admin/users">Users</option>
@@ -9,6 +9,7 @@
   <option value="/admin/calendar">Calendar</option>
   <option value="/admin/quotes">Quotations</option>
   <option value="/admin/after-service">After Service</option>
+  <option value="/admin/remedies">Remedies</option>
   <option value="/admin/activity-log">Activity Log</option>
   <option value="/admin/templates/email">Email Templates</option>
   <option value="/admin/templates/payment">Payment Templates</option>
@@ -17,11 +18,49 @@
   <option value="/admin/tools/follow-hub/insights">Follow Hub – Insights</option>
   <option value="/admin/settings">Settings</option>
 </select>
+
+<style>
+  .global-page-select {
+    display: none;
+    margin-left: 8px;
+    z-index: 10001;
+    max-width: 160px;
+    min-width: 140px; /* Ensure width */
+    position: relative;
+    background-color: var(--bg-card, #ffffff) !important;
+    color: var(--text-main, #333333) !important;
+    border: 1px solid var(--border-color, #cccccc) !important;
+    height: 36px;
+    padding: 0 8px;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    pointer-events: auto;
+    opacity: 1;
+    visibility: visible;
+    appearance: auto; /* Ensure it looks like a select */
+  }
+  @media (max-width: 992px) {
+    .global-page-select {
+      display: inline-block !important;
+    }
+  }
+  /* Ensure visibility in AdminLTE navbar */
+  :global(.navbar-nav) .global-page-select {
+    margin-top: 0;
+    display: inline-block !important;
+    color: #333333 !important; /* Force dark text even in dark navbar */
+    background-color: #ffffff !important; /* Force white background */
+  }
+  :global(.nav-item) .global-page-select {
+     display: inline-block !important;
+  }
+</style>
+
 <script>
   (function(){
-    const el = document.getElementById('mobilePageSelect');
-    function isMobile(){ return window.innerWidth <= 900; }
-    function sync(){ if (!el) return; el.style.display = isMobile() ? 'inline-flex' : 'none'; }
+    const el = document.getElementById('globalPageSelect');
+    /** @param {any} root */
     function getSelectedValue(root){
       try {
         const opt = root && typeof root.querySelector === 'function' ? root.querySelector('option:checked') : null;
@@ -40,8 +79,5 @@
       });
       el.addEventListener('touchstart', function(){ try { if (el instanceof HTMLSelectElement) el.focus(); } catch { void 0; } });
     }
-    window.addEventListener('resize', sync);
-    document.addEventListener('DOMContentLoaded', sync);
-    sync();
   })();
 </script>

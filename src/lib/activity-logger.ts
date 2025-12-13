@@ -76,7 +76,34 @@ export async function getActivityLog(page: number = 1, limit: number = 100, acti
       `,
       args: [...args, limit, offset],
     });
-    return { data: res.rows || [], total };
+    const rows = (res.rows || []) as Array<Record<string, unknown>>;
+    const deriveClientName = (row: Record<string, unknown>): string => {
+      const detailsRaw = String(row.details || '');
+      try {
+        const obj = JSON.parse(detailsRaw) as Record<string, unknown>;
+        const n = ['client_name', 'appointment_client_name', 'appointment_name']
+          .map((k) => String((obj[k] as string | undefined) || '').trim())
+          .filter(Boolean)[0];
+        if (n) return n;
+      } catch { /* ignore */ }
+      const candidates = [row.appointment_name, row.payment_appt_name, row.payment_client_name, row.contact_name, row.lead_name]
+        .map((v) => String(v || '').trim())
+        .filter(Boolean);
+      return candidates[0] || '';
+    };
+    const replaceIdWithName = (details: string, name: string): string => {
+      if (!details || !name) return details;
+      const match = details.match(/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/);
+      if (match) return details.replace(match[0], name);
+      return details;
+    };
+    const enhanced = rows.map((row) => {
+      const name = deriveClientName(row);
+      const detailsStr = String(row.details || '');
+      const newDetails = replaceIdWithName(detailsStr, name);
+      return { ...row, client_name_display: name, details: newDetails };
+    });
+    return { data: enhanced, total };
   } catch (error) {
     console.error('Failed to get activity log:', error);
     return { data: [], total: 0 };

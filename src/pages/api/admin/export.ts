@@ -12,15 +12,12 @@ export const prerender = false;
 
 export const GET: APIRoute = async ({ request }) => {
   try {
-    const metaEnv = (import.meta as unknown as { env?: Record<string, unknown> }).env;
-    const getEnv = (name: string): string | undefined => {
-      const fromImportMeta = typeof metaEnv?.[name] === 'string' ? (metaEnv?.[name] as string) : undefined;
-      const fromProcess = typeof process !== 'undefined' ? process.env?.[name] : undefined;
-      return fromImportMeta ?? fromProcess ?? undefined;
-    };
-    const secret = getEnv('SESSION_SECRET') || 'change-me';
+    const secret = import.meta.env.SESSION_SECRET || (process.env.SESSION_SECRET || 'change-me');
     const { requireRole } = await import('../../../lib/rbac');
-    if (!(await requireRole(request, String(secret), ['admin']))) return new Response(JSON.stringify({ ok: false, error: 'forbidden' }), { status: 403 });
+    // Allow admin, super_admin, and manager to export
+    if (!(await requireRole(request, String(secret), ['admin', 'super_admin', 'manager']))) {
+      return new Response(JSON.stringify({ ok: false, error: 'forbidden' }), { status: 403 });
+    }
     
     const url = new URL(request.url);
     const type = url.searchParams.get('type'); // 'appointments' or 'contacts' or 'newsletter'

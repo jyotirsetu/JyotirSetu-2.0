@@ -1,0 +1,2441 @@
+---
+export const prerender = false;
+import Favicons from '~/components/Favicons.astro';
+import MobilePageSelect from '~/components/MobilePageSelect.astro';
+import { ensureRemediesTable, ensureRemedyTemplatesTable, getTursoClient } from '../../lib/turso';
+
+// Ensure tables exist
+await ensureRemediesTable();
+await ensureRemedyTemplatesTable();
+
+const client = await getTursoClient();
+const { rows: recentRemedies } = await client.execute(`
+  SELECT * FROM remedies ORDER BY created_at DESC LIMIT 20
+`);
+const { rows: templates } = await client.execute(`
+  SELECT * FROM remedy_templates ORDER BY title ASC
+`);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Professional Remedies – Admin</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@latest/dist/css/adminlte.min.css" />
+    <link rel="stylesheet" href="/admin.css?v=20251129" />
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <Favicons />
+    <!-- TinyMCE -->
+    <script is:inline src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.2/tinymce.min.js"></script>
+    <script is:inline src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script is:inline>
+      window.downloadPDF = () => {
+         const element = document.getElementById('documentCanvas');
+         const opt = {
+           margin: 0,
+           filename: 'JyotirSetu_Remedy_' + (document.getElementById('displayClientName').innerText.replace(/\s+/g, '_') || 'Doc') + '.pdf',
+           image: { type: 'jpeg', quality: 0.98 },
+           html2canvas: { scale: 2, useCORS: true },
+           jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+         };
+         // Hide tools/UI before print if any inside canvas (none expected but safety)
+         html2pdf().set(opt).from(element).save();
+      };
+
+      // Global Quick Insert Function - Defined early to ensure availability
+      window.insertQuickRemedy = (type) => {
+        console.log('Quick Insert Triggered:', type);
+        if (typeof tinymce === 'undefined') {
+          alert('Editor is still loading. Please wait...');
+          return;
+        }
+        const editor = tinymce.get('mainEditor');
+        if (!editor) {
+             console.error('Editor instance not found');
+             alert('Editor not ready yet. Click inside the white page first.');
+             return;
+        }
+
+        // Try Smart Insert First (for Gemstone, Mantra, Donation)
+        if (window.openSmartInsert && window.openSmartInsert(type)) {
+            return;
+        }
+
+        let content = '';
+        const baseStyle = "border: 1px solid #e2e8f0; padding: 25px; margin: 25px 0; border-radius: 12px; background-color: #f8fafc; box-shadow: 0 2px 4px rgba(0,0,0,0.02);";
+        const titleStyle = "margin-top:0; font-family: 'Merriweather', serif; padding-bottom: 12px; border-bottom: 2px solid #e2e8f0; font-size: 1.2em; display: flex; align-items: center; gap: 10px;";
+        const tableStyle = "width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 15px; border-radius: 8px; overflow: hidden; border: 1px solid #e2e8f0;";
+        const cellLabelStyle = "padding: 12px 15px; font-weight: 600; width: 35%; background-color: #f1f5f9; border-bottom: 1px solid #e2e8f0; color: #475569;";
+        const cellValueStyle = "padding: 12px 15px; border-bottom: 1px solid #e2e8f0; background-color: #fff;";
+
+        switch(type) {
+          case 'client_header': {
+             const meta = getFormData();
+             
+             content = `
+              <div style="margin-bottom: 30px; border: 2px solid #e2e8f0; border-radius: 12px; padding: 25px; background: #fff;">
+                <h4 style="margin: 0 0 15px 0; color: #64748b; font-size: 0.9em; text-transform: uppercase; letter-spacing: 1px; text-align: center;">Birth & Horoscope Details</h4>
+                <table style="width: 100%; border-collapse: collapse; font-family: 'Lato', sans-serif;">
+                  <tr>
+                    <td style="width: 33%; padding: 8px; border-bottom: 1px solid #eee;">
+                      <div style="color: #64748b; font-size: 0.85em;">DOB</div>
+                      <div style="color: #334155; font-weight: bold;">${meta.dob || '--'}</div>
+                    </td>
+                    <td style="width: 33%; padding: 8px; border-bottom: 1px solid #eee;">
+                      <div style="color: #64748b; font-size: 0.85em;">Time</div>
+                      <div style="color: #334155; font-weight: bold;">${meta.tob || '--'}</div>
+                    </td>
+                    <td style="width: 33%; padding: 8px; border-bottom: 1px solid #eee;">
+                      <div style="color: #64748b; font-size: 0.85em;">Place</div>
+                      <div style="color: #334155; font-weight: bold;">${meta.pob || '--'}</div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="width: 33%; padding: 8px;">
+                      <div style="color: #64748b; font-size: 0.85em;">Rasi</div>
+                      <div style="color: #334155; font-weight: bold;">${meta.rasi || '--'}</div>
+                    </td>
+                    <td style="width: 33%; padding: 8px;">
+                      <div style="color: #64748b; font-size: 0.85em;">Nakshatra</div>
+                      <div style="color: #334155; font-weight: bold;">${meta.nakshatra || '--'}</div>
+                    </td>
+                    <td style="width: 33%; padding: 8px;">
+                      <div style="color: #64748b; font-size: 0.85em;">Lagna</div>
+                      <div style="color: #334155; font-weight: bold;">${meta.lagna || '--'}</div>
+                    </td>
+                  </tr>
+                </table>
+              </div><p>&nbsp;</p>
+             `;
+             break;
+          }
+          case 'gemstone':
+            content = `
+              <div style="${baseStyle} border-left: 6px solid #6610f2; background: #fdfaff;">
+                <h4 style="${titleStyle} color: #6610f2;">💎 Gemstone Recommendation (Ratna)</h4>
+                <table style="${tableStyle}">
+                  <tr><td style="${cellLabelStyle}">Gemstone</td><td style="${cellValueStyle}"><strong>[Name, e.g., Yellow Sapphire]</strong></td></tr>
+                  <tr><td style="${cellLabelStyle}">Weight</td><td style="${cellValueStyle}">[Ratti/Carats]</td></tr>
+                  <tr><td style="${cellLabelStyle}">Metal</td><td style="${cellValueStyle}">[Gold/Silver]</td></tr>
+                  <tr><td style="${cellLabelStyle}">Finger</td><td style="${cellValueStyle}">[Finger Name]</td></tr>
+                  <tr><td style="${cellLabelStyle}">Wearing Time</td><td style="${cellValueStyle}">[Day, Time]</td></tr>
+                  <tr><td style="${cellLabelStyle}">Mantra</td><td style="${cellValueStyle}">[Mantra for wearing]</td></tr>
+                </table>
+              </div><p>&nbsp;</p>`;
+            break;
+          case 'mantra':
+            content = `
+              <div style="${baseStyle} border-left: 6px solid #ffc107; background: #fffdf5;">
+                <h4 style="${titleStyle} color: #d97706;">🕉️ Vedic Mantra Sadhana</h4>
+                <p style="color: #555;"><strong>Recite the following mantra [108] times daily:</strong></p>
+                <div style="background: #fff; padding: 20px; border: 2px dashed #fbbf24; text-align: center; margin: 20px 0; border-radius: 8px;">
+                   <h3 style="margin:0; color: #333; font-style: italic; font-family: 'Merriweather', serif;">"Om Namo Bhagavate Vasudevaya"</h3>
+                </div>
+                <p style="font-size: 0.9em; color: #666;"><i class="fas fa-info-circle"></i> Ideally perform during Brahma Muhurta (early morning) facing East.</p>
+              </div><p>&nbsp;</p>`;
+            break;
+          case 'rudraksha':
+            content = `
+              <div style="${baseStyle} border-left: 6px solid #dc3545; background: #fff8f8;">
+                <h4 style="${titleStyle} color: #dc3545;">📿 Rudraksha Recommendation</h4>
+                <table style="${tableStyle}">
+                  <tr><td style="${cellLabelStyle}">Type</td><td style="${cellValueStyle}"><strong>[Mukhi] Rudraksha</strong></td></tr>
+                  <tr><td style="${cellLabelStyle}">Origin</td><td style="${cellValueStyle}">[Nepal/Java]</td></tr>
+                  <tr><td style="${cellLabelStyle}">Benefits</td><td style="${cellValueStyle}">[Enter benefits here...]</td></tr>
+                </table>
+                <p style="margin-top: 15px; font-size: 0.9em; color: #777; background: #fff; padding: 10px; border-radius: 4px;"><em>Note: Avoid non-veg/alcohol while wearing.</em></p>
+              </div><p>&nbsp;</p>`;
+            break;
+           case 'yantra':
+            content = `
+              <div style="${baseStyle} border-left: 6px solid #17a2b8; background: #f0fcff;">
+                <h4 style="${titleStyle} color: #0891b2;">✡️ Yantra Installation</h4>
+                <table style="${tableStyle}">
+                  <tr><td style="${cellLabelStyle}">Yantra Name</td><td style="${cellValueStyle}"><strong>[Name]</strong></td></tr>
+                  <tr><td style="${cellLabelStyle}">Placement</td><td style="${cellValueStyle}">[Direction/Location]</td></tr>
+                  <tr><td style="${cellLabelStyle}">Worship Day</td><td style="${cellValueStyle}">[Day]</td></tr>
+                </table>
+              </div><p>&nbsp;</p>`;
+            break;
+           case 'donation':
+            content = `
+              <div style="${baseStyle} border-left: 6px solid #28a745; background: #f3fff5;">
+                <h4 style="${titleStyle} color: #16a34a;">🤲 Donation (Daan)</h4>
+                <p style="color: #555;">To pacify malefic effects, donate the following:</p>
+                <table style="${tableStyle}">
+                  <tr><td style="${cellLabelStyle}">Item(s)</td><td style="${cellValueStyle}"><strong>[Item Name]</strong></td></tr>
+                  <tr><td style="${cellLabelStyle}">Day/Time</td><td style="${cellValueStyle}">[Day]</td></tr>
+                  <tr><td style="${cellLabelStyle}">Recipient</td><td style="${cellValueStyle}">[Who to donate to]</td></tr>
+                </table>
+              </div><p>&nbsp;</p>`;
+            break;
+            case 'note':
+            content = `
+              <div style="background: #fff; border: 1px solid #e2e8f0; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #64748b;">
+                <h5 style="margin-top:0; color: #475569; font-weight: bold;">📝 Astrologer's Note</h5>
+                <p style="color: #333;">[Your personalized note here...]</p>
+              </div><p>&nbsp;</p>`;
+            break;
+        }
+        editor.insertContent(content);
+      };
+    </script>
+    
+    <style>
+      :root {
+        --a4-width: 210mm;
+        --a4-height: 297mm;
+        --brand-color: #6610f2;
+        --brand-light: #f3e8ff;
+      }
+
+      /* Override AdminLTE for this specific app-like page */
+      .content-wrapper {
+        padding: 0 !important;
+        height: calc(100vh - 57px);
+        overflow: hidden;
+        background: #e9ecef;
+      }
+
+      /* Workspace Layout */
+      .workspace {
+        display: flex;
+        height: 100%;
+        overflow: hidden;
+        position: relative;
+        z-index: 10;
+      }
+
+      .editor-area {
+        flex: 1;
+        background: #525659; /* Keep dark for contrast */
+        background-image: radial-gradient(#6c757d 1px, transparent 1px);
+        background-size: 20px 20px;
+        overflow-y: auto;
+        padding: 40px 20px;
+        display: flex;
+        flex-direction: column; /* Changed to column for table */
+        align-items: center; /* Center horizontally */
+      }
+
+      .tools-panel {
+        width: 380px; /* Slightly wider */
+        background: #fff;
+        border-left: 1px solid #dee2e6;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        overflow: hidden; /* Fixed sidebar with scrollable content */
+        z-index: 20; /* Higher than workspace */
+        box-shadow: -5px 0 25px rgba(0,0,0,0.08);
+      }
+      .tools-scroll-content {
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+      }
+      
+      body.dark-mode .tools-panel {
+        background: #343a40;
+        border-left-color: #4b545c;
+        color: #fff;
+      }
+      body.dark-mode .tools-panel .panel-section {
+        border-bottom-color: #4b545c;
+      }
+      body.dark-mode .panel-title {
+        color: #fff;
+      }
+      body.dark-mode .quick-tool-btn {
+        background: #454d55;
+        border-color: #6c757d;
+        color: #ced4da;
+      }
+      body.dark-mode .quick-tool-btn:hover {
+        background: #4b545c;
+        color: #fff;
+        border-color: var(--brand-color);
+      }
+      body.dark-mode .template-card {
+        background: #454d55;
+        border-color: #6c757d;
+        color: #fff;
+      }
+      body.dark-mode .template-card:hover {
+        background: #4b545c;
+        border-color: var(--brand-color);
+      }
+      body.dark-mode .template-card .fw-bold {
+        color: #fff !important;
+      }
+      body.dark-mode .input-group-text {
+        background-color: #454d55;
+        border-color: #6c757d;
+        color: #fff;
+      }
+      body.dark-mode .form-control {
+        background-color: #454d55;
+        border-color: #6c757d;
+        color: #fff;
+      }
+      body.dark-mode .form-control::placeholder {
+        color: #adb5bd;
+      }
+      body.dark-mode .bg-white {
+        background-color: #343a40 !important;
+      }
+
+      /* A4 Page Simulation - HIGH FIDELITY */
+      .a4-page {
+        width: var(--a4-width);
+        min-height: var(--a4-height);
+        background: white;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.2), 0 5px 15px rgba(0,0,0,0.1);
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 50px;
+        transition: transform 0.3s ease;
+      }
+      
+      /* Professional Watermark */
+      .a4-page::before {
+        content: '';
+        position: absolute;
+        top: 55%; /* Visual center adjustment */
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 600px;
+        height: 600px;
+        background-image: url('/logo.png');
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+        opacity: 0.04; 
+        pointer-events: none;
+        z-index: 0;
+        filter: grayscale(100%);
+      }
+
+      /* Print Header/Footer Areas on Screen */
+      .page-header {
+        height: auto;
+        min-height: 120px;
+        position: relative;
+        padding: 40px 50px 20px 50px;
+        border-bottom: 2px solid var(--brand-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        background: white;
+      }
+      
+      .header-brand {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+      .header-brand img {
+        height: 90px;
+      }
+      .header-details {
+        text-align: right;
+        font-size: 0.9rem;
+        color: #555;
+        line-height: 1.4;
+      }
+
+      .page-footer {
+        height: auto;
+        min-height: 60px;
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        padding: 15px 50px;
+        border-top: 1px solid #dee2e6;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 8pt;
+        color: #777;
+        background: white;
+      }
+
+      .page-body {
+        flex: 1;
+        padding: 40px 60px; /* Professional margins */
+        position: relative;
+        z-index: 1;
+      }
+
+      /* TinyMCE Overrides */
+      .tox-tinymce {
+        border: none !important;
+      }
+      .tox-editor-header {
+        box-shadow: none !important;
+        border-bottom: 1px dashed #ddd !important;
+        background: transparent !important;
+        padding: 10px 0 !important;
+      }
+
+      /* Tools Panel Components */
+      .panel-section {
+        padding: 5px 15px; /* Compact padding */
+        border-bottom: 1px solid #f0f0f0;
+        flex-shrink: 0;
+      }
+      .panel-title {
+        font-weight: 800;
+        margin-bottom: 5px; /* Compact margin */
+        color: #2c3e50;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-family: 'Merriweather', serif;
+        font-size: 0.95rem;
+        letter-spacing: -0.5px;
+      }
+      
+      .quick-tools-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+      
+      .quick-tool-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        padding: 10px 8px;
+        background: white;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 12px;
+        font-weight: 600;
+        color: #495057;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+      }
+      .quick-tool-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 10px rgba(0,0,0,0.05);
+        border-color: var(--brand-color);
+        color: var(--brand-color);
+      }
+      .quick-tool-btn i {
+        font-size: 20px;
+        margin-bottom: 4px;
+      }
+
+      /* Print Styles - PIXEL PERFECT */
+      @media print {
+        @page {
+          size: A4;
+          margin: 0;
+        }
+        body {
+          background: white;
+          margin: 0;
+          padding: 0;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
+        .main-header, .main-sidebar, .tools-panel, .no-print, .navbar, .tox-editor-header, .tox-statusbar {
+          display: none !important;
+        }
+        .content-wrapper, .workspace, .editor-area {
+          margin: 0 !important;
+          padding: 0 !important;
+          background: white !important;
+          height: auto !important;
+          width: 100% !important;
+          overflow: visible !important;
+          display: block !important;
+          position: relative !important;
+        }
+        .a4-page {
+          box-shadow: none;
+          margin: 0;
+          width: 100%;
+          min-height: 297mm;
+          height: auto;
+          border: none;
+          transform: none !important;
+        }
+        .page-header {
+           padding: 10mm 15mm 5mm 15mm !important;
+        }
+        .page-body {
+          padding: 5mm 15mm !important;
+        }
+        .page-footer {
+           padding: 5mm 15mm 10mm 15mm !important;
+           position: fixed; 
+           bottom: 0;
+        }
+      }
+
+      /* Template Card */
+      .template-card {
+        cursor: pointer;
+        padding: 12px 15px;
+        border: 1px solid #eee;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        transition: all 0.2s;
+        background: #fdfdfd;
+        position: relative;
+      }
+      .template-card:hover {
+        background: white;
+        border-color: var(--brand-color);
+        box-shadow: 0 3px 8px rgba(0,0,0,0.05);
+      }
+      .template-delete {
+        position: absolute;
+        right: 10px;
+        top: 10px;
+        color: #dc3545;
+        opacity: 0;
+        transition: opacity 0.2s;
+      }
+      .template-card:hover .template-delete {
+        opacity: 1;
+      }
+      
+      /* Search Dropdown Fix */
+      #clientDropdown {
+        /* position: absolute;  Removed to prevent clipping in scrollable panel */
+        margin-top: 5px;
+        width: 100%;
+        max-height: 250px;
+        overflow-y: auto;
+        /* z-index: 9999; */
+        background: white;
+        border: 1px solid rgba(0,0,0,.15);
+        border-radius: 0.25rem;
+        box-shadow: 0 0.5rem 1rem rgba(0,0,0,.175);
+      }
+
+      /* Toast Notifications */
+      #toast-container {
+        position: fixed;
+        top: 80px;
+        right: 20px;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .toast-msg {
+        background: white;
+        padding: 15px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        border-left: 5px solid #333;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-width: 300px;
+        animation: slideInRight 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        font-size: 14px;
+      }
+      .toast-success { border-color: #28a745; }
+      .toast-error { border-color: #dc3545; }
+      .toast-info { border-color: #17a2b8; }
+      @keyframes slideInRight {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+      }
+      @keyframes fadeOutRight {
+        to { transform: translateX(100%); opacity: 0; }
+      }
+
+      /* Zoom Controls */
+      .zoom-floater {
+        position: absolute;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #343a40;
+        padding: 8px 20px;
+        border-radius: 50px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        z-index: 100;
+        color: white;
+        transition: opacity 0.3s;
+      }
+      .zoom-floater:hover { opacity: 1; }
+      .zoom-range {
+        width: 150px;
+        cursor: pointer;
+      }
+
+    </style>
+  </head>
+  <body class="hold-transition sidebar-mini">
+    <div id="toast-container"></div>
+    <script is:inline>
+      (function () {
+        function applyTheme(theme) {
+          let t = theme;
+          if (t === 'auto') {
+            t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          }
+          document.body.classList.toggle('dark-mode', t === 'dark');
+        }
+        let theme = 'dark';
+        let collapsed = false;
+        try {
+          const stored = localStorage.getItem('adminSettings');
+          if (stored) {
+            const s = JSON.parse(stored);
+            if (s && typeof s === 'object') {
+              if (s.theme) theme = s.theme;
+              if (s.sidebarCollapsed != null) collapsed = !!s.sidebarCollapsed;
+            }
+          }
+        } catch {
+          /* ignore theme loading errors */
+        }
+        applyTheme(theme);
+        document.body.classList.toggle('sidebar-collapse', collapsed);
+      })();
+    </script>
+    <div class="wrapper">
+      <!-- Navbar -->
+      <nav class="main-header navbar navbar-expand navbar-dark">
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a class="nav-link" data-widget="pushmenu" href="#" role="button" aria-label="Toggle sidebar"
+              ><i class="fas fa-bars"></i></a
+            >
+          </li>
+          <li class="nav-item"><a href="/admin/dashboard" class="nav-link">Dashboard</a></li>
+          <li class="nav-item d-sm-none">
+            <MobilePageSelect />
+          </li>
+        </ul>
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item d-flex align-items-center gap-2">
+            <button class="btn btn-outline-light btn-sm" onclick="downloadPDF()">
+              <i class="fas fa-file-pdf"></i> Download PDF
+            </button>
+            <button class="btn btn-primary btn-sm me-3" onclick="window.print()">
+              <i class="fas fa-print"></i> Print
+            </button>
+          </li>
+          <li class="nav-item"><a href="/api/admin/logout" class="nav-link">Logout</a></li>
+        </ul>
+      </nav>
+
+      <!-- Sidebar -->
+      <aside class="main-sidebar sidebar-dark-primary elevation-4" id="adminSidebar">
+        <a href="/admin/dashboard" class="brand-link" style="display:flex;align-items:center;gap:8px">
+          <img
+            src="https://images.unsplash.com/vector-1763306579596-25a002c977df?q=80&w=1979&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+            alt="Brand"
+            style="height:40px;width:auto;border-radius:0;box-shadow:0 2px 6px rgba(0,0,0,0.25)"
+          />
+        </a>
+        <div class="sidebar">
+          <nav class="mt-2">
+            <ul class="nav nav-pills nav-sidebar flex-column" role="menu" data-accordion="false" data-widget="treeview">
+              <li class="nav-item">
+                <a href="/admin/dashboard" class="nav-link" data-astro-reload><i class="nav-icon fas fa-gauge"></i><p>Dashboard</p></a>
+              </li>
+              <li class="nav-item">
+                <a href="/admin/leads" class="nav-link" data-astro-reload><i class="nav-icon fas fa-route"></i><p>Leads</p></a>
+              </li>
+              <li class="nav-item">
+                <a href="/admin/appointments" class="nav-link" data-astro-reload><i class="nav-icon fas fa-calendar-check"></i><p>Appointments</p></a>
+              </li>
+              <li class="nav-item">
+                <a href="/admin/contacts" class="nav-link" data-astro-reload><i class="nav-icon fas fa-comments"></i><p>Contacts</p></a>
+              </li>
+              <li class="nav-item">
+                <a href="/admin/newsletter" class="nav-link" data-astro-reload><i class="nav-icon fas fa-envelope-open-text"></i><p>Newsletter</p></a>
+              </li>
+              <li class="nav-item">
+                <a href="/admin/calendar" class="nav-link" data-astro-reload><i class="nav-icon fas fa-calendar"></i><p>Calendar</p></a>
+              </li>
+              <li class="nav-item">
+                <a href="/admin/quotes" class="nav-link" data-astro-reload><i class="nav-icon fas fa-file-invoice"></i><p>Quotations</p></a>
+              </li>
+              <li class="nav-item">
+                <a href="/admin/after-service" class="nav-link" data-astro-reload><i class="nav-icon fas fa-handshake"></i><p>After Service</p></a>
+              </li>
+              <li class="nav-item">
+                <a href="/admin/remedies" class="nav-link active" data-astro-reload><i class="nav-icon fas fa-prescription-bottle-alt"></i><p>Remedies</p></a>
+              </li>
+              <li class="nav-item">
+                <a href="/admin/activity-log" class="nav-link" data-astro-reload><i class="nav-icon fas fa-list"></i><p>Activity Log</p></a>
+              </li>
+              <li class="nav-item">
+                <a href="/admin/templates/email" class="nav-link" data-astro-reload><i class="nav-icon fas fa-file-alt"></i><p>Email Templates</p></a>
+              </li>
+              <li class="nav-item">
+                <a href="/admin/templates/payment" class="nav-link" data-astro-reload><i class="nav-icon fas fa-file-invoice-dollar"></i><p>Payment Templates</p></a>
+              </li>
+              <li class="nav-item">
+                <a href="/admin/client360" class="nav-link" data-astro-reload><i class="nav-icon fas fa-user-circle"></i><p>Client 360°</p></a>
+              </li>
+              <li class="nav-item">
+                <a href="/admin/users" class="nav-link" data-astro-reload><i class="nav-icon fas fa-users-cog"></i><p>Users</p></a>
+              </li>
+              <li class="nav-item">
+                <a href="/admin/tools/follow-hub/insights" class="nav-link" data-astro-reload><i class="nav-icon fas fa-toolbox"></i><p>Follow Hub – Insights</p></a>
+              </li>
+              <li class="nav-item">
+                <a href="/admin/settings" class="nav-link" data-astro-reload><i class="nav-icon fas fa-gear"></i><p>Settings</p></a>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </aside>
+
+      <!-- Content Wrapper -->
+      <div class="content-wrapper">
+        <div class="workspace">
+          
+          <!-- CENTER: A4 Editor Canvas -->
+          <div class="editor-area">
+            <div class="a4-page" id="documentCanvas">
+              
+              <!-- Header -->
+              <div class="page-header">
+                <div class="header-brand">
+                  <img src="/logo.png" alt="Logo">
+                  <div>
+                    <h2 class="m-0 text-primary fw-bold" style="font-family: 'Merriweather', serif; letter-spacing: -0.5px;">JyotirSetu by Astrologer Punita Sharma</h2>
+                    <p class="m-0 text-secondary small text-uppercase" style="letter-spacing: 2px; font-size: 0.7rem; color: #475569 !important;">Bridge to Cosmic light</p>
+                  </div>
+                </div>
+                <div class="header-details">
+                  <div class="fw-bold text-dark">JyotirSetu Guidance Sheet</div>
+                  <div class="d-flex align-items-center gap-2 mt-1">
+                    <span class="text-dark fw-bold" style="font-size: 0.9em;">Date:</span>
+                    <input type="date" id="remedyDateInput" class="form-control form-control-sm border-0 bg-transparent p-0" style="width: auto; font-family: inherit; font-size: 0.9em; color: inherit; cursor: pointer;" value={new Date().toISOString().split('T')[0]}>
+                  </div>
+                  <div id="displayRef" class="text-muted small mt-1">Ref: REM-{new Date().getTime().toString().substr(-6)}</div>
+                </div>
+              </div>
+
+              <!-- Client Info Box -->
+              <div class="px-5 py-2">
+                <div class="p-4 rounded border-0 mb-3" id="clientInfoBox" style="display:none; background: #f8f9fa; border-left: 4px solid var(--brand-color) !important;">
+                  <div class="row align-items-center">
+                    <div class="col-12">
+                      <div class="small text-uppercase text-muted fw-bold mb-2">Prepared For</div>
+                      <div class="d-flex align-items-center justify-content-between">
+                          <div>
+                            <div id="displayClientName" class="fs-4 fw-bold text-dark" style="font-family: 'Merriweather', serif;"></div>
+                            <div class="text-muted small mt-1">
+                                <span id="displayClientEmail" class="me-3"></span>
+                                <span id="displayClientPhone"></span>
+                            </div>
+                          </div>
+                          <div class="text-end">
+                             <div id="displayApptId" class="badge bg-secondary text-white fw-normal" style="font-size: 0.8em; letter-spacing: 1px;">Appt ID: <span></span></div>
+                          </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Horoscope Details -->
+                  <div id="displayHoroscope" class="row mt-3 pt-3 border-top border-secondary-subtle" style="display:none">
+                     <div class="col-12">
+                       <div class="small text-uppercase text-muted fw-bold mb-2" style="font-size: 0.75rem; letter-spacing: 1px;">Birth Details</div>
+                       <div class="row small text-secondary g-2">
+                         <div class="col-auto me-4" id="disp_dob_wrapper" style="display:none"><strong class="text-dark">DOB:</strong> <span id="disp_dob"></span></div>
+                         <div class="col-auto me-4" id="disp_tob_wrapper" style="display:none"><strong class="text-dark">Time:</strong> <span id="disp_tob"></span></div>
+                         <div class="col-auto me-4" id="disp_pob_wrapper" style="display:none"><strong class="text-dark">Place:</strong> <span id="disp_pob"></span></div>
+                         <div class="col-auto me-4" id="disp_rasi_wrapper" style="display:none"><strong class="text-dark">Rasi:</strong> <span id="disp_rasi"></span></div>
+                         <div class="col-auto me-4" id="disp_nakshatra_wrapper" style="display:none"><strong class="text-dark">Nakshatra:</strong> <span id="disp_nakshatra"></span></div>
+                         <div class="col-auto me-4" id="disp_lagna_wrapper" style="display:none"><strong class="text-dark">Lagna:</strong> <span id="disp_lagna"></span></div>
+                       </div>
+                     </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Editor Body -->
+              <div class="page-body">
+                 <h3 id="displayTitle" class="text-center mb-5 fw-bold" style="font-family: 'Merriweather', serif; color: #333; text-transform: uppercase; letter-spacing: 1px; font-size: 1.5rem; border-bottom: 1px solid #eee; padding-bottom: 20px;">Remedial Measures</h3>
+                 <textarea id="mainEditor"></textarea>
+              </div>
+
+              <!-- Footer -->
+              <div class="page-footer">
+                <div>
+                  <strong class="text-dark">JyotirSetu</strong> <span class="mx-2 text-muted">|</span> <span class="text-muted">www.jyotirsetu.com</span>
+                </div>
+                <div class="text-end text-muted" style="font-size: 8pt; max-width: 300px; line-height: 1.2;">
+                  This document contains spiritual remedies based on Vedic Astrology. Results may vary.
+                </div>
+              </div>
+
+            </div>
+            
+            <!-- Zoom Controls -->
+            <div class="zoom-floater">
+              <i class="fas fa-minus small" onclick="adjustZoom(-0.1)" style="cursor:pointer"></i>
+              <input type="range" class="zoom-range" min="0.5" max="1.3" step="0.05" value="1" oninput="updateZoom(this.value)">
+              <i class="fas fa-plus small" onclick="adjustZoom(0.1)" style="cursor:pointer"></i>
+              <span id="zoomValue" class="small fw-bold" style="min-width:40px; text-align:center;">100%</span>
+            </div>
+
+            <!-- Saved Remedies Table -->
+            <div class="saved-remedies-container" style="width: var(--a4-width); margin-top: 40px;">
+              <div class="card shadow-sm">
+                <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                  <h3 class="card-title mb-0" style="font-size: 1rem;"><i class="fas fa-history me-2"></i> Saved Remedies</h3>
+                  <div class="card-tools">
+                    <div class="input-group input-group-sm" style="width: 200px;">
+                      <input type="text" id="tableSearch" class="form-control" placeholder="Search saved...">
+                      <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    </div>
+                  </div>
+                </div>
+                <div class="card-body p-0 table-responsive" style="max-height: 400px;">
+                  <table class="table table-hover table-striped text-nowrap mb-0" id="savedRemediesTable">
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        <th>Client</th>
+                        <th>Title</th>
+                        <th class="text-end">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {recentRemedies.map(r => (
+                        <tr id={`row-${r.id}`}>
+                          <td>{new Date(String(r.created_at)).toLocaleDateString('en-IN')}</td>
+                          <td>{r.customer_name}</td>
+                          <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;">{r.heading || 'Untitled'}</td>
+                          <td class="text-end">
+                          <div class="btn-group btn-group-sm">
+                              <button class="btn btn-info" onclick={`loadRemedy('${r.id}')`} title="Edit">
+                                <i class="fas fa-edit"></i>
+                              </button>
+                              <a href={`/r/${r.share_token}`} target="_blank" class="btn btn-secondary" title="View/Print">
+                                <i class="fas fa-external-link-alt"></i>
+                              </a>
+                              <button class="btn btn-success" onclick={`copyShareLink('${r.share_token}')`} title="Copy Link">
+                                <i class="fas fa-share-alt"></i>
+                              </button>
+                              <button class="btn btn-danger" onclick={`deleteRemedy('${r.id}')`} title="Delete">
+                                <i class="fas fa-trash"></i>
+                              </button>
+                              <button class="btn btn-success" onclick={`sendWhatsAppRemedy('${r.id}')`} title="Send via WhatsApp">
+                                <i class="fab fa-whatsapp"></i>
+                              </button>
+                              <button class="btn btn-primary" onclick={`sendEmailRemedy('${r.id}')`} title="Send via Email">
+                                <i class="fas fa-envelope"></i>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                      {recentRemedies.length === 0 && (
+                        <tr><td colspan="4" class="text-center py-4 text-muted">No saved remedies found</td></tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              
+              <!-- Hidden Data Store for Remedies -->
+              <div id="remediesData" style="display:none">
+                {JSON.stringify(recentRemedies.map(r => ({
+                  id: r.id,
+                  appointment_id: r.appointment_id,
+                  customer_name: r.customer_name,
+                  customer_email: r.customer_email,
+                  customer_phone: r.customer_phone,
+                  heading: r.heading,
+                  content: r.content,
+                  share_token: r.share_token,
+                  customer_appointment_id: r.customer_appointment_id,
+                  dob: r.dob,
+                  tob: r.tob,
+                  pob: r.pob,
+                  rasi: r.rasi,
+                  nakshatra: r.nakshatra,
+                  lagna: r.lagna
+                })))}
+              </div>
+            </div>
+          </div>
+
+          <!-- RIGHT: Tools Panel -->
+          <div class="tools-panel">
+            
+            <div class="tools-scroll-content">
+            <!-- Lagna Kundli Generator -->
+            <div class="panel-section pt-3 pb-2">
+              <div class="small text-muted fw-bold text-uppercase mb-2" style="font-size: 10px; letter-spacing: 1px;">Lagna Kundli Generator</div>
+              <div class="mb-2">
+                <select id="kundliLagna" class="form-select form-select-sm mb-2">
+                    <option value="">-- Select Lagna --</option>
+                    <option value="1">Aries (1)</option>
+                    <option value="2">Taurus (2)</option>
+                    <option value="3">Gemini (3)</option>
+                    <option value="4">Cancer (4)</option>
+                    <option value="5">Leo (5)</option>
+                    <option value="6">Virgo (6)</option>
+                    <option value="7">Libra (7)</option>
+                    <option value="8">Scorpio (8)</option>
+                    <option value="9">Sagittarius (9)</option>
+                    <option value="10">Capricorn (10)</option>
+                    <option value="11">Aquarius (11)</option>
+                    <option value="12">Pisces (12)</option>
+                </select>
+                <button class="btn btn-sm btn-outline-primary w-100" onclick="generateKundli()">
+                    <i class="fas fa-plus-circle me-1"></i> Insert Draggable Kundli
+                </button>
+              </div>
+            </div>
+
+            <!-- 0. Quick Tools -->
+            <div class="panel-section">
+              <div class="panel-title">Quick Insert</div>
+              <div class="quick-tools-grid">
+                <div class="quick-tool-btn" onclick="openSmartInsert('gemstone')">
+                  <i class="fas fa-gem text-primary"></i> <span>Gemstone</span>
+                </div>
+                <div class="quick-tool-btn" onclick="openSmartInsert('mantra')">
+                  <i class="fas fa-om text-warning"></i> <span>Mantra</span>
+                </div>
+                <div class="quick-tool-btn" onclick="openSmartInsert('rudraksha')">
+                  <i class="fas fa-circle text-danger"></i> <span>Rudraksha</span>
+                </div>
+                <div class="quick-tool-btn" onclick="openSmartInsert('yantra')">
+                  <i class="fas fa-star-of-david text-info"></i> <span>Yantra</span>
+                </div>
+                 <div class="quick-tool-btn" onclick="openSmartInsert('donation')">
+                  <i class="fas fa-hand-holding-heart text-success"></i> <span>Donation</span>
+                </div>
+                <div class="quick-tool-btn" onclick="openSmartInsert('note')">
+                  <i class="fas fa-sticky-note text-muted"></i> <span>Notes</span>
+                </div>
+                <div class="quick-tool-btn" onclick="openSmartInsert('client_header')">
+                  <i class="fas fa-id-card text-secondary"></i> <span>Client Header</span>
+                </div>
+                <div class="quick-tool-btn" onclick="openSmartInsert('grah_positions')">
+                  <i class="fas fa-table text-primary"></i> <span>Grah Positions</span>
+                </div>
+                <div class="quick-tool-btn" onclick="openSmartInsert('panchang')">
+                  <i class="fas fa-sun text-warning"></i> <span>Panchang</span>
+                </div>
+                <div class="quick-tool-btn" onclick="openSmartInsert('muhurat_note')">
+                  <i class="fas fa-clock text-info"></i> <span>Muhurat</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 1. Client Search -->
+            <div class="panel-section">
+              <div class="panel-title">
+                Client Details
+                <button class="btn btn-xs btn-outline-primary rounded-circle" id="syncBtn" title="Sync Recent Clients"><i class="fas fa-sync"></i></button>
+              </div>
+              <div class="form-group mb-3 position-relative">
+                <div class="input-group input-group-sm">
+                  <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
+                  <input type="text" class="form-control form-control-sm border-start-0" id="clientSearch" placeholder="Search client (Name/Email)..." autocomplete="off">
+                </div>
+                <div id="clientDropdown" class="list-group" style="display:none;"></div>
+              </div>
+              <form id="metaForm">
+                <input type="hidden" name="remedy_id" id="remedyId">
+                <input type="hidden" name="appointment_id">
+                <input type="hidden" name="customer_appointment_id">
+                
+                <div class="mb-2">
+                  <label class="small text-muted mb-1">Client Name</label>
+                  <input type="text" class="form-control form-control-sm" name="customer_name" placeholder="Name" required>
+                </div>
+                <div class="mb-2">
+                  <label class="small text-muted mb-1">Appointment ID</label>
+                  <input type="text" class="form-control form-control-sm" name="appointment_id_display" placeholder="Appt ID" readonly>
+                </div>
+                <div class="mb-2">
+                  <label class="small text-muted mb-1">Mobile Number</label>
+                  <input type="text" class="form-control form-control-sm" name="customer_phone" placeholder="Mobile Number" required>
+                </div>
+                <div class="mb-2">
+                  <label class="small text-muted mb-1">Email (Internal)</label>
+                  <input type="text" class="form-control form-control-sm" name="customer_email" placeholder="Email">
+                </div>
+                <div class="mb-2">
+                  <label class="small text-muted mb-1">Document Title</label>
+                  <input type="text" class="form-control form-control-sm" name="heading" placeholder="Title" value="Remedial Measures">
+                </div>
+
+                <!-- Hidden Horoscope Data (Populated via Sync) -->
+                <input type="hidden" name="dob">
+                <input type="hidden" name="tob">
+                <input type="hidden" name="pob">
+                <input type="hidden" name="rasi">
+                <input type="hidden" name="nakshatra">
+                <input type="hidden" name="lagna">
+              </form>
+            </div>
+
+            <!-- 2. Templates -->
+            <div class="panel-section flex-grow-1 overflow-hidden d-flex flex-column" style="min-height: 0;">
+              <div class="panel-title">
+                Templates 
+                <button class="btn btn-xs btn-success rounded-pill px-3" onclick="saveAsTemplate()">+ Save Current</button>
+              </div>
+              <div class="input-group input-group-sm mb-3">
+                <input type="text" class="form-control" placeholder="Find template..." id="templateFilter">
+                <span class="input-group-text bg-white"><i class="fas fa-filter text-muted"></i></span>
+              </div>
+              <div style="overflow-y: auto; flex: 1; padding-right: 5px;" id="templatesList">
+                {templates.map(t => (
+                  <div class="template-card" onclick={`insertTemplate('${t.id}')`}>
+                    <div class="d-flex justify-content-between align-items-start">
+                      <div class="fw-bold text-dark" style="font-size: 0.9rem;">{t.title}</div>
+                      <div>
+                        <i class="fas fa-pen text-primary me-2" style="cursor:pointer; opacity:0.6" onclick={`event.stopPropagation(); editTemplate('${t.id}', '${t.title}', '${t.category || 'General'}')`} title="Edit Template"></i>
+                        <i class="fas fa-trash text-danger" style="cursor:pointer; opacity:0.6" onclick={`event.stopPropagation(); deleteTemplate('${t.id}')`} title="Delete Template"></i>
+                      </div>
+                    </div>
+                    <div class="mt-1">
+                        <span class={`badge ${t.category === 'Gemstone' ? 'bg-primary' : t.category === 'Mantra' ? 'bg-warning text-dark' : t.category === 'Donation' ? 'bg-success' : 'bg-secondary'} rounded-pill fw-normal`} style="font-size: 0.65rem; letter-spacing: 0.5px;">{t.category || 'General'}</span>
+                    </div>
+                    <div style="display:none" id={`tpl-${t.id}`}>{t.content}</div>
+                  </div>
+                ))}
+                {templates.length === 0 && <div class="text-center text-muted small py-4">No templates yet. Create one!</div>}
+              </div>
+            </div>
+            </div>
+
+            <!-- 3. Actions -->
+            <div class="panel-section bg-white mt-auto border-top p-2">
+              <div class="d-flex gap-2 mb-1">
+                  <button class="btn btn-outline-secondary btn-xs flex-grow-1" onclick="resetEditor()" title="Clear Editor">
+                    <i class="fas fa-file"></i> New
+                  </button>
+                  <button class="btn btn-primary btn-xs flex-grow-1 fw-bold shadow-sm" id="saveBtn">
+                    <i class="fas fa-save me-2"></i> Save
+                  </button>
+              </div>
+              <div class="text-center small text-muted" id="statusMsg" style="font-size: 0.75rem;">
+                <i class="fas fa-check-circle text-success me-1"></i> System Ready
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Template Modal -->
+    <div id="templateModal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:10000; justify-content:center; align-items:center;">
+      <div class="bg-white rounded shadow-lg overflow-hidden" style="width: 400px;">
+        <div class="modal-header text-white p-3 d-flex justify-content-between align-items-center" style="background-color: var(--brand-color);">
+            <h5 class="modal-title fw-bold m-0" id="tmplModalTitle">Save Template</h5>
+            <button type="button" class="btn-close btn-close-white" onclick="closeTemplateModal()"></button>
+        </div>
+        <div class="p-4">
+            <input type="hidden" id="tmplId">
+            <div class="mb-3">
+            <label class="small text-muted">Title</label>
+            <input type="text" id="tmplTitle" class="form-control" placeholder="Template Name">
+            </div>
+            <div class="mb-3">
+            <label class="small text-muted">Category</label>
+            <select id="tmplCategory" class="form-select">
+                <option value="General">General</option>
+                <option value="Gemstone">Gemstone</option>
+                <option value="Mantra">Mantra</option>
+                <option value="Custom">Custom</option>
+            </select>
+            </div>
+            <div class="d-flex justify-content-end gap-2">
+            <button class="btn btn-secondary btn-sm" onclick="closeTemplateModal()">Cancel</button>
+            <button class="btn btn-primary btn-sm" onclick="submitTemplate()" style="background-color: var(--brand-color); border-color: var(--brand-color);">Save</button>
+            </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Smart Insert Modal -->
+    <div id="smartInsertModal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:10000; justify-content:center; align-items:center;">
+      <div class="bg-white rounded shadow-lg overflow-hidden d-flex flex-column" style="width: 500px; max-height: 90vh;">
+        <div class="modal-header text-white p-3 d-flex justify-content-between align-items-center" style="background-color: var(--brand-color);">
+            <h5 class="modal-title fw-bold m-0" id="smartModalTitle">Smart Insert</h5>
+            <button type="button" class="btn-close btn-close-white" onclick="closeSmartModal()"></button>
+        </div>
+        <div class="p-4 overflow-y-auto">
+            <!-- Optional Preset Loader -->
+            <div class="mb-4 p-3 bg-light rounded border" id="smartPresetSection">
+                <label class="small text-muted fw-bold text-uppercase mb-2">⚡ Quick Autofill (By Planet)</label>
+                <select class="form-select form-select-sm" id="smartPresetSelect" onchange="applySmartPreset()">
+                    <option value="">-- Select Planet to Autofill --</option>
+                    <option value="Sun">Sun (Surya)</option>
+                    <option value="Moon">Moon (Chandra)</option>
+                    <option value="Mars">Mars (Mangal)</option>
+                    <option value="Mercury">Mercury (Budh)</option>
+                    <option value="Jupiter">Jupiter (Guru)</option>
+                    <option value="Venus">Venus (Shukra)</option>
+                    <option value="Saturn">Saturn (Shani)</option>
+                    <option value="Rahu">Rahu</option>
+                    <option value="Ketu">Ketu</option>
+                </select>
+            </div>
+
+            <form id="smartForm" class="d-flex flex-column gap-3">
+                <!-- Fields injected via JS -->
+            </form>
+        </div>
+        <div class="p-3 border-top bg-light d-flex justify-content-end gap-2">
+          <button class="btn btn-secondary" onclick="closeSmartModal()">Cancel</button>
+          <button class="btn btn-primary px-4" onclick="executeSmartInsert()" style="background-color: var(--brand-color); border-color: var(--brand-color);">Insert</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confirm Modal -->
+    <div id="confirmModal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:10001; justify-content:center; align-items:center;">
+      <div class="bg-white p-4 rounded shadow-lg text-center" style="width: 350px;">
+        <div class="mb-3 text-warning">
+          <i class="fas fa-exclamation-triangle fa-3x"></i>
+        </div>
+        <h5 class="fw-bold mb-2" id="confirmTitle">Confirm Action</h5>
+        <p class="text-muted small mb-4" id="confirmMessage">Are you sure?</p>
+        <div class="d-flex justify-content-center gap-2">
+          <button class="btn btn-secondary btn-sm px-3" onclick="closeConfirmModal()">Cancel</button>
+          <button class="btn btn-primary btn-sm px-3" id="confirmYesBtn" style="background-color: var(--brand-color); border-color: var(--brand-color);">Yes, Proceed</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delete Template Modal -->
+    <div id="deleteTemplateModal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:10002; justify-content:center; align-items:center;">
+      <div class="bg-white rounded shadow-lg overflow-hidden" style="width: 400px;">
+        <div class="modal-header text-white p-3 d-flex justify-content-between align-items-center" style="background-color: var(--brand-color);">
+            <h5 class="modal-title fw-bold m-0">Delete Template</h5>
+            <button type="button" class="btn-close btn-close-white" onclick="closeDeleteTemplateModal()"></button>
+        </div>
+        <div class="p-4 text-center">
+            <div class="mb-3 text-danger">
+                <i class="fas fa-trash-alt fa-3x"></i>
+            </div>
+            <p class="mb-4">Are you sure you want to delete this template? This action cannot be undone.</p>
+            <input type="hidden" id="deleteTemplateId">
+            <div class="d-flex justify-content-center gap-2">
+                <button class="btn btn-secondary" onclick="closeDeleteTemplateModal()">Cancel</button>
+                <button class="btn btn-danger" onclick="confirmDeleteTemplate()">Delete</button>
+            </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Clear Editor Modal -->
+    <div id="clearEditorModal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:10002; justify-content:center; align-items:center;">
+      <div class="bg-white rounded shadow-lg overflow-hidden" style="width: 400px;">
+        <div class="modal-header text-white p-3 d-flex justify-content-between align-items-center" style="background-color: var(--brand-color);">
+            <h5 class="modal-title fw-bold m-0">Clear Editor</h5>
+            <button type="button" class="btn-close btn-close-white" onclick="closeClearEditorModal()"></button>
+        </div>
+        <div class="p-4 text-center">
+            <div class="mb-3 text-warning">
+                <i class="fas fa-eraser fa-3x"></i>
+            </div>
+            <p class="mb-4">Are you sure you want to clear the editor and start fresh? All unsaved changes will be lost.</p>
+            <div class="d-flex justify-content-center gap-2">
+                <button class="btn btn-secondary" onclick="closeClearEditorModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="confirmClearEditor()" style="background-color: var(--brand-color); border-color: var(--brand-color);">Yes, Clear It</button>
+            </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Logic -->
+    <script is:inline>
+      // 0. Utilities
+      function showToast(msg, type = 'info') {
+        const container = document.getElementById('toast-container');
+        const el = document.createElement('div');
+        el.className = `toast-msg toast-${type}`;
+        el.innerHTML = `
+          <span>${msg}</span>
+          <button onclick="this.parentElement.remove()" class="btn btn-sm text-muted"><i class="fas fa-times"></i></button>
+        `;
+        container.appendChild(el);
+        setTimeout(() => {
+          el.style.animation = 'fadeOutRight 0.5s forwards';
+          setTimeout(() => el.remove(), 500);
+        }, 3000);
+      }
+
+      window.resetEditor = () => {
+        document.getElementById('clearEditorModal').style.display = 'flex';
+      };
+
+      window.closeClearEditorModal = () => {
+        document.getElementById('clearEditorModal').style.display = 'none';
+      };
+
+      window.confirmClearEditor = () => {
+            const editor = tinymce.get('mainEditor');
+            if(editor) editor.setContent('');
+            document.getElementById('metaForm').reset();
+            document.getElementById('displayClientName').innerText = '';
+            document.querySelector('#displayClientPhone span').innerText = '';
+            document.getElementById('clientInfoBox').style.display = 'none';
+            localStorage.removeItem('remedyDraft_v2');
+            showToast('Editor cleared', 'info');
+            closeClearEditorModal();
+      };
+
+      function updateZoom(val) {
+        const page = document.getElementById('documentCanvas');
+        page.style.transform = `scale(${val})`;
+        page.style.transformOrigin = 'top center';
+        document.getElementById('zoomValue').innerText = Math.round(val * 100) + '%';
+      }
+
+      window.adjustZoom = (delta) => {
+        const input = document.querySelector('.zoom-range');
+        let newVal = parseFloat(input.value) + delta;
+        newVal = Math.min(Math.max(newVal, 0.5), 1.3);
+        input.value = newVal;
+        updateZoom(newVal);
+      };
+
+      // --- CUSTOM MODALS ---
+      window.showConfirm = (title, msg, onYes) => {
+         document.getElementById('confirmTitle').innerText = title;
+         document.getElementById('confirmMessage').innerText = msg;
+         const btn = document.getElementById('confirmYesBtn');
+         // Clone to remove old listeners
+         const newBtn = btn.cloneNode(true);
+         btn.parentNode.replaceChild(newBtn, btn);
+         
+         newBtn.onclick = () => {
+             onYes();
+             closeConfirmModal();
+         };
+         newBtn.innerText = 'Yes, Proceed';
+         document.getElementById('confirmModal').style.display = 'flex';
+      };
+      window.closeConfirmModal = () => {
+         document.getElementById('confirmModal').style.display = 'none';
+      };
+
+      window.insertSymbol = (char) => {
+        const editor = tinymce.get('mainEditor');
+        if (editor) editor.insertContent(char);
+      };
+
+      // --- SMART INSERT LOGIC ---
+      const PLANETARY_DATA = {
+        'Sun': {
+            gem: 'Ruby (Manik)', weight: '5.25 Ratti', metal: 'Gold or Copper', finger: 'Ring Finger', time: 'Sunday Morning',
+            mantra: 'Om Hram Hreem Hroum Sah Suryaya Namah', mantra_dev: 'ॐ ह्रां ह्रीं ह्रौं सः सूर्याय नमः',
+            donation: 'Wheat, Jaggery, Copper vessel',
+            rudraksha: '1 Mukhi or 12 Mukhi', rudraksha_origin: 'Java / Nepal',
+            yantra: 'Surya Yantra', yantra_place: 'East Direction',
+            color: '#d97706'
+        },
+        'Moon': {
+            gem: 'Pearl (Moti)', weight: '5.25 - 7.25 Ratti', metal: 'Silver', finger: 'Little Finger', time: 'Monday Evening',
+            mantra: 'Om Shram Shreem Shroum Sah Chandramase Namah', mantra_dev: 'ॐ श्रां श्रीं श्रौं सः चंद्रमसे नमः',
+            donation: 'Rice, Milk, Silver, White Cloth',
+            rudraksha: '2 Mukhi', rudraksha_origin: 'Java / Nepal',
+            yantra: 'Chandra Yantra', yantra_place: 'North-West Direction',
+            color: '#64748b'
+        },
+        'Mars': {
+            gem: 'Red Coral (Moonga)', weight: '6.25 Ratti', metal: 'Gold or Copper', finger: 'Ring Finger', time: 'Tuesday Morning',
+            mantra: 'Om Kram Kreem Kroum Sah Bhaumaya Namah', mantra_dev: 'ॐ क्रां क्रीं क्रौं सः भौमाय नमः',
+            donation: 'Masoor Dal, Jaggery',
+            rudraksha: '3 Mukhi', rudraksha_origin: 'Java / Nepal',
+            yantra: 'Mangal Yantra', yantra_place: 'South Direction',
+            color: '#dc3545'
+        },
+        'Mercury': {
+            gem: 'Emerald (Panna)', weight: '5.25 Ratti', metal: 'Gold', finger: 'Little Finger', time: 'Wednesday Morning',
+            mantra: 'Om Bram Breem Broum Sah Budhaya Namah', mantra_dev: 'ॐ ब्रां ब्रीं ब्रौं सः बुधाय नमः',
+            donation: 'Moong Dal (Green), Green Cloth',
+            rudraksha: '4 Mukhi', rudraksha_origin: 'Java / Nepal',
+            yantra: 'Budh Yantra', yantra_place: 'North Direction',
+            color: '#198754'
+        },
+        'Jupiter': {
+            gem: 'Yellow Sapphire (Pukhraj)', weight: '5.25 Ratti', metal: 'Gold', finger: 'Index Finger', time: 'Thursday Morning',
+            mantra: 'Om Gram Greem Groum Sah Gurave Namah', mantra_dev: 'ॐ ग्रां ग्रीं ग्रौं सः गुरवे नमः',
+            donation: 'Chana Dal, Turmeric, Yellow Cloth',
+            rudraksha: '5 Mukhi', rudraksha_origin: 'Java / Nepal',
+            yantra: 'Brihaspati Yantra', yantra_place: 'North-East Direction',
+            color: '#ffc107'
+        },
+        'Venus': {
+            gem: 'Diamond / Opal / Zircon', weight: 'To affect', metal: 'Silver or Gold', finger: 'Middle or Thumb', time: 'Friday Morning',
+            mantra: 'Om Dram Dreem Droum Sah Shukraya Namah', mantra_dev: 'ॐ द्रां द्रीं द्रौं सः शुक्राय नमः',
+            donation: 'Curd, Ghee, White Cloth',
+            rudraksha: '6 Mukhi', rudraksha_origin: 'Java / Nepal',
+            yantra: 'Shukra Yantra', yantra_place: 'South-East Direction',
+            color: '#0d6efd'
+        },
+        'Saturn': {
+            gem: 'Blue Sapphire (Neelam)', weight: '5.25 Ratti', metal: 'Silver/Iron', finger: 'Middle Finger', time: 'Saturday Evening',
+            mantra: 'Om Pram Preem Proum Sah Shanaischaraya Namah', mantra_dev: 'ॐ प्रां प्रीं प्रौं सः शनैश्चराय नमः',
+            donation: 'Black Urad, Mustard Oil, Iron',
+            rudraksha: '7 Mukhi', rudraksha_origin: 'Java / Nepal',
+            yantra: 'Shani Yantra', yantra_place: 'West Direction',
+            color: '#212529'
+        },
+        'Rahu': {
+            gem: 'Hessonite (Gomed)', weight: '6.25 Ratti', metal: 'Silver/Panchdhatu', finger: 'Middle Finger', time: 'Saturday Night',
+            mantra: 'Om Bhram Bhreem Bhroum Sah Rahave Namah', mantra_dev: 'ॐ भ्रां भ्रीं भ्रौं सः राहवे नमः',
+            donation: 'Mixed Grains, Coconuts',
+            rudraksha: '8 Mukhi', rudraksha_origin: 'Java / Nepal',
+            yantra: 'Rahu Yantra', yantra_place: 'South-West Direction',
+            color: '#6610f2'
+        },
+        'Ketu': {
+            gem: 'Cat\'s Eye (Lehsunia)', weight: '5.25 Ratti', metal: 'Silver/Panchdhatu', finger: 'Middle Finger', time: 'Tuesday/Saturday Night',
+            mantra: 'Om Stram Streem Stroum Sah Ketave Namah', mantra_dev: 'ॐ स्त्रां स्त्रीं स्त्रौं सः केतवे नमः',
+            donation: 'Black/White Blanket, Dogs',
+            rudraksha: '9 Mukhi', rudraksha_origin: 'Java / Nepal',
+            yantra: 'Ketu Yantra', yantra_place: 'North-West Direction',
+            color: '#6f42c1'
+        }
+      };
+
+      const SMART_SCHEMAS = {
+        'gemstone': [
+            { id: 'gem', label: 'Gemstone Name', type: 'text', placeholder: 'e.g. Yellow Sapphire' },
+            { id: 'weight', label: 'Weight', type: 'text', placeholder: 'e.g. 5.25 Ratti' },
+            { id: 'metal', label: 'Metal', type: 'select', options: ['Gold', 'Silver', 'Copper', 'Panchdhatu', 'White Gold'] },
+            { id: 'finger', label: 'Finger', type: 'select', options: ['Index Finger', 'Middle Finger', 'Ring Finger', 'Little Finger'] },
+            { id: 'time', label: 'Wearing Time', type: 'text', placeholder: 'e.g. Thursday Morning' },
+            { id: 'mantra', label: 'Mantra (Optional)', type: 'text', placeholder: 'Mantra to chant while wearing' }
+        ],
+        'mantra': [
+            { id: 'mantra_text', label: 'Mantra Text (Hinglish)', type: 'textarea', placeholder: 'Enter the full mantra here...' },
+            { id: 'mantra_dev', label: 'Mantra (Hindi/Sanskrit)', type: 'textarea', placeholder: 'देवनागरी श्लोक' },
+            { id: 'count', label: 'Chanting Count', type: 'text', value: '108 times daily' },
+            { id: 'time', label: 'Best Time', type: 'text', placeholder: 'e.g. Morning / Brahma Muhurta' }
+        ],
+        'donation': [
+            { id: 'items', label: 'Items to Donate', type: 'text', placeholder: 'e.g. Black Urad, Mustard Oil' },
+            { id: 'time', label: 'Day / Time', type: 'text', placeholder: 'e.g. Saturday Evening' },
+            { id: 'recipient', label: 'Recipient', type: 'text', placeholder: 'e.g. Poor people, Temple' }
+        ],
+        'rudraksha': [
+            { id: 'mukhi', label: 'Mukhi (Face)', type: 'text', placeholder: 'e.g. 5 Mukhi' },
+            { id: 'origin', label: 'Origin', type: 'select', options: ['Nepal', 'Java/Indonesia', 'India'] },
+            { id: 'benefits', label: 'Key Benefits', type: 'textarea', placeholder: 'e.g. Peace of mind, health...' },
+            { id: 'wearing_rule', label: 'Wearing Rule', type: 'text', value: 'Wear in red thread on Monday morning after Shiva Puja' }
+        ],
+        'yantra': [
+            { id: 'name', label: 'Yantra Name', type: 'text', placeholder: 'e.g. Sri Yantra' },
+            { id: 'placement', label: 'Placement', type: 'text', placeholder: 'e.g. North-East Direction' },
+            { id: 'worship', label: 'Worship Method', type: 'textarea', placeholder: 'Daily lighting of lamp...' }
+        ],
+        'panchang': [
+            { id: 'tithi', label: 'Tithi', type: 'text', placeholder: 'e.g. Shukla Paksha Tritiya' },
+            { id: 'nakshatra', label: 'Nakshatra', type: 'text', placeholder: 'e.g. Rohini' },
+            { id: 'yoga', label: 'Yoga', type: 'text', placeholder: 'e.g. Shubha' },
+            { id: 'karana', label: 'Karana', type: 'text', placeholder: 'e.g. Bava' },
+            { id: 'sunrise', label: 'Sunrise', type: 'text', placeholder: 'e.g. 06:45 AM' },
+            { id: 'sunset', label: 'Sunset', type: 'text', placeholder: 'e.g. 05:32 PM' }
+        ],
+        'muhurat_note': [
+            { id: 'purpose', label: 'Purpose', type: 'text', placeholder: 'e.g. Property Purchase' },
+            { id: 'date', label: 'Date', type: 'text', placeholder: 'DD/MM/YYYY' },
+            { id: 'time_window', label: 'Preferred Time Window', type: 'text', placeholder: 'e.g. 09:12–10:26 AM' },
+            { id: 'direction', label: 'Direction', type: 'text', placeholder: 'e.g. East' },
+            { id: 'remarks', label: 'Remarks', type: 'textarea', placeholder: 'Notes or instructions' }
+        ],
+        'grah_positions': [
+            { id: 'house1', label: 'House 1', type: 'text', placeholder: 'e.g. Su/सू, Mo/चं' },
+            { id: 'house2', label: 'House 2', type: 'text', placeholder: 'e.g. Ma/मं' },
+            { id: 'house3', label: 'House 3', type: 'text', placeholder: '' },
+            { id: 'house4', label: 'House 4', type: 'text', placeholder: '' },
+            { id: 'house5', label: 'House 5', type: 'text', placeholder: '' },
+            { id: 'house6', label: 'House 6', type: 'text', placeholder: '' },
+            { id: 'house7', label: 'House 7', type: 'text', placeholder: '' },
+            { id: 'house8', label: 'House 8', type: 'text', placeholder: '' },
+            { id: 'house9', label: 'House 9', type: 'text', placeholder: '' },
+            { id: 'house10', label: 'House 10', type: 'text', placeholder: '' },
+            { id: 'house11', label: 'House 11', type: 'text', placeholder: '' },
+            { id: 'house12', label: 'House 12', type: 'text', placeholder: '' }
+        ],
+        'client_header': [
+            { id: 'dob', label: 'Date of Birth', type: 'text', placeholder: 'DD/MM/YYYY' },
+            { id: 'tob', label: 'Time of Birth', type: 'text', placeholder: 'HH:MM' },
+            { id: 'pob', label: 'Place of Birth', type: 'text', placeholder: 'City, Country' },
+            { id: 'rasi', label: 'Rasi', type: 'text', placeholder: 'e.g., Leo' },
+            { id: 'nakshatra', label: 'Nakshatra', type: 'text', placeholder: 'e.g., Ashwini' },
+            { id: 'lagna', label: 'Lagna', type: 'text', placeholder: 'e.g., Aries' }
+        ],
+        'note': [
+            { id: 'note_text', label: 'Note Content', type: 'textarea', placeholder: 'Enter your note here...' },
+            { id: 'note_type', label: 'Note Type', type: 'select', options: ['General', 'Important', 'Follow-up'] }
+        ]
+      };
+
+      let currentSmartType = '';
+      const smartModal = document.getElementById('smartInsertModal');
+      const smartForm = document.getElementById('smartForm');
+      const smartPreset = document.getElementById('smartPresetSection');
+
+      window.openSmartInsert = (type) => {
+         if(!SMART_SCHEMAS[type]) {
+             console.warn('No smart schema for', type);
+             return false; 
+         }
+         currentSmartType = type;
+         document.getElementById('smartModalTitle').innerText = 'Insert ' + type.charAt(0).toUpperCase() + type.slice(1).replace('_', ' ');
+         
+         // Show/Hide Preset based on type
+         smartPreset.style.display = ['gemstone', 'mantra', 'donation', 'rudraksha', 'yantra'].includes(type) ? 'block' : 'none';
+         document.getElementById('smartPresetSelect').value = ''; // Reset
+
+         // Build Form
+         smartForm.innerHTML = '';
+         SMART_SCHEMAS[type].forEach(field => {
+            const div = document.createElement('div');
+            const lbl = document.createElement('label');
+            lbl.className = 'small fw-bold text-muted mb-1';
+            lbl.innerText = field.label;
+            
+            let input;
+            if(field.type === 'select') {
+                input = document.createElement('select');
+                input.className = 'form-select';
+                field.options.forEach(opt => {
+                    const o = document.createElement('option');
+                    o.value = opt;
+                    o.innerText = opt;
+                    input.appendChild(o);
+                });
+            } else if (field.type === 'textarea') {
+                input = document.createElement('textarea');
+                input.className = 'form-control';
+                input.rows = 3;
+            } else {
+                input = document.createElement('input');
+                input.type = field.type;
+                input.className = 'form-control';
+            }
+            input.id = 'smart_' + field.id;
+            if(field.placeholder) input.placeholder = field.placeholder;
+            if(field.value) input.value = field.value;
+            
+            // Pre-fill for client header
+            if(type === 'client_header') {
+                const metaForm = document.getElementById('metaForm');
+                if(field.id === 'dob' && metaForm.elements['dob'] && metaForm.elements['dob'].value) input.value = metaForm.elements['dob'].value;
+                if(field.id === 'tob' && metaForm.elements['tob'] && metaForm.elements['tob'].value) input.value = metaForm.elements['tob'].value;
+                if(field.id === 'pob' && metaForm.elements['pob'] && metaForm.elements['pob'].value) input.value = metaForm.elements['pob'].value;
+                if(field.id === 'rasi' && metaForm.elements['rasi'] && metaForm.elements['rasi'].value) input.value = metaForm.elements['rasi'].value;
+                if(field.id === 'nakshatra' && metaForm.elements['nakshatra'] && metaForm.elements['nakshatra'].value) input.value = metaForm.elements['nakshatra'].value;
+                if(field.id === 'lagna' && metaForm.elements['lagna'] && metaForm.elements['lagna'].value) input.value = metaForm.elements['lagna'].value;
+            }
+
+            div.appendChild(lbl);
+            div.appendChild(input);
+            smartForm.appendChild(div);
+         });
+
+         smartModal.style.display = 'flex';
+         return true;
+      };
+
+      window.closeSmartModal = () => {
+         smartModal.style.display = 'none';
+      };
+
+      window.applySmartPreset = () => {
+         const planet = document.getElementById('smartPresetSelect').value;
+         if(!planet || !PLANETARY_DATA[planet]) return;
+         
+         const data = PLANETARY_DATA[planet];
+         
+         if(currentSmartType === 'gemstone') {
+             document.getElementById('smart_gem').value = data.gem;
+             document.getElementById('smart_weight').value = data.weight;
+             document.getElementById('smart_metal').value = data.metal.split('/')[0].trim(); // simple pick
+             document.getElementById('smart_finger').value = data.finger.split(' or ')[0];
+             document.getElementById('smart_time').value = data.time;
+             document.getElementById('smart_mantra').value = data.mantra;
+         } else if(currentSmartType === 'mantra') {
+             document.getElementById('smart_mantra_text').value = data.mantra;
+             if(data.mantra_dev && document.getElementById('smart_mantra_dev')) {
+               document.getElementById('smart_mantra_dev').value = data.mantra_dev;
+             }
+             document.getElementById('smart_time').value = data.time.split(' ')[0] + 's';
+         } else if(currentSmartType === 'donation') {
+             document.getElementById('smart_items').value = data.donation;
+             document.getElementById('smart_time').value = data.time;
+         } else if(currentSmartType === 'rudraksha') {
+             document.getElementById('smart_mukhi').value = data.rudraksha;
+             document.getElementById('smart_origin').value = data.rudraksha_origin.split('/')[0].trim();
+         } else if(currentSmartType === 'yantra') {
+             document.getElementById('smart_name').value = data.yantra;
+             document.getElementById('smart_placement').value = data.yantra_place;
+         }
+         showToast('Autofilled for ' + planet, 'info');
+      };
+
+      window.executeSmartInsert = () => {
+         try {
+             const editor = tinymce.get('mainEditor');
+             if(!editor) return;
+    
+             let content = '';
+             const baseStyle = "border: 1px solid #e2e8f0; padding: 25px; margin: 25px 0; border-radius: 12px; background-color: #f8fafc; box-shadow: 0 2px 4px rgba(0,0,0,0.02);";
+             const titleStyle = "margin-top:0; font-family: 'Merriweather', serif; padding-bottom: 12px; border-bottom: 2px solid #e2e8f0; font-size: 1.2em; display: flex; align-items: center; gap: 10px;";
+             const tableStyle = "width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 15px; border-radius: 8px; overflow: hidden; border: 1px solid #e2e8f0;";
+             const cellLabelStyle = "padding: 12px 15px; font-weight: 600; width: 35%; background-color: #f1f5f9; border-bottom: 1px solid #e2e8f0; color: #475569;";
+             const cellValueStyle = "padding: 12px 15px; border-bottom: 1px solid #e2e8f0; background-color: #fff;";
+    
+             if(currentSmartType === 'gemstone') {
+                 const gem = document.getElementById('smart_gem').value || '[Gemstone]';
+                 const weight = document.getElementById('smart_weight').value;
+                 const metal = document.getElementById('smart_metal').value;
+                 const finger = document.getElementById('smart_finger').value;
+                 const time = document.getElementById('smart_time').value;
+                 const mantra = document.getElementById('smart_mantra').value;
+    
+                 content = `
+                  <div style="${baseStyle} border-left: 6px solid #6610f2; background: #fdfaff;">
+                    <h4 style="${titleStyle} color: #6610f2;">💎 Gemstone Recommendation (Ratna)</h4>
+                    <table style="${tableStyle}">
+                      <tr><td style="${cellLabelStyle}">Gemstone</td><td style="${cellValueStyle}"><strong>${gem}</strong></td></tr>
+                      <tr><td style="${cellLabelStyle}">Weight</td><td style="${cellValueStyle}">${weight}</td></tr>
+                      <tr><td style="${cellLabelStyle}">Metal</td><td style="${cellValueStyle}">${metal}</td></tr>
+                      <tr><td style="${cellLabelStyle}">Finger</td><td style="${cellValueStyle}">${finger}</td></tr>
+                      <tr><td style="${cellLabelStyle}">Wearing Time</td><td style="${cellValueStyle}">${time}</td></tr>
+                      ${mantra ? `<tr><td style="${cellLabelStyle}">Mantra</td><td style="${cellValueStyle}">${mantra}</td></tr>` : ''}
+                    </table>
+                  </div><p>&nbsp;</p>`;
+             } else if (currentSmartType === 'mantra') {
+                 const text = document.getElementById('smart_mantra_text').value || '[Mantra]';
+                 const dev = document.getElementById('smart_mantra_dev') ? document.getElementById('smart_mantra_dev').value : '';
+                 const count = document.getElementById('smart_count').value;
+                 const time = document.getElementById('smart_time').value;
+
+                 content = `
+                  <div style="${baseStyle} border-left: 6px solid #ffc107; background: #fffdf5;">
+                    <h4 style="${titleStyle} color: #d97706;">🕉️ Vedic Mantra Sadhana</h4>
+                    <p style="color: #555;"><strong>Recite the following mantra ${count}:</strong></p>
+                    <div style="background: #fff; padding: 20px; border: 2px dashed #fbbf24; text-align: center; margin: 20px 0; border-radius: 8px;">
+                       <h3 style="margin:0; color: #333; font-style: italic; font-family: 'Merriweather', serif;">"${text}"</h3>
+                       ${dev ? `<div style="margin-top:12px; font-size: 1.1em; font-family: 'Merriweather', serif; color:#1e293b;">${dev}</div>` : ''}
+                    </div>
+                    ${time ? `<p style="font-size: 0.9em; color: #666;"><i class="fas fa-info-circle"></i> Best time: ${time}</p>` : ''}
+                  </div><p>&nbsp;</p>`;
+             } else if (currentSmartType === 'donation') {
+                 const items = document.getElementById('smart_items').value;
+                 const time = document.getElementById('smart_time').value;
+                 const recipient = document.getElementById('smart_recipient').value;
+    
+                 content = `
+                  <div style="${baseStyle} border-left: 6px solid #28a745; background: #f3fff5;">
+                    <h4 style="${titleStyle} color: #16a34a;">🤲 Donation (Daan)</h4>
+                    <p style="color: #555;">To pacify malefic effects, donate the following:</p>
+                    <table style="${tableStyle}">
+                      <tr><td style="${cellLabelStyle}">Item(s)</td><td style="${cellValueStyle}"><strong>${items}</strong></td></tr>
+                      <tr><td style="${cellLabelStyle}">Day/Time</td><td style="${cellValueStyle}">${time}</td></tr>
+                      <tr><td style="${cellLabelStyle}">Recipient</td><td style="${cellValueStyle}">${recipient}</td></tr>
+                    </table>
+                  </div><p>&nbsp;</p>`;
+             } else if (currentSmartType === 'rudraksha') {
+                 const mukhi = document.getElementById('smart_mukhi').value;
+                 const origin = document.getElementById('smart_origin').value;
+                 const benefits = document.getElementById('smart_benefits').value;
+                 const wearing = document.getElementById('smart_wearing_rule').value;
+    
+                 content = `
+                  <div style="${baseStyle} border-left: 6px solid #dc3545; background: #fff5f5;">
+                    <h4 style="${titleStyle} color: #dc3545;">📿 Rudraksha Recommendation</h4>
+                    <table style="${tableStyle}">
+                      <tr><td style="${cellLabelStyle}">Mukhi (Face)</td><td style="${cellValueStyle}"><strong>${mukhi}</strong></td></tr>
+                      <tr><td style="${cellLabelStyle}">Origin</td><td style="${cellValueStyle}">${origin}</td></tr>
+                      <tr><td style="${cellLabelStyle}">Wearing Rule</td><td style="${cellValueStyle}">${wearing}</td></tr>
+                      ${benefits ? `<tr><td style="${cellLabelStyle}">Benefits</td><td style="${cellValueStyle}">${benefits}</td></tr>` : ''}
+                    </table>
+                  </div><p>&nbsp;</p>`;
+             } else if (currentSmartType === 'yantra') {
+                 const name = document.getElementById('smart_name').value;
+                 const placement = document.getElementById('smart_placement').value;
+                 const worship = document.getElementById('smart_worship').value;
+    
+                 content = `
+                  <div style="${baseStyle} border-left: 6px solid #0dcaf0; background: #f0faff;">
+                    <h4 style="${titleStyle} color: #0891b2;">✡️ Yantra Recommendation</h4>
+                    <table style="${tableStyle}">
+                      <tr><td style="${cellLabelStyle}">Yantra</td><td style="${cellValueStyle}"><strong>${name}</strong></td></tr>
+                      <tr><td style="${cellLabelStyle}">Placement</td><td style="${cellValueStyle}">${placement}</td></tr>
+                      ${worship ? `<tr><td style="${cellLabelStyle}">Worship</td><td style="${cellValueStyle}">${worship}</td></tr>` : ''}
+                    </table>
+                  </div><p>&nbsp;</p>`;
+             } else if (currentSmartType === 'client_header') {
+                 const dob = document.getElementById('smart_dob').value;
+                 const tob = document.getElementById('smart_tob').value;
+                 const pob = document.getElementById('smart_pob').value;
+                 const rasi = document.getElementById('smart_rasi').value;
+                 const nakshatra = document.getElementById('smart_nakshatra').value;
+                 const lagna = document.getElementById('smart_lagna').value;
+                 
+                 content = `
+                  <div style="margin-bottom: 30px; border: 2px solid #e2e8f0; border-radius: 12px; padding: 25px; background: #fff;">
+                    <h4 style="margin: 0 0 15px 0; color: #64748b; font-size: 0.9em; text-transform: uppercase; letter-spacing: 1px; text-align: center;">Birth Details</h4>
+               <table style="width: 100%; border-collapse: collapse; font-family: 'Lato', sans-serif;">
+                 <tr>
+                        <td style="width: 50%; padding: 8px; border-bottom: 1px solid #eee;">
+                          <div style="color: #64748b; font-size: 0.85em;">Date of Birth</div>
+                          <div style="color: #334155; font-weight: bold;">${dob || '-'}</div>
+                        </td>
+                        <td style="width: 50%; padding: 8px; border-bottom: 1px solid #eee;">
+                          <div style="color: #64748b; font-size: 0.85em;">Time of Birth</div>
+                          <div style="color: #334155; font-weight: bold;">${tob || '-'}</div>
+                        </td>
+                      </tr>
+                       <tr>
+                        <td style="width: 50%; padding: 8px;">
+                          <div style="color: #64748b; font-size: 0.85em;">Place of Birth</div>
+                          <div style="color: #334155; font-weight: bold;">${pob || '-'}</div>
+                        </td>
+                         <td style="width: 50%; padding: 8px;">
+                           <div style="color: #64748b; font-size: 0.85em;">Rasi / Nakshatra / Lagna</div>
+                           <div style="color: #334155; font-weight: bold;">${rasi || '-'}${nakshatra ? ' / ' + nakshatra : ''}${lagna ? ' / ' + lagna : ''}</div>
+                         </td>
+                      </tr>
+                    </table>
+                  </div><p>&nbsp;</p>
+                 `;
+            } else if (currentSmartType === 'note') {
+                const text = document.getElementById('smart_note_text').value;
+                const type = document.getElementById('smart_note_type').value;
+                const color = type === 'Important' ? '#dc3545' : (type === 'Follow-up' ? '#0d6efd' : '#64748b');
+                
+                content = `
+                  <div style="background: #fff; border: 1px solid ${color}; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 5px solid ${color};">
+                    <h5 style="margin-top:0; color: ${color}; font-weight: bold;">📝 ${type} Note</h5>
+                    <p style="color: #333;">${text}</p>
+                  </div><p>&nbsp;</p>`;
+            } else if (currentSmartType === 'grah_positions') {
+                const rows = [];
+                for(let i=1;i<=12;i++) {
+                  const val = document.getElementById('smart_house'+i).value || '';
+                  rows.push(`<tr><td style="${cellLabelStyle}">House ${i}</td><td style="${cellValueStyle}">${val}</td></tr>`);
+                }
+                content = `
+                  <div style="${baseStyle} border-left: 6px solid #6610f2; background: #fdfaff;">
+                    <h4 style="${titleStyle} color: #6610f2;">🔭 Grah Positions</h4>
+                    <table style="${tableStyle}">
+                      ${rows.join('')}
+                    </table>
+                    <div class="small" style="margin-top:8px; color:#64748b;">Legend: Su/सू Mo/चं Ma/मं Me/बु Ju/गु Ve/शु Sa/श Ra/रा Ke/के</div>
+                  </div><p>&nbsp;</p>`;
+            } else if (currentSmartType === 'panchang') {
+                const tithi = document.getElementById('smart_tithi').value || '';
+                const nak = document.getElementById('smart_nakshatra').value || '';
+                const yoga = document.getElementById('smart_yoga').value || '';
+                const karana = document.getElementById('smart_karana').value || '';
+                const sunrise = document.getElementById('smart_sunrise').value || '';
+                const sunset = document.getElementById('smart_sunset').value || '';
+                content = `
+                  <div style="${baseStyle} border-left: 6px solid #ffc107; background: #fffdf5;">
+                    <h4 style="${titleStyle} color: #d97706;">📜 Panchang</h4>
+                    <table style="${tableStyle}">
+                      ${tithi ? `<tr><td style="${cellLabelStyle}">Tithi</td><td style="${cellValueStyle}">${tithi}</td></tr>` : ''}
+                      ${nak ? `<tr><td style="${cellLabelStyle}">Nakshatra</td><td style="${cellValueStyle}">${nak}</td></tr>` : ''}
+                      ${yoga ? `<tr><td style="${cellLabelStyle}">Yoga</td><td style="${cellValueStyle}">${yoga}</td></tr>` : ''}
+                      ${karana ? `<tr><td style="${cellLabelStyle}">Karana</td><td style="${cellValueStyle}">${karana}</td></tr>` : ''}
+                      ${sunrise ? `<tr><td style="${cellLabelStyle}">Sunrise</td><td style="${cellValueStyle}">${sunrise}</td></tr>` : ''}
+                      ${sunset ? `<tr><td style="${cellLabelStyle}">Sunset</td><td style="${cellValueStyle}">${sunset}</td></tr>` : ''}
+                    </table>
+                  </div><p>&nbsp;</p>`;
+            } else if (currentSmartType === 'muhurat_note') {
+                const purpose = document.getElementById('smart_purpose').value || '';
+                const date = document.getElementById('smart_date').value || '';
+                const tw = document.getElementById('smart_time_window').value || '';
+                const dir = document.getElementById('smart_direction').value || '';
+                const remarks = document.getElementById('smart_remarks').value || '';
+                content = `
+                  <div style="${baseStyle} border-left: 6px solid #0dcaf0; background: #f0faff;">
+                    <h4 style="${titleStyle} color: #0891b2;">🕰️ Muhurat Guidance</h4>
+                    <table style="${tableStyle}">
+                      ${purpose ? `<tr><td style="${cellLabelStyle}">Purpose</td><td style="${cellValueStyle}">${purpose}</td></tr>` : ''}
+                      ${date ? `<tr><td style="${cellLabelStyle}">Date</td><td style="${cellValueStyle}">${date}</td></tr>` : ''}
+                      ${tw ? `<tr><td style="${cellLabelStyle}">Preferred Time Window</td><td style="${cellValueStyle}">${tw}</td></tr>` : ''}
+                      ${dir ? `<tr><td style="${cellLabelStyle}">Direction</td><td style="${cellValueStyle}">${dir}</td></tr>` : ''}
+                    </table>
+                    ${remarks ? `<p style="margin-top: 10px; font-size: 0.95em; color:#334155;">${remarks}</p>` : ''}
+                  </div><p>&nbsp;</p>`;
+            }
+    
+             if(content) {
+                 editor.insertContent(content);
+                 closeSmartModal();
+                 showToast(currentSmartType + ' inserted', 'success');
+             }
+         } catch(e) {
+             console.error(e);
+             showToast('Error inserting smart content: ' + e.message, 'error');
+         }
+      };
+
+      // 1. Initialize Professional Editor
+      const startEditor = () => {
+        if (typeof tinymce === 'undefined') {
+          console.log('TinyMCE not loaded yet, retrying...');
+          setTimeout(startEditor, 100);
+          return;
+        }
+
+        tinymce.init({
+          base_url: 'https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.2',
+          suffix: '.min',
+          selector: '#mainEditor',
+          height: 600, // Occupy most of the page
+          menubar: false,
+          skin: 'oxide',
+          content_css: 'default',
+          plugins: 'lists link image table code charmap emoticons hr pagebreak',
+          toolbar: 'undo redo | styleselect | fontfamily fontsize | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | table hr | image | removeformat',
+          // Image Upload Handler
+          images_upload_handler: (blobInfo, progress) => new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            xhr.withCredentials = false;
+            xhr.open('POST', '/api/upload-image');
+            
+            xhr.upload.onprogress = (e) => {
+              progress(e.loaded / e.total * 100);
+            };
+            
+            xhr.onload = () => {
+              if (xhr.status === 403) {
+                reject({ message: 'HTTP Error: ' + xhr.status, remove: true });
+                return;
+              }
+              if (xhr.status < 200 || xhr.status >= 300) {
+                reject('HTTP Error: ' + xhr.status);
+                return;
+              }
+              const json = JSON.parse(xhr.responseText);
+              if (!json || typeof json.location != 'string') {
+                reject('Invalid JSON: ' + xhr.responseText);
+                return;
+              }
+              resolve(json.location);
+            };
+            
+            xhr.onerror = () => {
+              reject('Image upload failed due to a XHR Transport error. Code: ' + xhr.status);
+            };
+            
+            const formData = new FormData();
+            formData.append('file', blobInfo.blob(), blobInfo.filename());
+            
+            xhr.send(formData);
+          }),
+          content_style: `
+            body { font-family: 'Lato', sans-serif; font-size: 11pt; line-height: 1.6; color: #1e293b !important; background-color: #ffffff !important; margin: 20px; }
+            h1, h2, h3 { font-family: 'Merriweather', serif; color: #1e293b !important; margin-top: 1em; }
+            ul { margin-bottom: 1em; }
+            table { border-collapse: collapse; width: 100%; margin: 15px 0; }
+            td, th { padding: 10px; border: 1px solid #e2e8f0; }
+            th { background-color: #f8fafc; font-weight: 600; color: #475569; }
+          `,
+        setup: (editor) => {
+          editor.on('init', () => {
+             console.log('Editor Initialized');
+             
+             // Load draft if exists (only if not loading a saved remedy or appointment)
+             const urlParams = new URLSearchParams(window.location.search);
+             const apptId = urlParams.get('appointment_id') || urlParams.get('appt_id');
+
+             if(!urlParams.get('id') && !apptId) {
+                 const saved = localStorage.getItem('remedyDraft_v2');
+                 if(saved) {
+                   try {
+                     const d = JSON.parse(saved);
+                     if(Date.now() - d.time < 3600000) {
+                        editor.setContent(d.content);
+                        if(d.meta) populateMeta(d.meta);
+                        showToast('Restored draft from local storage', 'info');
+                     }
+                   } catch { /* ignore */ }
+                 }
+             }
+
+             // Load Appointment Details if provided
+             if(apptId && !urlParams.get('id')) {
+                fetch('/api/admin/appointments?id=' + apptId)
+                  .then(r => r.json())
+                  .then(d => {
+                     if(d.data && d.data.length > 0) {
+                        const appt = d.data[0];
+                        // Try to parse service_details if it's a string, though API should parse it
+                        let details = appt.service_details || {};
+                        if(typeof details === 'string') {
+                            try { details = JSON.parse(details); } catch { /* ignore */ }
+                        }
+
+                        const meta = {
+                           customer_name: appt.name,
+                           customer_email: appt.email || '',
+                           customer_phone: appt.phone || '',
+                           appointment_id: appt.id,
+                           customer_appointment_id: appt.customer_appointment_id,
+                           dob: details.dob || '',
+                           tob: details.tob || '',
+                           pob: details.pob || '',
+                           rasi: details.rasi || '',
+                           nakshatra: details.nakshatra || '',
+                           lagna: details.lagna || ''
+                        };
+                        populateMeta(meta);
+                        showToast('Loaded appointment details', 'success');
+                     }
+                  })
+                  .catch(e => console.error('Failed to load appointment', e));
+             }
+          });
+          editor.on('keyup change', () => {
+             // Auto-save logic
+             const content = editor.getContent();
+             const meta = getFormData();
+             localStorage.setItem('remedyDraft_v2', JSON.stringify({
+               content, meta, time: Date.now()
+             }));
+             document.getElementById('statusMsg').innerHTML = '<i class="fas fa-check text-success"></i> Draft saved locally';
+          });
+        }
+      });
+      };
+      
+      // Start initialization
+      if (document.readyState === 'complete') {
+        startEditor();
+      } else {
+        window.addEventListener('load', startEditor);
+      }
+
+      // 2. Client Management
+      const form = document.getElementById('metaForm');
+      const clientBox = document.getElementById('clientInfoBox');
+      
+      function getFormData() {
+        const fd = new FormData(form);
+        return Object.fromEntries(fd.entries());
+      }
+
+      function populateMeta(data) {
+        if(data.customer_name) {
+          form.customer_name.value = data.customer_name;
+          document.getElementById('displayClientName').textContent = data.customer_name;
+          clientBox.style.display = 'block';
+        }
+        
+        // Handle Appointment ID (Friendly vs UUID)
+        const apptId = data.appointment_id || '';
+        const friendlyId = data.customer_appointment_id || data.appointment_id_display || apptId;
+        
+        if(apptId) {
+          form.appointment_id.value = apptId;
+          if(form.appointment_id_display) form.appointment_id_display.value = friendlyId;
+          document.querySelector('#displayApptId span').textContent = friendlyId;
+        }
+
+        if(data.customer_email) {
+          form.customer_email.value = data.customer_email;
+          document.getElementById('displayClientEmail').textContent = data.customer_email; 
+        }
+        if(data.customer_phone) {
+          form.customer_phone.value = data.customer_phone;
+          document.getElementById('displayClientPhone').textContent = data.customer_phone;
+        }
+
+        if(data.heading) {
+          form.heading.value = data.heading;
+          document.getElementById('displayTitle').textContent = data.heading;
+        }
+        if(data.remedy_id) {
+           form.remedy_id.value = data.remedy_id;
+        }
+
+        // Horoscope Details
+        if(form.dob) form.dob.value = data.dob || '';
+        if(form.tob) form.tob.value = data.tob || '';
+        if(form.pob) form.pob.value = data.pob || '';
+        if(form.rasi) form.rasi.value = data.rasi || '';
+        if(form.nakshatra) form.nakshatra.value = data.nakshatra || '';
+        if(form.lagna) form.lagna.value = data.lagna || '';
+        
+        updateHoroscopeDisplay();
+      }
+
+      function updateHoroscopeDisplay() {
+         const fields = ['dob', 'tob', 'pob', 'rasi', 'nakshatra', 'lagna'];
+         let hasData = false;
+         
+         fields.forEach(f => {
+             const val = form[f]?.value;
+             const el = document.getElementById('disp_' + f);
+             const wrap = document.getElementById('disp_' + f + '_wrapper');
+             if(el && wrap) {
+                 el.textContent = val || '';
+                 wrap.style.display = val ? 'block' : 'none';
+                 if(val) hasData = true;
+             }
+         });
+         
+         const container = document.getElementById('displayHoroscope');
+         if(container) container.style.display = hasData ? 'block' : 'none';
+      }
+
+      // Live update of display fields
+      form.customer_name.addEventListener('input', (e) => {
+        document.getElementById('displayClientName').textContent = e.target.value;
+        clientBox.style.display = e.target.value ? 'block' : 'none';
+      });
+      form.customer_phone.addEventListener('input', (e) => {
+        document.getElementById('displayClientPhone').textContent = e.target.value;
+      });
+      form.customer_email.addEventListener('input', (e) => {
+        document.getElementById('displayClientEmail').textContent = e.target.value;
+      });
+      
+      // Horoscope inputs
+      ['dob', 'tob', 'pob', 'rasi', 'nakshatra', 'lagna'].forEach(f => {
+          if(form[f]) {
+              form[f].addEventListener('input', updateHoroscopeDisplay);
+          }
+      });
+
+      form.heading.addEventListener('input', (e) => {
+        document.getElementById('displayTitle').textContent = e.target.value;
+      });
+
+      // 3. Search & Sync Logic
+      let customers = [];
+      const searchInp = document.getElementById('clientSearch');
+      const drop = document.getElementById('clientDropdown');
+
+      // Helper to parse details
+      function parseServiceDetails(str) {
+        if(!str) return {};
+        if(typeof str === 'object') return str;
+        try { return JSON.parse(str); } catch { return {}; }
+      }
+
+      // Auto-load clients on start
+      (async function initClients() {
+        try {
+           const r = await fetch('/api/admin/appointments?page=1&limit=200');
+           if(r.ok) {
+             const d = await r.json();
+             if(d.data && Array.isArray(d.data)) {
+               customers = d.data.map(x => {
+                 const details = parseServiceDetails(x.service_details);
+                 return {
+                   id: x.id,
+                   name: x.name || 'Unknown',
+                   email: x.email || '',
+                   phone: x.phone || '',
+                   customer_appointment_id: x.customer_appointment_id,
+                   dob: details.dob || '',
+                   tob: details.tob || '',
+                   pob: details.pob || '',
+                   rasi: details.rasi || '',
+                   nakshatra: details.nakshatra || '',
+                   lagna: details.lagna || ''
+                 };
+               });
+             }
+           }
+        } catch(e) { console.error('Auto-sync failed', e); }
+      })();
+
+      document.getElementById('syncBtn').addEventListener('click', async () => {
+        const btn = document.getElementById('syncBtn');
+        const origIcon = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        try {
+          // Fetch logic
+          let page = 1;
+          let all = [];
+          while(page <= 5) { // Quick sync top 500
+             const r = await fetch(`/api/admin/appointments?page=${page}&limit=100`);
+             const d = await r.json();
+             if(!d.data || d.data.length === 0) break;
+             all = [...all, ...d.data];
+             page++;
+          }
+          // Dedupe
+          const seen = new Set();
+          customers = [];
+          all.forEach(x => {
+            const k = (x.name + (x.email||'')).toLowerCase();
+            if(!seen.has(k) && x.name) {
+              seen.add(k);
+              const details = parseServiceDetails(x.service_details);
+              customers.push({
+                id: x.id,
+                name: x.name,
+                email: x.email || '',
+                phone: x.phone || '',
+                customer_appointment_id: x.customer_appointment_id,
+                dob: details.dob || '',
+                tob: details.tob || '',
+                pob: details.pob || '',
+                rasi: details.rasi || '',
+                nakshatra: details.nakshatra || '',
+                lagna: details.lagna || ''
+              });
+            }
+          });
+          showToast(`Synced ${customers.length} clients`, 'success');
+        } catch(e) { console.error(e); showToast('Sync failed', 'error'); }
+        btn.innerHTML = origIcon;
+      });
+
+      // Debounced Search
+      let searchTimeout;
+      searchInp.addEventListener('input', (e) => {
+        clearTimeout(searchTimeout);
+        const v = e.target.value.toLowerCase().trim();
+        if(!v) { drop.style.display = 'none'; return; }
+
+        searchTimeout = setTimeout(async () => {
+           // 1. Local Search
+           let res = customers.filter(c => c.name.toLowerCase().includes(v) || (c.email && c.email.toLowerCase().includes(v))).slice(0, 10);
+           
+           // 2. If no local results, try server search
+           if(res.length === 0) {
+             try {
+               const r = await fetch(`/api/admin/appointments?q=${encodeURIComponent(v)}&limit=5`);
+               if(r.ok) {
+                 const d = await r.json();
+                 if(d.data) {
+                   res = d.data.map(x => {
+                     const details = parseServiceDetails(x.service_details);
+                     return {
+                       id: x.id,
+                       name: x.name,
+                       email: x.email,
+                       phone: x.phone,
+                       customer_appointment_id: x.customer_appointment_id,
+                       dob: details.dob || '',
+                       tob: details.tob || '',
+                       pob: details.pob || '',
+                       rasi: details.rasi || '',
+                       nakshatra: details.nakshatra || '',
+                       lagna: details.lagna || ''
+                     };
+                   });
+                 }
+               }
+            } catch { /* ignore */ }
+          }
+
+          drop.innerHTML = '';
+           if(res.length) {
+            drop.style.display = 'block';
+            res.forEach(c => {
+              const a = document.createElement('a');
+              a.className = 'list-group-item list-group-item-action small';
+              a.style.cursor = 'pointer';
+              a.innerHTML = `<strong>${c.name}</strong> <div class="text-muted" style="font-size:10px">${c.email || ''}</div>`;
+              a.onclick = (evt) => {
+                evt.preventDefault();
+                evt.stopPropagation();
+                populateMeta({
+                  customer_name: c.name,
+                  customer_email: c.email || '',
+                  customer_phone: c.phone || '',
+                  appointment_id: c.id,
+                  customer_appointment_id: c.customer_appointment_id,
+                  dob: c.dob,
+                  tob: c.tob,
+                  pob: c.pob,
+                  rasi: c.rasi,
+                  nakshatra: c.nakshatra,
+                  lagna: c.lagna
+                });
+                drop.style.display = 'none';
+                searchInp.value = ''; // Clear search after selection
+                showToast('Client selected', 'success');
+              };
+              drop.appendChild(a);
+            });
+           } else {
+             drop.innerHTML = '<div class="list-group-item small text-muted">No results found</div>';
+             drop.style.display = 'block';
+           }
+        }, 300);
+      });
+      
+      // Close dropdown when clicking outside
+      document.addEventListener('click', (e) => {
+        if (!searchInp.contains(e.target) && !drop.contains(e.target)) {
+          drop.style.display = 'none';
+        }
+      });
+
+      // 4. Template Logic
+      // Filter
+      document.getElementById('templateFilter').addEventListener('input', (e) => {
+        const val = e.target.value.toLowerCase();
+        const items = document.querySelectorAll('.template-card');
+        items.forEach(el => {
+          const txt = el.innerText.toLowerCase();
+          el.style.display = txt.includes(val) ? 'block' : 'none';
+        });
+      });
+
+      window.insertTemplate = (id) => {
+        const editor = tinymce.get('mainEditor');
+        if (!editor) return;
+        const content = document.getElementById('tpl-' + id).textContent;
+        editor.insertContent(content);
+        showToast('Template inserted', 'success');
+      };
+
+      // Modal Logic
+      const tmplModal = document.getElementById('templateModal');
+      window.saveAsTemplate = () => {
+        document.getElementById('tmplId').value = '';
+        document.getElementById('tmplTitle').value = '';
+        document.getElementById('tmplCategory').value = 'General';
+        document.getElementById('tmplModalTitle').innerText = 'Save New Template';
+        tmplModal.style.display = 'flex';
+      };
+
+      window.editTemplate = (id, title, category) => {
+         document.getElementById('tmplId').value = id;
+         document.getElementById('tmplTitle').value = title;
+         document.getElementById('tmplCategory').value = category;
+         document.getElementById('tmplModalTitle').innerText = 'Edit Template';
+         tmplModal.style.display = 'flex';
+         
+         // Also load content into editor if needed? 
+         // For now we assume the user has loaded content, edited it, and now wants to save changes back to template
+         // OR we can load the template content into editor now?
+         // Let's Ask: usually edit template means load it, change it, save it.
+         // But here we are clicking 'edit' on the card.
+         // Let's load the content too so they can see what they are editing.
+         const content = document.getElementById('tpl-' + id).textContent;
+         const editor = tinymce.get('mainEditor');
+         if(editor) editor.setContent(content);
+         showToast('Template loaded for editing', 'info');
+      };
+
+      window.closeTemplateModal = () => {
+        tmplModal.style.display = 'none';
+      };
+
+      window.submitTemplate = async () => {
+        const id = document.getElementById('tmplId').value;
+        const title = document.getElementById('tmplTitle').value;
+        const category = document.getElementById('tmplCategory').value;
+        
+        if(!title) { showToast('Title is required', 'error'); return; }
+
+        const editor = tinymce.get('mainEditor');
+        const content = editor ? editor.getContent() : '';
+
+        const method = id ? 'PUT' : 'POST';
+        const body = { title, content, category };
+        if(id) body.id = id;
+
+        try {
+          const res = await fetch('/api/admin/remedy-templates', {
+            method: method,
+            body: JSON.stringify(body)
+          });
+          if(res.ok) {
+            showToast('Template Saved!', 'success');
+            setTimeout(() => window.location.reload(), 1000);
+          } else {
+             throw new Error('Failed');
+          }
+        } catch { showToast('Error saving template', 'error'); }
+      };
+
+      window.deleteTemplate = (id) => {
+        document.getElementById('deleteTemplateId').value = id;
+        document.getElementById('deleteTemplateModal').style.display = 'flex';
+      };
+
+      window.closeDeleteTemplateModal = () => {
+        document.getElementById('deleteTemplateModal').style.display = 'none';
+      };
+
+      window.confirmDeleteTemplate = async () => {
+            const id = document.getElementById('deleteTemplateId').value;
+            try {
+              await fetch('/api/admin/remedy-templates?id=' + id, { method: 'DELETE' });
+              showToast('Template deleted', 'success');
+              setTimeout(() => window.location.reload(), 1000);
+            } catch { showToast('Error deleting template', 'error'); }
+            closeDeleteTemplateModal();
+      };
+
+      // 5. Saved Remedies Logic
+      
+      // Load saved remedies data from hidden div
+      let savedRemedies = [];
+      try {
+        savedRemedies = JSON.parse(document.getElementById('remediesData').textContent);
+      } catch { /* ignore */ }
+
+      window.loadRemedy = (id) => {
+         const r = savedRemedies.find(x => x.id === id);
+         if(!r) return;
+         
+         // Populate Form
+         populateMeta({
+           customer_name: r.customer_name,
+           customer_email: r.customer_email || '',
+           customer_phone: r.customer_phone || '',
+           heading: r.heading || 'Remedial Measures',
+           remedy_id: r.id,
+           appointment_id: r.appointment_id,
+           customer_appointment_id: r.customer_appointment_id,
+           dob: r.dob,
+           tob: r.tob,
+           pob: r.pob,
+           rasi: r.rasi,
+           nakshatra: r.nakshatra,
+           lagna: r.lagna
+         });
+         
+         // Populate Editor
+         const editor = tinymce.get('mainEditor');
+         if(editor) {
+           editor.setContent(r.content || '');
+         }
+         
+         // Scroll to top
+         document.querySelector('.editor-area').scrollTop = 0;
+         window.scrollTo({ top: 0, behavior: 'smooth' });
+         
+         document.getElementById('statusMsg').innerHTML = '<span class="text-info"><i class="fas fa-pencil"></i> Editing Saved Remedy</span>';
+         showToast('Remedy loaded', 'success');
+      };
+
+      window.deleteRemedy = async (id) => {
+        showConfirm('Delete Remedy?', 'Are you sure you want to delete this remedy permanently? This cannot be undone.', async () => {
+            try {
+              const r = await fetch('/api/admin/remedies?id=' + id, { method: 'DELETE' });
+              if(r.ok) {
+                showToast('Remedy deleted', 'success');
+                setTimeout(() => window.location.reload(), 1000);
+              } else {
+                showToast('Failed to delete', 'error');
+              }
+            } catch { showToast('Error deleting', 'error'); }
+        });
+      };
+
+      window.copyShareLink = (token) => {
+        const url = window.location.origin + '/r/' + token;
+        navigator.clipboard.writeText(url).then(() => {
+          showToast('Link copied to clipboard!', 'success');
+        });
+      };
+
+      window.sendEmailRemedy = async (id) => {
+        const r = savedRemedies.find(x => x.id === id);
+        if(!r) { showToast('Remedy not found', 'error'); return; }
+        const to = (r.customer_email || '').trim();
+        if(!to) { showToast('Client email missing', 'error'); return; }
+        const shareLink = window.location.origin + '/r/' + r.share_token;
+        const confirm = () => {
+          (async () => {
+            try {
+              // Ensure template exists
+              const tRes = await fetch('/api/admin/templates?type=email');
+              const tJson = await tRes.json();
+              const found = Array.isArray(tJson.data) ? tJson.data.find(x => x.key === 'remedies_share_email') : null;
+              if(!found) {
+                await fetch('/api/admin/templates', { method: 'PUT', body: JSON.stringify({ type: 'email', key: 'remedies_share_email', subject: 'Your Personalized Remedies – JyotirSetu', html: '<p>Dear {name},</p><p>Your personalized remedies report is ready:</p><p><a href="{share_link}" target="_blank">Open Remedies Report</a></p><p>Warm regards,<br/>JyotirSetu Astrology</p>' }) });
+              }
+              const res = await fetch('/api/admin/send-remedy-email', { method: 'POST', body: JSON.stringify({ email: to, name: r.customer_name || 'Friend', share_link: shareLink, template_key: 'remedies_share_email' }) });
+              const json = await res.json();
+              if(json && json.ok) {
+                showToast('Email sent successfully', 'success');
+              } else {
+                showToast('Failed to send email', 'error');
+              }
+            } catch(e) {
+              console.error(e); showToast('Error sending email', 'error');
+            }
+          })();
+        };
+        showConfirm('Send Email?', `Send remedies link to ${to}?`, confirm);
+      };
+
+      // Table Search
+      document.getElementById('tableSearch').addEventListener('input', (e) => {
+         const val = e.target.value.toLowerCase();
+         const rows = document.querySelectorAll('#savedRemediesTable tbody tr');
+         rows.forEach(row => {
+            const text = row.innerText.toLowerCase();
+            row.style.display = text.includes(val) ? '' : 'none';
+         });
+      });
+
+      // 6. Final Save
+      document.getElementById('saveBtn').addEventListener('click', async () => {
+        const btn = document.getElementById('saveBtn');
+        const origText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        
+        const data = getFormData();
+        const editor = tinymce.get('mainEditor');
+        data.content = editor ? editor.getContent() : '';
+        data.astrologer_name = 'JyotirSetu Team'; 
+        // Ensure friendly ID is saved
+        if(data.appointment_id_display) {
+            data.customer_appointment_id = data.appointment_id_display;
+        } 
+        
+        if(!data.customer_name) {
+          showToast('Please enter a Client Name', 'error');
+          btn.innerHTML = origText;
+          btn.disabled = false;
+          return;
+        }
+
+        // Determine method: POST (create) or PUT (update)
+        const method = data.remedy_id ? 'PUT' : 'POST';
+        if(method === 'PUT') data.id = data.remedy_id;
+
+        try {
+          const res = await fetch('/api/admin/remedies', {
+            method: method,
+            body: JSON.stringify(data)
+          });
+          if(res.ok) {
+            document.getElementById('statusMsg').innerHTML = '<span class="text-success fw-bold">Saved Successfully!</span>';
+            showToast('Remedy Saved Successfully!', 'success');
+            localStorage.removeItem('remedyDraft_v2');
+            setTimeout(() => window.location.reload(), 1000);
+          } else throw new Error('Failed');
+        } catch(e) {
+          showToast('Error saving: ' + e.message, 'error');
+          btn.innerHTML = origText;
+        } finally {
+          btn.disabled = false;
+        }
+      });
+
+      // Kundli & WhatsApp Utilities
+      window.generateKundli = () => {
+         const lagna = document.getElementById('kundliLagna').value;
+         if(!lagna) {
+           showToast('Please select a Lagna first', 'error');
+           return;
+         }
+         const size = 400;
+         const half = size/2;
+         const getRasi = (houseNum) => {
+             const val = (parseInt(lagna) + houseNum - 1) % 12;
+             return val === 0 ? 12 : val;
+         };
+         const svgContent = `
+         <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg" style="background:white;">
+            <rect x="2" y="2" width="${size-4}" height="${size-4}" fill="white" stroke="black" stroke-width="2"/>
+            <line x1="0" y1="0" x2="${size}" y2="${size}" stroke="black" stroke-width="2"/>
+            <line x1="${size}" y1="0" x2="0" y2="${size}" stroke="black" stroke-width="2"/>
+            <line x1="0" y1="${half}" x2="${half}" y2="0" stroke="black" stroke-width="2"/>
+            <line x1="${half}" y1="0" x2="${size}" y2="${half}" stroke="black" stroke-width="2"/>
+            <line x1="${size}" y1="${half}" x2="${half}" y2="${size}" stroke="black" stroke-width="2"/>
+            <line x1="${half}" y1="${size}" x2="0" y2="${half}" stroke="black" stroke-width="2"/>
+            <g font-family="Arial" font-size="18" text-anchor="middle" font-weight="bold">
+                <text x="${half}" y="${half - 50}">${getRasi(1)}</text>
+                <text x="${half - 80}" y="${80}">${getRasi(2)}</text>
+                <text x="${60}" y="${60}">${getRasi(3)}</text>
+                <text x="${half - 50}" y="${half}">${getRasi(4)}</text>
+                <text x="${60}" y="${size-60}">${getRasi(5)}</text>
+                <text x="${half - 80}" y="${size-80}">${getRasi(6)}</text>
+                <text x="${half}" y="${half + 60}">${getRasi(7)}</text>
+                <text x="${half + 80}" y="${size-80}">${getRasi(8)}</text>
+                <text x="${size-60}" y="${size-60}">${getRasi(9)}</text>
+                <text x="${half + 50}" y="${half}">${getRasi(10)}</text>
+                <text x="${size-60}" y="${60}">${getRasi(11)}</text>
+                <text x="${half + 80}" y="${80}">${getRasi(12)}</text>
+            </g>
+         </svg>`;
+         const encoded = encodeURIComponent(svgContent);
+         const dataUrl = `data:image/svg+xml;charset=utf-8,${encoded}`;
+         const img = `<img src="${dataUrl}" width="300" height="300" alt="Lagna Kundli" class="draggable-kundli" style="display:block; margin: 20px auto; max-width:100%; height:auto;">`;
+         const editor = tinymce.get('mainEditor');
+         if(editor) {
+             editor.insertContent(img);
+             showToast('Kundli inserted!', 'success');
+         }
+      };
+
+      let whatsappTemplates = [];
+      // Fetch templates on load
+      (async function() {
+          try {
+              const res = await fetch('/api/admin/templates?type=whatsapp');
+              const json = await res.json();
+              if(json.ok && Array.isArray(json.data)) {
+                  whatsappTemplates = json.data;
+              }
+          } catch(e) { console.error('Failed to load WA templates', e); }
+      })();
+
+      window.sendWhatsAppRemedy = (id) => {
+         const r = savedRemedies.find(x => x.id === id);
+         if(!r) { showToast('Remedy not found', 'error'); return; }
+         
+         const shareLink = window.location.origin + '/r/' + r.share_token;
+         
+         // Try to find 'remedies_share' template, else fallback to hardcoded
+         let templateText = '';
+         const tmpl = whatsappTemplates.find(t => t.key === 'remedies_share');
+         
+         if(tmpl && tmpl.text) {
+             templateText = tmpl.text
+                 .replace(/{name}/g, r.customer_name || 'Customer')
+                 .replace(/{share_link}/g, shareLink)
+                 .replace(/{appointment_id}/g, r.appointment_id || '');
+         } else {
+             // Fallback
+             templateText = `Namaste ${r.customer_name},\n\nHere is your personalized remedies report from JyotirSetu:\n${shareLink}\n\nRegards,\nJyotirSetu Astrology`;
+         }
+         
+         const phone = r.customer_phone ? r.customer_phone.replace(/\D/g, '') : '';
+         const waUrl = `https://web.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(templateText)}`;
+         
+         window.open(waUrl, '_blank');
+      };
+
+    </script>
+  </body>
+</html>

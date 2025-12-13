@@ -129,7 +129,7 @@ export const prerender = false;
         <div class="list" id="list"></div>
       </div>
     </div>
-    <script>
+    <script is:inline>
       // Use the main site API when running on the follow subdomain
       const API_BASE = location.hostname.includes('follow.jyotirsetu.com') ? 'https://www.jyotirsetu.com' : '';
       const links = {
@@ -157,6 +157,7 @@ export const prerender = false;
         }
         return 'A';
       }
+      /** @param {any} key */
       function ctaLabel(key) {
         switch (key) {
           case 'whatsapp':
@@ -191,6 +192,7 @@ export const prerender = false;
             return 'gray';
         }
       }
+      /** @param {any} type */ /** @param {any} extra */
       async function log(type, extra) {
         try {
           const payload = {
@@ -221,21 +223,21 @@ export const prerender = false;
       (async function () {
         window.followVariant = await fetchVariant();
         const primary = pickPrimary();
-        const btn = document.getElementById('primaryBtn') as HTMLAnchorElement | null;
-        if (btn) {
+        const btn = document.getElementById('primaryBtn');
+        if (btn instanceof HTMLAnchorElement) {
           btn.textContent = ctaLabel(primary);
           btn.href = String(links[primary] || '#');
           btn.addEventListener('click', () => {
             log('cta_click', { cta_clicked: primary });
           });
         }
-        const qrBtn = document.getElementById('qrBtn') as HTMLAnchorElement | null;
-        if (qrBtn) {
+        const qrBtn = document.getElementById('qrBtn');
+        if (qrBtn instanceof HTMLAnchorElement) {
           qrBtn.href = API_BASE + '/api/follow-hub/qr?text=' + encodeURIComponent(location.href) + '&size=400';
         }
         await log('page_view', { primary_cta_shown: primary });
         const list = document.getElementById('list');
-        const keys = ['whatsapp', 'google_review', 'facebook', 'instagram', 'youtube'] as const;
+        const keys = ['whatsapp', 'google_review', 'facebook', 'instagram', 'youtube'];
         if (list) {
           list.innerHTML = keys
             .map(
@@ -243,12 +245,13 @@ export const prerender = false;
                 `<a class="chip" data-cta="${k}" href="${String(links[k] || '#')}" target="_blank"><span class="dot ${color(k)}"></span>${ctaLabel(k)}</a>`
             )
             .join('');
-          list.querySelectorAll('a[data-cta]').forEach((a) => {
-            const el = a as HTMLAnchorElement;
-            el.addEventListener('click', () => {
-              const d = (el as HTMLElement).dataset?.cta || '';
-              log('cta_click', { cta_clicked: d });
-            });
+          list.querySelectorAll('a[data-cta]').forEach((el) => {
+            if (el instanceof HTMLAnchorElement) {
+              el.addEventListener('click', () => {
+                const d = (el.dataset?.cta || '');
+                log('cta_click', { cta_clicked: d });
+              });
+            }
           });
         }
       })();

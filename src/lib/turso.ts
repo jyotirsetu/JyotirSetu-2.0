@@ -1,3 +1,5 @@
+import type { Client } from '@libsql/client';
+
 export async function getTursoClient() {
   const mode = (import.meta.env && import.meta.env.MODE) || process.env.NODE_ENV || 'development';
   const url = (import.meta.env && import.meta.env.TURSO_DATABASE_URL) || process.env.TURSO_DATABASE_URL;
@@ -21,6 +23,27 @@ export async function getTursoClient() {
   throw new Error('Turso configuration missing. Please set TURSO_DATABASE_URL and TURSO_AUTH_TOKEN');
 }
 
+async function columnExists(client: Client, table: string, column: string) {
+  try {
+    const res = await client.execute({ sql: `PRAGMA table_info(${table})`, args: [] });
+    const rows = (res.rows || []) as Array<Record<string, unknown>>;
+    return rows.some((r) => String(r.name || '') === column);
+  } catch {
+    return false;
+  }
+}
+
+async function addColumnIfMissing(client: Client, table: string, column: string, alterSql: string) {
+  try {
+    const exists = await columnExists(client, table, column);
+    if (!exists) {
+      await client.execute(alterSql);
+    }
+  } catch {
+    /* ignore */
+  }
+}
+
 export async function ensureAppointmentsTable() {
   const client = await getTursoClient();
   await client.execute(`
@@ -41,26 +64,21 @@ export async function ensureAppointmentsTable() {
       created_at TEXT NOT NULL
     );
   `);
+  await addColumnIfMissing(client, 'appointments', 'status', `ALTER TABLE appointments ADD COLUMN status TEXT NOT NULL DEFAULT 'pending'`);
+  await addColumnIfMissing(client, 'appointments', 'source', `ALTER TABLE appointments ADD COLUMN source TEXT NOT NULL DEFAULT 'system'`);
+  await addColumnIfMissing(client, 'appointments', 'customer_appointment_id', `ALTER TABLE appointments ADD COLUMN customer_appointment_id TEXT`);
+  await addColumnIfMissing(client, 'appointments', 'payment_status', `ALTER TABLE appointments ADD COLUMN payment_status TEXT NOT NULL DEFAULT 'unpaid'`);
+  await addColumnIfMissing(client, 'appointments', 'customer_name', `ALTER TABLE appointments ADD COLUMN customer_name TEXT`);
+  await addColumnIfMissing(client, 'appointments', 'customer_email', `ALTER TABLE appointments ADD COLUMN customer_email TEXT`);
+  await addColumnIfMissing(client, 'appointments', 'customer_phone', `ALTER TABLE appointments ADD COLUMN customer_phone TEXT`);
+  
+  // Backfill new columns from existing data
   try {
-    await client.execute(`ALTER TABLE appointments ADD COLUMN status TEXT NOT NULL DEFAULT 'pending'`);
-  } catch {
-    /* column may already exist */
-  }
-  try {
-    await client.execute(`ALTER TABLE appointments ADD COLUMN source TEXT NOT NULL DEFAULT 'system'`);
-  } catch {
-    /* column may already exist */
-  }
-  try {
-    await client.execute(`ALTER TABLE appointments ADD COLUMN customer_appointment_id TEXT`);
-  } catch {
-    /* column may already exist */
-  }
-  try {
-    await client.execute(`ALTER TABLE appointments ADD COLUMN payment_status TEXT NOT NULL DEFAULT 'unpaid'`);
-  } catch (e) {
-    console.warn('appointments: add payment_status column skipped', e);
-  }
+    await client.execute(`UPDATE appointments SET customer_name = name WHERE customer_name IS NULL AND name IS NOT NULL`);
+    await client.execute(`UPDATE appointments SET customer_email = email WHERE customer_email IS NULL AND email IS NOT NULL`);
+    await client.execute(`UPDATE appointments SET customer_phone = phone WHERE customer_phone IS NULL AND phone IS NOT NULL`);
+  } catch { void 0; }
+
   try {
     await client.execute(`CREATE INDEX IF NOT EXISTS idx_appointments_date ON appointments(date)`);
   } catch { void 0; }
@@ -304,10 +322,27 @@ export async function ensureClientsTable() {
       email TEXT NOT NULL,
       phone TEXT,
       vip TEXT NOT NULL DEFAULT 'no',
+      status TEXT NOT NULL DEFAULT 'active',
+      company_name TEXT,
+      address_line1 TEXT,
+      address_line2 TEXT,
+      city TEXT,
+      state TEXT,
+      zip TEXT,
+      country TEXT,
       created_at TEXT NOT NULL
     );
   `);
   await client.execute(`CREATE INDEX IF NOT EXISTS idx_clients_email ON clients(email);`);
+  await addColumnIfMissing(client, 'clients', 'status', `ALTER TABLE clients ADD COLUMN status TEXT NOT NULL DEFAULT 'active'`);
+  await addColumnIfMissing(client, 'clients', 'company_name', `ALTER TABLE clients ADD COLUMN company_name TEXT`);
+  await addColumnIfMissing(client, 'clients', 'address_line1', `ALTER TABLE clients ADD COLUMN address_line1 TEXT`);
+  await addColumnIfMissing(client, 'clients', 'address_line2', `ALTER TABLE clients ADD COLUMN address_line2 TEXT`);
+  await addColumnIfMissing(client, 'clients', 'city', `ALTER TABLE clients ADD COLUMN city TEXT`);
+  await addColumnIfMissing(client, 'clients', 'state', `ALTER TABLE clients ADD COLUMN state TEXT`);
+  await addColumnIfMissing(client, 'clients', 'zip', `ALTER TABLE clients ADD COLUMN zip TEXT`);
+  await addColumnIfMissing(client, 'clients', 'country', `ALTER TABLE clients ADD COLUMN country TEXT`);
+
 }
 
 export async function ensurePaymentsTable() {
@@ -330,26 +365,10 @@ export async function ensurePaymentsTable() {
     );
   `);
   await client.execute(`CREATE INDEX IF NOT EXISTS idx_payments_client ON payments(client_id);`);
-  try {
-    await client.execute(`ALTER TABLE payments ADD COLUMN total_due REAL`);
-  } catch (e) {
-    console.warn('payments: add total_due column skipped', e);
-  }
-  try {
-    await client.execute(`ALTER TABLE payments ADD COLUMN balance REAL`);
-  } catch (e) {
-    console.warn('payments: add balance column skipped', e);
-  }
-  try {
-    await client.execute(`ALTER TABLE payments ADD COLUMN entry_type TEXT NOT NULL DEFAULT 'credit'`);
-  } catch (e) {
-    console.warn('payments: add entry_type column skipped', e);
-  }
-  try {
-    await client.execute(`ALTER TABLE payments ADD COLUMN status TEXT NOT NULL DEFAULT 'unpaid'`);
-  } catch (e) {
-    console.warn('payments: add status column skipped', e);
-  }
+  await addColumnIfMissing(client, 'payments', 'total_due', `ALTER TABLE payments ADD COLUMN total_due REAL`);
+  await addColumnIfMissing(client, 'payments', 'balance', `ALTER TABLE payments ADD COLUMN balance REAL`);
+  await addColumnIfMissing(client, 'payments', 'entry_type', `ALTER TABLE payments ADD COLUMN entry_type TEXT NOT NULL DEFAULT 'credit'`);
+  await addColumnIfMissing(client, 'payments', 'status', `ALTER TABLE payments ADD COLUMN status TEXT NOT NULL DEFAULT 'unpaid'`);
 }
 
 export async function ensureInvoicesTable() {
@@ -548,26 +567,6 @@ export async function ensureLeadsTables() {
   await client.execute(`CREATE INDEX IF NOT EXISTS idx_lead_notes_lead ON lead_notes(lead_id);`);
 }
 
-export async function ensureRemediesTable() {
-  const client = await getTursoClient();
-  await client.execute(`
-    CREATE TABLE IF NOT EXISTS remedies (
-      id TEXT PRIMARY KEY,
-      client_id TEXT NOT NULL,
-      type TEXT NOT NULL, -- gemstone, mantra, puja
-      title TEXT NOT NULL,
-      start_date TEXT,
-      end_date TEXT,
-      adherence INTEGER NOT NULL DEFAULT 0, -- percentage adherence
-      notes TEXT,
-      status TEXT NOT NULL DEFAULT 'planned',
-      created_at TEXT NOT NULL,
-      updated_at TEXT NOT NULL,
-      FOREIGN KEY (client_id) REFERENCES clients(id)
-    );
-  `);
-  await client.execute(`CREATE INDEX IF NOT EXISTS idx_remedies_client ON remedies(client_id);`);
-}
 
 export async function ensureFulfillmentTables() {
   const client = await getTursoClient();
@@ -707,3 +706,63 @@ export async function ensureClientHoroscopesTable() {
   `);
   await client.execute(`CREATE INDEX IF NOT EXISTS idx_client_horoscopes_client ON client_horoscopes(client_id);`);
 }
+
+export async function ensureRemediesTable() {
+  const client = await getTursoClient();
+  
+  // Check if we have the old schema (missing share_token)
+  const hasShareToken = await columnExists(client, 'remedies', 'share_token');
+  const tableExists = await columnExists(client, 'remedies', 'id'); // Check if table exists at all
+  
+  if (tableExists && !hasShareToken) {
+    // Rename old table to backup
+    try {
+      await client.execute(`ALTER TABLE remedies RENAME TO remedies_backup_${Date.now()}`);
+    } catch (e) {
+      console.error('Failed to rename old remedies table', e);
+    }
+  }
+
+  await client.execute(`
+    CREATE TABLE IF NOT EXISTS remedies (
+      id TEXT PRIMARY KEY,
+      appointment_id TEXT,
+      customer_name TEXT NOT NULL,
+      customer_email TEXT,
+      customer_phone TEXT,
+      astrologer_name TEXT,
+      heading TEXT,
+      content JSON,
+      share_token TEXT UNIQUE,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+  `);
+  await client.execute(`CREATE INDEX IF NOT EXISTS idx_remedies_share_token ON remedies(share_token);`);
+  await client.execute(`CREATE INDEX IF NOT EXISTS idx_remedies_created_at ON remedies(created_at);`);
+  
+  // Add new columns for horoscope details
+  await addColumnIfMissing(client, 'remedies', 'dob', `ALTER TABLE remedies ADD COLUMN dob TEXT`);
+  await addColumnIfMissing(client, 'remedies', 'tob', `ALTER TABLE remedies ADD COLUMN tob TEXT`);
+  await addColumnIfMissing(client, 'remedies', 'pob', `ALTER TABLE remedies ADD COLUMN pob TEXT`);
+  await addColumnIfMissing(client, 'remedies', 'rasi', `ALTER TABLE remedies ADD COLUMN rasi TEXT`);
+  await addColumnIfMissing(client, 'remedies', 'nakshatra', `ALTER TABLE remedies ADD COLUMN nakshatra TEXT`);
+  await addColumnIfMissing(client, 'remedies', 'lagna', `ALTER TABLE remedies ADD COLUMN lagna TEXT`);
+  await addColumnIfMissing(client, 'remedies', 'customer_appointment_id', `ALTER TABLE remedies ADD COLUMN customer_appointment_id TEXT`);
+}
+
+export async function ensureRemedyTemplatesTable() {
+  const client = await getTursoClient();
+  await client.execute(`
+    CREATE TABLE IF NOT EXISTS remedy_templates (
+      id TEXT PRIMARY KEY,
+      title TEXT NOT NULL,
+      content TEXT NOT NULL,
+      category TEXT DEFAULT 'General',
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+  `);
+  await client.execute(`CREATE INDEX IF NOT EXISTS idx_remedy_templates_title ON remedy_templates(title);`);
+}
+

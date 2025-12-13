@@ -33,12 +33,13 @@ export const GET: APIRoute = async ({ request }) => {
     }
     const url = new URL(request.url);
     const q = url.searchParams.get('q'); // Search query
+    const id = url.searchParams.get('id'); // ID filter
 
     let page = Math.max(1, parseInt(url.searchParams.get('page') || '1', 10));
     let limit = Math.min(100, Math.max(10, parseInt(url.searchParams.get('limit') || '20', 10)));
 
     // If searching, override pagination to show all results
-    if (q) {
+    if (q || id) {
       limit = 1000;
       page = 1;
     }
@@ -51,7 +52,10 @@ export const GET: APIRoute = async ({ request }) => {
     const filters: string[] = [];
     const argsBase: (string | number | boolean | bigint | null)[] = [];
     
-    if (q) {
+    if (id) {
+      filters.push(`id = ?`);
+      argsBase.push(id);
+    } else if (q) {
       filters.push(`(name LIKE ? OR email LIKE ? OR phone LIKE ?)`);
       const term = `%${q}%`;
       argsBase.push(term, term, term);
@@ -297,8 +301,21 @@ export const POST: APIRoute = async ({ request }) => {
         return new Response(JSON.stringify({ ok: false, error: 'Appointment not found' }), { status: 404 });
       }
 
+      // Fetch name/email before deletion so we can log human-readable details
+      let nameBefore = '';
+      let emailBefore = '';
+      try {
+        const r = await client.execute({ sql: `SELECT name, email FROM appointments WHERE id = ? LIMIT 1`, args: [targetId] });
+        const row = (r.rows?.[0] || {}) as Record<string, unknown>;
+        nameBefore = String(row.name || '').trim();
+        emailBefore = String(row.email || '').trim();
+      } catch { /* ignore */ }
+
       await client.execute({ sql: `DELETE FROM appointments WHERE id = ?`, args: [targetId] });
-      await logActivity('appointment_deleted', 'appointment', targetId, `Deleted appointment ${targetId}`);
+      const details = nameBefore || emailBefore
+        ? JSON.stringify({ client_name: nameBefore, client_email: emailBefore, appointment_id: targetId })
+        : `Deleted appointment ${targetId}`;
+      await logActivity('appointment_deleted', 'appointment', targetId, details);
       return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json' } });
     }
 

@@ -1,7 +1,7 @@
 ---
 export const prerender = false;
 import Favicons from '~/components/Favicons.astro';
-import AdminNavbar from '~/components/AdminNavbar.astro';
+import MobilePageSelect from '~/components/MobilePageSelect.astro';
 ---
 
 <!doctype html>
@@ -53,8 +53,6 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
     </script>
   </head>
   <body class="hold-transition sidebar-mini">
-    <button class="sidebar-toggle" aria-label="Open Admin Menu" id="sidebarToggle">☰</button>
-    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
     <script is:inline>
       (function () {
         function applyTheme(theme) {
@@ -104,24 +102,17 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
       })();
     </script>
     <div class="wrapper">
-      <AdminNavbar />
-      <!-- legacy navbar
       <nav class="main-header navbar navbar-expand navbar-dark">
         <ul class="navbar-nav">
           <li class="nav-item">
-            <a class="nav-link" data-widget="pushmenu" href="#" role="button" aria-label="Toggle sidebar"
-              ><i class="fas fa-bars"></i></a
-            >
+            <MobilePageSelect />
           </li>
           <li class="nav-item"><a href="/admin/dashboard" class="nav-link">Dashboard</a></li>
         </ul>
         <ul class="navbar-nav ms-auto">
-          <li class="nav-item">
-            <button class="btn btn-sm btn-outline-secondary" id="toggleSidebarDesktop">Hide sidebar</button>
-          </li>
           <li class="nav-item"><a href="/api/admin/logout" class="nav-link">Logout</a></li>
         </ul>
-      </nav> -->
+      </nav>
       <aside class="main-sidebar sidebar-dark-primary elevation-4" id="adminSidebar">
         <a href="/admin/dashboard" class="brand-link" style="display:flex;align-items:center;gap:8px">
           <img
@@ -160,6 +151,11 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
               <li class="nav-item">
                 <a href="/admin/after-service" class="nav-link"
                   ><i class="nav-icon fas fa-handshake"></i><p>After Service</p></a
+                >
+              </li>
+              <li class="nav-item">
+                <a href="/admin/remedies" class="nav-link"
+                  ><i class="nav-icon fas fa-prescription-bottle-alt"></i><p>Remedies</p></a
                 >
               </li>
               <li class="nav-item">
@@ -452,29 +448,7 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
           },
         });
       });
-      (function () {
-        const btn = document.getElementById('toggleSidebarDesktop');
-        function sync() {
-          if (!btn) return;
-          const c = document.body.classList.contains('sidebar-collapse');
-          btn.textContent = c ? 'Show sidebar' : 'Hide sidebar';
-        }
-        async function toggle() {
-          const c = document.body.classList.toggle('sidebar-collapse');
-          sync();
-          try {
-            await fetch('/api/admin/preferences', {
-              method: 'PUT',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ key: 'sidebarCollapsed', value: c ? '1' : '0' }),
-            });
-          } catch (e) {
-            console.error(e);
-          }
-        }
-        btn?.addEventListener('click', toggle);
-        sync();
-      })();
+
 
       function updatePreview() {
         const html = editor.getContent();
@@ -716,37 +690,7 @@ import AdminNavbar from '~/components/AdminNavbar.astro';
       loadTemplates();
       renderQuickTemplates();
 
-      const sidebar = document.getElementById('adminSidebar');
-      const backdrop = document.getElementById('sidebarBackdrop');
-      const toggleBtn = document.getElementById('sidebarToggle');
-      let isOpen = false;
-      function openSidebar() {
-        sidebar?.classList.add('active');
-        backdrop?.classList.add('active');
-        toggleBtn?.classList.add('active');
-        toggleBtn.innerHTML = '✕';
-        isOpen = true;
-      }
-      function closeSidebar() {
-        sidebar?.classList.remove('active');
-        backdrop?.classList.remove('active');
-        toggleBtn?.classList.remove('active');
-        toggleBtn.innerHTML = '☰';
-        isOpen = false;
-      }
-      toggleBtn?.addEventListener('click', () => {
-        if (isOpen) closeSidebar();
-        else openSidebar();
-      });
-      backdrop?.addEventListener('click', closeSidebar);
-      sidebar?.querySelectorAll('a').forEach((a) => {
-        a.addEventListener('click', () => {
-          if (window.innerWidth <= 900) closeSidebar();
-        });
-      });
-      document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && isOpen) closeSidebar();
-      });
+
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/admin-lte@latest/dist/js/adminlte.min.js" defer></script>

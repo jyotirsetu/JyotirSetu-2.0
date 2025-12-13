@@ -117,6 +117,19 @@ export const GET: APIRoute = async ({ request }) => {
         ].join('\n'),
         updated_at: nowIso,
       },
+      {
+        key: 'remedies_share',
+        text: [
+          'Namaste {name},',
+          '',
+          'Here is your personalized remedies report from JyotirSetu:',
+          '{share_link}',
+          '',
+          'Regards,',
+          'JyotirSetu Astrology',
+        ].join('\n'),
+        updated_at: nowIso,
+      },
     ];
     const defaultEmail = [
       {
@@ -208,13 +221,33 @@ export const GET: APIRoute = async ({ request }) => {
       if (type === 'whatsapp') {
         const res = await client.execute({ sql: `SELECT key, text, updated_at FROM whatsapp_templates`, args: [] });
         const rows = Array.isArray(res.rows) ? res.rows : [];
-        const data = rows.length ? rows : defaultWhatsapp;
-        return new Response(JSON.stringify({ ok: true, data }), { headers: { 'Content-Type': 'application/json' } });
+        
+        // Merge defaults with DB rows to ensure new defaults appear even if DB has data
+        const dbMap = new Map(rows.map(r => [r.key, r]));
+        const merged = defaultWhatsapp.map(def => dbMap.get(def.key) || def);
+        
+        // Add any custom templates from DB that aren't in defaults
+        rows.forEach(r => {
+           if (!defaultWhatsapp.find(d => d.key === r.key)) {
+             merged.push(r);
+           }
+        });
+
+        return new Response(JSON.stringify({ ok: true, data: merged }), { headers: { 'Content-Type': 'application/json' } });
       }
       const res = await client.execute({ sql: `SELECT key, subject, html, updated_at FROM email_templates`, args: [] });
       const rows = Array.isArray(res.rows) ? res.rows : [];
-      // If DB is configured, do NOT auto-fill defaults when empty.
-      return new Response(JSON.stringify({ ok: true, data: rows }), {
+      
+      // Merge email defaults similarly
+      const dbMapEmail = new Map(rows.map(r => [r.key, r]));
+      const mergedEmail = defaultEmail.map(def => dbMapEmail.get(def.key) || def);
+      rows.forEach(r => {
+         if (!defaultEmail.find(d => d.key === r.key)) {
+           mergedEmail.push(r);
+         }
+      });
+
+      return new Response(JSON.stringify({ ok: true, data: mergedEmail }), {
         headers: { 'Content-Type': 'application/json' },
       });
     } catch {
