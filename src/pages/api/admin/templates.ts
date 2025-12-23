@@ -278,7 +278,7 @@ export const PUT: APIRoute = async ({ request }) => {
     const secret = getEnv('SESSION_SECRET') || 'change-me';
     const { requireRole } = await import('../../../lib/rbac');
     const { isValidCsrf } = await import('../../../lib/csrf');
-    if (!(await requireRole(request, String(secret), ['admin']))) return new Response(JSON.stringify({ ok: false, error: 'forbidden' }), { status: 403 });
+    if (!(await requireRole(request, String(secret), ['admin', 'super_admin']))) return new Response(JSON.stringify({ ok: false, error: 'forbidden' }), { status: 403 });
     if (!isValidCsrf(request)) return new Response(JSON.stringify({ ok: false, error: 'csrf_failed' }), { status: 403 });
     await ensureTemplatesTables();
     const body = await request.json();
@@ -329,7 +329,7 @@ export const DELETE: APIRoute = async ({ request }) => {
     const secret = getEnv('SESSION_SECRET') || 'change-me';
     const { requireRole } = await import('../../../lib/rbac');
     const { isValidCsrf } = await import('../../../lib/csrf');
-    if (!(await requireRole(request, String(secret), ['admin']))) return new Response(JSON.stringify({ ok: false, error: 'forbidden' }), { status: 403 });
+    if (!(await requireRole(request, String(secret), ['admin', 'super_admin']))) return new Response(JSON.stringify({ ok: false, error: 'forbidden' }), { status: 403 });
     if (!isValidCsrf(request)) return new Response(JSON.stringify({ ok: false, error: 'csrf_failed' }), { status: 403 });
     await ensureTemplatesTables();
     const body = await request.json();

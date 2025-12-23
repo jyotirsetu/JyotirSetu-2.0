@@ -819,6 +819,7 @@ import MobilePageSelect from '~/components/MobilePageSelect.astro';
           const res = await fetch('/api/admin/templates', {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json', 'x-csrf-token': getCsrfToken() },
+            credentials: 'include',
             body: JSON.stringify({ type: 'whatsapp', key, text: text || textArea.value }),
           });
           const json = await res.json();
@@ -964,6 +965,7 @@ import MobilePageSelect from '~/components/MobilePageSelect.astro';
             const res = await fetch('/api/admin/templates', {
               method: 'DELETE',
               headers: { 'Content-Type': 'application/json', 'x-csrf-token': getCsrfToken() },
+              credentials: 'include',
               body: JSON.stringify({ type: 'whatsapp', key: deleteKey }),
             });
             const json = await res.json();

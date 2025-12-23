@@ -529,6 +529,7 @@ import MobilePageSelect from '~/components/MobilePageSelect.astro';
         const res = await fetch('/api/admin/templates', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json', 'x-csrf-token': getCsrfToken() },
+          credentials: 'include',
           body: JSON.stringify({ type: 'email', key, subject, html: html || editor.getContent() }),
         });
         const json = await res.json();
@@ -632,6 +633,7 @@ import MobilePageSelect from '~/components/MobilePageSelect.astro';
             const res = await fetch('/api/admin/templates', {
               method: 'PUT',
               headers: { 'Content-Type': 'application/json', 'x-csrf-token': getCsrfToken() },
+              credentials: 'include',
               body: JSON.stringify({ type: 'email', key: t.key, subject: t.subject, html: t.html }),
             });
             const json = await res.json();
@@ -669,6 +671,7 @@ import MobilePageSelect from '~/components/MobilePageSelect.astro';
           const res = await fetch('/api/admin/templates', {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json', 'x-csrf-token': getCsrfToken() },
+            credentials: 'include',
             body: JSON.stringify({ type: 'email', key: deleteKey }),
           });
           const json = await res.json();
