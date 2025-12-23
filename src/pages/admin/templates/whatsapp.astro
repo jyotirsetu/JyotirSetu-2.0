@@ -536,6 +536,10 @@ import MobilePageSelect from '~/components/MobilePageSelect.astro';
     </div>
     <script is:inline>
       (function () {
+        function getCsrfToken() {
+          const m = document.cookie.match(/csrf_token=([^;]+)/);
+          return m ? decodeURIComponent(m[1]) : '';
+        }
         const textEl = document.getElementById('text');
         if (!(textEl instanceof HTMLTextAreaElement)) {
           console.warn('WhatsApp Templates: textarea not found');
@@ -814,7 +818,7 @@ import MobilePageSelect from '~/components/MobilePageSelect.astro';
           }
           const res = await fetch('/api/admin/templates', {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', 'x-csrf-token': getCsrfToken() },
             body: JSON.stringify({ type: 'whatsapp', key, text: text || textArea.value }),
           });
           const json = await res.json();
@@ -959,7 +963,7 @@ import MobilePageSelect from '~/components/MobilePageSelect.astro';
           try {
             const res = await fetch('/api/admin/templates', {
               method: 'DELETE',
-              headers: { 'Content-Type': 'application/json' },
+              headers: { 'Content-Type': 'application/json', 'x-csrf-token': getCsrfToken() },
               body: JSON.stringify({ type: 'whatsapp', key: deleteKey }),
             });
             const json = await res.json();
