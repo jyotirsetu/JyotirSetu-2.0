@@ -1345,6 +1345,10 @@ import MobilePageSelect from '~/components/MobilePageSelect.astro';
   });
 
   document.getElementById('paymentSaveBtn')?.addEventListener('click', async function(){
+    const btn = document.getElementById('paymentSaveBtn');
+    if (btn && btn.disabled) return;
+    if (btn) { btn.disabled = true; btn.innerText = 'Saving...'; }
+
     const modal = document.getElementById('paymentModal');
     const apptId = document.getElementById('paymentApptId')?.value || '';
     const statusSel = document.getElementById('paymentStatusSel');
@@ -1355,7 +1359,11 @@ import MobilePageSelect from '~/components/MobilePageSelect.astro';
     const note = document.getElementById('paymentNote')?.value || '';
     const err = document.getElementById('paymentError'); if (err) { err.style.display='none'; err.textContent=''; }
     
-    if (!apptId) { if (err) { err.textContent='Missing appointment ID'; err.style.display='block'; } return; }
+    if (!apptId) { 
+      if (err) { err.textContent='Missing appointment ID'; err.style.display='block'; } 
+      if (btn) { btn.disabled = false; btn.innerText = 'Save Payment'; }
+      return; 
+    }
     
     // Retrieve client details from modal dataset
     const email = modal?.dataset.email || '';
@@ -1371,7 +1379,11 @@ import MobilePageSelect from '~/components/MobilePageSelect.astro';
         body: JSON.stringify({ id: apptId, payment_status: newStatus })
       });
     } catch { /* ignore */ }
-    if (amount <= 0) { if (err) { err.textContent='Enter a valid amount'; err.style.display='block'; } return; }
+    if (amount <= 0) { 
+      if (err) { err.textContent='Enter a valid amount'; err.style.display='block'; } 
+      if (btn) { btn.disabled = false; btn.innerText = 'Save Payment'; }
+      return; 
+    }
     try {
       const res = await fetch('/api/admin/payments', { method:'POST', credentials: 'include', headers:{ 'Content-Type':'application/json', 'x-csrf-token': getCsrfToken() }, body: JSON.stringify({ action:'add', client_id: null, appointment_id: apptId, amount, total_due: null, balance: null, entry_type: 'appointment', status: newStatus, mode, reference, note, email, name, phone }) });
       const j = await res.json();
@@ -1382,6 +1394,8 @@ import MobilePageSelect from '~/components/MobilePageSelect.astro';
     } catch (e) { 
       const msg = e instanceof Error ? e.message : 'Failed to record payment';
       if (err) { err.textContent = msg; err.style.display='block'; } 
+    } finally {
+      if (btn) { btn.disabled = false; btn.innerText = 'Save Payment'; }
     }
   });
   document.querySelectorAll('#paymentModal [data-close]')?.forEach((btn)=>{
