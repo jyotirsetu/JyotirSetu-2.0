@@ -1,0 +1,354 @@
+---
+const channelId = import.meta.env.PUBLIC_YOUTUBE_CHANNEL_ID || 'UChQeWv_q0GscYKZR3RgzatQ';
+const apiKey = import.meta.env.PUBLIC_YOUTUBE_API_KEY;
+const maxResults = Astro.props.maxResults || 6;
+const youtubeChannelUrl = `https://www.youtube.com/channel/${channelId}`;
+
+type YouTubeThumbnail = {
+  url: string;
+};
+
+type YouTubeSnippet = {
+  title: string;
+  description: string;
+  publishedAt: string;
+  thumbnails: {
+    high?: YouTubeThumbnail;
+    medium?: YouTubeThumbnail;
+    default?: YouTubeThumbnail;
+  };
+};
+
+type YouTubeVideoItem = {
+  id: {
+    videoId: string;
+  };
+  snippet: YouTubeSnippet;
+};
+
+type YouTubeSearchResponse = {
+  items?: YouTubeVideoItem[];
+};
+
+type YouTubeChannelItem = {
+  id: string;
+  snippet: {
+    title: string;
+    description: string;
+    thumbnails: {
+      default?: YouTubeThumbnail;
+      medium?: YouTubeThumbnail;
+      high?: YouTubeThumbnail;
+    };
+  };
+  statistics: {
+    subscriberCount: string;
+    viewCount?: string;
+    videoCount?: string;
+  };
+};
+
+type YouTubeChannelResponse = {
+  items?: YouTubeChannelItem[];
+};
+
+type YouTubeVideoData = {
+  id: string;
+  title: string;
+  description: string;
+  thumbnail: string;
+  publishedAt: string;
+};
+
+type YouTubeChannelInfo = {
+  title: string;
+  thumbnail: string;
+  subscriberCount: string;
+  description: string;
+};
+
+let videos: YouTubeVideoData[] = [];
+let channelInfo: YouTubeChannelInfo | null = null;
+
+if (apiKey) {
+  try {
+    const videoApiUrl = `https://www.googleapis.com/youtube/v3/search?key=${apiKey}&channelId=${channelId}&part=snippet,id&order=date&maxResults=${maxResults}&type=video`;
+    const channelApiUrl = `https://www.googleapis.com/youtube/v3/channels?key=${apiKey}&id=${channelId}&part=snippet,statistics`;
+    
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+
+    const [videoRes, channelRes] = await Promise.all([
+      fetch(videoApiUrl, { signal: controller.signal }),
+      fetch(channelApiUrl, { signal: controller.signal }),
+    ]).catch((err) => {
+      clearTimeout(timeout);
+      if (err.name === 'AbortError') {
+        console.warn('YouTube API timeout - displaying fallback content');
+        throw new Error('timeout');
+      }
+      throw err;
+    });
+
+    clearTimeout(timeout);
+
+    // Silently load videos - no error UI if it fails
+    if (videoRes.ok) {
+      const data = (await videoRes.json()) as YouTubeSearchResponse;
+      videos = (data.items || [])
+        .map((item) => ({
+          id: item.id.videoId,
+          title: item.snippet.title,
+          description: item.snippet.description,
+          thumbnail:
+            item.snippet.thumbnails.high?.url ||
+            item.snippet.thumbnails.medium?.url ||
+            item.snippet.thumbnails.default?.url ||
+            '',
+          publishedAt: item.snippet.publishedAt,
+        }))
+        .filter((video) => video.id);
+    } else {
+      console.warn(`YouTube fetch failed (${videoRes.status}) - using fallback display`);
+    }
+
+    // Silently load channel info - no error UI if it fails
+    if (channelRes.ok) {
+      const channelData = (await channelRes.json()) as YouTubeChannelResponse;
+      const channelItem = channelData.items?.[0];
+      if (channelItem) {
+        channelInfo = {
+          title: channelItem.snippet.title,
+          thumbnail:
+            channelItem.snippet.thumbnails.high?.url ||
+            channelItem.snippet.thumbnails.medium?.url ||
+            channelItem.snippet.thumbnails.default?.url ||
+            '',
+          subscriberCount: channelItem.statistics.subscriberCount,
+          description: channelItem.snippet.description || 'Follow our channel for the latest content',
+        };
+      }
+    } else {
+      console.warn(`Channel fetch failed (${channelRes.status}) - using fallback display`);
+    }
+  } catch (err) {
+    // Log errors only - NEVER show error message to users
+    if (err instanceof Error) {
+      console.warn(`YouTube API unavailable: ${err.message}`);
+    } else {
+      console.warn('YouTube API unavailable');
+    }
+    // Fallback UI will display with default channel name and subscribe button
+  }
+}
+
+const formatVideoDate = (dateString: string) => {
+  const date = new Date(dateString);
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  return `${monthNames[date.getMonth()]} ${date.getDate()}`;
+};
+
+const formatSubscribers = (count: number) =>
+  new Intl.NumberFormat('en-US', {
+    notation: 'compact',
+    maximumFractionDigits: 1,
+  }).format(count);
+
+const channelTitle = channelInfo?.title || 'JyotirSetu';
+const channelSubscribers = channelInfo?.subscriberCount
+  ? `${formatSubscribers(Number(channelInfo.subscriberCount))} subscribers`
+  : 'Subscribers';
+
+const featuredVideo = videos[0] || {
+  id: '',
+  title: 'No video available',
+};
+---
+<section class="py-16 bg-slate-950 text-white">
+  <div class="mx-auto max-w-7xl px-6">
+    <div class="overflow-hidden rounded-[2rem] border border-slate-800 bg-slate-900 shadow-2xl shadow-slate-950/50">
+      <div class="bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 px-6 py-8 sm:px-8 sm:py-10">
+        <div class="grid gap-6 lg:grid-cols-[1.8fr_1fr] lg:items-center">
+          <div class="space-y-6">
+            <div class="flex flex-col gap-6 sm:flex-row sm:items-center">
+              {channelInfo ? (
+                <img
+                  src={channelInfo.thumbnail}
+                  alt="JyotirSetu channel avatar"
+                  class="h-20 w-20 rounded-[1.5rem] object-cover shadow-xl shadow-black/40"
+                />
+              ) : (
+                <div class="flex h-20 w-20 items-center justify-center rounded-[1.5rem] bg-slate-800 text-3xl font-semibold text-white shadow-xl shadow-black/40">
+                  JS
+                </div>
+              )}
+              <div class="space-y-3">
+                <p class="text-xs uppercase tracking-[0.3em] text-slate-400">Official channel</p>
+                <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
+                  <h2 class="text-4xl font-semibold tracking-tight text-white sm:text-5xl">{channelTitle}</h2>
+                  <span class="inline-flex items-center rounded-full bg-slate-800 px-3 py-2 text-sm font-semibold text-red-400 shadow-sm shadow-red-500/20">LIVE</span>
+                </div>
+                <p class="max-w-2xl text-sm leading-7 text-slate-400 sm:text-base">
+                  Explore authentic Vedic astrology guidance, spiritual rituals, client stories, and weekly video updates from JyotirSetu.
+                </p>
+                <div class="flex flex-wrap gap-3 text-sm text-slate-400">
+                  <span class="rounded-full border border-slate-800 px-3 py-2">{channelSubscribers}</span>
+                  <span class="rounded-full border border-slate-800 px-3 py-2">Astrology</span>
+                  <span class="rounded-full border border-slate-800 px-3 py-2">Weekly uploads</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="rounded-[1.75rem] border border-slate-800 bg-slate-950/95 p-6 shadow-xl shadow-black/20 sm:p-8 lg:min-h-[18rem] lg:flex lg:flex-col lg:justify-between">
+            <div>
+              <div class="flex items-center justify-between gap-4">
+                <div>
+                  <p class="text-sm uppercase tracking-[0.28em] text-red-400">Channel</p>
+                  <p class="mt-2 text-3xl font-semibold text-white">{channelTitle}</p>
+                </div>
+                <span class="inline-flex items-center rounded-full bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-red-500/20">
+                  Subscribe
+                </span>
+              </div>
+              <p class="mt-4 text-sm leading-6 text-slate-400">
+                Join the channel for accurate astrology updates, practical remedies, and video guidance as soon as new content goes live.
+              </p>
+            </div>
+            <div class="mt-6 grid gap-3 sm:grid-cols-2 lg:mt-8">
+              <a
+                href={`${youtubeChannelUrl}?sub_confirmation=1`}
+                target="_blank"
+                rel="noreferrer noopener"
+                class="inline-flex items-center justify-center rounded-3xl bg-red-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-red-700"
+              >
+                <span class="mr-2 text-white">▶</span> Subscribe now
+              </a>
+              <a
+                href={youtubeChannelUrl}
+                target="_blank"
+                rel="noreferrer noopener"
+                class="inline-flex items-center justify-center rounded-3xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm font-semibold text-slate-100 transition hover:border-white/20 hover:bg-slate-900"
+              >
+                Visit channel
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-8 flex flex-wrap items-center gap-3 border-t border-slate-800 pt-6 text-sm text-slate-400">
+          <span class="rounded-full bg-white/5 px-4 py-2 uppercase tracking-[0.24em]">HOME</span>
+          <span class="rounded-full bg-white/5 px-4 py-2 uppercase tracking-[0.24em] text-white">VIDEOS</span>
+          <span class="rounded-full bg-white/5 px-4 py-2 uppercase tracking-[0.24em]">PLAYLISTS</span>
+          <span class="rounded-full bg-white/5 px-4 py-2 uppercase tracking-[0.24em]">COMMUNITY</span>
+          <span class="rounded-full bg-white/5 px-4 py-2 uppercase tracking-[0.24em]">ABOUT</span>
+        </div>
+      </div>
+
+      <div class="border-t border-slate-800 px-6 py-6 sm:px-8 sm:py-8">
+        <div class="mx-auto max-w-[900px]">
+          {videos.length > 0 ? (
+            <div class="grid gap-6 lg:grid-cols-[1.35fr_0.75fr] lg:items-start">
+              <div class="overflow-hidden rounded-[2rem] border border-slate-800/70 bg-slate-950 shadow-xl shadow-black/20 lg:max-w-[520px] mx-auto lg:mx-0">
+                <div class="relative aspect-[16/9] bg-slate-900">
+                  <iframe
+                    id="youtube-video-player"
+                    class="h-full w-full border-0"
+                    src={
+                      featuredVideo.id
+                        ? `https://www.youtube.com/embed/${featuredVideo.id}?rel=0&modestbranding=1&autoplay=1`
+                        : ''
+                    }
+                    title={featuredVideo.title}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen
+                  />
+                </div>
+                <div class="bg-slate-950 px-5 py-5 sm:px-6 sm:py-6">
+                  <p class="text-xs uppercase tracking-[0.28em] text-slate-400 font-semibold">Featured video</p>
+                  <h3 class="mt-3 text-base font-semibold text-white leading-6 line-clamp-3">{featuredVideo.title}</h3>
+                </div>
+              </div>
+
+              <div class="rounded-[2rem] border border-slate-800/70 bg-slate-950/95 p-5 shadow-xl shadow-black/15 flex h-full flex-col lg:max-w-[300px]">
+                <div class="flex items-center justify-between gap-3 pb-4 border-b border-slate-800/40 mb-4">
+                  <div>
+                    <p class="text-xs uppercase tracking-[0.28em] text-slate-400 font-semibold">Latest uploads</p>
+                    <p class="mt-1 text-sm font-semibold text-white">{videos.length} videos</p>
+                  </div>
+                  <a
+                    href={youtubeChannelUrl}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    class="text-xs font-semibold text-red-400 transition hover:text-red-300 whitespace-nowrap"
+                  >
+                    View all →
+                  </a>
+                </div>
+                <div class="space-y-3 overflow-hidden">
+                  {videos.slice(0, 8).map((video) => (
+                    <a
+                      href={`https://www.youtube.com/watch?v=${video.id}`}
+                      target="_blank"
+                      rel="noreferrer noopener"
+                      class="group block rounded-2xl border border-slate-800/50 bg-slate-900 p-3 transition duration-200 hover:border-red-500/50 hover:bg-slate-800"
+                      title={video.title}
+                    >
+                      <div class="flex items-start gap-3">
+                        <div class="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-2xl bg-slate-800">
+                          <img
+                            src={video.thumbnail}
+                            alt={video.title}
+                            class="h-full w-full object-cover transition duration-200 group-hover:scale-105"
+                          />
+                          <span class="absolute right-2 top-2 rounded bg-red-600 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-white">NEW</span>
+                        </div>
+                        <div class="min-w-0">
+                          <p class="text-sm font-semibold text-white line-clamp-2">{video.title}</p>
+                          <p class="mt-1 text-[11px] text-slate-500">{formatVideoDate(video.publishedAt)}</p>
+                        </div>
+                      </div>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div class="rounded-[2rem] border border-slate-800/70 bg-slate-950/95 p-6 text-center">
+              <p class="text-slate-400 text-sm">Subscribe to our channel for the latest astrology content</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Custom Scrollbar Styling */}
+      <style>
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(148, 163, 184, 0.3);
+          border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: rgba(148, 163, 184, 0.5);
+        }
+      </style>
+
+      <script type="module">
+        const player = document.getElementById('youtube-video-player');
+        const cards = document.querySelectorAll('[data-youtube-video-id]');
+        cards.forEach((card) => {
+          card.addEventListener('click', () => {
+            const videoId = card.dataset.youtubeVideoId;
+            if (!videoId || !player) return;
+            player.src = `https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1&autoplay=1`;
+            cards.forEach((item) => item.classList.remove('ring-2', 'ring-red-500', 'dark:ring-red-400'));
+            card.classList.add('ring-2', 'ring-red-500', 'dark:ring-red-400');
+          });
+        });
+      </script>
+    </section>
