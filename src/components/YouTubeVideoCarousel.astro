@@ -1,33 +1,34 @@
 ---
+/**
+ * YouTube Video Carousel Component
+ * 
+ * IMPORTANT PRODUCTION NOTES:
+ * 1. API Key Configuration:
+ *    - Must whitelist ALL production domains in Google Cloud Console
+ *    - Go to: APIs & Services > Credentials > API Key > Application Restrictions
+ *    - Add: yourdomain.com, www.yourdomain.com (HTTP and HTTPS)
+ *    - If not whitelisted, API calls will silently fail on production
+ * 
+ * 2. Autoplay Policy:
+ *    - YouTube embeds require specific parameters for autoplay
+ *    - Must use: ?rel=0&modestbranding=1&autoplay=1&mute=1
+ *    - Autoplay without muting fails on most production websites
+ * 
+ * 3. Cross-Origin Issues:
+ *    - Use server-side fetching (this component runs server-side in Astro)
+ *    - Client-side fetch() may face CORS restrictions
+ *    - Testing locally won't reveal production CORS issues
+ */
+
 const channelId = import.meta.env.PUBLIC_YOUTUBE_CHANNEL_ID || 'UChQeWv_q0GscYKZR3RgzatQ';
 const apiKey = import.meta.env.PUBLIC_YOUTUBE_API_KEY;
-const maxResults = Astro.props.maxResults || 6;
 const youtubeChannelUrl = `https://www.youtube.com/channel/${channelId}`;
+const siteOrigin = import.meta.env.SITE_URL || (import.meta.env.DEV ? 'http://localhost:4321' : 'https://www.jyotirsetu.com');
+const runtimeOrigin = Astro.url?.origin || siteOrigin;
 
+// Type definitions
 type YouTubeThumbnail = {
   url: string;
-};
-
-type YouTubeSnippet = {
-  title: string;
-  description: string;
-  publishedAt: string;
-  thumbnails: {
-    high?: YouTubeThumbnail;
-    medium?: YouTubeThumbnail;
-    default?: YouTubeThumbnail;
-  };
-};
-
-type YouTubeVideoItem = {
-  id: {
-    videoId: string;
-  };
-  snippet: YouTubeSnippet;
-};
-
-type YouTubeSearchResponse = {
-  items?: YouTubeVideoItem[];
 };
 
 type YouTubeChannelItem = {
@@ -46,10 +47,38 @@ type YouTubeChannelItem = {
     viewCount?: string;
     videoCount?: string;
   };
+  contentDetails?: {
+    relatedPlaylists?: {
+      uploads?: string;
+    };
+  };
 };
 
 type YouTubeChannelResponse = {
   items?: YouTubeChannelItem[];
+  error?: { message: string; code: number };
+};
+
+type YouTubePlaylistItem = {
+  snippet: {
+    title: string;
+    description: string;
+    publishedAt: string;
+    thumbnails: {
+      high?: YouTubeThumbnail;
+      medium?: YouTubeThumbnail;
+      default?: YouTubeThumbnail;
+    };
+    resourceId?: {
+      videoId?: string;
+    };
+  };
+};
+
+type YouTubePlaylistResponse = {
+  items?: YouTubePlaylistItem[];
+  nextPageToken?: string;
+  error?: { message: string; code: number };
 };
 
 type YouTubeVideoData = {
@@ -69,77 +98,134 @@ type YouTubeChannelInfo = {
 
 let videos: YouTubeVideoData[] = [];
 let channelInfo: YouTubeChannelInfo | null = null;
+let apiError: string | null = null;
 
+// STARTUP LOG - Verify component is running
+console.log('[YouTube Component] Component loaded');
+console.log('[YouTube Component] API Key configured:', !!apiKey);
+console.log('[YouTube Component] Channel ID:', channelId);
+console.log('[YouTube Component] Environment:', import.meta.env.MODE);
+
+// Fetch YouTube data server-side (avoids CORS issues on production)
 if (apiKey) {
   try {
-    const videoApiUrl = `https://www.googleapis.com/youtube/v3/search?key=${apiKey}&channelId=${channelId}&part=snippet,id&order=date&maxResults=${maxResults}&type=video`;
-    const channelApiUrl = `https://www.googleapis.com/youtube/v3/channels?key=${apiKey}&id=${channelId}&part=snippet,statistics`;
+    console.log('[YouTube Component] Fetching videos...');
+    const channelApiUrl = `https://www.googleapis.com/youtube/v3/channels?key=${apiKey}&id=${channelId}&part=snippet,statistics,contentDetails`;
     
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+    const timeout = setTimeout(() => controller.abort(), 15000);
 
-    const [videoRes, channelRes] = await Promise.all([
-      fetch(videoApiUrl, { signal: controller.signal }),
-      fetch(channelApiUrl, { signal: controller.signal }),
-    ]).catch((err) => {
+    const candidateOrigins = Array.from(
+      new Set([runtimeOrigin, siteOrigin, 'https://www.jyotirsetu.com', 'https://jyotirsetu.com', 'http://localhost:4321'])
+    );
+
+    const fetchWithRetry = async (url: string) => {
+      for (const origin of candidateOrigins) {
+        const headers = {
+          Referer: `${origin}/`,
+          Origin: origin,
+        };
+        const res = await fetch(url, { signal: controller.signal, headers });
+        if (res.status !== 403) return res;
+        console.warn(`[YouTube Component] 403 with origin ${origin}, retrying...`);
+      }
+      // Return final attempt with runtime origin to preserve behavior and status details
+      return fetch(url, {
+        signal: controller.signal,
+        headers: { Referer: `${runtimeOrigin}/`, Origin: runtimeOrigin },
+      });
+    };
+
+    const channelRes = await fetchWithRetry(channelApiUrl).catch((err) => {
       clearTimeout(timeout);
       if (err.name === 'AbortError') {
-        console.warn('YouTube API timeout - displaying fallback content');
+        apiError = 'API request timeout - data loading too slow';
+        console.warn('[YouTube Component] API timeout after 15s');
         throw new Error('timeout');
       }
       throw err;
     });
 
-    clearTimeout(timeout);
-
-    // Silently load videos - no error UI if it fails
-    if (videoRes.ok) {
-      const data = (await videoRes.json()) as YouTubeSearchResponse;
-      videos = (data.items || [])
-        .map((item) => ({
-          id: item.id.videoId,
-          title: item.snippet.title,
-          description: item.snippet.description,
-          thumbnail:
-            item.snippet.thumbnails.high?.url ||
-            item.snippet.thumbnails.medium?.url ||
-            item.snippet.thumbnails.default?.url ||
-            '',
-          publishedAt: item.snippet.publishedAt,
-        }))
-        .filter((video) => video.id);
-    } else {
-      console.warn(`YouTube fetch failed (${videoRes.status}) - using fallback display`);
-    }
-
-    // Silently load channel info - no error UI if it fails
+    // Load channel info
     if (channelRes.ok) {
       const channelData = (await channelRes.json()) as YouTubeChannelResponse;
-      const channelItem = channelData.items?.[0];
-      if (channelItem) {
-        channelInfo = {
-          title: channelItem.snippet.title,
-          thumbnail:
-            channelItem.snippet.thumbnails.high?.url ||
-            channelItem.snippet.thumbnails.medium?.url ||
-            channelItem.snippet.thumbnails.default?.url ||
-            '',
-          subscriberCount: channelItem.statistics.subscriberCount,
-          description: channelItem.snippet.description || 'Follow our channel for the latest content',
-        };
+      if (channelData.error) {
+        console.error('[YouTube Component] Channel API error:', channelData.error.message);
+      } else {
+        const channelItem = channelData.items?.[0];
+        if (channelItem) {
+          channelInfo = {
+            title: channelItem.snippet.title,
+            thumbnail:
+              channelItem.snippet.thumbnails.high?.url ||
+              channelItem.snippet.thumbnails.medium?.url ||
+              channelItem.snippet.thumbnails.default?.url ||
+              '',
+            subscriberCount: channelItem.statistics.subscriberCount,
+            description: channelItem.snippet.description || 'Follow our channel for the latest content',
+          };
+          console.log('[YouTube Component] Channel loaded:', channelInfo.title);
+
+          const uploadsPlaylistId = channelItem.contentDetails?.relatedPlaylists?.uploads;
+          if (uploadsPlaylistId) {
+            const collectedVideos: YouTubeVideoData[] = [];
+            let nextPageToken: string | undefined;
+            const maxVideoCount = 200;
+
+            do {
+              const playlistApiUrl = `https://www.googleapis.com/youtube/v3/playlistItems?key=${apiKey}&playlistId=${uploadsPlaylistId}&part=snippet&maxResults=50${
+                nextPageToken ? `&pageToken=${nextPageToken}` : ''
+              }`;
+
+              const playlistRes = await fetchWithRetry(playlistApiUrl);
+              if (!playlistRes.ok) {
+                console.error('[YouTube Component] Playlist fetch failed:', playlistRes.status, playlistRes.statusText);
+                break;
+              }
+
+              const playlistData = (await playlistRes.json()) as YouTubePlaylistResponse;
+              if (playlistData.error) {
+                console.error('[YouTube Component] Playlist API error:', playlistData.error.message);
+                break;
+              }
+
+              const pageVideos = (playlistData.items || [])
+                .map((item) => ({
+                  id: item.snippet.resourceId?.videoId || '',
+                  title: item.snippet.title,
+                  description: item.snippet.description,
+                  thumbnail:
+                    item.snippet.thumbnails.high?.url ||
+                    item.snippet.thumbnails.medium?.url ||
+                    item.snippet.thumbnails.default?.url ||
+                    '',
+                  publishedAt: item.snippet.publishedAt,
+                }))
+                .filter((video) => video.id && video.title !== 'Private video' && video.title !== 'Deleted video');
+
+              collectedVideos.push(...pageVideos);
+              nextPageToken = playlistData.nextPageToken;
+            } while (nextPageToken && collectedVideos.length < maxVideoCount);
+
+            videos = collectedVideos;
+            console.log('[YouTube Component] Videos loaded:', videos.length);
+          }
+        }
       }
     } else {
-      console.warn(`Channel fetch failed (${channelRes.status}) - using fallback display`);
+      console.error('[YouTube Component] Channel fetch failed:', channelRes.status, channelRes.statusText);
     }
+
+    clearTimeout(timeout);
   } catch (err) {
-    // Log errors only - NEVER show error message to users
     if (err instanceof Error) {
-      console.warn(`YouTube API unavailable: ${err.message}`);
-    } else {
-      console.warn('YouTube API unavailable');
+      console.warn(`[YouTube Component] Error: ${err.message}`);
+      if (!apiError) apiError = err.message;
     }
-    // Fallback UI will display with default channel name and subscribe button
+    // Fallback UI will display - this is normal if API key not set up
   }
+} else {
+  console.warn('[YouTube Component] PUBLIC_YOUTUBE_API_KEY not configured');
 }
 
 const formatVideoDate = (dateString: string) => {
@@ -158,6 +244,8 @@ const channelTitle = channelInfo?.title || 'JyotirSetu';
 const channelSubscribers = channelInfo?.subscriberCount
   ? `${formatSubscribers(Number(channelInfo.subscriberCount))} subscribers`
   : 'Subscribers';
+const initialBrowseCount = 10;
+const serializedVideos = JSON.stringify(videos).replace(/</g, '\\u003c');
 
 const featuredVideo = videos[0] || {
   id: '',
@@ -201,36 +289,32 @@ const featuredVideo = videos[0] || {
           </div>
 
           <div class="rounded-[1.75rem] border border-slate-800 bg-slate-950/95 p-6 shadow-xl shadow-black/20 sm:p-8 lg:min-h-[18rem] lg:flex lg:flex-col lg:justify-between">
+            {/* Channel Info Section */}
             <div>
-              <div class="flex items-center justify-between gap-4">
-                <div>
-                  <p class="text-sm uppercase tracking-[0.28em] text-red-400">Channel</p>
-                  <p class="mt-2 text-3xl font-semibold text-white">{channelTitle}</p>
-                </div>
-                <span class="inline-flex items-center rounded-full bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-red-500/20">
-                  Subscribe
-                </span>
-              </div>
+              <p class="text-xs uppercase tracking-[0.28em] text-red-400 font-semibold">Youtube Channel</p>
+              <p class="mt-3 text-3xl font-semibold text-white">{channelTitle}</p>
               <p class="mt-4 text-sm leading-6 text-slate-400">
                 Join the channel for accurate astrology updates, practical remedies, and video guidance as soon as new content goes live.
               </p>
             </div>
+
+            {/* Action Buttons - Both Clickable */}
             <div class="mt-6 grid gap-3 sm:grid-cols-2 lg:mt-8">
               <a
                 href={`${youtubeChannelUrl}?sub_confirmation=1`}
                 target="_blank"
                 rel="noreferrer noopener"
-                class="inline-flex items-center justify-center rounded-3xl bg-red-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-red-700"
+                class="group inline-flex items-center justify-center rounded-3xl bg-red-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-slate-950"
               >
-                <span class="mr-2 text-white">▶</span> Subscribe now
+                <span class="mr-2 text-lg">▶</span> Subscribe
               </a>
               <a
                 href={youtubeChannelUrl}
                 target="_blank"
                 rel="noreferrer noopener"
-                class="inline-flex items-center justify-center rounded-3xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm font-semibold text-slate-100 transition hover:border-white/20 hover:bg-slate-900"
+                class="inline-flex items-center justify-center rounded-3xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm font-semibold text-slate-100 transition hover:border-red-500/50 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-600"
               >
-                Visit channel
+                Watch Videos
               </a>
             </div>
           </div>
@@ -246,79 +330,149 @@ const featuredVideo = videos[0] || {
       </div>
 
       <div class="border-t border-slate-800 px-6 py-6 sm:px-8 sm:py-8">
-        <div class="mx-auto max-w-[900px]">
-          {videos.length > 0 ? (
-            <div class="grid gap-6 lg:grid-cols-[1.35fr_0.75fr] lg:items-start">
-              <div class="overflow-hidden rounded-[2rem] border border-slate-800/70 bg-slate-950 shadow-xl shadow-black/20 lg:max-w-[520px] mx-auto lg:mx-0">
+        {videos.length > 0 ? (
+          <div class="space-y-6">
+            <div class="grid gap-6 xl:grid-cols-[1.5fr_1fr] xl:items-stretch">
+              <div class="overflow-hidden rounded-[2rem] border border-slate-800/80 bg-slate-950 shadow-xl shadow-black/25">
                 <div class="relative aspect-[16/9] bg-slate-900">
                   <iframe
                     id="youtube-video-player"
+                    data-origin={siteOrigin}
                     class="h-full w-full border-0"
                     src={
                       featuredVideo.id
-                        ? `https://www.youtube.com/embed/${featuredVideo.id}?rel=0&modestbranding=1&autoplay=1`
+                        ? `https://www.youtube.com/embed/${featuredVideo.id}?rel=0&modestbranding=1&autoplay=1&mute=1&controls=1&fs=1&enablejsapi=1&playsinline=1&origin=${encodeURIComponent(siteOrigin)}`
                         : ''
                     }
                     title={featuredVideo.title}
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowfullscreen
                   />
+                  <button
+                    id="youtube-enable-sound"
+                    type="button"
+                    class="absolute left-3 top-14 inline-flex items-center gap-2 rounded-full border border-white/30 bg-slate-900/65 px-3 py-1.5 text-xs font-semibold tracking-[0.08em] text-white backdrop-blur-md transition duration-300 hover:border-white/60 hover:bg-slate-800/75"
+                  >
+                    <span aria-hidden="true">SOUND</span>
+                    Tap to unmute
+                  </button>
                 </div>
-                <div class="bg-slate-950 px-5 py-5 sm:px-6 sm:py-6">
-                  <p class="text-xs uppercase tracking-[0.28em] text-slate-400 font-semibold">Featured video</p>
-                  <h3 class="mt-3 text-base font-semibold text-white leading-6 line-clamp-3">{featuredVideo.title}</h3>
+
+                <div class="grid gap-4 border-t border-slate-800/70 bg-slate-950 px-5 py-5 sm:grid-cols-[1fr_auto] sm:items-center sm:px-6">
+                  <div>
+                    <p class="text-xs font-semibold uppercase tracking-[0.28em] text-slate-400">Now playing</p>
+                    <h3 id="youtube-featured-title" class="mt-2 text-lg font-semibold leading-7 text-white line-clamp-2">{featuredVideo.title}</h3>
+                  </div>
+                  <a
+                    href={`https://www.youtube.com/watch?v=${featuredVideo.id}`}
+                    id="youtube-open-featured"
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    class="inline-flex items-center justify-center rounded-full bg-red-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700"
+                  >
+                    Open on YouTube
+                  </a>
                 </div>
               </div>
 
-              <div class="rounded-[2rem] border border-slate-800/70 bg-slate-950/95 p-5 shadow-xl shadow-black/15 flex h-full flex-col lg:max-w-[300px]">
-                <div class="flex items-center justify-between gap-3 pb-4 border-b border-slate-800/40 mb-4">
+              <div class="rounded-[2rem] border border-slate-800/80 bg-slate-950/95 p-5 shadow-xl shadow-black/20 sm:p-6">
+                <div class="flex items-center justify-between gap-3 border-b border-slate-800/60 pb-4">
                   <div>
-                    <p class="text-xs uppercase tracking-[0.28em] text-slate-400 font-semibold">Latest uploads</p>
-                    <p class="mt-1 text-sm font-semibold text-white">{videos.length} videos</p>
+                    <p class="text-xs font-semibold uppercase tracking-[0.28em] text-slate-400">Up next</p>
+                    <p class="mt-1 text-sm font-semibold text-white">Play another recent upload</p>
                   </div>
                   <a
                     href={youtubeChannelUrl}
                     target="_blank"
                     rel="noreferrer noopener"
-                    class="text-xs font-semibold text-red-400 transition hover:text-red-300 whitespace-nowrap"
+                    class="text-xs font-semibold text-red-400 transition hover:text-red-300"
                   >
                     View all →
                   </a>
                 </div>
-                <div class="space-y-3 overflow-hidden">
-                  {videos.slice(0, 8).map((video) => (
-                    <a
-                      href={`https://www.youtube.com/watch?v=${video.id}`}
-                      target="_blank"
-                      rel="noreferrer noopener"
-                      class="group block rounded-2xl border border-slate-800/50 bg-slate-900 p-3 transition duration-200 hover:border-red-500/50 hover:bg-slate-800"
+
+                <div class="mt-4 space-y-3 max-h-[22rem] overflow-y-auto pr-1 custom-scrollbar">
+                  {videos.slice(0, 8).map((video, index) => (
+                    <button
+                      type="button"
+                      data-youtube-video-id={video.id}
+                      data-youtube-video-title={video.title}
+                      class={`youtube-video-card group block w-full rounded-2xl border border-slate-800/60 bg-slate-900/90 p-3 text-left transition hover:border-red-500/60 hover:bg-slate-800 ${
+                        index === 0 ? 'ring-2 ring-red-500' : ''
+                      }`}
                       title={video.title}
                     >
                       <div class="flex items-start gap-3">
-                        <div class="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-2xl bg-slate-800">
+                        <div class="relative h-16 w-24 flex-shrink-0 overflow-hidden rounded-xl bg-slate-800">
                           <img
                             src={video.thumbnail}
                             alt={video.title}
                             class="h-full w-full object-cover transition duration-200 group-hover:scale-105"
                           />
-                          <span class="absolute right-2 top-2 rounded bg-red-600 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-white">NEW</span>
+                          <span class="absolute right-1 top-1 rounded bg-red-600 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-white">NEW</span>
                         </div>
                         <div class="min-w-0">
-                          <p class="text-sm font-semibold text-white line-clamp-2">{video.title}</p>
+                          <p class="text-sm font-semibold leading-5 text-white line-clamp-2">{video.title}</p>
                           <p class="mt-1 text-[11px] text-slate-500">{formatVideoDate(video.publishedAt)}</p>
                         </div>
                       </div>
-                    </a>
+                    </button>
                   ))}
                 </div>
               </div>
             </div>
-          ) : (
-            <div class="rounded-[2rem] border border-slate-800/70 bg-slate-950/95 p-6 text-center">
-              <p class="text-slate-400 text-sm">Subscribe to our channel for the latest astrology content</p>
+
+            <div class="rounded-[1.8rem] border border-slate-800/70 bg-slate-950/90 p-4 sm:p-5">
+              <div class="mb-4 flex items-center justify-between">
+                <div>
+                  <p class="text-xs font-semibold uppercase tracking-[0.28em] text-slate-400">Browse latest</p>
+                  <p class="mt-1 text-sm text-slate-300">Swipe or use arrows to explore recent videos</p>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button id="youtube-carousel-prev" type="button" class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-700 bg-slate-900 text-slate-200 transition hover:border-red-500/50 hover:text-white" aria-label="Previous videos">
+                    ←
+                  </button>
+                  <button id="youtube-carousel-next" type="button" class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-700 bg-slate-900 text-slate-200 transition hover:border-red-500/50 hover:text-white" aria-label="Next videos">
+                    →
+                  </button>
+                </div>
+              </div>
+
+              <div id="youtube-carousel-track" class="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1 custom-scrollbar">
+                {videos.slice(0, initialBrowseCount).map((video, index) => (
+                  <button
+                    type="button"
+                    data-youtube-video-id={video.id}
+                    data-youtube-video-title={video.title}
+                    data-browse-card="true"
+                    class={`youtube-video-card group min-w-[220px] max-w-[220px] snap-start overflow-hidden rounded-2xl border border-slate-800/70 bg-slate-900 text-left transition hover:border-red-500/60 hover:bg-slate-800 ${
+                      index === 0 ? 'ring-2 ring-red-500' : ''
+                    }`}
+                    title={video.title}
+                  >
+                    <div class="aspect-video overflow-hidden">
+                      <img
+                        src={video.thumbnail}
+                        alt={video.title}
+                        class="h-full w-full object-cover transition duration-200 group-hover:scale-105"
+                      />
+                    </div>
+                    <div class="p-3">
+                      <p class="text-sm font-semibold leading-5 text-white line-clamp-2">{video.title}</p>
+                      <p class="mt-1 text-[11px] text-slate-500">{formatVideoDate(video.publishedAt)}</p>
+                    </div>
+                  </button>
+                ))}
+                <div id="youtube-carousel-sentinel" class="w-px"></div>
+              </div>
+              <script id="youtube-videos-data" type="application/json" set:html={serializedVideos}></script>
             </div>
-          )}
-        </div>
+          </div>
+        ) : (
+          <div class="rounded-[2rem] border border-slate-800/70 bg-slate-950/95 p-8 text-center">
+            <p class="text-slate-400 text-sm">Subscribe to our channel for the latest astrology content</p>
+          </div>
+        )}
       </div>
 
       {/* Custom Scrollbar Styling */}
@@ -340,15 +494,149 @@ const featuredVideo = videos[0] || {
 
       <script type="module">
         const player = document.getElementById('youtube-video-player');
-        const cards = document.querySelectorAll('[data-youtube-video-id]');
-        cards.forEach((card) => {
-          card.addEventListener('click', () => {
-            const videoId = card.dataset.youtubeVideoId;
-            if (!videoId || !player) return;
-            player.src = `https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1&autoplay=1`;
-            cards.forEach((item) => item.classList.remove('ring-2', 'ring-red-500', 'dark:ring-red-400'));
-            card.classList.add('ring-2', 'ring-red-500', 'dark:ring-red-400');
+        const featuredTitle = document.getElementById('youtube-featured-title');
+        const openFeatured = document.getElementById('youtube-open-featured');
+        const track = document.getElementById('youtube-carousel-track');
+        const prevButton = document.getElementById('youtube-carousel-prev');
+        const nextButton = document.getElementById('youtube-carousel-next');
+        const soundButton = document.getElementById('youtube-enable-sound');
+        const sentinel = document.getElementById('youtube-carousel-sentinel');
+        const videosDataEl = document.getElementById('youtube-videos-data');
+
+        const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const allVideos = videosDataEl ? JSON.parse(videosDataEl.textContent || '[]') : [];
+        let renderedBrowseCount = track ? track.querySelectorAll('[data-browse-card="true"]').length : 0;
+
+        const formatDate = (dateString) => {
+          const date = new Date(dateString);
+          if (Number.isNaN(date.getTime())) return '';
+          return `${MONTHS[date.getMonth()]} ${date.getDate()}`;
+        };
+
+        const buildEmbedUrl = (videoId, muted = true) => {
+          if (!videoId) return '';
+          const origin = (player?.dataset.origin || window.location.origin || '').replace(/\/$/, '');
+          return `https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1&autoplay=1&mute=${muted ? '1' : '0'}&controls=1&fs=1&enablejsapi=1&playsinline=1&origin=${encodeURIComponent(origin)}`;
+        };
+
+        const setActiveCards = (videoId) => {
+          const cards = document.querySelectorAll('.youtube-video-card');
+          cards.forEach((item) => item.classList.remove('ring-2', 'ring-red-500'));
+          document.querySelectorAll(`.youtube-video-card[data-youtube-video-id="${videoId}"]`).forEach((item) => {
+            item.classList.add('ring-2', 'ring-red-500');
           });
+        };
+
+        const createBrowseCard = (video) => {
+          const card = document.createElement('button');
+          card.type = 'button';
+          card.dataset.youtubeVideoId = video.id;
+          card.dataset.youtubeVideoTitle = video.title;
+          card.dataset.browseCard = 'true';
+          card.title = video.title;
+          card.className = 'youtube-video-card group min-w-[220px] max-w-[220px] snap-start overflow-hidden rounded-2xl border border-slate-800/70 bg-slate-900 text-left transition hover:border-red-500/60 hover:bg-slate-800';
+          card.innerHTML = `
+            <div class="aspect-video overflow-hidden">
+              <img src="${video.thumbnail}" alt="${video.title}" class="h-full w-full object-cover transition duration-200 group-hover:scale-105" loading="lazy" />
+            </div>
+            <div class="p-3">
+              <p class="text-sm font-semibold leading-5 text-white line-clamp-2">${video.title}</p>
+              <p class="mt-1 text-[11px] text-slate-500">${formatDate(video.publishedAt)}</p>
+            </div>
+          `;
+          return card;
+        };
+
+        const appendBrowseBatch = (batchSize = 8) => {
+          if (!track || renderedBrowseCount >= allVideos.length) return;
+          const nextItems = allVideos.slice(renderedBrowseCount, renderedBrowseCount + batchSize);
+          nextItems.forEach((video) => {
+            const card = createBrowseCard(video);
+            if (sentinel) {
+              track.insertBefore(card, sentinel);
+            } else {
+              track.appendChild(card);
+            }
+          });
+          renderedBrowseCount += nextItems.length;
+        };
+
+        const sendPlayerCommand = (func, args = []) => {
+          if (!player?.contentWindow) return;
+          player.contentWindow.postMessage(
+            JSON.stringify({ event: 'command', func, args, id: 'youtube-video-player' }),
+            '*'
+          );
+        };
+
+        const setSoundButtonState = (enabled) => {
+          if (!soundButton) return;
+          if (enabled) {
+            soundButton.textContent = 'Sound on';
+            soundButton.classList.add('opacity-55', 'border-white/20', 'bg-slate-900/40');
+            soundButton.classList.remove('opacity-100');
+          } else {
+            soundButton.textContent = 'Tap to unmute';
+            soundButton.classList.remove('opacity-55', 'border-white/20', 'bg-slate-900/40');
+            soundButton.classList.add('opacity-100');
+          }
+        };
+
+        document.addEventListener('click', (event) => {
+          const target = event.target;
+          if (!(target instanceof Element)) return;
+
+          const card = target.closest('.youtube-video-card');
+          if (!card) return;
+
+          const videoId = card.dataset.youtubeVideoId;
+          const videoTitle = card.dataset.youtubeVideoTitle || 'Featured video';
+          if (!videoId || !player) return;
+
+          player.src = buildEmbedUrl(videoId, true);
+          if (featuredTitle) featuredTitle.textContent = videoTitle;
+          if (openFeatured) openFeatured.setAttribute('href', `https://www.youtube.com/watch?v=${videoId}`);
+          setSoundButtonState(false);
+          setActiveCards(videoId);
         });
+
+        if (soundButton && player) {
+          soundButton.addEventListener('click', () => {
+            sendPlayerCommand('unMute');
+            sendPlayerCommand('setVolume', [90]);
+            sendPlayerCommand('playVideo');
+            setSoundButtonState(true);
+          });
+        }
+
+        if (track && prevButton && nextButton) {
+          const scrollAmount = 260;
+          prevButton.addEventListener('click', () => {
+            track.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+            appendBrowseBatch(6);
+          });
+          nextButton.addEventListener('click', () => {
+            track.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+            appendBrowseBatch(6);
+          });
+
+          track.addEventListener('scroll', () => {
+            if (track.scrollLeft + track.clientWidth >= track.scrollWidth - 220) {
+              appendBrowseBatch(6);
+            }
+          });
+        }
+
+        if (track && sentinel && 'IntersectionObserver' in window) {
+          const observer = new IntersectionObserver(
+            (entries) => {
+              entries.forEach((entry) => {
+                if (entry.isIntersecting) appendBrowseBatch(8);
+              });
+            },
+            { root: track, threshold: 0.6 }
+          );
+          observer.observe(sentinel);
+        }
       </script>
     </section>
