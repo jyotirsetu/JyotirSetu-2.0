@@ -15,7 +15,7 @@ const corsHeaders = {
 };
 
 // API Key validation
-const VALID_API_KEY = process.env.WHATSAPP_BOT_API_KEY || 'your-secure-api-key-here';
+const VALID_API_KEY = process.env.WHATSAPP_BOT_API_KEY || 'jyotirsetuastro-communication-api-key-2026';
 
 export const GET: APIRoute = async ({ request }) => {
   // Handle CORS preflight

@@ -17,7 +17,7 @@ const corsHeaders = {
 };
 
 // API Key validation (should match your bot's ADMIN_API_KEY)
-const VALID_API_KEY = process.env.WHATSAPP_BOT_API_KEY || 'your-secure-api-key-here';
+const VALID_API_KEY = process.env.WHATSAPP_BOT_API_KEY || 'jyotirsetuastro-communication-api-key-2026';
 
 export const POST: APIRoute = async ({ request }) => {
   // Handle CORS preflight
