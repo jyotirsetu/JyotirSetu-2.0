@@ -65,6 +65,15 @@ export default defineConfig({
         // Exclude pages that don't exist
         if (page.includes('/pricing') || page.includes('/resources')) return false;
 
+        // Exclude debug/test pages
+        if (page.includes('/contact-debug') || page.includes('/test-email')) return false;
+
+        // Exclude redirect-only pages
+        if (page.includes('/services/study-education')) return false;
+
+        // Exclude private/share pages that shouldn't be indexed
+        if (page.includes('/share/') || page.includes('/r/') || page.includes('/view/')) return false;
+
         return true;
       },
       // Add custom URLs for blog integration

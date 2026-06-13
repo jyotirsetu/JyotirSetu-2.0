@@ -81,9 +81,9 @@ export const footerData = {
     { text: 'Terms & Conditions', href: '/terms' },
   ],
   socialLinks: [
-    { ariaLabel: 'X', icon: 'tabler:brand-x', href: '#' },
     { ariaLabel: 'Instagram', icon: 'tabler:brand-instagram', href: 'https://www.instagram.com/jyotirsetu' },
-    { ariaLabel: 'Facebook', icon: 'tabler:brand-facebook', href: '#' },
+    { ariaLabel: 'Facebook', icon: 'tabler:brand-facebook', href: 'https://www.facebook.com/jyotirsetu' },
+    { ariaLabel: 'YouTube', icon: 'tabler:brand-youtube', href: 'https://www.youtube.com/@JyotirSetu' },
     { ariaLabel: 'Google', icon: 'tabler:brand-google', href: 'https://g.page/r/CXjH6HavONOeEBM/review' },
   ],
   footNote: `
