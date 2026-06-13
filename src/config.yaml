@@ -11,7 +11,7 @@ metadata:
   title:
     default: JyotirSetu Astrology – Bridge to Cosmic Light
     template: '%s — JyotirSetu Astrology'
-  description: 'Professional astrology, palmistry & numerology consultations by Astrologer Punita Sharma.'
+  description: 'Professional Vedic astrology, palmistry & numerology consultations by Astrologer Punita Sharma in Gurgaon, Haryana. Get expert Kundli analysis, gemstone guidance & dosha remedies.'
   robots:
     index: true
     follow: true
@@ -24,8 +24,8 @@ metadata:
         alt: 'JyotirSetu Logo'
     type: website
   twitter:
-    handle: null
-    site: null
+    handle: null # No Twitter/X account
+    site: null # No Twitter/X account
     cardType: summary_large_image
     images:
       - url: '~/assets/images/logo.png' # Logo for Twitter card
@@ -47,7 +47,7 @@ blog:
 analytics:
   vendors:
     googleAnalytics:
-      id: null # Add after Google Analytics setup
+      id: G-EQGNCD55GL
 
 ui:
   theme: 'system'
